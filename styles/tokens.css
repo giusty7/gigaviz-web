@@ -1,0 +1,33 @@
+:root{
+  /* Surface & text (dark default) */
+  --bg: 0 0% 3%;
+  --fg: 210 20% 98%;
+
+  /* Cards / popover */
+  --card: 0 0% 6%;
+  --card-foreground: 210 20% 98%;
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+
+  /* Brand */
+  --brand: 222 89% 52%;
+  --brand-foreground: 210 20% 98%;
+
+  /* Map utk shadcn */
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --secondary: 0 0% 12%;
+  --secondary-foreground: var(--fg);
+
+  /* Neutrals */
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 70%;
+
+  /* Controls */
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+  --ring: var(--brand);
+
+  /* Radius */
+  --radius: 16px;
+}
