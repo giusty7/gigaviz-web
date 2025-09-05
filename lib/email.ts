@@ -1,46 +1,37 @@
-import { Resend } from 'resend';
+export type ContactEmailParams = { name: string; email: string; message: string };
 
-type Params = { name: string; email: string; message: string };
-
-const FROM = process.env.RESEND_FROM || 'Gigaviz <noreply@gigaviz.com>';
-const TO = process.env.CONTACT_TO || 'admin@gigaviz.com>';
-
-let client: Resend | null = null;
-
-function getClient(): Resend | null {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  try {
-    client = client ?? new Resend(key);
-    return client;
-  } catch {
-    return null;
-  }
-}
-
-export async function sendContactEmail(
-  { name, email, message }: Params
-): Promise<{ sent: boolean }> {
-  const c = getClient();
-  if (!c) {
-    console.warn('[email] RESEND_API_KEY missing or client not initialised.');
-    return { sent: false };
+export async function sendContactEmail({ name, email, message }: ContactEmailParams) {
+  const apiKey = process.env.RESEND_API_KEY;
+  // Fallback saat tidak ada API key
+  if (!apiKey) {
+    return { ok: true as const, sent: false as const };
   }
 
+  const from = process.env.CONTACT_FROM_EMAIL ?? "onboarding@resend.dev";
+  const to = process.env.CONTACT_TO_EMAIL ?? process.env.CONTACT_FROM_EMAIL ?? "you@example.com";
+
   try {
-    await c.emails.send({
-      from: FROM,
-      to: TO,
-      subject: `New contact from ${name}`,
-      text:
-        `Name: ${name}\n` +
-        `Email: ${email}\n\n` +
-        `Message:\n${message}\n`,
-      replyTo: email,
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject: `New contact message from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+        reply_to: email,
+      }),
     });
-    return { sent: true };
-  } catch (err) {
-    console.error('[email] send failed', err);
-    return { sent: false };
+
+    if (!res.ok) {
+      return { ok: true as const, sent: false as const };
+    }
+    return { ok: true as const, sent: true as const };
+  } catch {
+    return { ok: true as const, sent: false as const };
   }
 }
+
