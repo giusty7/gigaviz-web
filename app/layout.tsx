@@ -1,30 +1,33 @@
-import "./globals.css";
+import "@/styles/globals.css";
 import type { Metadata } from "next";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL!),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Gigaviz — Coming Soon",
+    default: "Gigaviz",
     template: "%s — Gigaviz",
   },
-  description: "Situs resmi Gigaviz segera hadir.",
-  alternates: { canonical: "/" },
+  description: "Platform visualisasi data modern.",
   openGraph: {
-    title: "Gigaviz — Coming Soon",
-    description: "Situs resmi Gigaviz segera hadir.",
-    url: "/",
-    siteName: "Gigaviz",
     images: ["/opengraph-image"],
-    type: "website",
   },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/opengraph-image"],
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="id">
+    <html lang="id" className="dark">
       <body>
         <Navbar />
         {children}
