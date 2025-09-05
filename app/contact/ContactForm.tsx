@@ -33,7 +33,8 @@ export default function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error();
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error();
       setStatus("success");
     } catch {
       setStatus("error");
