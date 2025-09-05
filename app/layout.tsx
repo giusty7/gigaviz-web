@@ -4,15 +4,19 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Gigaviz — Coming Soon",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL!),
+  title: {
+    default: "Gigaviz — Coming Soon",
+    template: "%s — Gigaviz",
+  },
   description: "Situs resmi Gigaviz segera hadir.",
-  metadataBase: new URL("https://gigaviz.com"),
-  alternates: { canonical: "https://gigaviz.com" },
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Gigaviz — Coming Soon",
     description: "Situs resmi Gigaviz segera hadir.",
-    url: "https://gigaviz.com",
+    url: "/",
     siteName: "Gigaviz",
+    images: ["/opengraph-image"],
     type: "website",
   },
   robots: { index: true, follow: true },
