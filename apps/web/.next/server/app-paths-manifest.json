@@ -1,3 +1,3 @@
 {
-  "/api/ai-smoke/route": "app/api/ai-smoke/route.js"
+  "/api/contact/route": "app/api/contact/route.js"
 }
