@@ -2,19 +2,18 @@
   "name": "gigaviz",
   "private": true,
   "packageManager": "pnpm@9.7.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "pnpm -C apps/web dev",
     "build": "pnpm -C apps/web build",
-    "lint": "pnpm -C apps/web lint"
+    "lint": "pnpm -C apps/web lint",
+    "typecheck": "pnpm -C apps/web typecheck",
+    "postinstall": "pnpm -C packages/db prisma generate"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
-    "prisma": "^5.22.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^20",
+    "prisma": "5.22.0",
+    "typescript": "^5"
   },
   "pnpm": { "onlyBuiltDependencies": ["@prisma/client"] }
 }
