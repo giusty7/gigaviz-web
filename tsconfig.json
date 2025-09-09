@@ -9,5 +9,9 @@
     "paths": {
       "@gv/*": ["./packages/*/src"]
     }
-  }
+  },
+  "exclude": [
+    "apps/web/app/robots.txt",
+    "apps/web/app/sitemap.xml"
+  ]
 }

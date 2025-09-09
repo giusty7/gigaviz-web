@@ -1,8 +1,10 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  transpilePackages: ["@gv/config","@gv/http","@gv/ai","@gv/db"],
   experimental: {
-    transpilePackages: ['@gv/config', '@gv/http'],
-  },
+    serverComponentsExternalPackages: ["@prisma/client"]
+  }
 };
 
 export default nextConfig;

@@ -5,6 +5,7 @@ export const contactSchema = z.object({
   email: z.string().email(),
   message: z.string().min(1),
   website: z.string().optional(),
+  ts: z.number().optional(),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

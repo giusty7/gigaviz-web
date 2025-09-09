@@ -1,4 +1,7 @@
-export function canonical(path: string) {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  return new URL(path, base).toString();
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gigaviz.com";
+export const brand = "Gigaviz";
+
+export function canonical(path = "/") {
+  const url = new URL(path, siteUrl);
+  return url.toString();
 }

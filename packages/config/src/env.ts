@@ -22,6 +22,7 @@ const EnvSchema = z.object({
   // HTTP security
   HTTP_OUTBOUND_ALLOWLIST: z.string().default(""),
   DRY_RUN_HTTP: z.string().default("1"),
+  DATABASE_URL: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);
