@@ -1,35 +1,43 @@
 name: CI
+
 on:
   pull_request:
-    branches: [ "main" ]
-  push:
-    branches: [ "main" ]
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-permissions:
-  contents: read
+    branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Enable pnpm (fallback to npm)
-        run: |
-          corepack enable
-          corepack prepare pnpm@8 --activate || true
-      - name: Install deps
-        run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile=false; \
-          elif [ -f package-lock.json ]; then npm ci || npm install; \
-          else npm install; fi
-      - name: Lint
-        run: npm run lint || pnpm lint
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install deps (root)
+        run: pnpm install --frozen-lockfile
+
+      # generate prisma client sekali di root (monorepo)
+      - name: Prisma generate
+        run: pnpm -C packages/db prisma generate
+
+      # typecheck & lint opsional
       - name: Typecheck
-        run: npm run typecheck || pnpm typecheck
-      - name: Build
-        run: npm run build || pnpm build
+        run: pnpm -C apps/web typecheck
+
+      - name: Build web
+        run: pnpm -C apps/web build
+        env:
+          # minimal env agar build Next aman
+          NEXT_PUBLIC_SITE_URL: http://localhost
+          HTTP_OUTBOUND_ALLOWLIST: api.openai.com,generativelanguage.googleapis.com,api.telegram.org,graph.facebook.com,api.topmediaai.com,api.resend.com
+          DRY_RUN_HTTP: 1
