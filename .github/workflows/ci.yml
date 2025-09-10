@@ -2,52 +2,36 @@ name: build
 
 on:
   pull_request:
-    branches: [ main ]
   push:
-    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 1) Install pnpm lebih dulu
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: Add pnpm to PATH
-        run: echo "$(pnpm bin -g)" >> $GITHUB_PATH
-
-      # 2) Baru setup Node + cache untuk pnpm
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          # (opsional) kalau ada beberapa lockfile
-          cache-dependency-path: |
-            pnpm-lock.yaml
+          cache: 'pnpm'                 # cache pnpm lockfile
+
+      - name: Enable Corepack (use packageManager)
+        run: |
+          corepack enable                # aktifkan corepack
+          corepack prepare pnpm@9.7.0 --activate  # pastikan 9.7.0
 
       - name: Show versions
         run: |
           node -v
           pnpm -v
 
-      # 3) Install deps workspace
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
-      # 4) Generate Prisma client
       - name: Prisma generate
         run: pnpm -C packages/db prisma generate
 
-      # 5) Typecheck & build app web
       - name: Typecheck
         run: pnpm -C apps/web typecheck
 
