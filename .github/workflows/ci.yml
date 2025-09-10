@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-  push
+  push:
     branches: [ main ]
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
         run: pnpm -C apps/web build
-        
+
       # typecheck & lint opsional
       - name: Typecheck
         run: pnpm -C apps/web typecheck
