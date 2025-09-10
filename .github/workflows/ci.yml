@@ -1,35 +1,39 @@
-name: CI
+name: build
+
 on:
   pull_request:
-    branches: [ "main" ]
   push:
-    branches: [ "main" ]
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-permissions:
-  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Enable pnpm (fallback to npm)
+          node-version: 20
+          cache: 'pnpm'                 # cache pnpm lockfile
+
+      - name: Enable Corepack (use packageManager)
         run: |
-          corepack enable
-          corepack prepare pnpm@8 --activate || true
+          corepack enable                # aktifkan corepack
+          corepack prepare pnpm@9.7.0 --activate  # pastikan 9.7.0
+
+      - name: Show versions
+        run: |
+          node -v
+          pnpm -v
+
       - name: Install deps
-        run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile=false; \
-          elif [ -f package-lock.json ]; then npm ci || npm install; \
-          else npm install; fi
-      - name: Lint
-        run: npm run lint || pnpm lint
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm -C packages/db prisma generate
+
       - name: Typecheck
-        run: npm run typecheck || pnpm typecheck
-      - name: Build
-        run: npm run build || pnpm build
+        run: pnpm -C apps/web typecheck
+
+      - name: Build web
+        run: pnpm -C apps/web build

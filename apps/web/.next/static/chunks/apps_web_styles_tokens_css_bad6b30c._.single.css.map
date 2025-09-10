@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/apps/web/styles/tokens.css"],"sourcesContent":[":root {\n  --bg: 0 0% 100%;\n  --fg: 240 10% 3.9%;\n  --primary: 221.2 83.2% 53.3%;\n  --primary-foreground: 210 40% 98%;\n  --muted: 240 4.8% 95.9%;\n  --muted-foreground: 240 3.8% 46.1%;\n  --border: 240 5.9% 90%;\n  --ring: 215 20.2% 65.1%;\n  --radius: 10px;\n}\n\n.dark {\n  --bg: 240 10% 3.9%;\n  --fg: 0 0% 98%;\n  --primary: 221.2 83.2% 53.3%;\n  --primary-foreground: 210 40% 98%;\n  --muted: 240 3.7% 15.9%;\n  --muted-foreground: 240 5% 64.9%;\n  --border: 240 3.7% 15.9%;\n  --ring: 221.2 83.2% 53.3%;\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;;;;;AAYA"}}]
+}
