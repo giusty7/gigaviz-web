@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+  push
     branches: [ main ]
 
 jobs:
@@ -11,8 +12,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for lerna versioning 
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -23,13 +26,28 @@ jobs:
         with:
           version: 9
 
-      - name: Install deps (root)
+      - name: Add pnpm to PATH
+        run: echo "$(pnpm bin -g)" >> $GITHUB_PATH
+
+      - name: Show versions
+        run: |
+          node -v
+          pnpm -v
+      
+      - name: Install deps
         run: pnpm install --frozen-lockfile
 
       # generate prisma client sekali di root (monorepo)
       - name: Prisma generate
         run: pnpm -C packages/db prisma generate
 
+      # Build Next.js app
+      - name: Build web
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+        run: pnpm -C apps/web build
+        
       # typecheck & lint opsional
       - name: Typecheck
         run: pnpm -C apps/web typecheck
