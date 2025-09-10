@@ -1,35 +1,62 @@
 name: CI
+
 on:
   pull_request:
-    branches: [ "main" ]
   push:
-    branches: [ "main" ]
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-permissions:
-  contents: read
+    branches: [main]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1) Node dulu (tanpa cache dulu tidak apa-apa)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Enable pnpm (fallback to npm)
+          node-version: 20
+
+      # 2) Enable corepack supaya 'pnpm' tersedia via shim
+      - name: Enable Corepack
+        run: corepack enable
+
+      # 3) Install pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # (opsional, kadang membantu di runner tertentu)
+      - name: Add pnpm to PATH
+        run: echo "$(pnpm bin -g)" >> $GITHUB_PATH
+
+      # 4) Aktifkan cache pnpm sekarang (setelah pnpm ada)
+      - name: Setup Node.js cache for pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            apps/**/pnpm-lock.yaml
+            packages/**/pnpm-lock.yaml
+
+      - name: Show versions
         run: |
-          corepack enable
-          corepack prepare pnpm@8 --activate || true
+          node -v
+          pnpm -v
+
       - name: Install deps
-        run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile=false; \
-          elif [ -f package-lock.json ]; then npm ci || npm install; \
-          else npm install; fi
-      - name: Lint
-        run: npm run lint || pnpm lint
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Prisma generate
+        run: pnpm -C packages/db prisma generate
+
+      - name: Build web
+        run: pnpm -C apps/web build
+
       - name: Typecheck
-        run: npm run typecheck || pnpm typecheck
-      - name: Build
-        run: npm run build || pnpm build
+        run: pnpm -C apps/web typecheck
