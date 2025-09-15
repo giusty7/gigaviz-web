@@ -1,5 +1,6 @@
 import { listContacts, countContacts, deleteContact } from "@gv/db";
 import { revalidatePath } from "next/cache";
+import type { ContactMessage } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export default async function AdminContactsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r: any) => (
+            {rows.map((r: ContactMessage) => (
               <tr key={r.id} className="border-t border-zinc-800 align-top">
                 <td className="p-2 whitespace-nowrap">
                   {new Date(r.createdAt).toLocaleString()}

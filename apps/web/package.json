@@ -1,53 +1,15 @@
 {
-  "name": "gigaviz-web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "format": "prettier --write ."
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "dependencies": {
-    "@gv/config": "workspace:*",
-    "@gv/db": "workspace:*",
-    "@gv/http": "workspace:*",
-    "@hookform/resolvers": "^3.3.2",
-    "@prisma/client": "5.22.0",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-separator": "^1.1.7",
-    "@radix-ui/react-slot": "^1.2.3",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.542.0",
-    "next": "15.5.2",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-hook-form": "^7.51.4",
-    "resend": "^6.0.2",
-    "tailwind-merge": "^3.3.1",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.2",
-    "postcss": "^8.5.6",
-    "prettier": "^3.3.3",
-    "prisma": "5.22.0",
-    "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7",
-    "tw-animate-css": "^1.3.8",
-    "typescript": "^5"
-  },
-  "prisma": {
-    "schema": "../../packages/db/prisma/schema.prisma"
-  }
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
