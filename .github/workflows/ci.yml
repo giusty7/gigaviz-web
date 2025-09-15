@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CI: true
 
     steps:
       - name: Checkout
@@ -16,26 +18,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: 'pnpm'   # cache berdasarkan pnpm-lock.yaml di root
 
-      # aktifkan corepack agar pnpm bisa dipakai
-      - name: Enable Corepack
-        run: corepack enable
+      # aktifkan corepack dan kunci versi pnpm yang sama dgn packageManager
+      - name: Enable Corepack & pin pnpm 9.7.0
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.7.0 --activate
+          pnpm -v
 
-      # pastikan versi pnpm sama dgn packageManager (9.7.0)
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      # kadang runner perlu PATH ini supaya 'pnpm' kebaca
-      - name: Add pnpm to PATH
-        run: echo "$(pnpm bin -g)" >> $GITHUB_PATH
-
-      # install semua deps workspace (lockfile wajib sinkron)
+      # install semua deps monorepo; lockfile harus sudah sinkron
       - name: Install deps (workspace)
         run: pnpm -w install --frozen-lockfile
 
-      # generate prisma client (kalau paket db ada prisma)
+      # generate prisma client (jalan hanya jika schema ada)
       - name: Prisma generate
+        if: ${{ hashFiles('packages/db/prisma/schema.prisma') != '' }}
         run: pnpm -C packages/db prisma generate
 
       # typecheck & build app
