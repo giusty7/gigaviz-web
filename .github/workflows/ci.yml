@@ -1,35 +1,33 @@
-name: CI
+name: build
+
 on:
-  pull_request:
-    branches: [ "main" ]
   push:
-    branches: [ "main" ]
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-permissions:
-  contents: read
+  pull_request:
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Enable pnpm (fallback to npm)
-        run: |
-          corepack enable
-          corepack prepare pnpm@8 --activate || true
+          node-version: 20
+          cache: npm
+
       - name: Install deps
-        run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile=false; \
-          elif [ -f package-lock.json ]; then npm ci || npm install; \
-          else npm install; fi
-      - name: Lint
-        run: npm run lint || pnpm lint
+        run: npm ci
+
       - name: Typecheck
-        run: npm run typecheck || pnpm typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
       - name: Build
-        run: npm run build || pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build
