@@ -1,35 +1,51 @@
-name: CI
+name: build
+
 on:
   pull_request:
-    branches: [ "main" ]
   push:
-    branches: [ "main" ]
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-permissions:
-  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    env:
+      CI: true
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Enable pnpm (fallback to npm)
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      # pastikan corepack ada di runner
+      - name: Ensure corepack is installed
+        run: npm i -g corepack
+
+      # aktifkan corepack + kunci versi pnpm
+      - name: Enable Corepack & pin pnpm 9.7.0
         run: |
           corepack enable
-          corepack prepare pnpm@8 --activate || true
-      - name: Install deps
-        run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile=false; \
-          elif [ -f package-lock.json ]; then npm ci || npm install; \
-          else npm install; fi
-      - name: Lint
-        run: npm run lint || pnpm lint
-      - name: Typecheck
-        run: npm run typecheck || pnpm typecheck
-      - name: Build
-        run: npm run build || pnpm build
+          corepack prepare pnpm@9.7.0 --activate
+          pnpm -v
+
+      # install deps seluruh workspace, lockfile wajib sinkron
+      - name: Install deps (workspace)
+        run: pnpm -w install --frozen-lockfile
+
+      # generate prisma client (jika schema ada)
+      - name: Prisma generate
+        if: ${{ hashFiles('packages/db/prisma/schema.prisma') != '' }}
+        run: pnpm -C packages/db prisma generate
+
+      # typecheck & build app
+      - name: Typecheck web
+        run: pnpm -C apps/web typecheck
+
+      - name: Build web
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: pnpm -C apps/web build
