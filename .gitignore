@@ -42,3 +42,8 @@ next-env.d.ts
 
 .vercel
 .env.local
+
+# Build outputs
+**/.next/
+# Node modules (jaga-jaga)
+**/node_modules/
