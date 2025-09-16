@@ -18,20 +18,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'   # cache berdasarkan pnpm-lock.yaml di root
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-      # aktifkan corepack dan kunci versi pnpm yang sama dgn packageManager
+      # pastikan corepack ada di runner
+      - name: Ensure corepack is installed
+        run: npm i -g corepack
+
+      # aktifkan corepack + kunci versi pnpm
       - name: Enable Corepack & pin pnpm 9.7.0
         run: |
           corepack enable
           corepack prepare pnpm@9.7.0 --activate
           pnpm -v
 
-      # install semua deps monorepo; lockfile harus sudah sinkron
+      # install deps seluruh workspace, lockfile wajib sinkron
       - name: Install deps (workspace)
         run: pnpm -w install --frozen-lockfile
 
-      # generate prisma client (jalan hanya jika schema ada)
+      # generate prisma client (jika schema ada)
       - name: Prisma generate
         if: ${{ hashFiles('packages/db/prisma/schema.prisma') != '' }}
         run: pnpm -C packages/db prisma generate
