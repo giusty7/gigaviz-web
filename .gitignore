@@ -1,49 +1,44 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# OS / Editor
 .DS_Store
-*.pem
+Thumbs.db
 
-# debug
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# Dependencies
+node_modules/
+
+# Next.js / Turbopack outputs
+.next/
+.turbo/
+out/
+dist/
+build/
+.cache/
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
-.env.local
+# Env files (keep example in VCS)
+.env
+.env.*
+!.env.example
 
-# Build outputs
-**/.next/
-# Node modules (jaga-jaga)
-**/node_modules/
+# Vercel
+.vercel/
+
+# (Opsional) Prisma SQLite
+*.db
+*.db-journal
+packages/db/prisma/*.db
