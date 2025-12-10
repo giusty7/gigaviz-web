@@ -57,7 +57,7 @@ ${parsed.message}
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: [TO_EMAIL],
-      reply_to: parsed.email,
+      replyTo: parsed.email,
       subject: `[Gigaviz.com] Kontak baru: ${parsed.topic}`,
       text,
     });
