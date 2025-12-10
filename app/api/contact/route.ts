@@ -1,57 +1,85 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { contactSchema } from "@/lib/validation/contact";
 
-export async function POST(request: Request) {
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// email tujuan utama (inbox kamu)
+const TO_EMAIL =
+  process.env.CONTACT_RECIPIENT_EMAIL ?? "your-email@example.com";
+
+// alamat pengirim (boleh pakai onboarding@resend.dev dulu)
+const FROM_EMAIL =
+  process.env.CONTACT_FROM_EMAIL ??
+  "Gigaviz Contact <onboarding@resend.dev>";
+
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
+    const body = await req.json();
 
-    const parsed = contactSchema.safeParse(body);
+    // Validasi server-side
+    const parsed = contactSchema.parse(body);
 
-    // Kalau error validasi
-    if (!parsed.success) {
+    // Honeypot: kalau field "website" terisi, anggap bot, tapi balas sukses
+    if (parsed.website && parsed.website.trim().length > 0) {
+      console.warn("Contact spam detected (honeypot filled).", parsed);
+      return NextResponse.json(
+        { message: "Terima kasih, pesan Anda sudah kami terima." },
+        { status: 200 }
+      );
+    }
+
+    // Kalau API key belum di-set → cuma log, tapi tetap balas sukses
+    if (!process.env.RESEND_API_KEY) {
+      console.warn(
+        "[CONTACT] RESEND_API_KEY belum di-set. Pesan hanya dicatat di log.",
+        parsed
+      );
       return NextResponse.json(
         {
-          ok: false,
-          message: "Data tidak valid",
-          errors: parsed.error.flatten().fieldErrors,
+          message:
+            "Pesan masuk (mode development). Setelah email dikonfigurasi, pesan akan dikirim ke inbox.",
         },
-        { status: 400 }
+        { status: 200 }
       );
     }
 
-    const data = parsed.data;
+    const text = `Ada pesan baru dari form kontak Gigaviz.com:
 
-    // Honeypot: kalau field website terisi, anggap spam
-    if (data.website && data.website.trim().length > 0) {
-      return NextResponse.json(
-        { ok: false, message: "Spam terdeteksi" },
-        { status: 400 }
-      );
-    }
+Nama   : ${parsed.name}
+Email  : ${parsed.email}
+Topik  : ${parsed.topic}
 
-    // TODO: di sini nanti bisa kirim email / WA / simpan ke DB
-    console.log("CONTACT FORM SUBMISSION:", {
-      name: data.name,
-      email: data.email,
-      topic: data.topic,
-      message: data.message,
+Pesan:
+${parsed.message}
+`;
+
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [TO_EMAIL],
+      reply_to: parsed.email,
+      subject: `[Gigaviz.com] Kontak baru: ${parsed.topic}`,
+      text,
     });
 
+    if (error) {
+      console.error("[CONTACT] Error kirim email:", error);
+      return NextResponse.json(
+        { message: "Gagal mengirim email. Coba beberapa saat lagi." },
+        { status: 500 }
+      );
+    }
+
+    console.log("[CONTACT] Form terkirim:", parsed);
+
     return NextResponse.json(
-      {
-        ok: true,
-        message: "Terima kasih, pesan Anda sudah kami terima.",
-      },
+      { message: "Terima kasih, pesan Anda sudah kami terima." },
       { status: 200 }
     );
-  } catch (error) {
-    console.error("CONTACT FORM ERROR:", error);
+  } catch (err) {
+    console.error("[CONTACT] Unexpected error:", err);
     return NextResponse.json(
-      {
-        ok: false,
-        message:
-          "Terjadi kesalahan di server. Silakan coba lagi beberapa saat lagi.",
-      },
+      { message: "Terjadi kesalahan. Coba lagi nanti." },
       { status: 500 }
     );
   }
