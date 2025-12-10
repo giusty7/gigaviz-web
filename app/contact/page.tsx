@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Kontak",
@@ -9,7 +8,7 @@ export const metadata: Metadata = {
     "Hubungi Gigaviz untuk diskusi kebutuhan WA Blast, dashboard, atau produk digital lainnya.",
 };
 
-const WHATSAPP_NUMBER = "6283165655670"; // GANTI NOMOR INI
+const WHATSAPP_NUMBER = "6283165655670"; // GANTI NOMOR INI JIKA PERLU
 
 export default function ContactPage() {
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
@@ -19,6 +18,7 @@ export default function ContactPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gigaviz-bg">
       <Navbar />
+
       <main className="flex-1">
         <section className="border-b border-slate-800/60">
           <div className="container grid gap-10 py-12 md:grid-cols-[1.2fr,1fr] md:py-16">
@@ -36,12 +36,14 @@ export default function ContactPage() {
                 <p className="font-semibold text-slate-100">
                   Cara tercepat: WhatsApp
                 </p>
-                <Link
+                <a
                   href={waUrl}
+                  target="_blank"
+                  rel="noreferrer"
                   className="inline-flex items-center rounded-2xl bg-emerald-500 px-4 py-2 text-xs font-medium text-slate-900 shadow-sm hover:bg-emerald-400"
                 >
                   Chat via WhatsApp Business
-                </Link>
+                </a>
                 <p className="text-xs text-slate-500">
                   *Tombol di atas akan membuka WhatsApp dengan template pesan
                   awal.
@@ -63,6 +65,7 @@ export default function ContactPage() {
           </div>
         </section>
       </main>
+
       <Footer />
     </div>
   );
