@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type Lead = {
   name: string;
@@ -8,12 +7,20 @@ type Lead = {
   business?: string;
   need: string;
   notes?: string;
-  createdAt: string;
   source: string;
+  user_agent?: string | null;
+  ip?: string | null;
 };
 
 function isValidPhone(phone: string) {
   return /^\d{9,15}$/.test(phone);
+}
+
+function getIP(req: Request) {
+  // Vercel / proxy headers
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return req.headers.get("x-real-ip");
 }
 
 export async function POST(req: Request) {
@@ -38,25 +45,17 @@ export async function POST(req: Request) {
       business: business || undefined,
       need,
       notes: notes || undefined,
-      createdAt: new Date().toISOString(),
       source: "wa-platform",
+      user_agent: req.headers.get("user-agent"),
+      ip: getIP(req),
     };
 
-    // Simpan ke file lokal (dev-friendly).
-    // NOTE: Untuk production, kita akan pindah ke DB (Supabase) supaya permanent.
-    const dataDir = path.join(process.cwd(), "data");
-    const filePath = path.join(dataDir, "leads.json");
+    const supabase = supabaseAdmin();
 
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-    let existing: Lead[] = [];
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, "utf8");
-      existing = raw ? (JSON.parse(raw) as Lead[]) : [];
+    const { error } = await supabase.from("leads").insert(lead);
+    if (error) {
+      return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
     }
-
-    existing.unshift(lead);
-    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2), "utf8");
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
