@@ -12,7 +12,7 @@ function requiredEnv(name: string) {
 export async function sendWhatsAppText({ to, body }: SendTextArgs) {
   const token = requiredEnv("WA_CLOUD_API_TOKEN");
   const phoneNumberId = requiredEnv("WA_PHONE_NUMBER_ID");
-  const version = process.env.WA_GRAPH_VERSION || "v21.0";
+  const version = process.env.WA_GRAPH_VERSION || "v22.0";
 
   const url = `https://graph.facebook.com/${version}/${phoneNumberId}/messages`;
 
