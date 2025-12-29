@@ -16,15 +16,24 @@ type Lead = {
   ip?: string | null;
 };
 
+type Attempt = {
+  status: string;
+  reason?: string;
+  name?: string;
+  phone?: string;
+  business?: string;
+  need?: string;
+  notes?: string;
+  source?: string;
+  user_agent?: string | null;
+  ip?: string | null;
+  lead_id?: string | null;
+};
+
 function onlyDigits(s: string) {
   return (s || "").replace(/\D+/g, "");
 }
 
-/**
- * Normalisasi nomor:
- * - terima +62/62/08xxx/spasi/strip
- * - simpan jadi digits saja, contoh: 62812xxxx
- */
 function normalizePhone(raw: string) {
   let p = onlyDigits(raw);
   if (p.startsWith("0")) p = "62" + p.slice(1);
@@ -50,54 +59,71 @@ function isoSecondsAgo(sec: number) {
   return new Date(Date.now() - sec * 1000).toISOString();
 }
 
-// Postgres unique violation code
-function isUniqueViolation(err: any) {
-  const code = err?.code || err?.cause?.code;
-  return code === "23505";
+function isoMinutesAgo(min: number) {
+  return new Date(Date.now() - min * 60 * 1000).toISOString();
 }
 
 export async function POST(req: Request) {
+  const supabase = supabaseAdmin();
+
+  async function logAttempt(a: Attempt) {
+    try {
+      await supabase.from("lead_attempts").insert({
+        status: a.status,
+        reason: a.reason,
+        name: a.name,
+        phone: a.phone,
+        business: a.business,
+        need: a.need,
+        notes: a.notes,
+        source: a.source || "wa-platform",
+        user_agent: a.user_agent ?? null,
+        ip: a.ip ?? null,
+        lead_id: a.lead_id ?? null,
+      });
+    } catch (e) {
+      // best effort, jangan ganggu response user
+      console.error("[LEADS] attempt log failed:", e);
+    }
+  }
+
   try {
     const body = await req.json().catch(() => null);
     if (!body) {
-      return NextResponse.json(
-        { ok: false, message: "Payload tidak valid." },
-        { status: 400 }
-      );
+      await logAttempt({ status: "invalid", reason: "invalid_payload", ip: getIP(req), user_agent: req.headers.get("user-agent") });
+      return NextResponse.json({ ok: false, message: "Payload tidak valid." }, { status: 400 });
     }
 
     // Honeypot anti-bot
     const honeypot = String(body?.website || "").trim();
     if (honeypot.length > 0) {
+      await logAttempt({ status: "honeypot", reason: "honeypot_filled", ip: getIP(req), user_agent: req.headers.get("user-agent") });
       return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
     }
 
     const name = clamp(String(body?.name || ""), 80);
     const phone = normalizePhone(String(body?.phone || ""));
     const business = clamp(String(body?.business || ""), 120);
-    const need = clamp(String(body?.need || ""), 80);
+    const need = clamp(String(body?.need || ""), 60);
     const notes = clamp(String(body?.notes || ""), 800);
 
+    const ip = getIP(req);
+    const ua = clamp(req.headers.get("user-agent") || "", 200) || null;
+
     if (!name) {
-      return NextResponse.json(
-        { ok: false, message: "Nama wajib diisi." },
-        { status: 400 }
-      );
+      await logAttempt({ status: "invalid", reason: "missing_name", name, phone, business, need, notes, ip, user_agent: ua });
+      return NextResponse.json({ ok: false, message: "Nama wajib diisi." }, { status: 400 });
     }
     if (!isValidPhoneDigits(phone)) {
+      await logAttempt({ status: "invalid", reason: "invalid_phone", name, phone, business, need, notes, ip, user_agent: ua });
       return NextResponse.json(
-        {
-          ok: false,
-          message: "Nomor WA tidak valid. Gunakan format 62xxxx atau 08xxxx.",
-        },
+        { ok: false, message: "Nomor WA tidak valid. Gunakan format 62xxxx atau 08xxxx." },
         { status: 400 }
       );
     }
     if (!need) {
-      return NextResponse.json(
-        { ok: false, message: "Kebutuhan wajib dipilih." },
-        { status: 400 }
-      );
+      await logAttempt({ status: "invalid", reason: "missing_need", name, phone, business, need, notes, ip, user_agent: ua });
+      return NextResponse.json({ ok: false, message: "Kebutuhan wajib dipilih." }, { status: 400 });
     }
 
     const lead: Lead = {
@@ -107,56 +133,71 @@ export async function POST(req: Request) {
       need,
       notes: notes || undefined,
       source: "wa-platform",
-      user_agent: clamp(req.headers.get("user-agent") || "", 200) || null,
-      ip: getIP(req),
+      user_agent: ua,
+      ip,
     };
 
-    const supabase = supabaseAdmin();
-
     /**
-     * Rate limit ringan per IP (anti spam)
-     * - Max 6 request / 60 detik per IP
+     * Rate limit ringan per IP:
+     * max 6 request / 60 detik
      */
     const ipKey = lead.ip || "unknown";
     if (ipKey !== "unknown") {
       const rlSince = isoSecondsAgo(60);
       const { data: recentByIp, error: rlErr } = await supabase
-        .from("leads")
+        .from("lead_attempts")
         .select("id")
         .eq("ip", ipKey)
         .gte("created_at", rlSince)
         .limit(7);
 
-      if (rlErr) {
-        console.error("[LEADS] RateLimit check error:", rlErr);
-      } else if ((recentByIp?.length || 0) >= 6) {
-        return NextResponse.json(
-          { ok: false, message: "Terlalu cepat. Coba lagi sebentar lagi." },
-          { status: 429 }
-        );
+      if (!rlErr && (recentByIp?.length || 0) >= 6) {
+        await logAttempt({ status: "rate_limited", reason: "ip_60s_limit", ...lead });
+        return NextResponse.json({ ok: false, message: "Terlalu cepat. Coba lagi sebentar lagi." }, { status: 429 });
       }
+    }
+
+    /**
+     * Dedupe 10 menit (soft) + ada UNIQUE index di DB (hard)
+     * - Kalau mau dedupe bener-bener cuma 10 menit, UNIQUE index perlu di-drop.
+     */
+    const dedupeSince = isoMinutesAgo(10);
+    const { data: existing, error: existErr } = await supabase
+      .from("leads")
+      .select("id,created_at")
+      .eq("phone", lead.phone)
+      .eq("need", lead.need)
+      .eq("source", lead.source)
+      .gte("created_at", dedupeSince)
+      .limit(1);
+
+    if (!existErr && (existing?.length || 0) > 0) {
+      await logAttempt({ status: "deduped", reason: "soft_10min", ...lead });
+      return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
     }
 
     /**
      * Insert lead
-     * - DB sudah UNIQUE (phone, need, source)
-     * - kalau duplicate → balas sukses deduped:true (bukan error)
      */
-    const { error: insErr } = await supabase.from("leads").insert(lead);
+    const { data: insData, error: insErr } = await supabase.from("leads").insert(lead).select("id").maybeSingle();
 
     if (insErr) {
-      if (isUniqueViolation(insErr)) {
+      // kalau kena unique constraint (23505), anggap deduped
+      const code = (insErr as any)?.code;
+      if (code === "23505") {
+        await logAttempt({ status: "deduped", reason: "unique_constraint", ...lead });
         return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
       }
-      console.error("[LEADS] Insert error:", insErr);
-      return NextResponse.json(
-        { ok: false, message: "Gagal menyimpan lead." },
-        { status: 500 }
-      );
+
+      await logAttempt({ status: "error", reason: insErr.message, ...lead });
+      return NextResponse.json({ ok: false, message: "Gagal menyimpan lead." }, { status: 500 });
     }
 
+    const leadId = insData?.id || null;
+    await logAttempt({ status: "inserted", reason: "ok", ...lead, lead_id: leadId });
+
     /**
-     * Notif WA admin (best effort) - cuma kalau lead baru (insert sukses)
+     * Notif WA admin (best effort)
      */
     const adminPhoneRaw = process.env.WA_ADMIN_PHONE || "";
     const adminPhone = normalizePhone(adminPhoneRaw);
@@ -176,16 +217,11 @@ export async function POST(req: Request) {
       } catch (waErr) {
         console.error("[LEADS] WA notify failed:", waErr);
       }
-    } else if (adminPhoneRaw) {
-      console.warn("[LEADS] WA_ADMIN_PHONE invalid format.");
     }
 
     return NextResponse.json({ ok: true, deduped: false }, { status: 200 });
   } catch (e: any) {
     console.error("[LEADS] Unexpected error:", e);
-    return NextResponse.json(
-      { ok: false, message: e?.message || "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, message: e?.message || "Server error" }, { status: 500 });
   }
 }

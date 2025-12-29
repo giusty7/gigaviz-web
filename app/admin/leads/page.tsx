@@ -1,114 +1,151 @@
-import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { CopyButton } from "@/components/admin/copy-button";
+import { LeadsFilters } from "@/components/admin/leads-filters";
+import { LeadActions } from "@/components/admin/lead-actions";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 50;
+type SP = {
+  tab?: string;
+  q?: string;
+  need?: string;
+  source?: string;
+  status?: string; // attempts
+  page?: string;
+  pageSize?: string;
+};
 
-function clamp(s: string, max: number) {
-  const t = (s || "").trim();
-  return t.length > max ? t.slice(0, max) : t;
+function asString(v: any) {
+  return Array.isArray(v) ? (v[0] ?? "") : (v ?? "");
 }
 
-function safeQuery(s: string) {
-  return clamp(s, 80)
-    .replace(/[^a-zA-Z0-9@\s+._-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function toInt(v: string, d: number) {
+  const n = parseInt(v || "", 10);
+  return Number.isFinite(n) && n > 0 ? n : d;
 }
 
-function buildUrl(params: Record<string, string | number | undefined | null>) {
-  const sp = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
-    const val = String(v).trim();
-    if (!val) return;
-    sp.set(k, val);
-  });
-  const qs = sp.toString();
-  return qs ? `?${qs}` : "";
+function badgeClass(status: string) {
+  const base =
+    "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold";
+  switch (status) {
+    case "inserted":
+      return `${base} border-emerald-400/20 bg-emerald-400/10 text-emerald-200`;
+    case "deduped":
+      return `${base} border-amber-400/20 bg-amber-400/10 text-amber-200`;
+    case "rate_limited":
+      return `${base} border-red-400/20 bg-red-400/10 text-red-200`;
+    case "invalid":
+      return `${base} border-white/15 bg-white/5 text-white/70`;
+    case "honeypot":
+      return `${base} border-fuchsia-400/20 bg-fuchsia-400/10 text-fuchsia-200`;
+    case "error":
+      return `${base} border-red-400/20 bg-red-400/10 text-red-200`;
+    default:
+      return `${base} border-white/15 bg-white/5 text-white/70`;
+  }
 }
 
 export default async function AdminLeadsPage({
   searchParams,
 }: {
-  // 🔥 Next 16: searchParams itu Promise
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: any; // biar aman Next versi beda
 }) {
-  const sp = await searchParams;
+  const sp: SP = await Promise.resolve(searchParams);
 
-  const q = safeQuery(Array.isArray(sp.q) ? sp.q[0] : sp.q || "");
-  const need = clamp(Array.isArray(sp.need) ? sp.need[0] : sp.need || "", 120);
-  const source = clamp(Array.isArray(sp.source) ? sp.source[0] : sp.source || "", 60);
-  const pageRaw = Array.isArray(sp.page) ? sp.page[0] : sp.page || "1";
-  const page = Math.max(1, parseInt(pageRaw || "1", 10) || 1);
-
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const tab = (asString(sp.tab) || "leads") as "leads" | "attempts";
+  const q = asString(sp.q).trim();
+  const need = asString(sp.need).trim();
+  const source = asString(sp.source).trim();
+  const status = asString(sp.status).trim();
+  const pageSize = Math.min(toInt(asString(sp.pageSize), 50), 200);
+  const page = toInt(asString(sp.page), 1);
 
   const supabase = supabaseAdmin();
 
-  // 🔥 Ambil opsi filter langsung dari data (biar cocok dgn value real di DB)
-  const { data: needRows } = await supabase
+  // options dropdown (ambil dari leads biar simple)
+  const { data: optRows } = await supabase
     .from("leads")
-    .select("need")
-    .order("need", { ascending: true })
+    .select("need,source")
+    .order("created_at", { ascending: false })
     .limit(500);
 
-  const needOptions = Array.from(
-    new Set((needRows || []).map((r: any) => (r?.need || "").trim()).filter(Boolean))
-  );
+  const needs = Array.from(new Set((optRows || []).map((r: any) => r.need).filter(Boolean))).sort();
+  const sources = Array.from(new Set((optRows || []).map((r: any) => r.source).filter(Boolean))).sort();
 
-  const { data: sourceRows } = await supabase
-    .from("leads")
-    .select("source")
-    .order("source", { ascending: true })
-    .limit(200);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
-  const sourceOptions = Array.from(
-    new Set((sourceRows || []).map((r: any) => (r?.source || "").trim()).filter(Boolean))
-  );
+  let errorMsg: string | null = null;
 
-  // Query dasar
-  let query = supabase
-    .from("leads")
-    .select("id,name,phone,business,need,notes,source,created_at", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  let leads: any[] = [];
+  let leadsCount = 0;
 
-  if (source) query = query.eq("source", source);
-  if (need) query = query.eq("need", need);
+  let attempts: any[] = [];
+  let attemptsCount = 0;
 
-  if (q) {
-    const like = `%${q}%`;
-    query = query.or(
-      [
-        `name.ilike.${like}`,
-        `phone.ilike.${like}`,
-        `business.ilike.${like}`,
-        `need.ilike.${like}`,
-        `notes.ilike.${like}`,
-        `source.ilike.${like}`,
-      ].join(",")
-    );
+  if (tab === "attempts") {
+    let query = supabase
+      .from("lead_attempts")
+      .select("id,created_at,status,reason,name,phone,business,need,notes,source,ip", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    if (q) {
+      const like = `%${q}%`;
+      query = query.or(
+        `name.ilike.${like},phone.ilike.${like},business.ilike.${like},need.ilike.${like},notes.ilike.${like},source.ilike.${like},status.ilike.${like},reason.ilike.${like}`
+      );
+    }
+    if (need) query = query.eq("need", need);
+    if (source) query = query.eq("source", source);
+    if (status) query = query.eq("status", status);
+
+    const { data, error, count } = await query.range(from, to);
+    if (error) errorMsg = error.message;
+    attempts = data || [];
+    attemptsCount = count || 0;
+  } else {
+    let query = supabase
+      .from("leads")
+      .select("id,created_at,name,phone,business,need,notes,source", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    if (q) {
+      const like = `%${q}%`;
+      query = query.or(
+        `name.ilike.${like},phone.ilike.${like},business.ilike.${like},need.ilike.${like},notes.ilike.${like},source.ilike.${like}`
+      );
+    }
+    if (need) query = query.eq("need", need);
+    if (source) query = query.eq("source", source);
+
+    const { data, error, count } = await query.range(from, to);
+    if (error) errorMsg = error.message;
+    leads = data || [];
+    leadsCount = count || 0;
   }
 
-  const { data, error, count } = await query;
+  const total = tab === "attempts" ? attemptsCount : leadsCount;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const total = count ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-  const baseParams = { q: q || "", need: need || "", source: source || "" };
+  const makeHref = (nextPage: number) => {
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (need) p.set("need", need);
+    if (source) p.set("source", source);
+    if (status && tab === "attempts") p.set("status", status);
+    p.set("tab", tab);
+    p.set("page", String(nextPage));
+    p.set("pageSize", String(pageSize));
+    return `/admin/leads?${p.toString()}`;
+  };
 
   return (
     <div className="min-h-screen bg-[#070B18] px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="mb-4 flex items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white">Leads</h1>
             <p className="text-white/70 text-sm">
-              Data terbaru dari form /wa-platform (dan sumber lain).
+              Data terbaru dari form /wa-platform (dan log attempt untuk badge status).
             </p>
           </div>
           <a href="/" className="text-sm text-cyan-300 hover:text-cyan-200 underline">
@@ -116,189 +153,152 @@ export default async function AdminLeadsPage({
           </a>
         </div>
 
-        {/* Toolbar */}
-        <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <form className="grid gap-3 md:grid-cols-12" method="GET" action="/admin/leads">
-            <div className="md:col-span-5">
-              <label className="text-xs text-white/60">Cari (nama / WA / bisnis / catatan)</label>
-              <input
-                name="q"
-                defaultValue={q}
-                placeholder="contoh: 62812 / tokokita / chatbot"
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-[#0B1226] px-4 py-2.5 text-sm text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-cyan-500/30"
-              />
-            </div>
-
-            <div className="md:col-span-3">
-              <label className="text-xs text-white/60">Filter kebutuhan</label>
-              <select
-                name="need"
-                defaultValue={need}
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-[#0B1226] px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
-              >
-                <option value="">Semua kebutuhan</option>
-                {needOptions.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs text-white/60">Sumber</label>
-              <select
-                name="source"
-                defaultValue={source}
-                className="mt-1 w-full rounded-2xl border border-white/10 bg-[#0B1226] px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
-              >
-                <option value="">Semua sumber</option>
-                {sourceOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2 flex items-end gap-2">
-              <button
-                type="submit"
-                className="w-full rounded-2xl bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300"
-              >
-                Terapkan
-              </button>
-              <Link
-                href="/admin/leads"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-center text-sm font-semibold text-white/80 hover:bg-white/10"
-              >
-                Reset
-              </Link>
-            </div>
-
-            <input type="hidden" name="page" value="1" />
-          </form>
-
-          <div className="mt-3 text-xs text-white/50">
-            Menampilkan {data?.length || 0} dari total {total} data. (Halaman {page} / {totalPages})
-          </div>
+        {/* Tabs */}
+        <div className="mb-3 flex gap-2">
+          <a
+            href={`/admin/leads?tab=leads`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold border ${
+              tab === "leads"
+                ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
+                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+            }`}
+          >
+            Leads
+          </a>
+          <a
+            href={`/admin/leads?tab=attempts`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold border ${
+              tab === "attempts"
+                ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
+                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+            }`}
+          >
+            Attempts (status)
+          </a>
         </div>
 
-        {/* Table */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-          {error && <div className="p-4 text-red-200 text-sm">Error: {error.message}</div>}
+        <LeadsFilters needs={needs} sources={sources} tab={tab} />
+
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          {errorMsg && (
+            <div className="p-4 text-red-200 text-sm">Error: {errorMsg}</div>
+          )}
+
+          <div className="px-4 py-3 text-xs text-white/60">
+            Menampilkan {Math.min(pageSize, total)} dari total {total} data. (Halaman {page} / {totalPages})
+          </div>
 
           <div className="overflow-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-white/70 border-b border-white/10">
-                <tr>
-                  <th className="px-4 py-3 text-left">Waktu</th>
-                  <th className="px-4 py-3 text-left">Nama</th>
-                  <th className="px-4 py-3 text-left">WA</th>
-                  <th className="px-4 py-3 text-left">Bisnis</th>
-                  <th className="px-4 py-3 text-left">Kebutuhan</th>
-                  <th className="px-4 py-3 text-left">Catatan</th>
-                  <th className="px-4 py-3 text-left">Source</th>
-                  <th className="px-4 py-3 text-left">Aksi</th>
-                </tr>
-              </thead>
-
-              <tbody className="text-white">
-                {(data || []).map((r: any) => {
-                  const phone = (r.phone || "").toString();
-                  const waLink = `https://wa.me/${phone}`;
-                  const summary = [
-                    "Lead Baru (Gigaviz)",
-                    `Nama: ${r.name || "-"}`,
-                    `WA: ${phone || "-"}`,
-                    `Bisnis: ${r.business || "-"}`,
-                    `Kebutuhan: ${r.need || "-"}`,
-                    `Catatan: ${r.notes || "-"}`,
-                    `Source: ${r.source || "-"}`,
-                  ].join("\n");
-
-                  return (
+            {tab === "attempts" ? (
+              <table className="min-w-full text-sm">
+                <thead className="text-white/70 border-b border-white/10">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Waktu</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">Nama</th>
+                    <th className="px-4 py-3 text-left">WA</th>
+                    <th className="px-4 py-3 text-left">Kebutuhan</th>
+                    <th className="px-4 py-3 text-left">Source</th>
+                    <th className="px-4 py-3 text-left">Reason</th>
+                  </tr>
+                </thead>
+                <tbody className="text-white">
+                  {attempts.map((r) => (
                     <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
                       <td className="px-4 py-3 text-white/70 whitespace-nowrap">
                         {r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "-"}
                       </td>
-                      <td className="px-4 py-3">{r.name}</td>
-
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-medium">{phone}</span>
-                          <div className="flex flex-wrap gap-2">
-                            <CopyButton text={phone} label="Copy WA" />
-                            <CopyButton text={waLink} label="Copy Link" />
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3">{r.business || "-"}</td>
-                      <td className="px-4 py-3">{r.need}</td>
-                      <td className="px-4 py-3 text-white/80">{r.notes || "-"}</td>
-                      <td className="px-4 py-3 text-white/70">{r.source || "-"}</td>
-
                       <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <a
-                            className="rounded-xl bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-cyan-300"
-                            href={waLink}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Chat
-                          </a>
-                          <CopyButton text={summary} label="Copy Ringkas" />
-                        </div>
+                        <span className={badgeClass(r.status)}>{r.status}</span>
+                      </td>
+                      <td className="px-4 py-3">{r.name || "-"}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{r.phone || "-"}</td>
+                      <td className="px-4 py-3">{r.need || "-"}</td>
+                      <td className="px-4 py-3 text-white/80">{r.source || "-"}</td>
+                      <td className="px-4 py-3 text-white/70">{r.reason || "-"}</td>
+                    </tr>
+                  ))}
+
+                  {!errorMsg && attempts.length === 0 && (
+                    <tr>
+                      <td className="px-4 py-6 text-white/70" colSpan={7}>
+                        Belum ado attempt.
                       </td>
                     </tr>
-                  );
-                })}
-
-                {!error && (!data || data.length === 0) && (
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              <table className="min-w-full text-sm">
+                <thead className="text-white/70 border-b border-white/10">
                   <tr>
-                    <td className="px-4 py-6 text-white/70" colSpan={8}>
-                      Dak ado data untuk filter/search itu, wak.
-                    </td>
+                    <th className="px-4 py-3 text-left">Waktu</th>
+                    <th className="px-4 py-3 text-left">Nama</th>
+                    <th className="px-4 py-3 text-left">WA</th>
+                    <th className="px-4 py-3 text-left">Bisnis</th>
+                    <th className="px-4 py-3 text-left">Kebutuhan</th>
+                    <th className="px-4 py-3 text-left">Catatan</th>
+                    <th className="px-4 py-3 text-left">Source</th>
+                    <th className="px-4 py-3 text-left">Aksi</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="text-white">
+                  {leads.map((r) => {
+                    const summary = `Lead WA Platform\nNama: ${r.name}\nWA: ${r.phone}\nBisnis: ${r.business || "-"}\nKebutuhan: ${r.need}\nCatatan: ${r.notes || "-"}`;
+                    return (
+                      <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="px-4 py-3 text-white/70 whitespace-nowrap">
+                          {r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "-"}
+                        </td>
+                        <td className="px-4 py-3">{r.name}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">{r.phone}</td>
+                        <td className="px-4 py-3">{r.business || "-"}</td>
+                        <td className="px-4 py-3">{r.need}</td>
+                        <td className="px-4 py-3 text-white/80">{r.notes || "-"}</td>
+                        <td className="px-4 py-3 text-white/70">{r.source || "-"}</td>
+                        <td className="px-4 py-3">
+                          <LeadActions phone={r.phone} summary={summary} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {!errorMsg && leads.length === 0 && (
+                    <tr>
+                      <td className="px-4 py-6 text-white/70" colSpan={8}>
+                        Belum ado lead.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Pagination */}
-          <div className="flex flex-col gap-2 border-t border-white/10 px-4 py-3 text-xs text-white/60 md:flex-row md:items-center md:justify-between">
-            <div>Page size: {PAGE_SIZE}. Total: {total}.</div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/admin/leads${buildUrl({ ...baseParams, page: Math.max(1, page - 1) })}`}
-                className={`rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 hover:bg-white/10 ${
-                  page <= 1 ? "pointer-events-none opacity-50" : ""
-                }`}
-              >
-                Prev
-              </Link>
-
-              <span className="px-2">
-                {page} / {totalPages}
-              </span>
-
-              <Link
-                href={`/admin/leads${buildUrl({ ...baseParams, page: Math.min(totalPages, page + 1) })}`}
-                className={`rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 hover:bg-white/10 ${
-                  page >= totalPages ? "pointer-events-none opacity-50" : ""
-                }`}
-              >
-                Next
-              </Link>
+          <div className="flex items-center justify-end gap-2 px-4 py-3">
+            <a
+              className={`rounded-full border px-3 py-1.5 text-xs ${
+                page <= 1 ? "border-white/10 text-white/30" : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+              href={makeHref(Math.max(1, page - 1))}
+              aria-disabled={page <= 1}
+            >
+              Prev
+            </a>
+            <div className="text-xs text-white/60">
+              {page} / {totalPages}
             </div>
+            <a
+              className={`rounded-full border px-3 py-1.5 text-xs ${
+                page >= totalPages ? "border-white/10 text-white/30" : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+              href={makeHref(Math.min(totalPages, page + 1))}
+              aria-disabled={page >= totalPages}
+            >
+              Next
+            </a>
           </div>
-        </div>
-
-        <div className="mt-3 text-xs text-white/50">
-          Tips: coba cari “gavin” atau filter “Chatbot Otomatis” dari dropdown (itu ngambil value real dari DB).
         </div>
       </div>
     </div>
