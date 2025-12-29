@@ -5,7 +5,7 @@ export async function middleware(req: NextRequest) {
   return withSupabaseAuth(req);
 }
 
-// jalankan middleware utk /admin dan /login (biar bisa redirect & refresh session)
+// Kunci /admin dan seluruh turunannya, plus /login (buat refresh session & redirect)
 export const config = {
-  matcher: ["/admin/:path*", "/login"],
-};
+  matcher: ["/admin", "/admin/:path*", "/login"],
+}
