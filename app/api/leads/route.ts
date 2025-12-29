@@ -46,12 +46,14 @@ function getIP(req: Request) {
   return req.headers.get("x-real-ip");
 }
 
-function isoMinutesAgo(min: number) {
-  return new Date(Date.now() - min * 60 * 1000).toISOString();
-}
-
 function isoSecondsAgo(sec: number) {
   return new Date(Date.now() - sec * 1000).toISOString();
+}
+
+// Postgres unique violation code
+function isUniqueViolation(err: any) {
+  const code = err?.code || err?.cause?.code;
+  return code === "23505";
 }
 
 export async function POST(req: Request) {
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Honeypot anti-bot (kalau keisi -> anggap bot, balas sukses biar bot "senang")
+    // Honeypot anti-bot
     const honeypot = String(body?.website || "").trim();
     if (honeypot.length > 0) {
       return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
@@ -73,20 +75,29 @@ export async function POST(req: Request) {
     const name = clamp(String(body?.name || ""), 80);
     const phone = normalizePhone(String(body?.phone || ""));
     const business = clamp(String(body?.business || ""), 120);
-    const need = clamp(String(body?.need || ""), 60);
+    const need = clamp(String(body?.need || ""), 80);
     const notes = clamp(String(body?.notes || ""), 800);
 
     if (!name) {
-      return NextResponse.json({ ok: false, message: "Nama wajib diisi." }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, message: "Nama wajib diisi." },
+        { status: 400 }
+      );
     }
     if (!isValidPhoneDigits(phone)) {
       return NextResponse.json(
-        { ok: false, message: "Nomor WA tidak valid. Gunakan format 62xxxx atau 08xxxx." },
+        {
+          ok: false,
+          message: "Nomor WA tidak valid. Gunakan format 62xxxx atau 08xxxx.",
+        },
         { status: 400 }
       );
     }
     if (!need) {
-      return NextResponse.json({ ok: false, message: "Kebutuhan wajib dipilih." }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, message: "Kebutuhan wajib dipilih." },
+        { status: 400 }
+      );
     }
 
     const lead: Lead = {
@@ -103,9 +114,8 @@ export async function POST(req: Request) {
     const supabase = supabaseAdmin();
 
     /**
-     * 1) Rate limit ringan per IP (anti spam / bot)
-     *    - Max 6 request / 60 detik per IP
-     *    Catatan: ini berbasis DB, jadi aman juga di serverless.
+     * Rate limit ringan per IP (anti spam)
+     * - Max 6 request / 60 detik per IP
      */
     const ipKey = lead.ip || "unknown";
     if (ipKey !== "unknown") {
@@ -119,7 +129,6 @@ export async function POST(req: Request) {
 
       if (rlErr) {
         console.error("[LEADS] RateLimit check error:", rlErr);
-        // kalau error rate-limit, jangan blok user; lanjut saja
       } else if ((recentByIp?.length || 0) >= 6) {
         return NextResponse.json(
           { ok: false, message: "Terlalu cepat. Coba lagi sebentar lagi." },
@@ -129,40 +138,25 @@ export async function POST(req: Request) {
     }
 
     /**
-     * 2) Dedupe berbasis waktu (lebih sehat dari dedupe selamanya)
-     *    - Jika phone+need+source sudah pernah masuk dalam 10 menit terakhir => deduped
-     */
-    const dedupeSince = isoMinutesAgo(10);
-    const { data: existing, error: existErr } = await supabase
-      .from("leads")
-      .select("id,created_at")
-      .eq("phone", lead.phone)
-      .eq("need", lead.need)
-      .eq("source", lead.source)
-      .gte("created_at", dedupeSince)
-      .limit(1);
-
-    if (existErr) {
-      console.error("[LEADS] Dedup check error:", existErr);
-      // dedup error tidak perlu bikin gagal, lanjut insert
-    }
-
-    const alreadyExists = !!(existing && existing.length > 0);
-    if (alreadyExists) {
-      return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
-    }
-
-    /**
-     * 3) Insert lead
+     * Insert lead
+     * - DB sudah UNIQUE (phone, need, source)
+     * - kalau duplicate → balas sukses deduped:true (bukan error)
      */
     const { error: insErr } = await supabase.from("leads").insert(lead);
+
     if (insErr) {
+      if (isUniqueViolation(insErr)) {
+        return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
+      }
       console.error("[LEADS] Insert error:", insErr);
-      return NextResponse.json({ ok: false, message: "Gagal menyimpan lead." }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, message: "Gagal menyimpan lead." },
+        { status: 500 }
+      );
     }
 
     /**
-     * 4) Notif WA admin (best effort)
+     * Notif WA admin (best effort) - cuma kalau lead baru (insert sukses)
      */
     const adminPhoneRaw = process.env.WA_ADMIN_PHONE || "";
     const adminPhone = normalizePhone(adminPhoneRaw);
