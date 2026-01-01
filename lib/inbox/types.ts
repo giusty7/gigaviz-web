@@ -19,6 +19,11 @@ export type Message = {
   text: string;
   ts: string; // ISO
   status?: MessageStatus; // outbound only
+  waMessageId?: string;
+  errorReason?: string;
+  mediaUrl?: string;
+  mediaMime?: string;
+  mediaSha256?: string;
 };
 
 export type Note = {
@@ -37,4 +42,8 @@ export type Conversation = {
   assignedTo?: string;
   unreadCount: number;
   lastMessageAt: string; // ISO
+  isArchived?: boolean;
+  pinned?: boolean;
+  snoozedUntil?: string;
+  lastReadAt?: string;
 };

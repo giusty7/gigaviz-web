@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 
   const { data, error } = await db
     .from("messages")
-    .select("id, conversation_id, direction, text, ts, status")
+    .select("id, conversation_id, direction, text, ts, status, wa_message_id, error_reason, media_url, media_mime, media_sha256")
     .eq("workspace_id", workspaceId)
     .eq("conversation_id", conversationId)
     .order("ts", { ascending: true });
@@ -30,6 +30,11 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     text: m.text,
     ts: m.ts,
     status: m.status ?? undefined,
+    waMessageId: m.wa_message_id ?? undefined,
+    errorReason: m.error_reason ?? undefined,
+    mediaUrl: m.media_url ?? undefined,
+    mediaMime: m.media_mime ?? undefined,
+    mediaSha256: m.media_sha256 ?? undefined,
   }));
 
   return withCookies(NextResponse.json({ messages }));
@@ -59,7 +64,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       text,
       status: "queued",
     })
-    .select("id, conversation_id, direction, text, ts, status")
+    .select("id, conversation_id, direction, text, ts, status, wa_message_id, error_reason, media_url, media_mime, media_sha256")
     .single();
 
   if (insErr) {
@@ -81,6 +86,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     text: inserted.text,
     ts: inserted.ts,
     status: inserted.status ?? undefined,
+    waMessageId: inserted.wa_message_id ?? undefined,
+    errorReason: inserted.error_reason ?? undefined,
+    mediaUrl: inserted.media_url ?? undefined,
+    mediaMime: inserted.media_mime ?? undefined,
+    mediaSha256: inserted.media_sha256 ?? undefined,
   };
 
   return withCookies(NextResponse.json({ message: msg }));

@@ -3,15 +3,17 @@ type SendTextArgs = {
   body: string;
 };
 
-function requiredEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
+function requiredEnvAny(names: string[]) {
+  for (const name of names) {
+    const v = process.env[name];
+    if (v) return v;
+  }
+  throw new Error(`Missing env: ${names.join(" or ")}`);
 }
 
 export async function sendWhatsAppText({ to, body }: SendTextArgs) {
-  const token = requiredEnv("WA_CLOUD_API_TOKEN");
-  const phoneNumberId = requiredEnv("WA_PHONE_NUMBER_ID");
+  const token = requiredEnvAny(["WA_ACCESS_TOKEN", "WA_CLOUD_API_TOKEN"]);
+  const phoneNumberId = requiredEnvAny(["WA_PHONE_NUMBER_ID"]);
   const version = process.env.WA_GRAPH_VERSION || "v22.0";
 
   const url = `https://graph.facebook.com/${version}/${phoneNumberId}/messages`;
@@ -38,6 +40,35 @@ export async function sendWhatsAppText({ to, body }: SendTextArgs) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const msg = (data as any)?.error?.message || `WA API failed (${res.status})`;
+      throw new Error(msg);
+    }
+
+    return { ok: true as const, data };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+export async function fetchWhatsAppMediaUrl(mediaId: string) {
+  const token = requiredEnvAny(["WA_ACCESS_TOKEN", "WA_CLOUD_API_TOKEN"]);
+  const version = process.env.WA_GRAPH_VERSION || "v22.0";
+  const url = `https://graph.facebook.com/${version}/${mediaId}`;
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), 12_000);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = (data as any)?.error?.message || `WA media lookup failed (${res.status})`;
       throw new Error(msg);
     }
 

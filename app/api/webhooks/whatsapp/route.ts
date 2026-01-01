@@ -1,6 +1,6 @@
 import { handleWhatsAppVerify, handleWhatsAppWebhook } from "@/lib/wa/webhook";
 
-export const runtime = "nodejs"; // aman untuk log / crypto kalau dibutuhin
+export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   return handleWhatsAppVerify(req);

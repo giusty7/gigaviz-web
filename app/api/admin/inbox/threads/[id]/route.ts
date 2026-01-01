@@ -12,7 +12,9 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
   const { data: conv, error: convErr } = await db
     .from("conversations")
-    .select("id, contact_id, assigned_to, ticket_status, priority, unread_count, last_message_at")
+    .select(
+      "id, contact_id, assigned_to, ticket_status, priority, unread_count, last_message_at, is_archived, pinned, snoozed_until, last_read_at"
+    )
     .eq("workspace_id", workspaceId)
     .eq("id", id)
     .single();
@@ -38,7 +40,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
   const { data: msgs, error: mErr } = await db
     .from("messages")
-    .select("id, conversation_id, direction, text, ts, status")
+    .select("id, conversation_id, direction, text, ts, status, wa_message_id, error_reason, media_url, media_mime, media_sha256")
     .eq("workspace_id", workspaceId)
     .eq("conversation_id", id)
     .order("ts", { ascending: true });
@@ -64,6 +66,10 @@ export async function GET(req: NextRequest, { params }: Ctx) {
         priority: conv.priority,
         unreadCount: conv.unread_count ?? 0,
         lastMessageAt: conv.last_message_at,
+        isArchived: conv.is_archived ?? false,
+        pinned: conv.pinned ?? false,
+        snoozedUntil: conv.snoozed_until ?? undefined,
+        lastReadAt: conv.last_read_at ?? undefined,
       },
       contact: {
         id: contact.id,
@@ -79,6 +85,11 @@ export async function GET(req: NextRequest, { params }: Ctx) {
         text: m.text,
         ts: m.ts,
         status: m.status ?? undefined,
+        waMessageId: m.wa_message_id ?? undefined,
+        errorReason: m.error_reason ?? undefined,
+        mediaUrl: m.media_url ?? undefined,
+        mediaMime: m.media_mime ?? undefined,
+        mediaSha256: m.media_sha256 ?? undefined,
       })),
       notes: (nts ?? []).map((n: any) => ({
         id: n.id,

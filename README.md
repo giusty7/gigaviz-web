@@ -20,6 +20,23 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Environment
+
+Copy `.env.example` to `.env.local` and fill values (never commit secrets).
+
+- `ENABLE_WA_SEND=false` keeps WhatsApp sends in dry-run.
+- `WA_ACCESS_TOKEN` (or `WA_CLOUD_API_TOKEN`) + `WA_PHONE_NUMBER_ID` for Cloud API.
+- `WA_VERIFY_TOKEN` for webhook verification.
+- `APP_BASE_URL` for local webhook testing.
+- `DEFAULT_WORKSPACE_ID` for inbound webhook routing.
+
+## WhatsApp Webhook
+
+Configure Meta webhook to:
+
+- Verify (GET): `/api/webhooks/whatsapp` (legacy: `/api/whatsapp/webhook`)
+- Events (POST): `/api/webhooks/whatsapp` (legacy: `/api/whatsapp/webhook`)
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

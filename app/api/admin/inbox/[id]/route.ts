@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
 
+export const runtime = "nodejs";
+
 type Ctx = { params: Promise<{ id: string }> };
 
 function parseBool(value: any) {
@@ -17,7 +19,7 @@ function parseIso(value: any) {
   return d.toISOString();
 }
 
-export async function POST(req: NextRequest, { params }: Ctx) {
+export async function PATCH(req: NextRequest, { params }: Ctx) {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -25,8 +27,8 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const { id } = await params;
 
   const body = await req.json().catch(() => ({}));
-
   const patch: Record<string, any> = {};
+
   if (body.ticketStatus !== undefined || body.ticket_status !== undefined) {
     patch.ticket_status = body.ticketStatus ?? body.ticket_status;
   }
