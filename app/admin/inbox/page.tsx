@@ -1,5 +1,5 @@
 import InboxApp from "@/components/inbox/InboxApp";
 
-export default function InboxPage() {
+export default function Page() {
   return <InboxApp />;
 }

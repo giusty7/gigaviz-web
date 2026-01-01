@@ -1,136 +1,286 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { mockAgents, mockContacts, mockConversations, mockMessages, mockNotes } from "@/lib/inbox/mock";
-import { Conversation, Message, Note, TicketStatus, Priority, MessageStatus } from "@/lib/inbox/types";
-import { badgeColor, clsx, fmtTime } from "@/lib/inbox/utils";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+type TicketStatus = "open" | "pending" | "solved" | "spam";
+type Priority = "low" | "med" | "high" | "urgent";
+type Direction = "in" | "out";
+
+type Contact = {
+  id: string;
+  name: string;
+  phone: string;
+  tags: string[];
+  last_seen_at: string | null;
+};
+
+type ConversationRow = {
+  id: string;
+  contact_id: string;
+  assigned_to: string | null;
+  ticket_status: TicketStatus;
+  priority: Priority;
+  unread_count: number;
+  last_message_at: string;
+  contact: Contact;
+};
+
+type MessageRow = {
+  id: string;
+  conversation_id: string;
+  direction: Direction;
+  text: string;
+  ts: string;
+  status: string | null;
+};
+
+type NoteRow = {
+  id: string;
+  conversation_id: string;
+  text: string;
+  ts: string;
+  author: string;
+};
+
 type Props = { selectedId?: string };
+
+function clsx(...xs: Array<string | false | null | undefined>) {
+  return xs.filter(Boolean).join(" ");
+}
+
+function fmtTime(iso?: string | null) {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+}
+
+function badgeColor(x: string) {
+  if (x === "open") return "border-emerald-500/30 text-emerald-300 bg-emerald-500/10";
+  if (x === "pending") return "border-amber-500/30 text-amber-300 bg-amber-500/10";
+  if (x === "solved") return "border-sky-500/30 text-sky-300 bg-sky-500/10";
+  if (x === "spam") return "border-rose-500/30 text-rose-300 bg-rose-500/10";
+
+  if (x === "low") return "border-slate-700 text-slate-300 bg-slate-900/30";
+  if (x === "med") return "border-sky-500/30 text-sky-300 bg-sky-500/10";
+  if (x === "high") return "border-amber-500/30 text-amber-300 bg-amber-500/10";
+  if (x === "urgent") return "border-rose-500/30 text-rose-300 bg-rose-500/10";
+
+  return "border-slate-800 text-slate-300 bg-slate-950/40";
+}
 
 export default function InboxApp({ selectedId }: Props) {
   const router = useRouter();
 
-  // local state (MVP mock)
+  const [loading, setLoading] = useState(true);
+  const [loadingThread, setLoadingThread] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // filters
   const [q, setQ] = useState("");
   const [filterStatus, setFilterStatus] = useState<TicketStatus | "all">("all");
   const [filterAssignee, setFilterAssignee] = useState<string | "all">("all");
 
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
-  const [notes, setNotes] = useState<Note[]>(mockNotes);
-
+  // data
+  const [conversations, setConversations] = useState<ConversationRow[]>([]);
+  const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [notes, setNotes] = useState<NoteRow[]>([]);
   const [composer, setComposer] = useState("");
 
-  const contactsById = useMemo(() => Object.fromEntries(mockContacts.map(c => [c.id, c])), []);
-  const convById = useMemo(() => Object.fromEntries(conversations.map(c => [c.id, c])), [conversations]);
+  // load list
+  useEffect(() => {
+    let dead = false;
+    async function run() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/admin/inbox/threads", { cache: "no-store" });
+        const js = await res.json();
+        if (!res.ok) throw new Error(js?.error || "Gagal load threads");
+        if (!dead) setConversations(js.items || []);
+      } catch (e: any) {
+        if (!dead) setError(e.message || "Error");
+      } finally {
+        if (!dead) setLoading(false);
+      }
+    }
+    run();
+    return () => {
+      dead = true;
+    };
+  }, []);
+
+  const convById = useMemo(
+    () => Object.fromEntries(conversations.map((c) => [c.id, c])),
+    [conversations]
+  );
+
+  const agents = useMemo(() => {
+    const s = new Set<string>();
+    conversations.forEach((c) => {
+      if (c.assigned_to) s.add(c.assigned_to);
+    });
+    // kalau kosong, tetap ada opsi umum
+    return Array.from(s).sort();
+  }, [conversations]);
 
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return conversations
       .slice()
-      .sort((a, b) => (a.lastMessageAt < b.lastMessageAt ? 1 : -1))
+      .sort((a, b) => (a.last_message_at < b.last_message_at ? 1 : -1))
       .filter((t) => {
-        const c = contactsById[t.contactId];
+        const c = t.contact;
         const hay = `${c?.name ?? ""} ${c?.phone ?? ""} ${(c?.tags ?? []).join(" ")}`.toLowerCase();
         const okQ = !qq || hay.includes(qq);
-        const okStatus = filterStatus === "all" ? true : t.ticketStatus === filterStatus;
-        const okAsg = filterAssignee === "all" ? true : (t.assignedTo ?? "") === filterAssignee;
+        const okStatus = filterStatus === "all" ? true : t.ticket_status === filterStatus;
+        const okAsg =
+          filterAssignee === "all" ? true : (t.assigned_to ?? "") === filterAssignee;
         return okQ && okStatus && okAsg;
       });
-  }, [q, conversations, contactsById, filterStatus, filterAssignee]);
+  }, [q, conversations, filterStatus, filterAssignee]);
 
   const activeId = useMemo(() => {
     if (selectedId && convById[selectedId]) return selectedId;
-    return filtered[0]?.id ?? conversations[0]?.id;
+    return filtered[0]?.id ?? conversations[0]?.id ?? null;
   }, [selectedId, convById, filtered, conversations]);
 
-  const activeConv = activeId ? convById[activeId] : undefined;
-  const activeContact = activeConv ? contactsById[activeConv.contactId] : undefined;
+  const activeConv = activeId ? convById[activeId] : null;
+  const activeContact = activeConv?.contact ?? null;
 
-  const activeMessages = useMemo(
-    () => messages.filter(m => m.conversationId === activeId).sort((a, b) => (a.ts < b.ts ? -1 : 1)),
-    [messages, activeId]
-  );
-
-  const activeNotes = useMemo(
-    () => notes.filter(n => n.conversationId === activeId).sort((a, b) => (a.ts < b.ts ? 1 : -1)),
-    [notes, activeId]
-  );
+  // load thread detail
+  useEffect(() => {
+    let dead = false;
+    async function run() {
+      if (!activeId) return;
+      setLoadingThread(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/admin/inbox/threads/${activeId}`, { cache: "no-store" });
+        const js = await res.json();
+        if (!res.ok) throw new Error(js?.error || "Gagal load thread");
+        if (dead) return;
+        setMessages(js.messages || []);
+        setNotes(js.notes || []);
+      } catch (e: any) {
+        if (!dead) setError(e.message || "Error");
+      } finally {
+        if (!dead) setLoadingThread(false);
+      }
+    }
+    run();
+    return () => {
+      dead = true;
+    };
+  }, [activeId]);
 
   function navigateTo(id: string) {
-    router.push(`/inbox/${id}`);
-    setConversations(prev =>
-      prev.map(t => (t.id === id ? { ...t, unreadCount: 0 } : t))
-    );
+    router.push(`/admin/inbox/${id}`);
+    // clear unread local + persist
+    setConversations((prev) => prev.map((t) => (t.id === id ? { ...t, unread_count: 0 } : t)));
+    fetch(`/api/admin/inbox/threads/${id}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ unread_count: 0 }),
+    }).catch(() => {});
   }
 
-  function setTicketStatus(id: string, st: TicketStatus) {
-    setConversations(prev => prev.map(t => (t.id === id ? { ...t, ticketStatus: st } : t)));
+  function patchConv(id: string, patch: Partial<ConversationRow>) {
+    setConversations((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   }
 
-  function setPriority(id: string, p: Priority) {
-    setConversations(prev => prev.map(t => (t.id === id ? { ...t, priority: p } : t)));
+  async function setTicketStatus(id: string, st: TicketStatus) {
+    patchConv(id, { ticket_status: st } as any);
+    await fetch(`/api/admin/inbox/threads/${id}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticket_status: st }),
+    }).catch(() => {});
   }
 
-  function setAssignee(id: string, asg?: string) {
-    setConversations(prev => prev.map(t => (t.id === id ? { ...t, assignedTo: asg } : t)));
+  async function setPriority(id: string, p: Priority) {
+    patchConv(id, { priority: p } as any);
+    await fetch(`/api/admin/inbox/threads/${id}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priority: p }),
+    }).catch(() => {});
   }
 
-  function pushOutboundMessage(conversationId: string, text: string) {
-    const ts = new Date().toISOString();
-    const outId = `out_${Math.random().toString(16).slice(2)}`;
-
-    const newMsg: Message = {
-      id: outId,
-      conversationId,
-      direction: "out",
-      text,
-      ts,
-      status: "queued",
-    };
-
-    setMessages(prev => [...prev, newMsg]);
-    setConversations(prev =>
-      prev.map(t => (t.id === conversationId ? { ...t, lastMessageAt: ts } : t))
-    );
-
-    // simulate delivery pipeline
-    const bump = (status: MessageStatus, delay: number) =>
-      setTimeout(() => {
-        setMessages(prev =>
-          prev.map(m => (m.id === outId ? { ...m, status } : m))
-        );
-      }, delay);
-
-    bump("sent", 600);
-    bump("delivered", 1400);
-    bump("read", 3200);
+  async function setAssignee(id: string, asg?: string) {
+    patchConv(id, { assigned_to: asg ?? null } as any);
+    await fetch(`/api/admin/inbox/threads/${id}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assigned_to: asg ?? null }),
+    }).catch(() => {});
   }
 
-  function send() {
+  async function send() {
     if (!activeId) return;
     const text = composer.trim();
     if (!text) return;
+
     setComposer("");
-    pushOutboundMessage(activeId, text);
+    const optimistic: MessageRow = {
+      id: `tmp_${Math.random().toString(16).slice(2)}`,
+      conversation_id: activeId,
+      direction: "out",
+      text,
+      ts: new Date().toISOString(),
+      status: "queued",
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeId}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const js = await res.json();
+      if (!res.ok) throw new Error(js?.error || "Gagal kirim");
+
+      // replace optimistic with real
+      setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? js.message : m)));
+      patchConv(activeId, { last_message_at: js.message.ts } as any);
+    } catch (e: any) {
+      setError(e.message || "Error");
+      // mark failed
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimistic.id ? { ...m, status: "failed" } : m))
+      );
+    }
   }
 
-  function addNote(text: string) {
+  async function addNote() {
     if (!activeId) return;
-    const t = text.trim();
-    if (!t) return;
-    const ts = new Date().toISOString();
-    const n: Note = {
-      id: `n_${Math.random().toString(16).slice(2)}`,
-      conversationId: activeId,
-      text: t,
-      ts,
-      author: "Giusty",
-    };
-    setNotes(prev => [n, ...prev]);
+    const t = prompt("Tulis catatan internal:");
+    const text = String(t || "").trim();
+    if (!text) return;
+
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const js = await res.json();
+      if (!res.ok) throw new Error(js?.error || "Gagal tambah note");
+      setNotes((prev) => [js.note, ...prev]);
+    } catch (e: any) {
+      setError(e.message || "Error");
+    }
   }
+
+  const activeMessages = useMemo(() => {
+    return messages.slice().sort((a, b) => (a.ts < b.ts ? -1 : 1));
+  }, [messages]);
+
+  const activeNotes = useMemo(() => {
+    return notes.slice().sort((a, b) => (a.ts < b.ts ? 1 : -1));
+  }, [notes]);
 
   return (
     <div className="min-h-[calc(100vh-0px)] w-full">
@@ -138,10 +288,16 @@ export default function InboxApp({ selectedId }: Props) {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="text-xl font-semibold tracking-tight">Inbox</div>
-            <div className="text-sm text-slate-400">Shared Team Inbox (MVP mock) — siap disambung API kagek</div>
+            <div className="text-sm text-slate-400">
+              Shared Team Inbox (MVP) — data dari Supabase
+            </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <Link className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800" href="/contacts">
+            <Link
+              className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"
+              href="/admin/contacts"
+            >
               Contacts
             </Link>
             <span className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300">
@@ -150,8 +306,14 @@ export default function InboxApp({ selectedId }: Props) {
           </div>
         </div>
 
+        {error && (
+          <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+            {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-12 gap-4">
-          {/* LEFT: sidebar */}
+          {/* LEFT */}
           <aside className="col-span-12 lg:col-span-4">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/40">
               <div className="border-b border-slate-800 p-3">
@@ -173,14 +335,17 @@ export default function InboxApp({ selectedId }: Props) {
                     <option value="solved">Solved</option>
                     <option value="spam">Spam</option>
                   </select>
+
                   <select
                     value={filterAssignee}
                     onChange={(e) => setFilterAssignee(e.target.value as any)}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">Semua agent</option>
-                    {mockAgents.map(a => (
-                      <option key={a} value={a}>{a}</option>
+                    {agents.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
                     ))}
                     <option value="">(Unassigned)</option>
                   </select>
@@ -188,51 +353,73 @@ export default function InboxApp({ selectedId }: Props) {
               </div>
 
               <div className="max-h-[70vh] overflow-auto">
-                {filtered.map((t) => {
-                  const c = contactsById[t.contactId];
-                  const isActive = t.id === activeId;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => navigateTo(t.id)}
-                      className={clsx(
-                        "w-full text-left px-3 py-3 border-b border-slate-900 hover:bg-slate-900/40",
-                        isActive && "bg-slate-900/50"
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="truncate font-medium">{c?.name ?? "Unknown"}</div>
-                          <div className="truncate text-xs text-slate-400">{c?.phone}</div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className={clsx("text-[11px] px-2 py-1 rounded-full border", badgeColor(t.ticketStatus))}>
-                            {t.ticketStatus}
-                          </span>
-                          {t.unreadCount > 0 && (
-                            <span className="rounded-full bg-emerald-500/20 px-2 py-[2px] text-[11px] text-emerald-300 border border-emerald-500/30">
-                              {t.unreadCount} new
+                {loading && (
+                  <div className="p-6 text-sm text-slate-400">Loading…</div>
+                )}
+
+                {!loading &&
+                  filtered.map((t) => {
+                    const isActive = t.id === activeId;
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => navigateTo(t.id)}
+                        className={clsx(
+                          "w-full text-left px-3 py-3 border-b border-slate-900 hover:bg-slate-900/40",
+                          isActive && "bg-slate-900/50"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">
+                              {t.contact?.name ?? "Unknown"}
+                            </div>
+                            <div className="truncate text-xs text-slate-400">
+                              {t.contact?.phone ?? "-"}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span
+                              className={clsx(
+                                "text-[11px] px-2 py-1 rounded-full border",
+                                badgeColor(t.ticket_status)
+                              )}
+                            >
+                              {t.ticket_status}
                             </span>
-                          )}
+                            {t.unread_count > 0 && (
+                              <span className="rounded-full bg-emerald-500/20 px-2 py-[2px] text-[11px] text-emerald-300 border border-emerald-500/30">
+                                {t.unread_count} new
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-                        <span className={clsx("px-2 py-1 rounded-full border", badgeColor(t.priority))}>{t.priority}</span>
-                        <span>{fmtTime(t.lastMessageAt)}</span>
-                      </div>
-                    </button>
-                  );
-                })}
+                        <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+                          <span
+                            className={clsx(
+                              "px-2 py-1 rounded-full border",
+                              badgeColor(t.priority)
+                            )}
+                          >
+                            {t.priority}
+                          </span>
+                          <span>{fmtTime(t.last_message_at)}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
 
-                {filtered.length === 0 && (
-                  <div className="p-6 text-sm text-slate-400">Dak ado hasil. Coba ganti filter/carian.</div>
+                {!loading && filtered.length === 0 && (
+                  <div className="p-6 text-sm text-slate-400">
+                    Tidak ada hasil. Coba ubah filter/kata kunci.
+                  </div>
                 )}
               </div>
             </div>
           </aside>
 
-          {/* CENTER: chat */}
+          {/* CENTER */}
           <main className="col-span-12 lg:col-span-5">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/40">
               <div className="border-b border-slate-800 p-3">
@@ -240,18 +427,35 @@ export default function InboxApp({ selectedId }: Props) {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="truncate text-base font-semibold">{activeContact.name}</div>
-                        <span className={clsx("text-[11px] px-2 py-1 rounded-full border", badgeColor(activeConv.ticketStatus))}>
-                          {activeConv.ticketStatus}
+                        <div className="truncate text-base font-semibold">
+                          {activeContact.name}
+                        </div>
+                        <span
+                          className={clsx(
+                            "text-[11px] px-2 py-1 rounded-full border",
+                            badgeColor(activeConv.ticket_status)
+                          )}
+                        >
+                          {activeConv.ticket_status}
                         </span>
-                        <span className={clsx("text-[11px] px-2 py-1 rounded-full border", badgeColor(activeConv.priority))}>
+                        <span
+                          className={clsx(
+                            "text-[11px] px-2 py-1 rounded-full border",
+                            badgeColor(activeConv.priority)
+                          )}
+                        >
                           {activeConv.priority}
                         </span>
                       </div>
-                      <div className="truncate text-sm text-slate-400">{activeContact.phone}</div>
+                      <div className="truncate text-sm text-slate-400">
+                        {activeContact.phone}
+                      </div>
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {activeContact.tags.map(t => (
-                          <span key={t} className="text-[11px] px-2 py-1 rounded-full border border-slate-800 text-slate-300">
+                        {(activeContact.tags || []).map((t) => (
+                          <span
+                            key={t}
+                            className="text-[11px] px-2 py-1 rounded-full border border-slate-800 text-slate-300"
+                          >
                             #{t}
                           </span>
                         ))}
@@ -260,19 +464,21 @@ export default function InboxApp({ selectedId }: Props) {
 
                     <div className="flex flex-col items-end gap-2">
                       <select
-                        value={activeConv.assignedTo ?? ""}
+                        value={activeConv.assigned_to ?? ""}
                         onChange={(e) => setAssignee(activeConv.id, e.target.value || undefined)}
                         className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                       >
                         <option value="">Unassigned</option>
-                        {mockAgents.map(a => (
-                          <option key={a} value={a}>{a}</option>
+                        {agents.map((a) => (
+                          <option key={a} value={a}>
+                            {a}
+                          </option>
                         ))}
                       </select>
 
                       <div className="flex gap-2">
                         <select
-                          value={activeConv.ticketStatus}
+                          value={activeConv.ticket_status}
                           onChange={(e) => setTicketStatus(activeConv.id, e.target.value as TicketStatus)}
                           className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                         >
@@ -301,34 +507,41 @@ export default function InboxApp({ selectedId }: Props) {
               </div>
 
               <div className="h-[52vh] overflow-auto p-3 space-y-3">
-                {activeMessages.map((m) => {
-                  const isOut = m.direction === "out";
-                  return (
-                    <div key={m.id} className={clsx("flex", isOut ? "justify-end" : "justify-start")}>
-                      <div
-                        className={clsx(
-                          "max-w-[85%] rounded-2xl border px-3 py-2",
-                          isOut
-                            ? "bg-sky-500/10 border-sky-500/30 text-slate-100"
-                            : "bg-slate-900/40 border-slate-800 text-slate-100"
-                        )}
-                      >
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">{m.text}</div>
-                        <div className="mt-1 flex items-center justify-end gap-2 text-[11px] text-slate-400">
-                          <span>{fmtTime(m.ts)}</span>
-                          {isOut && (
-                            <span className="rounded-full border border-slate-700 px-2 py-[1px]">
-                              {m.status ?? "sent"}
-                            </span>
+                {loadingThread && (
+                  <div className="text-sm text-slate-400">Loading chat…</div>
+                )}
+
+                {!loadingThread &&
+                  activeMessages.map((m) => {
+                    const isOut = m.direction === "out";
+                    return (
+                      <div key={m.id} className={clsx("flex", isOut ? "justify-end" : "justify-start")}>
+                        <div
+                          className={clsx(
+                            "max-w-[85%] rounded-2xl border px-3 py-2",
+                            isOut
+                              ? "bg-sky-500/10 border-sky-500/30 text-slate-100"
+                              : "bg-slate-900/40 border-slate-800 text-slate-100"
                           )}
+                        >
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {m.text}
+                          </div>
+                          <div className="mt-1 flex items-center justify-end gap-2 text-[11px] text-slate-400">
+                            <span>{fmtTime(m.ts)}</span>
+                            {isOut && (
+                              <span className="rounded-full border border-slate-700 px-2 py-[1px]">
+                                {m.status ?? "sent"}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-                {activeMessages.length === 0 && (
-                  <div className="text-sm text-slate-400">Belom ado pesan.</div>
+                {!loadingThread && activeMessages.length === 0 && (
+                  <div className="text-sm text-slate-400">Belum ada pesan.</div>
                 )}
               </div>
 
@@ -354,39 +567,36 @@ export default function InboxApp({ selectedId }: Props) {
                   </button>
                 </div>
                 <div className="mt-2 text-xs text-slate-500">
-                  *Ini simulasi UI. Kagek tombol “Kirim” nyambung ke Cloud API via backend.
+                  *Saat ini: insert ke DB. Poin C nanti: kirim benar via WhatsApp Cloud API.
                 </div>
               </div>
             </div>
           </main>
 
-          {/* RIGHT: contact + notes */}
+          {/* RIGHT */}
           <section className="col-span-12 lg:col-span-3">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/40">
               <div className="border-b border-slate-800 p-3">
                 <div className="text-sm font-semibold">Info & Notes</div>
-                <div className="text-xs text-slate-400">Internal (dak keliatan user)</div>
+                <div className="text-xs text-slate-400">Internal (tidak terlihat user)</div>
               </div>
 
               <div className="p-3 space-y-4">
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                   <div className="text-xs text-slate-400">Assigned</div>
-                  <div className="mt-1 text-sm">{activeConv?.assignedTo ?? "Unassigned"}</div>
+                  <div className="mt-1 text-sm">{activeConv?.assigned_to ?? "Unassigned"}</div>
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                   <div className="text-xs text-slate-400">Last seen</div>
-                  <div className="mt-1 text-sm">{activeContact?.lastSeenAt ? fmtTime(activeContact.lastSeenAt) : "-"}</div>
+                  <div className="mt-1 text-sm">{fmtTime(activeContact?.last_seen_at)}</div>
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                   <div className="mb-2 flex items-center justify-between">
                     <div className="text-sm font-semibold">Notes</div>
                     <button
-                      onClick={() => {
-                        const t = prompt("Tulis note internal:");
-                        if (t) addNote(t);
-                      }}
+                      onClick={addNote}
                       className="rounded-lg border border-slate-700 px-3 py-1 text-xs hover:bg-slate-900"
                     >
                       + Add
@@ -394,8 +604,11 @@ export default function InboxApp({ selectedId }: Props) {
                   </div>
 
                   <div className="space-y-2">
-                    {activeNotes.map(n => (
-                      <div key={n.id} className="rounded-lg border border-slate-800 bg-slate-950/40 p-2">
+                    {activeNotes.map((n) => (
+                      <div
+                        key={n.id}
+                        className="rounded-lg border border-slate-800 bg-slate-950/40 p-2"
+                      >
                         <div className="text-xs text-slate-400 flex items-center justify-between">
                           <span>{n.author}</span>
                           <span>{fmtTime(n.ts)}</span>
@@ -403,8 +616,9 @@ export default function InboxApp({ selectedId }: Props) {
                         <div className="mt-1 text-sm">{n.text}</div>
                       </div>
                     ))}
+
                     {activeNotes.length === 0 && (
-                      <div className="text-sm text-slate-400">Belom ado note.</div>
+                      <div className="text-sm text-slate-400">Belum ada note.</div>
                     )}
                   </div>
                 </div>
@@ -418,7 +632,10 @@ export default function InboxApp({ selectedId }: Props) {
         </div>
 
         <div className="mt-6 text-xs text-slate-500">
-          Shortcut: buka langsung <code className="rounded border border-slate-800 px-2 py-1 bg-slate-950">/inbox/t1</code>
+          Shortcut: buka langsung{" "}
+          <code className="rounded border border-slate-800 px-2 py-1 bg-slate-950">
+            /admin/inbox/&lt;conversation_id&gt;
+          </code>
         </div>
       </div>
     </div>

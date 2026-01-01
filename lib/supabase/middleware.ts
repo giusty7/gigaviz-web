@@ -13,6 +13,10 @@ function parseAdminEmails() {
     .filter(Boolean);
 }
 
+function buildNextParam(pathname: string, search: string) {
+  return encodeURIComponent(pathname + (search || ""));
+}
+
 export async function withSupabaseAuth(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -40,44 +44,55 @@ export async function withSupabaseAuth(request: NextRequest) {
   const user = data.user;
 
   const pathname = request.nextUrl.pathname;
-  const search = request.nextUrl.search; // keep query
+  const search = request.nextUrl.search || "";
+
+  // Paths
+  const isLoginPath = pathname === "/login";
   const isAdminPath = pathname.startsWith("/admin");
-  const isLoginPath = pathname.startsWith("/login");
+  const isAdminApiPath = pathname.startsWith("/api/admin");
 
   // Helper bikin response + apply cookie buffer
-  const makeNext = () => {
-    const res = NextResponse.next({ request });
+  const applyCookies = (res: NextResponse) => {
     cookiesToSet.forEach(({ name, value, options }) =>
       res.cookies.set(name, value, options)
     );
     return res;
   };
 
-  const makeRedirect = (to: string) => {
-    const res = NextResponse.redirect(new URL(to, request.url));
-    cookiesToSet.forEach(({ name, value, options }) =>
-      res.cookies.set(name, value, options)
-    );
-    return res;
-  };
+  const makeNext = () => applyCookies(NextResponse.next({ request }));
 
+  const makeRedirect = (to: string) =>
+    applyCookies(NextResponse.redirect(new URL(to, request.url)));
+
+  // Admin check (email whitelist)
   const adminEmails = parseAdminEmails();
   const email = (user?.email || "").toLowerCase();
+
+  // kalau ADMIN_EMAILS kosong -> anggap semua user yg login boleh admin (MVP)
   const isAdmin = adminEmails.length === 0 ? true : adminEmails.includes(email);
 
-  // kalau sudah login, jangan balik ke /login
-  if (isLoginPath && user) {
-    if (isAdmin) return makeRedirect("/admin/leads");
-    return makeRedirect("/login?error=not_admin");
+  /**
+   * 1) /login behavior
+   * - Jika sudah login & admin -> lempar ke /admin/inbox (default)
+   * - Jika sudah login tapi bukan admin -> tetap di /login?error=not_admin
+   * - Jika belum login -> allow buka /login (jangan redirect balik)
+   */
+  if (isLoginPath) {
+    if (user && isAdmin) return makeRedirect("/admin/inbox");
+    if (user && !isAdmin) return makeRedirect("/login?error=not_admin");
+    return makeNext();
   }
 
-  // protect /admin/*
-  if (isAdminPath) {
+  /**
+   * 2) Protect /admin/* dan /api/admin/*
+   * - Belum login -> redirect /login?next=...
+   * - Sudah login tapi bukan admin -> /login?error=not_admin
+   */
+  if (isAdminPath || isAdminApiPath) {
     if (!user) {
-      const next = encodeURIComponent(pathname + search);
+      const next = buildNextParam(pathname, search);
       return makeRedirect(`/login?next=${next}`);
     }
-
     if (!isAdmin) {
       return makeRedirect("/login?error=not_admin");
     }
