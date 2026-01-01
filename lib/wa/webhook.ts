@@ -4,7 +4,7 @@ import { fetchWhatsAppMediaUrl } from "@/lib/wa/cloud";
 const VERIFY_TOKEN =
   process.env.WA_VERIFY_TOKEN || process.env.WA_WEBHOOK_VERIFY_TOKEN || "";
 
-function normalizeStatus(status: string) {
+function normalizeStatus(status?: string) {
   if (status === "sent") return "sent";
   if (status === "delivered") return "delivered";
   if (status === "read") return "read";
@@ -12,14 +12,37 @@ function normalizeStatus(status: string) {
   return null;
 }
 
+type WaErrorInfo = { title?: string; message?: string };
+type WaStatus = { id?: string; status?: string; errors?: WaErrorInfo[] };
+type WaContact = { wa_id?: string; profile?: { name?: string } };
+type WaMessage = {
+  id?: string;
+  from?: string;
+  timestamp?: string;
+  type?: string;
+  text?: { body?: string };
+  image?: { id?: string; mime_type?: string; sha256?: string; caption?: string };
+  document?: { id?: string; mime_type?: string; sha256?: string; caption?: string; filename?: string };
+  video?: { id?: string; mime_type?: string; sha256?: string; caption?: string };
+  audio?: { id?: string; mime_type?: string; sha256?: string };
+};
+type WaChangeValue = {
+  statuses?: WaStatus[];
+  messages?: WaMessage[];
+  contacts?: WaContact[];
+};
+type WaEntry = { changes?: Array<{ value?: WaChangeValue }> };
+type WaWebhookPayload = { entry?: WaEntry[] };
+
 async function resolveMediaUrl(mediaId?: string) {
   if (!mediaId) return { url: null, error: null };
   try {
     const res = await fetchWhatsAppMediaUrl(mediaId);
-    const url = (res.data as any)?.url || null;
+    const url = (res.data as { url?: string })?.url || null;
     return { url, error: null };
-  } catch (err: any) {
-    return { url: `wa-media://${mediaId}`, error: err?.message || "media_lookup_failed" };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "media_lookup_failed";
+    return { url: `wa-media://${mediaId}`, error: message };
   }
 }
 
@@ -40,7 +63,7 @@ export function handleWhatsAppVerify(req: Request) {
 }
 
 export async function handleWhatsAppWebhook(req: Request) {
-  const body = await req.json().catch(() => null);
+  const body = (await req.json().catch(() => null)) as WaWebhookPayload | null;
   if (!body) return new Response("OK", { status: 200 });
 
   const db = supabaseAdmin();
@@ -102,7 +125,7 @@ export async function handleWhatsAppWebhook(req: Request) {
             .maybeSingle();
           if (existing?.id) continue;
 
-          const contactProfile = inboundContacts.find((c: any) => c?.wa_id === from);
+          const contactProfile = inboundContacts.find((c) => c?.wa_id === from);
           const contactName = contactProfile?.profile?.name || from;
 
           let mediaId: string | undefined;
@@ -238,7 +261,7 @@ export async function handleWhatsAppWebhook(req: Request) {
               console.log("message_events insert failed (inbound)", inboundErr.message);
             }
           }
-        } catch (err) {
+        } catch (err: unknown) {
           console.log("WEBHOOK_INBOUND_ERROR", err);
         }
       }

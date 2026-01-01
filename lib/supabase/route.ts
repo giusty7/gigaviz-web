@@ -2,10 +2,17 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin"; // <- tambah ini
 
+type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
+
 type CookieToSet = {
   name: string;
   value: string;
-  options: any;
+  options: CookieOptions;
+};
+
+type WorkspaceMemberRow = {
+  workspace_id: string;
+  role: string;
 };
 
 function createSupabaseRouteClient(req: NextRequest) {
@@ -60,10 +67,9 @@ export async function requireAdminWorkspace(req: NextRequest) {
 
   const fallbackWs = process.env.DEFAULT_WORKSPACE_ID;
 
-  const workspaceId =
-    (wm as any)?.workspace_id || (fallbackWs ? fallbackWs : null);
-
-  const role = (wm as any)?.role;
+  const member = wm as WorkspaceMemberRow | null;
+  const workspaceId = member?.workspace_id || (fallbackWs ? fallbackWs : null);
+  const role = member?.role;
 
   if (!workspaceId) {
     return {

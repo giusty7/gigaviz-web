@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type NavItem = {
   href: string;
@@ -32,10 +32,7 @@ export function Navbar() {
     []
   );
 
-  // tutup menu mobile setiap pindah halaman
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  const closeMenu = () => setOpen(false);
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-800/60 bg-gigaviz-bg/80 backdrop-blur">
@@ -148,6 +145,7 @@ export function Navbar() {
                         : "bg-white/5 text-slate-200 hover:bg-white/10",
                       active ? "ring-1 ring-cyan-400/40" : "",
                     ].join(" ")}
+                    onClick={closeMenu}
                   >
                     <span className="font-medium">{item.label}</span>
                     {item.badge ? (
@@ -166,12 +164,14 @@ export function Navbar() {
               <Link
                 href="/pricing"
                 className="rounded-2xl border border-slate-700/70 bg-transparent px-4 py-3 text-center text-sm font-semibold text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200"
+                onClick={closeMenu}
               >
                 Lihat Paket
               </Link>
               <Link
                 href="/wa-platform"
                 className="rounded-2xl bg-cyan-400 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-cyan-300"
+                onClick={closeMenu}
               >
                 Request Demo
               </Link>

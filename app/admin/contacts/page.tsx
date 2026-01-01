@@ -27,8 +27,9 @@ export default function ContactsPage() {
         const js = await res.json();
         if (!res.ok) throw new Error(js?.error || "Gagal load contacts");
         if (!dead) setItems(js.items || []);
-      } catch (e: any) {
-        if (!dead) setError(e.message || "Error");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Error";
+        if (!dead) setError(message);
       } finally {
         if (!dead) setLoading(false);
       }

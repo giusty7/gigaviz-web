@@ -11,6 +11,20 @@ function requiredEnvAny(names: string[]) {
   throw new Error(`Missing env: ${names.join(" or ")}`);
 }
 
+type WhatsAppErrorResponse = {
+  error?: {
+    message?: string;
+  };
+};
+
+function getApiErrorMessage(data: unknown, fallback: string) {
+  if (data && typeof data === "object") {
+    const error = (data as WhatsAppErrorResponse).error;
+    if (error?.message) return error.message;
+  }
+  return fallback;
+}
+
 export async function sendWhatsAppText({ to, body }: SendTextArgs) {
   const token = requiredEnvAny(["WA_ACCESS_TOKEN", "WA_CLOUD_API_TOKEN"]);
   const phoneNumberId = requiredEnvAny(["WA_PHONE_NUMBER_ID"]);
@@ -37,9 +51,9 @@ export async function sendWhatsAppText({ to, body }: SendTextArgs) {
       signal: controller.signal,
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = (await res.json().catch(() => ({}))) as unknown;
     if (!res.ok) {
-      const msg = (data as any)?.error?.message || `WA API failed (${res.status})`;
+      const msg = getApiErrorMessage(data, `WA API failed (${res.status})`);
       throw new Error(msg);
     }
 
@@ -66,9 +80,9 @@ export async function fetchWhatsAppMediaUrl(mediaId: string) {
       signal: controller.signal,
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = (await res.json().catch(() => ({}))) as unknown;
     if (!res.ok) {
-      const msg = (data as any)?.error?.message || `WA media lookup failed (${res.status})`;
+      const msg = getApiErrorMessage(data, `WA media lookup failed (${res.status})`);
       throw new Error(msg);
     }
 

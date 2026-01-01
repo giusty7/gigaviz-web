@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
@@ -17,9 +17,11 @@ export default function LoginClient() {
   const nextPath = sp.get("next") || "/admin/leads";
   const error = sp.get("error");
 
-  useEffect(() => {
-    if (error === "not_admin") setMsg("Akun ini bukan admin.");
-  }, [error]);
+  const errorMsg = useMemo(
+    () => (error === "not_admin" ? "Akun ini bukan admin." : null),
+    [error]
+  );
+  const displayMsg = msg ?? errorMsg;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,9 +53,9 @@ export default function LoginClient() {
           </p>
         </div>
 
-        {msg && (
+        {displayMsg && (
           <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">
-            {msg}
+            {displayMsg}
           </div>
         )}
 

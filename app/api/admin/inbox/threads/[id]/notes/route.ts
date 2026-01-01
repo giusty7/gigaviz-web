@@ -3,6 +3,14 @@ import { requireAdminWorkspace } from "@/lib/supabase/route";
 
 type Ctx = { params: Promise<{ id: string }> };
 
+type NoteRow = {
+  id: string;
+  conversation_id: string;
+  text: string;
+  ts: string;
+  author: string;
+};
+
 export async function GET(req: NextRequest, ctx: Ctx) {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
@@ -23,7 +31,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     );
   }
 
-  const notes = (data ?? []).map((n: any) => ({
+  const notes = (data ?? []).map((n: NoteRow) => ({
     id: n.id,
     conversationId: n.conversation_id,
     text: n.text,
@@ -41,8 +49,9 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   const { db, withCookies, workspaceId } = auth;
   const { id: conversationId } = await ctx.params;
 
-  const body = await req.json().catch(() => ({}));
-  const text = String(body?.text ?? "").trim();
+  const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
+  const rawText = body && "text" in body ? body.text : "";
+  const text = String(rawText ?? "").trim();
   if (!text) {
     return withCookies(
       NextResponse.json({ error: "text_required" }, { status: 400 })

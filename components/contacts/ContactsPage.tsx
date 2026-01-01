@@ -16,6 +16,15 @@ type ContactRow = {
   createdAt?: string | null;
 };
 
+type ContactDbRow = {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  tags: string[] | null;
+  last_seen_at: string | null;
+  created_at: string | null;
+};
+
 export default function ContactsPage({ workspaceId }: Props) {
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -45,7 +54,7 @@ export default function ContactsPage({ workspaceId }: Props) {
       return;
     }
 
-    const mapped: ContactRow[] = (data ?? []).map((c: any) => ({
+    const mapped: ContactRow[] = (data ?? []).map((c: ContactDbRow) => ({
       id: c.id,
       name: c.name ?? "Unknown",
       phone: c.phone ?? "",

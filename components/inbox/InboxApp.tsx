@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -54,6 +55,38 @@ type NoteRow = {
 };
 
 type Props = { selectedId?: string };
+
+type ThreadPatchPayload = {
+  ticket_status?: TicketStatus;
+  priority?: Priority;
+  assigned_to?: string | null;
+  unread_count?: number;
+  last_read_at?: string | null;
+  pinned?: boolean;
+  is_archived?: boolean;
+  snoozed_until?: string | null;
+};
+
+type ThreadListResponse = {
+  items?: ConversationRow[];
+  error?: string;
+};
+
+type ThreadDetailResponse = {
+  messages?: MessageRow[];
+  notes?: NoteRow[];
+  error?: string;
+};
+
+type SendResponse = {
+  message?: MessageRow;
+  error?: string;
+};
+
+type NoteResponse = {
+  note?: NoteRow;
+  error?: string;
+};
 
 function clsx(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
@@ -125,11 +158,15 @@ export default function InboxApp({ selectedId }: Props) {
           const res = await fetch(`/api/admin/inbox/threads${query ? `?${query}` : ""}`, {
             cache: "no-store",
           });
-          const js = await res.json();
-          if (!res.ok) throw new Error(js?.error || "Gagal load threads");
-          if (!dead) setConversations(js.items || []);
-        } catch (e: any) {
-          if (!dead) setError(e.message || "Error");
+          const js = (await res.json().catch(() => ({}))) as ThreadListResponse;
+          if (!res.ok) {
+            const errMsg = typeof js.error === "string" ? js.error : "Gagal load threads";
+            throw new Error(errMsg);
+          }
+          if (!dead) setConversations(js.items ?? []);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : "Error";
+          if (!dead) setError(msg);
         } finally {
           if (!dead) setLoading(false);
         }
@@ -188,14 +225,14 @@ export default function InboxApp({ selectedId }: Props) {
     if (!activeId || !activeConv) return;
     if (activeConv.unread_count === 0 && activeConv.last_read_at) return;
     const nowIso = new Date().toISOString();
-    patchConv(activeId, { unread_count: 0, last_read_at: nowIso } as any);
+    patchConv(activeId, { unread_count: 0, last_read_at: nowIso });
     updateThread(activeId, { unread_count: 0, last_read_at: nowIso }).catch(() => {});
   }, [activeId, activeConv]);
 
   // load thread detail + lightweight polling
   useEffect(() => {
     let dead = false;
-    let interval: any;
+    const interval = setInterval(run, 6000);
     let initial = true;
 
     async function run() {
@@ -204,13 +241,17 @@ export default function InboxApp({ selectedId }: Props) {
       setError(null);
       try {
         const res = await fetch(`/api/admin/inbox/threads/${activeId}`, { cache: "no-store" });
-        const js = await res.json();
-        if (!res.ok) throw new Error(js?.error || "Gagal load thread");
+        const js = (await res.json().catch(() => ({}))) as ThreadDetailResponse;
+        if (!res.ok) {
+          const errMsg = typeof js.error === "string" ? js.error : "Gagal load thread";
+          throw new Error(errMsg);
+        }
         if (dead) return;
-        setMessages(js.messages || []);
-        setNotes(js.notes || []);
-      } catch (e: any) {
-        if (!dead) setError(e.message || "Error");
+        setMessages(js.messages ?? []);
+        setNotes(js.notes ?? []);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Error";
+        if (!dead) setError(msg);
       } finally {
         if (!dead && initial) setLoadingThread(false);
         initial = false;
@@ -218,11 +259,10 @@ export default function InboxApp({ selectedId }: Props) {
     }
 
     run();
-    interval = setInterval(run, 6000);
 
     return () => {
       dead = true;
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
     };
   }, [activeId]);
 
@@ -242,7 +282,7 @@ export default function InboxApp({ selectedId }: Props) {
     setConversations((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   }
 
-  async function updateThread(id: string, patch: Record<string, any>) {
+  async function updateThread(id: string, patch: ThreadPatchPayload) {
     await fetch(`/api/admin/inbox/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -251,44 +291,44 @@ export default function InboxApp({ selectedId }: Props) {
   }
 
   async function setTicketStatus(id: string, st: TicketStatus) {
-    patchConv(id, { ticket_status: st } as any);
+    patchConv(id, { ticket_status: st });
     await updateThread(id, { ticket_status: st });
   }
 
   async function setPriority(id: string, p: Priority) {
-    patchConv(id, { priority: p } as any);
+    patchConv(id, { priority: p });
     await updateThread(id, { priority: p });
   }
 
   async function setAssignee(id: string, asg?: string) {
-    patchConv(id, { assigned_to: asg ?? null } as any);
+    patchConv(id, { assigned_to: asg ?? null });
     await updateThread(id, { assigned_to: asg ?? null });
   }
 
   async function togglePin() {
     if (!activeConv) return;
     const next = !activeConv.pinned;
-    patchConv(activeConv.id, { pinned: next } as any);
+    patchConv(activeConv.id, { pinned: next });
     await updateThread(activeConv.id, { pinned: next });
   }
 
   async function toggleArchive() {
     if (!activeConv) return;
     const next = !activeConv.is_archived;
-    patchConv(activeConv.id, { is_archived: next } as any);
+    patchConv(activeConv.id, { is_archived: next });
     await updateThread(activeConv.id, { is_archived: next });
   }
 
   async function markRead() {
     if (!activeConv) return;
     const nowIso = new Date().toISOString();
-    patchConv(activeConv.id, { unread_count: 0, last_read_at: nowIso } as any);
+    patchConv(activeConv.id, { unread_count: 0, last_read_at: nowIso });
     await updateThread(activeConv.id, { unread_count: 0, last_read_at: nowIso });
   }
 
   async function markUnread() {
     if (!activeConv) return;
-    patchConv(activeConv.id, { unread_count: 1, last_read_at: null } as any);
+    patchConv(activeConv.id, { unread_count: 1, last_read_at: null });
     await updateThread(activeConv.id, { unread_count: 1, last_read_at: null });
   }
 
@@ -299,7 +339,7 @@ export default function InboxApp({ selectedId }: Props) {
     const minutes = Number(raw);
     if (!Number.isFinite(minutes) || minutes < 0) return;
     const until = minutes === 0 ? null : new Date(Date.now() + minutes * 60_000).toISOString();
-    patchConv(activeConv.id, { snoozed_until: until } as any);
+    patchConv(activeConv.id, { snoozed_until: until });
     await updateThread(activeConv.id, { snoozed_until: until });
   }
 
@@ -327,19 +367,24 @@ export default function InboxApp({ selectedId }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const js = await res.json();
-      if (!res.ok) throw new Error(js?.error || "Gagal kirim");
+      const js = (await res.json().catch(() => ({}))) as SendResponse;
+      const message = js.message;
+      if (!res.ok || !message) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal kirim";
+        throw new Error(errMsg);
+      }
 
       // replace optimistic with real
-      setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? js.message : m)));
-      patchConv(activeId, { last_message_at: js.message.ts } as any);
-    } catch (e: any) {
-      setError(e.message || "Error");
+      setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? message : m)));
+      patchConv(activeId, { last_message_at: message.ts });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
       // mark failed
       setMessages((prev) =>
         prev.map((m) =>
           m.id === optimistic.id
-            ? { ...m, status: "failed", errorReason: e.message || "Failed" }
+            ? { ...m, status: "failed", errorReason: msg || "Failed" }
             : m
         )
       );
@@ -358,11 +403,16 @@ export default function InboxApp({ selectedId }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const js = await res.json();
-      if (!res.ok) throw new Error(js?.error || "Gagal tambah note");
-      setNotes((prev) => [js.note, ...prev]);
-    } catch (e: any) {
-      setError(e.message || "Error");
+      const js = (await res.json().catch(() => ({}))) as NoteResponse;
+      const note = js.note;
+      if (!res.ok || !note) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal tambah note";
+        throw new Error(errMsg);
+      }
+      setNotes((prev) => [note, ...prev]);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
     }
   }
 
@@ -418,7 +468,7 @@ export default function InboxApp({ selectedId }: Props) {
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <select
                     value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value as any)}
+                    onChange={(e) => setFilterStatus(e.target.value as TicketStatus | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">Semua status</option>
@@ -430,7 +480,7 @@ export default function InboxApp({ selectedId }: Props) {
 
                   <select
                     value={filterPriority}
-                    onChange={(e) => setFilterPriority(e.target.value as any)}
+                    onChange={(e) => setFilterPriority(e.target.value as Priority | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">Semua priority</option>
@@ -444,7 +494,7 @@ export default function InboxApp({ selectedId }: Props) {
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <select
                     value={filterAssignee}
-                    onChange={(e) => setFilterAssignee(e.target.value as any)}
+                    onChange={(e) => setFilterAssignee(e.target.value as string | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">Semua agent</option>
@@ -458,7 +508,7 @@ export default function InboxApp({ selectedId }: Props) {
 
                   <select
                     value={filterArchived}
-                    onChange={(e) => setFilterArchived(e.target.value as any)}
+                    onChange={(e) => setFilterArchived(e.target.value as "active" | "archived" | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="active">Aktif</option>
@@ -477,7 +527,7 @@ export default function InboxApp({ selectedId }: Props) {
 
                   <select
                     value={filterPinned}
-                    onChange={(e) => setFilterPinned(e.target.value as any)}
+                    onChange={(e) => setFilterPinned(e.target.value as "all" | "pinned")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">Semua</option>
@@ -732,9 +782,12 @@ export default function InboxApp({ selectedId }: Props) {
                                 )}
                               </div>
                               {isImage && mediaUrl && (
-                                <img
+                                <Image
                                   src={mediaUrl}
                                   alt="attachment"
+                                  width={320}
+                                  height={200}
+                                  unoptimized
                                   className="max-h-48 w-auto rounded-md border border-slate-800"
                                 />
                               )}

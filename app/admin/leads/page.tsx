@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { LeadsFilters } from "@/components/admin/leads-filters";
 import { LeadActions } from "@/components/admin/lead-actions";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,39 @@ type SP = {
   pageSize?: string;
 };
 
-function asString(v: any) {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+type LeadRow = {
+  id: string;
+  created_at: string | null;
+  name: string | null;
+  phone: string | null;
+  business: string | null;
+  need: string | null;
+  notes: string | null;
+  source: string | null;
+};
+
+type AttemptRow = {
+  id: string;
+  created_at: string | null;
+  status: string;
+  reason: string | null;
+  name: string | null;
+  phone: string | null;
+  business: string | null;
+  need: string | null;
+  notes: string | null;
+  source: string | null;
+  ip: string | null;
+};
+
+type LeadOptionRow = {
+  need: string | null;
+  source: string | null;
+};
+
+function asString(v: string | string[] | undefined) {
   return Array.isArray(v) ? (v[0] ?? "") : (v ?? "");
 }
 
@@ -47,9 +80,9 @@ function badgeClass(status: string) {
 export default async function AdminLeadsPage({
   searchParams,
 }: {
-  searchParams: any; // biar aman Next versi beda
+  searchParams: SearchParams; // biar aman Next versi beda
 }) {
-  const sp: SP = await Promise.resolve(searchParams);
+  const sp: SP = searchParams;
 
   const tab = (asString(sp.tab) || "leads") as "leads" | "attempts";
   const q = asString(sp.q).trim();
@@ -68,18 +101,22 @@ export default async function AdminLeadsPage({
     .order("created_at", { ascending: false })
     .limit(500);
 
-  const needs = Array.from(new Set((optRows || []).map((r: any) => r.need).filter(Boolean))).sort();
-  const sources = Array.from(new Set((optRows || []).map((r: any) => r.source).filter(Boolean))).sort();
+  const needs = Array.from(
+    new Set((optRows || []).map((r: LeadOptionRow) => r.need).filter((v): v is string => Boolean(v)))
+  ).sort();
+  const sources = Array.from(
+    new Set((optRows || []).map((r: LeadOptionRow) => r.source).filter((v): v is string => Boolean(v)))
+  ).sort();
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
   let errorMsg: string | null = null;
 
-  let leads: any[] = [];
+  let leads: LeadRow[] = [];
   let leadsCount = 0;
 
-  let attempts: any[] = [];
+  let attempts: AttemptRow[] = [];
   let attemptsCount = 0;
 
   if (tab === "attempts") {
@@ -148,15 +185,15 @@ export default async function AdminLeadsPage({
               Data terbaru dari form /wa-platform (dan log attempt untuk badge status).
             </p>
           </div>
-          <a href="/" className="text-sm text-cyan-300 hover:text-cyan-200 underline">
+          <Link href="/" className="text-sm text-cyan-300 hover:text-cyan-200 underline">
             Kembali ke Home
-          </a>
+          </Link>
         </div>
 
         {/* Tabs */}
         <div className="mb-3 flex gap-2">
-          <a
-            href={`/admin/leads?tab=leads`}
+          <Link
+            href="/admin/leads?tab=leads"
             className={`rounded-full px-4 py-2 text-sm font-semibold border ${
               tab === "leads"
                 ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
@@ -164,9 +201,9 @@ export default async function AdminLeadsPage({
             }`}
           >
             Leads
-          </a>
-          <a
-            href={`/admin/leads?tab=attempts`}
+          </Link>
+          <Link
+            href="/admin/leads?tab=attempts"
             className={`rounded-full px-4 py-2 text-sm font-semibold border ${
               tab === "attempts"
                 ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
@@ -174,7 +211,7 @@ export default async function AdminLeadsPage({
             }`}
           >
             Attempts (status)
-          </a>
+          </Link>
         </div>
 
         <LeadsFilters needs={needs} sources={sources} tab={tab} />
@@ -203,7 +240,7 @@ export default async function AdminLeadsPage({
                   </tr>
                 </thead>
                 <tbody className="text-white">
-                  {attempts.map((r) => (
+                  {attempts.map((r: AttemptRow) => (
                     <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
                       <td className="px-4 py-3 text-white/70 whitespace-nowrap">
                         {r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "-"}
@@ -243,8 +280,8 @@ export default async function AdminLeadsPage({
                   </tr>
                 </thead>
                 <tbody className="text-white">
-                  {leads.map((r) => {
-                    const summary = `Lead WA Platform\nNama: ${r.name}\nWA: ${r.phone}\nBisnis: ${r.business || "-"}\nKebutuhan: ${r.need}\nCatatan: ${r.notes || "-"}`;
+                  {leads.map((r: LeadRow) => {
+                    const summary = `Lead WA Platform\nNama: ${r.name ?? "-"}\nWA: ${r.phone ?? "-"}\nBisnis: ${r.business || "-"}\nKebutuhan: ${r.need ?? "-"}\nCatatan: ${r.notes || "-"}`;
                     return (
                       <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="px-4 py-3 text-white/70 whitespace-nowrap">
@@ -253,11 +290,11 @@ export default async function AdminLeadsPage({
                         <td className="px-4 py-3">{r.name}</td>
                         <td className="px-4 py-3 whitespace-nowrap">{r.phone}</td>
                         <td className="px-4 py-3">{r.business || "-"}</td>
-                        <td className="px-4 py-3">{r.need}</td>
+                        <td className="px-4 py-3">{r.need ?? "-"}</td>
                         <td className="px-4 py-3 text-white/80">{r.notes || "-"}</td>
                         <td className="px-4 py-3 text-white/70">{r.source || "-"}</td>
                         <td className="px-4 py-3">
-                          <LeadActions phone={r.phone} summary={summary} />
+                          <LeadActions phone={r.phone ?? ""} summary={summary} />
                         </td>
                       </tr>
                     );
@@ -275,9 +312,9 @@ export default async function AdminLeadsPage({
             )}
           </div>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-end gap-2 px-4 py-3">
-            <a
+        {/* Pagination */}
+        <div className="flex items-center justify-end gap-2 px-4 py-3">
+            <Link
               className={`rounded-full border px-3 py-1.5 text-xs ${
                 page <= 1 ? "border-white/10 text-white/30" : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
               }`}
@@ -285,11 +322,11 @@ export default async function AdminLeadsPage({
               aria-disabled={page <= 1}
             >
               Prev
-            </a>
+            </Link>
             <div className="text-xs text-white/60">
               {page} / {totalPages}
             </div>
-            <a
+            <Link
               className={`rounded-full border px-3 py-1.5 text-xs ${
                 page >= totalPages ? "border-white/10 text-white/30" : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
               }`}
@@ -297,7 +334,7 @@ export default async function AdminLeadsPage({
               aria-disabled={page >= totalPages}
             >
               Next
-            </a>
+            </Link>
           </div>
         </div>
       </div>

@@ -39,7 +39,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    contactIds = (contacts ?? []).map((c: any) => c.id);
+    type ContactIdRow = { id: string };
+    contactIds = (contacts ?? []).map((c: ContactIdRow) => c.id);
     if (contactIds.length === 0) {
       return withCookies(NextResponse.json({ items: [] }));
     }

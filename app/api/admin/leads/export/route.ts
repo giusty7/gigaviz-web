@@ -3,14 +3,14 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function csvEscape(v: any) {
+function csvEscape(v: unknown) {
   const s = (v ?? "").toString();
   const needsQuotes = /[",\n\r]/.test(s);
   const escaped = s.replace(/"/g, '""');
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
-function toCSV(headers: string[], rows: Record<string, any>[]) {
+function toCSV(headers: string[], rows: Array<Record<string, unknown>>) {
   const lines: string[] = [];
   lines.push(headers.map(csvEscape).join(","));
   for (const r of rows) {

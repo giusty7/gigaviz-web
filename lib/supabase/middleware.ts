@@ -21,11 +21,13 @@ export async function withSupabaseAuth(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+  type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
+
   // Buffer cookies dari Supabase supaya tetap kepasang walau response-nya redirect
   const cookiesToSet: Array<{
     name: string;
     value: string;
-    options: any;
+    options: CookieOptions;
   }> = [];
 
   const supabase = createServerClient(url, anon, {

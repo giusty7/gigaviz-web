@@ -63,6 +63,12 @@ function isoMinutesAgo(min: number) {
   return new Date(Date.now() - min * 60 * 1000).toISOString();
 }
 
+function getErrorCode(err: unknown) {
+  if (!err || typeof err !== "object") return null;
+  const record = err as { code?: unknown };
+  return typeof record.code === "string" ? record.code : null;
+}
+
 export async function POST(req: Request) {
   const supabase = supabaseAdmin();
 
@@ -88,7 +94,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json().catch(() => null);
+    const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     if (!body) {
       await logAttempt({ status: "invalid", reason: "invalid_payload", ip: getIP(req), user_agent: req.headers.get("user-agent") });
       return NextResponse.json({ ok: false, message: "Payload tidak valid." }, { status: 400 });
@@ -183,7 +189,7 @@ export async function POST(req: Request) {
 
     if (insErr) {
       // kalau kena unique constraint (23505), anggap deduped
-      const code = (insErr as any)?.code;
+      const code = getErrorCode(insErr);
       if (code === "23505") {
         await logAttempt({ status: "deduped", reason: "unique_constraint", ...lead });
         return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
@@ -220,8 +226,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true, deduped: false }, { status: 200 });
-  } catch (e: any) {
-    console.error("[LEADS] Unexpected error:", e);
-    return NextResponse.json({ ok: false, message: e?.message || "Server error" }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Server error";
+    console.error("[LEADS] Unexpected error:", err);
+    return NextResponse.json({ ok: false, message }, { status: 500 });
   }
 }

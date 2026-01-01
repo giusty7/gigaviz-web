@@ -5,18 +5,52 @@ export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-function parseBool(value: any) {
+type ConversationPatchBody = {
+  ticketStatus?: unknown;
+  ticket_status?: unknown;
+  priority?: unknown;
+  assignedTo?: unknown;
+  assigned_to?: unknown;
+  unreadCount?: unknown;
+  unread_count?: unknown;
+  isArchived?: unknown;
+  is_archived?: unknown;
+  pinned?: unknown;
+  snoozedUntil?: unknown;
+  snoozed_until?: unknown;
+  lastReadAt?: unknown;
+  last_read_at?: unknown;
+};
+
+type ConversationPatch = {
+  ticket_status?: string;
+  priority?: string;
+  assigned_to?: string | null;
+  unread_count?: number;
+  is_archived?: boolean;
+  pinned?: boolean;
+  snoozed_until?: string | null;
+  last_read_at?: string | null;
+};
+
+function parseBool(value: unknown) {
   if (value === true || value === false) return value;
   if (value === "true") return true;
   if (value === "false") return false;
   return undefined;
 }
 
-function parseIso(value: any) {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toISOString();
+function parseIso(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value.toISOString();
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+  return null;
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
@@ -26,33 +60,34 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId } = auth;
   const { id } = await params;
 
-  const body = await req.json().catch(() => ({}));
-  const patch: Record<string, any> = {};
+  const body = (await req.json().catch(() => null)) as ConversationPatchBody | null;
+  const patch: ConversationPatch = {};
 
-  if (body.ticketStatus !== undefined || body.ticket_status !== undefined) {
-    patch.ticket_status = body.ticketStatus ?? body.ticket_status;
+  if (body?.ticketStatus !== undefined || body?.ticket_status !== undefined) {
+    patch.ticket_status = String(body?.ticketStatus ?? body?.ticket_status);
   }
-  if (body.priority !== undefined) patch.priority = body.priority;
-  if (body.assignedTo !== undefined || body.assigned_to !== undefined) {
-    patch.assigned_to = body.assignedTo ?? body.assigned_to ?? null;
+  if (body?.priority !== undefined) patch.priority = String(body.priority);
+  if (body?.assignedTo !== undefined || body?.assigned_to !== undefined) {
+    const assigned = body?.assignedTo ?? body?.assigned_to;
+    patch.assigned_to = assigned === null ? null : String(assigned);
   }
-  if (body.unreadCount !== undefined || body.unread_count !== undefined) {
-    patch.unread_count = Number(body.unreadCount ?? body.unread_count) || 0;
+  if (body?.unreadCount !== undefined || body?.unread_count !== undefined) {
+    patch.unread_count = Number(body?.unreadCount ?? body?.unread_count) || 0;
   }
-  if (body.isArchived !== undefined || body.is_archived !== undefined) {
-    const val = parseBool(body.isArchived ?? body.is_archived);
+  if (body?.isArchived !== undefined || body?.is_archived !== undefined) {
+    const val = parseBool(body?.isArchived ?? body?.is_archived);
     if (val !== undefined) patch.is_archived = val;
   }
-  if (body.pinned !== undefined) {
+  if (body?.pinned !== undefined) {
     const val = parseBool(body.pinned);
     if (val !== undefined) patch.pinned = val;
   }
-  if (body.snoozedUntil !== undefined || body.snoozed_until !== undefined) {
-    const snooze = body.snoozedUntil ?? body.snoozed_until;
+  if (body?.snoozedUntil !== undefined || body?.snoozed_until !== undefined) {
+    const snooze = body?.snoozedUntil ?? body?.snoozed_until;
     patch.snoozed_until = parseIso(snooze);
   }
-  if (body.lastReadAt !== undefined || body.last_read_at !== undefined) {
-    const lastRead = body.lastReadAt ?? body.last_read_at;
+  if (body?.lastReadAt !== undefined || body?.last_read_at !== undefined) {
+    const lastRead = body?.lastReadAt ?? body?.last_read_at;
     patch.last_read_at = parseIso(lastRead);
   }
 

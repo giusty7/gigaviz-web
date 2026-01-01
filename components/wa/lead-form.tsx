@@ -104,8 +104,9 @@ export default function LeadForm() {
         notes: "",
         website: "",
       });
-    } catch (e: any) {
-      setErr(e?.message || "Terjadi error.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Terjadi error.";
+      setErr(message);
     } finally {
       setLoading(false);
     }

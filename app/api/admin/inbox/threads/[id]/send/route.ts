@@ -6,6 +6,24 @@ export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
 
+type MessageRow = {
+  id: string;
+  conversation_id: string;
+  direction: "in" | "out";
+  text: string;
+  ts: string;
+  status: string | null;
+  wa_message_id: string | null;
+  error_reason: string | null;
+  media_url: string | null;
+  media_mime: string | null;
+  media_sha256: string | null;
+};
+
+type WhatsAppSendPayload = {
+  messages?: Array<{ id?: string | null }>;
+};
+
 const sendTimestamps: number[] = [];
 
 function sleep(ms: number) {
@@ -16,7 +34,7 @@ function normalizePhone(phone: string) {
   return phone.replace(/[^\d]/g, "");
 }
 
-function mapMessage(row: any) {
+function mapMessage(row: MessageRow) {
   return {
     id: row.id,
     conversationId: row.conversation_id,
@@ -30,6 +48,17 @@ function mapMessage(row: any) {
     mediaMime: row.media_mime ?? undefined,
     mediaSha256: row.media_sha256 ?? undefined,
   };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object") return value as Record<string, unknown>;
+  return {};
+}
+
+function getWaMessageId(payload: unknown) {
+  const data = payload as WhatsAppSendPayload;
+  const id = data?.messages?.[0]?.id;
+  return id ?? null;
 }
 
 function takeRateSlot(cap: number) {
@@ -71,7 +100,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     .order("ts", { ascending: false })
     .limit(1);
 
-  const existing = recent?.[0];
+  const existing = (recent?.[0] as MessageRow | undefined) ?? undefined;
   if (existing && existing.status !== "failed") {
     return withCookies(
       NextResponse.json({ ok: true, idempotent: true, message: mapMessage(existing) })
@@ -182,7 +211,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       to: normalizePhone(contact.phone),
       body: text,
     });
-    const waMessageId = (sendRes.data as any)?.messages?.[0]?.id;
+    const waMessageId = getWaMessageId(sendRes.data);
 
     const { data: updated } = await db
       .from("messages")
@@ -201,7 +230,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     const { error: sendErr } = await db.from("message_events").insert({
       message_id: inserted.id,
       event_type: "send.success",
-      payload: sendRes.data ?? {},
+      payload: asRecord(sendRes.data),
     });
     if (sendErr) {
       console.log("message_events insert failed (send_success)", sendErr.message);
@@ -210,8 +239,8 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     return withCookies(
       NextResponse.json({ ok: true, message: mapMessage(updated ?? inserted) })
     );
-  } catch (err: any) {
-    const reason = err?.message || "send_failed";
+  } catch (err: unknown) {
+    const reason = err instanceof Error ? err.message : "send_failed";
     await db
       .from("messages")
       .update({ status: "failed", error_reason: reason })

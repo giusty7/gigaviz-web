@@ -26,36 +26,28 @@ type ButtonAsLink = ButtonBaseProps &
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 export function Button(props: ButtonProps) {
-  const {
-    variant = "primary",
-    className = "",
-    children,
-    href,
-    ...rest
-  } = props as any;
-
   const base =
     "inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gigaviz-bg";
 
-  const variantClass =
+  const variantClass = (variant?: Variant) =>
     variant === "ghost"
       ? "border border-slate-700 text-slate-100 hover:bg-slate-900/60 active:bg-slate-900"
       : "bg-cyan-400 text-slate-900 hover:bg-cyan-300 active:bg-cyan-200";
 
-  const classes = `${base} ${variantClass} ${className}`;
-
-  if (href) {
-    // versi Link
+  if ("href" in props && typeof props.href === "string") {
+    const { variant = "primary", className = "", children, href, ...rest } = props;
+    const classes = `${base} ${variantClass(variant)} ${className}`;
     return (
-      <Link href={href} className={classes} {...(rest as any)}>
+      <Link href={href} className={classes} {...rest}>
         {children}
       </Link>
     );
   }
 
-  // versi <button>
+  const { variant = "primary", className = "", children, ...rest } = props;
+  const classes = `${base} ${variantClass(variant)} ${className}`;
   return (
-    <button className={classes} {...(rest as any)}>
+    <button className={classes} {...rest}>
       {children}
     </button>
   );

@@ -3,6 +3,20 @@ import { requireAdminWorkspace } from "@/lib/supabase/route";
 
 type Ctx = { params: Promise<{ id: string }> };
 
+type MessageRow = {
+  id: string;
+  conversation_id: string;
+  direction: "in" | "out";
+  text: string;
+  ts: string;
+  status: string | null;
+  wa_message_id: string | null;
+  error_reason: string | null;
+  media_url: string | null;
+  media_mime: string | null;
+  media_sha256: string | null;
+};
+
 export async function GET(req: NextRequest, ctx: Ctx) {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
@@ -23,7 +37,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     );
   }
 
-  const messages = (data ?? []).map((m: any) => ({
+  const messages = (data ?? []).map((m: MessageRow) => ({
     id: m.id,
     conversationId: m.conversation_id,
     direction: m.direction,
@@ -47,8 +61,9 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   const { db, withCookies, workspaceId } = auth;
   const { id: conversationId } = await ctx.params;
 
-  const body = await req.json().catch(() => ({}));
-  const text = String(body?.text ?? "").trim();
+  const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
+  const rawText = body && "text" in body ? body.text : "";
+  const text = String(rawText ?? "").trim();
   if (!text) {
     return withCookies(
       NextResponse.json({ error: "text_required" }, { status: 400 })
