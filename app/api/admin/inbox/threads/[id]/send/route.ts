@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
-import { sendWhatsAppText } from "@/lib/wa/cloud";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { computeFirstResponseAt } from "@/lib/inbox/first-response";
 
@@ -21,16 +21,6 @@ type MessageRow = {
   media_mime: string | null;
   media_sha256: string | null;
 };
-
-type WhatsAppSendPayload = {
-  messages?: Array<{ id?: string | null }>;
-};
-
-const sendTimestamps: number[] = [];
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function mapMessage(row: MessageRow) {
   return {
@@ -53,22 +43,8 @@ function asRecord(value: unknown): Record<string, unknown> {
   return {};
 }
 
-function getWaMessageId(payload: unknown) {
-  const data = payload as WhatsAppSendPayload;
-  const id = data?.messages?.[0]?.id;
-  return id ?? null;
-}
-
-function takeRateSlot(cap: number) {
-  if (!cap || cap <= 0) return true;
-  const now = Date.now();
-  const cutoff = now - 60_000;
-  while (sendTimestamps.length > 0 && sendTimestamps[0] < cutoff) {
-    sendTimestamps.shift();
-  }
-  if (sendTimestamps.length >= cap) return false;
-  sendTimestamps.push(now);
-  return true;
+function hashIdempotencySeed(seed: string) {
+  return createHash("sha256").update(seed).digest("hex");
 }
 
 export async function POST(req: NextRequest, { params }: Ctx) {
@@ -83,6 +59,13 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   if (!text) {
     return withCookies(NextResponse.json({ error: "text_required" }, { status: 400 }));
   }
+
+  const rawKey =
+    String(body?.idempotencyKey ?? body?.idempotency_key ?? "").trim() ||
+    String(req.headers.get("Idempotency-Key") || "").trim();
+  const bucket = Math.floor(Date.now() / 30_000);
+  const autoKeySeed = `${workspaceId}|${id}|${text}|${bucket}`;
+  const idempotencyKey = rawKey ? `req:${rawKey}` : `auto:${hashIdempotencySeed(autoKeySeed)}`;
 
   const { data: conv, error: convErr } = await db
     .from("conversations")
@@ -110,6 +93,12 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     );
   }
 
+  if (!contact?.phone) {
+    return withCookies(NextResponse.json({ error: "contact_phone_missing" }, { status: 400 }));
+  }
+
+  const toPhone = normalizePhone(contact.phone);
+
   if (contact.comms_status === "blacklisted") {
     const { error: eventErr } = await db.from("conversation_events").insert({
       conversation_id: id,
@@ -123,6 +112,35 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     return withCookies(
       NextResponse.json({ error: "contact_blacklisted" }, { status: 403 })
     );
+  }
+
+  const { data: existingOutbox } = await db
+    .from("outbox_messages")
+    .select("id, payload, status")
+    .eq("idempotency_key", idempotencyKey)
+    .maybeSingle();
+
+  if (existingOutbox) {
+    const payload = asRecord(existingOutbox.payload);
+    const messageId = typeof payload.message_id === "string" ? payload.message_id : null;
+    if (messageId) {
+      const { data: existingMessage } = await db
+        .from("messages")
+        .select(
+          "id, conversation_id, direction, text, ts, status, wa_message_id, error_reason, media_url, media_mime, media_sha256"
+        )
+        .eq("workspace_id", workspaceId)
+        .eq("id", messageId)
+        .single();
+      if (existingMessage) {
+        return withCookies(
+          NextResponse.json(
+            { ok: true, queued: true, idempotent: true, message: mapMessage(existingMessage) },
+            { status: 202 }
+          )
+        );
+      }
+    }
   }
 
   const sinceIso = new Date(Date.now() - 30_000).toISOString();
@@ -141,8 +159,30 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
   const existing = (recent?.[0] as MessageRow | undefined) ?? undefined;
   if (existing && existing.status !== "failed") {
+    const nextAttemptAt = new Date().toISOString();
+    await db
+      .from("outbox_messages")
+      .upsert(
+        [
+          {
+            workspace_id: workspaceId,
+            conversation_id: id,
+            to_phone: toPhone,
+            payload: { message_id: existing.id, text },
+            idempotency_key: idempotencyKey,
+            status: "queued",
+            attempts: 0,
+            next_run_at: nextAttemptAt,
+            next_attempt_at: nextAttemptAt,
+          },
+        ],
+        { onConflict: "idempotency_key", ignoreDuplicates: true }
+      );
     return withCookies(
-      NextResponse.json({ ok: true, idempotent: true, message: mapMessage(existing) })
+      NextResponse.json(
+        { ok: true, queued: true, idempotent: true, message: mapMessage(existing) },
+        { status: 202 }
+      )
     );
   }
 
@@ -179,108 +219,44 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     .eq("workspace_id", workspaceId)
     .eq("id", id);
 
-  const enableSend = process.env.ENABLE_WA_SEND === "true";
-  if (!enableSend) {
-    const { error: dryRunErr } = await db.from("message_events").insert({
-      message_id: inserted.id,
-      event_type: "send.dry_run",
-      payload: { text, conversation_id: id },
-    });
-    if (dryRunErr) {
-      console.log("message_events insert failed (dry_run)", dryRunErr.message);
-    }
+  const nextAttemptAt = new Date().toISOString();
+  const { data: outboxInsert, error: outboxErr } = await db
+    .from("outbox_messages")
+    .upsert(
+      [
+        {
+          workspace_id: workspaceId,
+          conversation_id: id,
+          to_phone: toPhone,
+          payload: { message_id: inserted.id, text },
+          idempotency_key: idempotencyKey,
+          status: "queued",
+          attempts: 0,
+          next_run_at: nextAttemptAt,
+          next_attempt_at: nextAttemptAt,
+        },
+      ],
+      { onConflict: "idempotency_key" }
+    )
+    .select("id")
+    .single();
 
+  if (outboxErr) {
     return withCookies(
-      NextResponse.json({ ok: true, mode: "dry-run", message: mapMessage(inserted) })
+      NextResponse.json({ error: outboxErr.message || "outbox_insert_failed" }, { status: 500 })
     );
   }
 
-  const rateCap = Number(process.env.RATE_CAP_PER_MIN ?? 0) || 0;
-  if (!takeRateSlot(rateCap)) {
-    await db
-      .from("messages")
-      .update({ status: "failed", error_reason: "rate_limited" })
-      .eq("workspace_id", workspaceId)
-      .eq("id", inserted.id);
-
-    const { error: rateErr } = await db.from("message_events").insert({
-      message_id: inserted.id,
-      event_type: "send.failed",
-      payload: { error: "rate_limited" },
-    });
-    if (rateErr) {
-      console.log("message_events insert failed (rate_limited)", rateErr.message);
-    }
-
-    return withCookies(
-      NextResponse.json({ error: "rate_limited" }, { status: 429 })
-    );
+  const { error: eventErr } = await db.from("message_events").insert({
+    message_id: inserted.id,
+    event_type: "send.queued",
+    payload: { text, conversation_id: id, outbox_id: outboxInsert?.id },
+  });
+  if (eventErr) {
+    console.log("message_events insert failed (send_queued)", eventErr.message);
   }
 
-  const delayMin = Math.max(0, Number(process.env.RATE_DELAY_MIN_MS ?? 800) || 0);
-  const delayMax = Math.max(delayMin, Number(process.env.RATE_DELAY_MAX_MS ?? 2200) || delayMin);
-  const delay = delayMin + Math.floor(Math.random() * (delayMax - delayMin + 1));
-  if (delay > 0) await sleep(delay);
-
-  if (!contact?.phone) {
-    await db
-      .from("messages")
-      .update({ status: "failed", error_reason: "contact_phone_missing" })
-      .eq("workspace_id", workspaceId)
-      .eq("id", inserted.id);
-    return withCookies(NextResponse.json({ error: "contact_phone_missing" }, { status: 400 }));
-  }
-
-  try {
-    const sendRes = await sendWhatsAppText({
-      to: normalizePhone(contact.phone),
-      body: text,
-    });
-    const waMessageId = getWaMessageId(sendRes.data);
-
-    const { data: updated } = await db
-      .from("messages")
-      .update({
-        status: "sent",
-        wa_message_id: waMessageId ?? null,
-        error_reason: null,
-      })
-      .eq("workspace_id", workspaceId)
-      .eq("id", inserted.id)
-      .select(
-        "id, conversation_id, direction, text, ts, status, wa_message_id, error_reason, media_url, media_mime, media_sha256"
-      )
-      .single();
-
-    const { error: sendErr } = await db.from("message_events").insert({
-      message_id: inserted.id,
-      event_type: "send.success",
-      payload: asRecord(sendRes.data),
-    });
-    if (sendErr) {
-      console.log("message_events insert failed (send_success)", sendErr.message);
-    }
-
-    return withCookies(
-      NextResponse.json({ ok: true, message: mapMessage(updated ?? inserted) })
-    );
-  } catch (err: unknown) {
-    const reason = err instanceof Error ? err.message : "send_failed";
-    await db
-      .from("messages")
-      .update({ status: "failed", error_reason: reason })
-      .eq("workspace_id", workspaceId)
-      .eq("id", inserted.id);
-
-    const { error: failErr } = await db.from("message_events").insert({
-      message_id: inserted.id,
-      event_type: "send.failed",
-      payload: { error: reason },
-    });
-    if (failErr) {
-      console.log("message_events insert failed (send_failed)", failErr.message);
-    }
-
-    return withCookies(NextResponse.json({ error: reason }, { status: 500 }));
-  }
+  return withCookies(
+    NextResponse.json({ ok: true, queued: true, message: mapMessage(inserted) }, { status: 202 })
+  );
 }

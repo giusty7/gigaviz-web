@@ -48,9 +48,14 @@ WhatsApp:
 - `ENABLE_WA_SEND`
 - `WA_ACCESS_TOKEN` or `WA_CLOUD_API_TOKEN`
 - `WA_PHONE_NUMBER_ID`
+- `WA_WABA_ID` (for template management)
 - `WA_VERIFY_TOKEN`
 - `WA_ADMIN_PHONE`
 - `WA_GRAPH_VERSION`
+
+Template sync note:
+- `POST /api/admin/templates/sync` only. Do not open in browser.
+- Rotate WA token if it is ever exposed.
 
 App:
 - `APP_BASE_URL`
@@ -81,6 +86,8 @@ Apply SQL files in Supabase SQL Editor, in order:
 9) `docs/sql/20260110_skill_routing.sql`
 10) `docs/sql/20260111_takeover.sql`
 11) `docs/sql/20260112_inbox_completeness.sql`
+12) `docs/sql/20260113_outbox.sql`
+13) `docs/sql/20260114_wa_templates.sql`
 
 ## Smoke Test Checklist
 
