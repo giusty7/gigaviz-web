@@ -98,3 +98,60 @@ export async function requireAdminWorkspace(req: NextRequest) {
     workspaceId,
   };
 }
+
+export async function requireAdminOrSupervisorWorkspace(req: NextRequest) {
+  const { supabase, withCookies } = createSupabaseRouteClient(req);
+
+  const { data: userData, error: userErr } = await supabase.auth.getUser();
+  const user = userData?.user;
+
+  if (userErr || !user) {
+    return {
+      ok: false as const,
+      res: withCookies(
+        NextResponse.json({ error: "unauthorized" }, { status: 401 })
+      ),
+    };
+  }
+
+  const db = supabaseAdmin();
+  const { data: wm } = await db
+    .from("workspace_members")
+    .select("workspace_id, role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const fallbackWs = process.env.DEFAULT_WORKSPACE_ID;
+
+  const member = wm as WorkspaceMemberRow | null;
+  const workspaceId = member?.workspace_id || (fallbackWs ? fallbackWs : null);
+  const role = member?.role ?? "admin";
+
+  if (!workspaceId) {
+    return {
+      ok: false as const,
+      res: withCookies(
+        NextResponse.json({ error: "no_workspace" }, { status: 403 })
+      ),
+    };
+  }
+
+  if (wm && role !== "admin" && role !== "supervisor") {
+    return {
+      ok: false as const,
+      res: withCookies(
+        NextResponse.json({ error: "forbidden" }, { status: 403 })
+      ),
+    };
+  }
+
+  return {
+    ok: true as const,
+    supabase,
+    db,
+    withCookies,
+    user,
+    workspaceId,
+    role,
+  };
+}

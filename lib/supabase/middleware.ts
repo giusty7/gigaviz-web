@@ -52,6 +52,12 @@ export async function withSupabaseAuth(request: NextRequest) {
   const isLoginPath = pathname === "/login";
   const isAdminPath = pathname.startsWith("/admin");
   const isAdminApiPath = pathname.startsWith("/api/admin");
+  const isInboxPath = pathname.startsWith("/admin/inbox");
+  const isInboxApiPath = pathname.startsWith("/api/admin/inbox");
+  const isInboxRelatedApi =
+    pathname === "/api/admin/teams" ||
+    pathname === "/api/admin/attachments/sign" ||
+    pathname.startsWith("/api/admin/crm/contacts/");
 
   // Helper bikin response + apply cookie buffer
   const applyCookies = (res: NextResponse) => {
@@ -81,7 +87,7 @@ export async function withSupabaseAuth(request: NextRequest) {
    */
   if (isLoginPath) {
     if (user && isAdmin) return makeRedirect("/admin/inbox");
-    if (user && !isAdmin) return makeRedirect("/login?error=not_admin");
+    if (user && !isAdmin) return makeRedirect("/admin/inbox");
     return makeNext();
   }
 
@@ -95,7 +101,7 @@ export async function withSupabaseAuth(request: NextRequest) {
       const next = buildNextParam(pathname, search);
       return makeRedirect(`/login?next=${next}`);
     }
-    if (!isAdmin) {
+    if (!isAdmin && !(isInboxPath || isInboxApiPath || isInboxRelatedApi)) {
       return makeRedirect("/login?error=not_admin");
     }
   }

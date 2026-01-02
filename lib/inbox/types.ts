@@ -67,4 +67,5 @@ export type Conversation = {
   resolutionDueAt?: string;
   slaStatus?: SlaStatus;
   lastCustomerMessageAt?: string;
+  firstResponseAt?: string;
 };

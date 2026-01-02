@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { fetchWhatsAppMediaUrl } from "@/lib/wa/cloud";
 import { recomputeConversationSla } from "@/lib/inbox/sla";
+import { maybeAutoRouteInbound } from "@/lib/inbox/routing";
 import { normalizePhone } from "@/lib/contacts/normalize";
 
 const VERIFY_TOKEN =
@@ -295,6 +296,13 @@ export async function processWhatsAppPayload(params: {
               lastCustomerMessageAt: ts,
               ticketStatus: "open",
             },
+          });
+
+          await maybeAutoRouteInbound({
+            db,
+            workspaceId,
+            conversationId,
+            text: textBody || "",
           });
         } catch (err: unknown) {
           console.log("WEBHOOK_INBOUND_ERROR", err);

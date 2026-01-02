@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { recomputeConversationSla } from "@/lib/inbox/sla";
+import { parsePriority, parseTicketStatus } from "@/lib/inbox/validators";
 
 export const runtime = "nodejs";
 
@@ -59,7 +60,7 @@ function parseIso(value: unknown) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
@@ -69,9 +70,23 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const patch: ConversationPatch = {};
 
   if (body?.ticketStatus !== undefined || body?.ticket_status !== undefined) {
-    patch.ticket_status = String(body?.ticketStatus ?? body?.ticket_status);
+    const parsed = parseTicketStatus(body?.ticketStatus ?? body?.ticket_status);
+    if (!parsed) {
+      return withCookies(
+        NextResponse.json({ error: "invalid_ticket_status" }, { status: 400 })
+      );
+    }
+    patch.ticket_status = parsed;
   }
-  if (body?.priority !== undefined) patch.priority = String(body.priority);
+  if (body?.priority !== undefined) {
+    const parsed = parsePriority(body.priority);
+    if (!parsed) {
+      return withCookies(
+        NextResponse.json({ error: "invalid_priority" }, { status: 400 })
+      );
+    }
+    patch.priority = parsed;
+  }
   if (body?.assignedTo !== undefined || body?.assigned_to !== undefined) {
     const assigned = body?.assignedTo ?? body?.assigned_to;
     patch.assigned_to = assigned === null ? null : String(assigned);

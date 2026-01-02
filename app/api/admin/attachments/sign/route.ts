@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
 export const runtime = "nodejs";
 
@@ -15,7 +15,7 @@ type AttachmentRow = {
 };
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;

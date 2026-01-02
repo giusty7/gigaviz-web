@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
-  const { db, withCookies, workspaceId } = auth;
+  const { db, withCookies, workspaceId, user, role } = auth;
   const { id: conversationId } = await params;
 
   const url = new URL(req.url);
@@ -58,6 +58,22 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     return withCookies(
       NextResponse.json({ error: teamErr?.message ?? "team_not_found" }, { status: 404 })
     );
+  }
+
+  if (role === "supervisor") {
+    const { data: member } = await db
+      .from("team_members")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("member_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!member?.id) {
+      return withCookies(
+        NextResponse.json({ error: "member_not_in_team" }, { status: 403 })
+      );
+    }
   }
 
   const { data: assignedMemberId } = await db.rpc("assign_conversation_round_robin", {

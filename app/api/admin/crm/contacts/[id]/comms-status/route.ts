@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -18,7 +18,7 @@ function parseStatus(value: unknown) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;

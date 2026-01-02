@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { sendWhatsAppText } from "@/lib/wa/cloud";
 import { normalizePhone } from "@/lib/contacts/normalize";
+import { computeFirstResponseAt } from "@/lib/inbox/first-response";
 
 export const runtime = "nodejs";
 
@@ -71,7 +72,7 @@ function takeRateSlot(cap: number) {
 }
 
 export async function POST(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId, user } = auth;
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
   const { data: conv, error: convErr } = await db
     .from("conversations")
-    .select("id, contact_id")
+    .select("id, contact_id, last_customer_message_at, first_response_at")
     .eq("workspace_id", workspaceId)
     .eq("id", id)
     .single();
@@ -163,9 +164,18 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     return withCookies(NextResponse.json({ error: insErr?.message || "insert_failed" }, { status: 500 }));
   }
 
+  const firstResponseAt = computeFirstResponseAt({
+    firstResponseAt: conv.first_response_at ?? null,
+    lastCustomerMessageAt: conv.last_customer_message_at ?? null,
+    messageTs: inserted.ts,
+  });
+
   await db
     .from("conversations")
-    .update({ last_message_at: inserted.ts })
+    .update({
+      last_message_at: inserted.ts,
+      first_response_at: firstResponseAt ?? conv.first_response_at ?? null,
+    })
     .eq("workspace_id", workspaceId)
     .eq("id", id);
 

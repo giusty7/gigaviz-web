@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { buildMessageSearchQuery, mergeConversationIds } from "@/lib/inbox/search";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
@@ -41,9 +42,63 @@ export async function GET(req: NextRequest) {
 
     type ContactIdRow = { id: string };
     contactIds = (contacts ?? []).map((c: ContactIdRow) => c.id);
-    if (contactIds.length === 0) {
-      return withCookies(NextResponse.json({ items: [] }));
+  }
+
+  let contactConversationIds: string[] | null = null;
+  if (contactIds && contactIds.length > 0) {
+    const { data: convs, error: convErr } = await db
+      .from("conversations")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .in("contact_id", contactIds);
+
+    if (convErr) {
+      return withCookies(
+        NextResponse.json({ error: convErr.message }, { status: 500 })
+      );
     }
+
+    contactConversationIds = (convs ?? []).map((c: { id: string }) => c.id);
+  }
+
+  let messageConversationIds: string[] | null = null;
+  const searchQuery = buildMessageSearchQuery(q);
+  if (searchQuery) {
+    const { data: msgs, error: msgErr } = await db
+      .from("messages")
+      .select("conversation_id")
+      .eq("workspace_id", workspaceId)
+      .textSearch("search_tsv", searchQuery, { type: "plain", config: "simple" });
+
+    if (msgErr) {
+      const { data: fallbackMsgs, error: fallbackErr } = await db
+        .from("messages")
+        .select("conversation_id")
+        .eq("workspace_id", workspaceId)
+        .ilike("text", `%${q}%`);
+
+      if (fallbackErr) {
+        return withCookies(
+          NextResponse.json({ error: fallbackErr.message }, { status: 500 })
+        );
+      }
+
+      messageConversationIds = (fallbackMsgs ?? [])
+        .map((m: { conversation_id: string | null }) => m.conversation_id)
+        .filter((id): id is string => Boolean(id));
+    } else {
+      messageConversationIds = (msgs ?? [])
+        .map((m: { conversation_id: string | null }) => m.conversation_id)
+        .filter((id): id is string => Boolean(id));
+    }
+  }
+
+  const conversationIds = mergeConversationIds(
+    contactConversationIds,
+    messageConversationIds
+  );
+  if ((q || tag) && conversationIds.length === 0) {
+    return withCookies(NextResponse.json({ items: [] }));
   }
 
   let query = db
@@ -63,6 +118,7 @@ export async function GET(req: NextRequest) {
       sla_status,
       last_customer_message_at,
       team_id,
+      category_id,
       is_archived,
       pinned,
       snoozed_until,
@@ -74,7 +130,7 @@ export async function GET(req: NextRequest) {
     )
     .eq("workspace_id", workspaceId);
 
-  if (contactIds) query = query.in("contact_id", contactIds);
+  if (conversationIds.length > 0) query = query.in("id", conversationIds);
   if (status !== "all") query = query.eq("ticket_status", status);
   if (priority !== "all") query = query.eq("priority", priority);
 

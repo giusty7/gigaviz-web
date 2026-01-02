@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type TicketStatus = "open" | "pending" | "solved" | "spam";
@@ -25,6 +25,11 @@ type ConversationRow = {
   assigned_to: string | null;
   assigned_member_id?: string | null;
   team_id?: string | null;
+  category_id?: string | null;
+  takeover_by_member_id?: string | null;
+  takeover_prev_assigned_member_id?: string | null;
+  takeover_at?: string | null;
+  first_response_at?: string | null;
   ticket_status: TicketStatus;
   priority: Priority;
   unread_count: number;
@@ -91,6 +96,12 @@ type TeamRow = {
   is_default?: boolean;
 };
 
+type RoutingCategory = {
+  id: string;
+  key: string;
+  label: string;
+};
+
 type CrmFieldType = "text" | "number" | "bool" | "date" | "select";
 
 type CrmField = {
@@ -134,7 +145,19 @@ type ThreadDetailResponse = {
   thread?: {
     teamName?: string;
     assignedMemberUserId?: string;
+    assignedTo?: string;
+    assignedMemberId?: string;
+    teamId?: string;
+    categoryId?: string;
+    takeoverByMemberId?: string;
+    takeoverPrevAssignedMemberId?: string;
+    takeoverAt?: string;
+    takeoverByUserId?: string;
+    firstResponseAt?: string;
   };
+  skillRoutingEnabled?: boolean;
+  supervisorTakeoverEnabled?: boolean;
+  memberRole?: string;
   error?: string;
 };
 
@@ -251,9 +274,16 @@ export default function InboxApp({ selectedId }: Props) {
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [escalations, setEscalations] = useState<EscalationRow[]>([]);
   const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [categories, setCategories] = useState<RoutingCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [transferTeamId, setTransferTeamId] = useState<string>("");
   const [assignedMemberUserId, setAssignedMemberUserId] = useState<string | null>(null);
+  const [takeoverByUserId, setTakeoverByUserId] = useState<string | null>(null);
   const [activeTeamName, setActiveTeamName] = useState<string | null>(null);
+  const [skillRoutingEnabled, setSkillRoutingEnabled] = useState(false);
+  const [supervisorTakeoverEnabled, setSupervisorTakeoverEnabled] = useState(false);
+  const [memberRole, setMemberRole] = useState<string | null>(null);
   const [composer, setComposer] = useState("");
   const [crmFields, setCrmFields] = useState<CrmField[]>([]);
   const [crmValues, setCrmValues] = useState<
@@ -346,6 +376,40 @@ export default function InboxApp({ selectedId }: Props) {
     };
   }, []);
 
+  useEffect(() => {
+    let dead = false;
+    async function loadCategories() {
+      if (!skillRoutingEnabled) {
+        setCategories([]);
+        setCategoriesError(null);
+        return;
+      }
+      setCategoriesLoading(true);
+      setCategoriesError(null);
+      try {
+        const res = await fetch("/api/admin/routing/categories", { cache: "no-store" });
+        const js = (await res.json().catch(() => ({}))) as {
+          categories?: RoutingCategory[];
+          error?: string;
+        };
+        if (!res.ok) {
+          const errMsg = typeof js.error === "string" ? js.error : "Gagal load kategori";
+          throw new Error(errMsg);
+        }
+        if (!dead) setCategories(js.categories ?? []);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Error";
+        if (!dead) setCategoriesError(msg);
+      } finally {
+        if (!dead) setCategoriesLoading(false);
+      }
+    }
+    loadCategories();
+    return () => {
+      dead = true;
+    };
+  }, [skillRoutingEnabled]);
+
 
   const convById = useMemo(
     () => Object.fromEntries(conversations.map((c) => [c.id, c])),
@@ -380,6 +444,9 @@ export default function InboxApp({ selectedId }: Props) {
   const activeConv = activeId ? convById[activeId] : null;
   const activeContact = activeConv?.contact ?? null;
   const crmDisabled = crmLoading || crmSaving;
+  const patchConv = useCallback((id: string, patch: Partial<ConversationRow>) => {
+    setConversations((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  }, []);
 
   useEffect(() => {
     if (!activeConv) return;
@@ -454,58 +521,110 @@ export default function InboxApp({ selectedId }: Props) {
     };
   }, [activeConv, now]);
 
+  const firstResponseLabel = useMemo(() => {
+    const firstResponseAt = activeConv?.first_response_at;
+    if (!firstResponseAt) return "First response: -";
+    const diffMs = now - new Date(firstResponseAt).getTime();
+    if (Number.isNaN(diffMs)) return "First response: -";
+    const minutes = Math.max(0, Math.round(diffMs / 60_000));
+    return `First response: ${minutes}m ago`;
+  }, [activeConv?.first_response_at, now]);
+
   useEffect(() => {
     if (!activeId || !activeConv) return;
     if (activeConv.unread_count === 0 && activeConv.last_read_at) return;
     const nowIso = new Date().toISOString();
     patchConv(activeId, { unread_count: 0, last_read_at: nowIso });
     updateThread(activeId, { unread_count: 0, last_read_at: nowIso }).catch(() => {});
-  }, [activeId, activeConv]);
+  }, [activeId, activeConv, patchConv]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(timer);
   }, []);
 
-  // load thread detail + lightweight polling
-  useEffect(() => {
-    let dead = false;
-    const interval = setInterval(run, 6000);
-    let initial = true;
-
-    async function run() {
-      if (!activeId) return;
-      if (initial) setLoadingThread(true);
+  const fetchThreadDetail = useCallback(
+    async (conversationId: string, showLoading = false) => {
+      if (!conversationId) return;
+      if (showLoading) setLoadingThread(true);
       setError(null);
       try {
-        const res = await fetch(`/api/admin/inbox/threads/${activeId}`, { cache: "no-store" });
+        const res = await fetch(`/api/admin/inbox/threads/${conversationId}`, {
+          cache: "no-store",
+        });
         const js = (await res.json().catch(() => ({}))) as ThreadDetailResponse;
         if (!res.ok) {
           const errMsg = typeof js.error === "string" ? js.error : "Gagal load thread";
           throw new Error(errMsg);
         }
-        if (dead) return;
         setMessages(js.messages ?? []);
         setNotes(js.notes ?? []);
         setEscalations(js.escalations ?? []);
         setAssignedMemberUserId(js.thread?.assignedMemberUserId ?? null);
+        setTakeoverByUserId(js.thread?.takeoverByUserId ?? null);
         setActiveTeamName(js.thread?.teamName ?? null);
+        if (
+          js.thread?.assignedTo !== undefined ||
+          js.thread?.teamId !== undefined ||
+          js.thread?.categoryId !== undefined ||
+          js.thread?.takeoverByMemberId !== undefined ||
+          js.thread?.takeoverPrevAssignedMemberId !== undefined ||
+          js.thread?.takeoverAt !== undefined ||
+          js.thread?.firstResponseAt !== undefined
+        ) {
+          patchConv(conversationId, {
+            assigned_to: js.thread?.assignedTo ?? null,
+            assigned_member_id: js.thread?.assignedMemberId ?? null,
+            team_id: js.thread?.teamId ?? null,
+            category_id: js.thread?.categoryId ?? null,
+            takeover_by_member_id: js.thread?.takeoverByMemberId ?? null,
+            takeover_prev_assigned_member_id:
+              js.thread?.takeoverPrevAssignedMemberId ?? null,
+            takeover_at: js.thread?.takeoverAt ?? null,
+            first_response_at: js.thread?.firstResponseAt ?? null,
+          });
+        }
+        if (js.skillRoutingEnabled !== undefined) {
+          setSkillRoutingEnabled(js.skillRoutingEnabled);
+        }
+        if (js.supervisorTakeoverEnabled !== undefined) {
+          setSupervisorTakeoverEnabled(js.supervisorTakeoverEnabled);
+        }
+        if (js.memberRole !== undefined) {
+          setMemberRole(js.memberRole ?? null);
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Error";
-        if (!dead) setError(msg);
+        setError(msg);
       } finally {
-        if (!dead && initial) setLoadingThread(false);
-        initial = false;
+        if (showLoading) setLoadingThread(false);
       }
+    },
+    [patchConv]
+  );
+
+  // load thread detail + lightweight polling
+  useEffect(() => {
+    let dead = false;
+    const interval = setInterval(() => {
+      if (!activeId || dead) return;
+      fetchThreadDetail(activeId).catch(() => {});
+    }, 6000);
+
+    let initial = true;
+    async function runOnce() {
+      if (!activeId) return;
+      await fetchThreadDetail(activeId, initial);
+      initial = false;
     }
 
-    run();
+    runOnce().catch(() => {});
 
     return () => {
       dead = true;
       clearInterval(interval);
     };
-  }, [activeId]);
+  }, [activeId, fetchThreadDetail]);
 
   function navigateTo(id: string) {
     router.push(`/admin/inbox/${id}`);
@@ -517,10 +636,6 @@ export default function InboxApp({ selectedId }: Props) {
       )
     );
     updateThread(id, { unread_count: 0, last_read_at: nowIso }).catch(() => {});
-  }
-
-  function patchConv(id: string, patch: Partial<ConversationRow>) {
-    setConversations((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   }
 
   async function updateThread(id: string, patch: ThreadPatchPayload) {
@@ -560,7 +675,11 @@ export default function InboxApp({ selectedId }: Props) {
       };
       if (!res.ok || !js.thread) {
         const errMsg = typeof js.error === "string" ? js.error : "Gagal auto-assign";
-        throw new Error(errMsg);
+        const friendly =
+          errMsg === "member_not_in_team"
+            ? "You are not a member of this team."
+            : errMsg;
+        throw new Error(friendly);
       }
       patchConv(activeConv.id, {
         assigned_to: js.thread.assignedTo ?? null,
@@ -591,13 +710,127 @@ export default function InboxApp({ selectedId }: Props) {
       };
       if (!res.ok || !js.thread) {
         const errMsg = typeof js.error === "string" ? js.error : "Gagal transfer";
-        throw new Error(errMsg);
+        const friendly =
+          errMsg === "member_not_in_team"
+            ? "You are not a member of this team."
+            : errMsg;
+        throw new Error(friendly);
       }
       patchConv(activeConv.id, {
         assigned_to: js.thread.assignedTo ?? null,
         assigned_member_id: js.thread.assignedMemberId ?? null,
         team_id: js.thread.teamId ?? null,
       });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
+    }
+  }
+
+  async function takeOverThread() {
+    if (!activeConv) return;
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeConv.id}/takeover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const js = (await res.json().catch(() => ({}))) as {
+        thread?: {
+          assignedTo?: string;
+          assignedMemberId?: string;
+          teamId?: string;
+          takeoverByMemberId?: string;
+          takeoverPrevAssignedMemberId?: string;
+          takeoverAt?: string;
+        };
+        error?: string;
+      };
+      if (!res.ok || !js.thread) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal takeover";
+        throw new Error(errMsg);
+      }
+      patchConv(activeConv.id, {
+        assigned_to: js.thread.assignedTo ?? null,
+        assigned_member_id: js.thread.assignedMemberId ?? null,
+        team_id: js.thread.teamId ?? null,
+        takeover_by_member_id: js.thread.takeoverByMemberId ?? null,
+        takeover_prev_assigned_member_id:
+          js.thread.takeoverPrevAssignedMemberId ?? null,
+        takeover_at: js.thread.takeoverAt ?? null,
+      });
+      await fetchThreadDetail(activeConv.id);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
+    }
+  }
+
+  async function releaseTakeover() {
+    if (!activeConv) return;
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeConv.id}/release`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const js = (await res.json().catch(() => ({}))) as {
+        thread?: {
+          assignedTo?: string;
+          assignedMemberId?: string;
+          teamId?: string;
+          takeoverByMemberId?: string;
+          takeoverPrevAssignedMemberId?: string;
+          takeoverAt?: string;
+        };
+        error?: string;
+      };
+      if (!res.ok || !js.thread) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal release takeover";
+        throw new Error(errMsg);
+      }
+      patchConv(activeConv.id, {
+        assigned_to: js.thread.assignedTo ?? null,
+        assigned_member_id: js.thread.assignedMemberId ?? null,
+        team_id: js.thread.teamId ?? null,
+        takeover_by_member_id: js.thread.takeoverByMemberId ?? null,
+        takeover_prev_assigned_member_id:
+          js.thread.takeoverPrevAssignedMemberId ?? null,
+        takeover_at: js.thread.takeoverAt ?? null,
+      });
+      await fetchThreadDetail(activeConv.id);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
+    }
+  }
+
+  async function setCategory(categoryId: string | null) {
+    if (!activeConv) return;
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeConv.id}/category`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category_id: categoryId }),
+      });
+      const js = (await res.json().catch(() => ({}))) as {
+        thread?: {
+          assignedTo?: string;
+          assignedMemberId?: string;
+          teamId?: string;
+          categoryId?: string;
+        };
+        error?: string;
+      };
+      if (!res.ok || !js.thread) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal update kategori";
+        throw new Error(errMsg);
+      }
+      patchConv(activeConv.id, {
+        assigned_to: js.thread.assignedTo ?? null,
+        assigned_member_id: js.thread.assignedMemberId ?? null,
+        team_id: js.thread.teamId ?? null,
+        category_id: js.thread.categoryId ?? null,
+      });
+      await fetchThreadDetail(activeConv.id);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";
       setError(msg);
@@ -910,6 +1143,16 @@ export default function InboxApp({ selectedId }: Props) {
     if (activeConv.assigned_member_id) return shortId(activeConv.assigned_member_id);
     return "Unassigned";
   }, [activeConv, assignedMemberUserId]);
+
+  const takeoverLabel = useMemo(() => {
+    if (!activeConv?.takeover_by_member_id) return null;
+    const raw = takeoverByUserId || activeConv.takeover_by_member_id;
+    return shortId(raw);
+  }, [activeConv?.takeover_by_member_id, takeoverByUserId]);
+
+  const takeoverActive = Boolean(activeConv?.takeover_by_member_id);
+  const canTakeover =
+    supervisorTakeoverEnabled && (memberRole === "admin" || memberRole === "supervisor");
 
   return (
     <div className="min-h-[calc(100vh-0px)] w-full">
@@ -1500,6 +1743,34 @@ export default function InboxApp({ selectedId }: Props) {
                       </span>
                     )}
                   </div>
+                  {takeoverActive && (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-amber-300">
+                      <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-[1px]">
+                        Taken over
+                      </span>
+                      <span>{takeoverLabel ?? "-"}</span>
+                      <span>{fmtTime(activeConv?.takeover_at)}</span>
+                    </div>
+                  )}
+                  {canTakeover && (
+                    <div className="mt-3">
+                      {!takeoverActive ? (
+                        <button
+                          onClick={takeOverThread}
+                          className="rounded-lg border border-slate-700 px-3 py-1 text-xs hover:bg-slate-900"
+                        >
+                          Take over
+                        </button>
+                      ) : (
+                        <button
+                          onClick={releaseTakeover}
+                          className="rounded-lg border border-amber-500/40 px-3 py-1 text-xs text-amber-200 hover:bg-amber-500/10"
+                        >
+                          Release
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
@@ -1656,6 +1927,33 @@ export default function InboxApp({ selectedId }: Props) {
                   )}
                 </div>
 
+                {skillRoutingEnabled && (
+                  <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                    <div className="text-xs text-slate-400">Category</div>
+                    <div className="mt-2 flex flex-col gap-2">
+                      <select
+                        value={activeConv?.category_id ?? ""}
+                        onChange={(e) => setCategory(e.target.value || null)}
+                        className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
+                        disabled={categoriesLoading}
+                      >
+                        <option value="">Uncategorized</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      {categoriesLoading && (
+                        <span className="text-xs text-slate-500">Loading...</span>
+                      )}
+                      {categoriesError && (
+                        <div className="text-xs text-rose-300">{categoriesError}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                   <div className="text-xs text-slate-400">Transfer team</div>
                   <div className="mt-2 flex flex-col gap-2">
@@ -1759,6 +2057,7 @@ export default function InboxApp({ selectedId }: Props) {
                     </span>
                   </div>
                   <div className="text-sm">{slaSummary.label}</div>
+                  <div className="mt-1 text-xs text-slate-500">{firstResponseLabel}</div>
                 </div>
               </div>
             </div>

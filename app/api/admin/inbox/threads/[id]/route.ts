@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -18,6 +18,11 @@ type ConversationRow = {
   assigned_to: string | null;
   assigned_member_id: string | null;
   team_id: string | null;
+  category_id: string | null;
+  takeover_by_member_id: string | null;
+  takeover_prev_assigned_member_id: string | null;
+  takeover_at: string | null;
+  first_response_at: string | null;
   ticket_status: string;
   priority: string;
   unread_count: number | null;
@@ -61,9 +66,9 @@ type AttachmentRow = {
 type NoteRow = {
   id: string;
   conversation_id: string;
-  text: string;
-  ts: string;
-  author: string;
+  body: string;
+  created_at: string;
+  author_user_id: string;
 };
 
 type EscalationRow = {
@@ -87,7 +92,7 @@ type TeamMemberRow = {
 };
 
 export async function GET(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdminWorkspace(req);
+  const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
@@ -96,7 +101,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   const { data: conv, error: convErr } = await db
     .from("conversations")
     .select(
-      "id, contact_id, assigned_to, assigned_member_id, team_id, ticket_status, priority, unread_count, last_message_at, next_response_due_at, resolution_due_at, sla_status, last_customer_message_at, is_archived, pinned, snoozed_until, last_read_at"
+      "id, contact_id, assigned_to, assigned_member_id, team_id, category_id, takeover_by_member_id, takeover_prev_assigned_member_id, takeover_at, first_response_at, ticket_status, priority, unread_count, last_message_at, next_response_due_at, resolution_due_at, sla_status, last_customer_message_at, is_archived, pinned, snoozed_until, last_read_at"
     )
     .eq("workspace_id", workspaceId)
     .eq("id", id)
@@ -131,11 +136,11 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   if (mErr) return withCookies(NextResponse.json({ error: mErr.message }, { status: 500 }));
 
   const { data: nts, error: nErr } = await db
-    .from("notes")
-    .select("id, conversation_id, text, ts, author")
+    .from("conversation_notes")
+    .select("id, conversation_id, body, created_at, author_user_id")
     .eq("workspace_id", workspaceId)
     .eq("conversation_id", id)
-    .order("ts", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (nErr) return withCookies(NextResponse.json({ error: nErr.message }, { status: 500 }));
 
@@ -170,6 +175,26 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     assignedMemberUserId = (member as TeamMemberRow | null)?.member_id ?? null;
   }
 
+  let takeoverByUserId: string | null = null;
+  if ((conv as ConversationRow).takeover_by_member_id) {
+    const { data: takeoverMember } = await db
+      .from("team_members")
+      .select("id, member_id")
+      .eq("id", (conv as ConversationRow).takeover_by_member_id)
+      .maybeSingle();
+    takeoverByUserId = (takeoverMember as TeamMemberRow | null)?.member_id ?? null;
+  }
+
+  let memberRole: string | null = null;
+  if (auth.user?.id) {
+    const { data: wm } = await db
+      .from("workspace_members")
+      .select("role")
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+    memberRole = (wm as { role?: string } | null)?.role ?? null;
+  }
+
   const messageIds = (msgs ?? []).map((m: MessageRow) => m.id);
   const attachmentsByMessage: Record<string, AttachmentRow[]> = {};
   if (messageIds.length > 0) {
@@ -196,6 +221,13 @@ export async function GET(req: NextRequest, { params }: Ctx) {
         assignedTo: (conv as ConversationRow).assigned_to ?? undefined,
         assignedMemberId: (conv as ConversationRow).assigned_member_id ?? undefined,
         teamId: (conv as ConversationRow).team_id ?? undefined,
+        categoryId: (conv as ConversationRow).category_id ?? undefined,
+        takeoverByMemberId: (conv as ConversationRow).takeover_by_member_id ?? undefined,
+        takeoverPrevAssignedMemberId:
+          (conv as ConversationRow).takeover_prev_assigned_member_id ?? undefined,
+        takeoverAt: (conv as ConversationRow).takeover_at ?? undefined,
+        firstResponseAt: (conv as ConversationRow).first_response_at ?? undefined,
+        takeoverByUserId: takeoverByUserId ?? undefined,
         teamName: teamName ?? undefined,
         assignedMemberUserId: assignedMemberUserId ?? undefined,
         ticketStatus: (conv as ConversationRow).ticket_status,
@@ -246,9 +278,9 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       notes: (nts ?? []).map((n: NoteRow) => ({
         id: n.id,
         conversationId: n.conversation_id,
-        text: n.text,
-        ts: n.ts,
-        author: n.author,
+        text: n.body,
+        ts: n.created_at,
+        author: n.author_user_id,
       })),
       escalations: (escs ?? []).map((e: EscalationRow) => ({
         id: e.id,
@@ -259,6 +291,9 @@ export async function GET(req: NextRequest, { params }: Ctx) {
         createdAt: e.created_at,
         createdBy: e.created_by,
       })),
+      skillRoutingEnabled: process.env.SKILL_ROUTING_ENABLED === "true",
+      supervisorTakeoverEnabled: process.env.SUPERVISOR_TAKEOVER_ENABLED === "true",
+      memberRole: memberRole ?? undefined,
     })
   );
 }

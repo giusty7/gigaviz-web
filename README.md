@@ -1,53 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gigaviz Inbox & CRM (MVP)
 
-## Getting Started
+Shared team inbox and lightweight CRM for WhatsApp conversations. The MVP focuses on routing, ticketing + SLA, internal notes, and basic CRM fields with Supabase + RLS.
 
-First, run the development server:
+## Tech Stack
 
+- Next.js (App Router) + TypeScript
+- Supabase (Postgres + RLS)
+- Tailwind CSS
+
+## Local Setup (npm)
+
+1) Install deps:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2) Copy env template:
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3) Fill required variables in `.env.local`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4) Run dev server:
+```bash
+npm run dev
+```
 
-## Environment
+Open http://localhost:3000
 
-Copy `.env.example` to `.env.local` and fill values (never commit secrets).
+## Environment Variables (Summary)
 
-- `ENABLE_WA_SEND=false` keeps WhatsApp sends in dry-run.
-- `WA_ACCESS_TOKEN` (or `WA_CLOUD_API_TOKEN`) + `WA_PHONE_NUMBER_ID` for Cloud API.
-- `WA_VERIFY_TOKEN` for webhook verification.
-- `APP_BASE_URL` for local webhook testing.
-- `DEFAULT_WORKSPACE_ID` for inbound webhook routing.
+Reference `.env.example` and do not commit secrets.
 
-## WhatsApp Webhook
+Required:
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `DEFAULT_WORKSPACE_ID`
 
-Configure Meta webhook to:
+Attachments:
+- `ATTACHMENTS_BUCKET`
+- `ATTACHMENTS_SIGNED_URL_TTL`
 
-- Verify (GET): `/api/webhooks/whatsapp` (legacy: `/api/whatsapp/webhook`)
-- Events (POST): `/api/webhooks/whatsapp` (legacy: `/api/whatsapp/webhook`)
+WhatsApp:
+- `ENABLE_WA_SEND`
+- `WA_ACCESS_TOKEN` or `WA_CLOUD_API_TOKEN`
+- `WA_PHONE_NUMBER_ID`
+- `WA_VERIFY_TOKEN`
+- `WA_ADMIN_PHONE`
+- `WA_GRAPH_VERSION`
 
-## Learn More
+App:
+- `APP_BASE_URL`
+- `RATE_CAP_PER_MIN`
+- `RATE_DELAY_MIN_MS`
+- `RATE_DELAY_MAX_MS`
 
-To learn more about Next.js, take a look at the following resources:
+Feature flags:
+- `ENABLE_WA_SEND`
+- `MERGE_ENABLED` (used by CRM merge routes; add to `.env.local` if needed)
+- `SKILL_ROUTING_ENABLED`
+- `SUPERVISOR_TAKEOVER_ENABLED`
+- `ATTACHMENTS_BUCKET`
+- `ATTACHMENTS_SIGNED_URL_TTL`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database Migrations
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Apply SQL files in Supabase SQL Editor, in order:
 
-## Deploy on Vercel
+1) `docs/sql/20260102_inbox.sql`
+2) `docs/sql/20260103_attachments.sql`
+3) `docs/sql/20260104_sla.sql`
+4) `docs/sql/20260105_escalations.sql`
+5) `docs/sql/20260106_teams.sql`
+6) `docs/sql/20260107_crm_fields.sql`
+7) `docs/sql/20260108_blacklist.sql`
+8) `docs/sql/20260109_merge.sql`
+9) `docs/sql/20260110_skill_routing.sql`
+10) `docs/sql/20260111_takeover.sql`
+11) `docs/sql/20260112_inbox_completeness.sql`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Smoke Test Checklist
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Local URLs:
+- http://localhost:3000/login
+- http://localhost:3000/admin/inbox
+- http://localhost:3000/admin/contacts
+- http://localhost:3000/admin/inbox/<conversation_id>
+
+Key checks:
+- Inbox search matches contact name/phone and message text.
+- Notes create/read works (conversation notes).
+- Ticket status + priority updates and validation.
+- First response timestamp appears after first outbound reply.
+- Supervisor login can access inbox without redirect loop.
+
+See `docs/SMOKE_TEST.md` for a copy-paste checklist.
+
+## Troubleshooting
+
+- Windows/OneDrive EPERM during build:
+  - Close dev server, delete `.next`, then re-run `npm run build`.
+- Redirect loop `/login?error=not_admin`:
+  - Ensure user has `workspace_members.role` set to `supervisor` or `admin`.
+  - Clear cookies and re-login.
+- “Password can’t be viewed”:
+  - Reset via Supabase Auth (magic link or password reset).
+- Next.js middleware deprecation warning:
+  - See Next.js warning in build output; consider migrating to proxy middleware later.
