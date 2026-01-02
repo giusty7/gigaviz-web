@@ -1,8 +1,10 @@
 export type TicketStatus = "open" | "pending" | "solved" | "spam";
 export type Priority = "low" | "med" | "high" | "urgent";
+export type SlaStatus = "ok" | "due_soon" | "breached";
 
 export type MessageStatus = "queued" | "sent" | "delivered" | "read" | "failed";
 export type MessageDirection = "in" | "out";
+export type AttachmentKind = "image" | "video" | "audio" | "document";
 
 export type Contact = {
   id: string;
@@ -24,6 +26,19 @@ export type Message = {
   mediaUrl?: string;
   mediaMime?: string;
   mediaSha256?: string;
+  attachments?: MessageAttachment[];
+};
+
+export type MessageAttachment = {
+  id: string;
+  kind: AttachmentKind;
+  mimeType?: string;
+  fileName?: string;
+  sizeBytes?: number;
+  url?: string;
+  thumbUrl?: string;
+  requiresSign?: boolean;
+  hasThumb?: boolean;
 };
 
 export type Note = {
@@ -40,10 +55,16 @@ export type Conversation = {
   ticketStatus: TicketStatus;
   priority: Priority;
   assignedTo?: string;
+  assignedMemberId?: string;
+  teamId?: string;
   unreadCount: number;
   lastMessageAt: string; // ISO
   isArchived?: boolean;
   pinned?: boolean;
   snoozedUntil?: string;
   lastReadAt?: string;
+  nextResponseDueAt?: string;
+  resolutionDueAt?: string;
+  slaStatus?: SlaStatus;
+  lastCustomerMessageAt?: string;
 };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
 import { sendWhatsAppText } from "@/lib/wa/cloud";
+import { normalizePhone } from "@/lib/contacts/normalize";
 
 export const runtime = "nodejs";
 
@@ -28,10 +29,6 @@ const sendTimestamps: number[] = [];
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function normalizePhone(phone: string) {
-  return phone.replace(/[^\d]/g, "");
 }
 
 function mapMessage(row: MessageRow) {
@@ -77,13 +74,54 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
 
-  const { db, withCookies, workspaceId } = auth;
+  const { db, withCookies, workspaceId, user } = auth;
   const { id } = await params;
 
   const body = await req.json().catch(() => ({}));
   const text = String(body?.text ?? "").trim();
   if (!text) {
     return withCookies(NextResponse.json({ error: "text_required" }, { status: 400 }));
+  }
+
+  const { data: conv, error: convErr } = await db
+    .from("conversations")
+    .select("id, contact_id")
+    .eq("workspace_id", workspaceId)
+    .eq("id", id)
+    .single();
+
+  if (convErr || !conv) {
+    return withCookies(
+      NextResponse.json({ error: convErr?.message ?? "conversation_not_found" }, { status: 404 })
+    );
+  }
+
+  const { data: contact, error: cErr } = await db
+    .from("contacts")
+    .select("id, phone, comms_status")
+    .eq("workspace_id", workspaceId)
+    .eq("id", conv.contact_id)
+    .single();
+
+  if (cErr || !contact) {
+    return withCookies(
+      NextResponse.json({ error: cErr?.message ?? "contact_not_found" }, { status: 404 })
+    );
+  }
+
+  if (contact.comms_status === "blacklisted") {
+    const { error: eventErr } = await db.from("conversation_events").insert({
+      conversation_id: id,
+      type: "send_blocked",
+      meta: { reason: "blacklisted", contact_id: contact.id, text },
+      created_by: user?.id ?? "system",
+    });
+    if (eventErr) {
+      console.log("conversation_events insert failed (send_blocked)", eventErr.message);
+    }
+    return withCookies(
+      NextResponse.json({ error: "contact_blacklisted" }, { status: 403 })
+    );
   }
 
   const sinceIso = new Date(Date.now() - 30_000).toISOString();
@@ -174,30 +212,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const delay = delayMin + Math.floor(Math.random() * (delayMax - delayMin + 1));
   if (delay > 0) await sleep(delay);
 
-  const { data: conv, error: convErr } = await db
-    .from("conversations")
-    .select("id, contact_id")
-    .eq("workspace_id", workspaceId)
-    .eq("id", id)
-    .single();
-
-  if (convErr || !conv) {
-    await db
-      .from("messages")
-      .update({ status: "failed", error_reason: "conversation_not_found" })
-      .eq("workspace_id", workspaceId)
-      .eq("id", inserted.id);
-    return withCookies(NextResponse.json({ error: "conversation_not_found" }, { status: 404 }));
-  }
-
-  const { data: contact, error: cErr } = await db
-    .from("contacts")
-    .select("phone")
-    .eq("workspace_id", workspaceId)
-    .eq("id", conv.contact_id)
-    .single();
-
-  if (cErr || !contact?.phone) {
+  if (!contact?.phone) {
     await db
       .from("messages")
       .update({ status: "failed", error_reason: "contact_phone_missing" })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { recomputeConversationSla } from "@/lib/inbox/sla";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,8 @@ type ConversationPatchBody = {
   priority?: unknown;
   assignedTo?: unknown;
   assigned_to?: unknown;
+  assigned_member_id?: unknown;
+  team_id?: unknown;
   unreadCount?: unknown;
   unread_count?: unknown;
   isArchived?: unknown;
@@ -26,6 +29,8 @@ type ConversationPatch = {
   ticket_status?: string;
   priority?: string;
   assigned_to?: string | null;
+  assigned_member_id?: string | null;
+  team_id?: string | null;
   unread_count?: number;
   is_archived?: boolean;
   pinned?: boolean;
@@ -71,6 +76,14 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const assigned = body?.assignedTo ?? body?.assigned_to;
     patch.assigned_to = assigned === null ? null : String(assigned);
   }
+  if (body?.assigned_member_id !== undefined) {
+    const assignedMember = body?.assigned_member_id;
+    patch.assigned_member_id = assignedMember === null ? null : String(assignedMember);
+  }
+  if (body?.team_id !== undefined) {
+    const teamId = body?.team_id;
+    patch.team_id = teamId === null ? null : String(teamId);
+  }
   if (body?.unreadCount !== undefined || body?.unread_count !== undefined) {
     patch.unread_count = Number(body?.unreadCount ?? body?.unread_count) || 0;
   }
@@ -101,7 +114,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     .eq("workspace_id", workspaceId)
     .eq("id", id)
     .select(
-      "id, contact_id, assigned_to, ticket_status, priority, unread_count, last_message_at, is_archived, pinned, snoozed_until, last_read_at"
+      "id, contact_id, assigned_to, assigned_member_id, team_id, ticket_status, priority, unread_count, last_message_at, next_response_due_at, resolution_due_at, sla_status, last_customer_message_at, is_archived, pinned, snoozed_until, last_read_at"
     )
     .single();
 
@@ -113,15 +126,33 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     id: data.id,
     contactId: data.contact_id,
     assignedTo: data.assigned_to ?? undefined,
+    assignedMemberId: data.assigned_member_id ?? undefined,
     ticketStatus: data.ticket_status,
     priority: data.priority,
     unreadCount: data.unread_count ?? 0,
     lastMessageAt: data.last_message_at,
+    nextResponseDueAt: data.next_response_due_at ?? undefined,
+    resolutionDueAt: data.resolution_due_at ?? undefined,
+    slaStatus: data.sla_status ?? undefined,
+    lastCustomerMessageAt: data.last_customer_message_at ?? undefined,
     isArchived: data.is_archived ?? false,
     pinned: data.pinned ?? false,
     snoozedUntil: data.snoozed_until ?? undefined,
     lastReadAt: data.last_read_at ?? undefined,
+    teamId: data.team_id ?? undefined,
   };
+
+  if (patch.ticket_status || patch.priority) {
+    await recomputeConversationSla({
+      db,
+      workspaceId,
+      conversationId: id,
+      overrides: {
+        priority: patch.priority as "low" | "med" | "high" | "urgent" | null,
+        ticketStatus: patch.ticket_status as "open" | "pending" | "solved" | "spam" | null,
+      },
+    });
+  }
 
   return withCookies(NextResponse.json({ thread }));
 }

@@ -53,16 +53,22 @@ export async function GET(req: NextRequest) {
       id,
       contact_id,
       assigned_to,
+      assigned_member_id,
       ticket_status,
       priority,
       unread_count,
       last_message_at,
+      next_response_due_at,
+      resolution_due_at,
+      sla_status,
+      last_customer_message_at,
+      team_id,
       is_archived,
       pinned,
       snoozed_until,
       last_read_at,
       contact:contacts (
-        id, name, phone, tags, last_seen_at
+        id, name, phone, tags, last_seen_at, comms_status
       )
     `
     )

@@ -14,10 +14,15 @@ export async function GET(req: NextRequest) {
       id,
       contact_id,
       assigned_to,
+      assigned_member_id,
       ticket_status,
       priority,
       unread_count,
       last_message_at,
+      next_response_due_at,
+      resolution_due_at,
+      sla_status,
+      last_customer_message_at,
       contacts:contacts (
         id, name, phone, tags, last_seen_at
       )
@@ -46,11 +51,16 @@ export async function GET(req: NextRequest) {
   type ConversationRow = {
     id: string;
     contact_id: string;
-    assigned_to: string | null;
-    ticket_status: string;
-    priority: string;
-    unread_count: number;
-    last_message_at: string;
+      assigned_to: string | null;
+      assigned_member_id: string | null;
+      ticket_status: string;
+      priority: string;
+      unread_count: number;
+      last_message_at: string;
+    next_response_due_at: string | null;
+    resolution_due_at: string | null;
+    sla_status: string | null;
+    last_customer_message_at: string | null;
     contacts: ContactRelation;
   };
 
@@ -60,10 +70,15 @@ export async function GET(req: NextRequest) {
       id: row.id,
       contactId: row.contact_id,
       assignedTo: row.assigned_to ?? undefined,
+      assignedMemberId: row.assigned_member_id ?? undefined,
       ticketStatus: row.ticket_status,
       priority: row.priority,
       unreadCount: row.unread_count,
       lastMessageAt: row.last_message_at,
+      nextResponseDueAt: row.next_response_due_at ?? undefined,
+      resolutionDueAt: row.resolution_due_at ?? undefined,
+      slaStatus: row.sla_status ?? undefined,
+      lastCustomerMessageAt: row.last_customer_message_at ?? undefined,
       contact: contact
         ? {
             id: contact.id,

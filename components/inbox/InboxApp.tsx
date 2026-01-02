@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 type TicketStatus = "open" | "pending" | "solved" | "spam";
 type Priority = "low" | "med" | "high" | "urgent";
 type Direction = "in" | "out";
+type AttachmentKind = "image" | "video" | "audio" | "document";
 
 type Contact = {
   id: string;
@@ -15,16 +16,23 @@ type Contact = {
   phone: string;
   tags: string[];
   last_seen_at: string | null;
+  comms_status?: "normal" | "blacklisted" | "whitelisted";
 };
 
 type ConversationRow = {
   id: string;
   contact_id: string;
   assigned_to: string | null;
+  assigned_member_id?: string | null;
+  team_id?: string | null;
   ticket_status: TicketStatus;
   priority: Priority;
   unread_count: number;
   last_message_at: string;
+  next_response_due_at?: string | null;
+  resolution_due_at?: string | null;
+  sla_status?: "ok" | "due_soon" | "breached" | null;
+  last_customer_message_at?: string | null;
   contact: Contact;
   is_archived?: boolean;
   pinned?: boolean;
@@ -44,6 +52,19 @@ type MessageRow = {
   mediaUrl?: string | null;
   mediaMime?: string | null;
   mediaSha256?: string | null;
+  attachments?: AttachmentRow[] | null;
+};
+
+type AttachmentRow = {
+  id: string;
+  kind: AttachmentKind;
+  mimeType?: string | null;
+  fileName?: string | null;
+  sizeBytes?: number | null;
+  url?: string | null;
+  thumbUrl?: string | null;
+  requiresSign?: boolean;
+  hasThumb?: boolean;
 };
 
 type NoteRow = {
@@ -52,6 +73,40 @@ type NoteRow = {
   text: string;
   ts: string;
   author: string;
+};
+
+type EscalationRow = {
+  id: string;
+  conversationId: string;
+  breachType: "next_response" | "resolution";
+  dueAt: string;
+  reason: string;
+  createdAt: string;
+  createdBy: string;
+};
+
+type TeamRow = {
+  id: string;
+  name: string;
+  is_default?: boolean;
+};
+
+type CrmFieldType = "text" | "number" | "bool" | "date" | "select";
+
+type CrmField = {
+  id: string;
+  key: string;
+  label: string;
+  type: CrmFieldType;
+  options?: { choices?: string[] } | null;
+  is_required?: boolean | null;
+};
+
+type CrmFieldValue = {
+  field_id: string;
+  value_text: string | null;
+  value_json: unknown | null;
+  updated_at?: string | null;
 };
 
 type Props = { selectedId?: string };
@@ -75,6 +130,11 @@ type ThreadListResponse = {
 type ThreadDetailResponse = {
   messages?: MessageRow[];
   notes?: NoteRow[];
+  escalations?: EscalationRow[];
+  thread?: {
+    teamName?: string;
+    assignedMemberUserId?: string;
+  };
   error?: string;
 };
 
@@ -88,8 +148,38 @@ type NoteResponse = {
   error?: string;
 };
 
+type CrmFieldsResponse = {
+  fields?: CrmField[];
+  values?: CrmFieldValue[];
+  error?: string;
+};
+
+type CrmSaveResponse = {
+  values?: CrmFieldValue[];
+  error?: string;
+};
+
 function clsx(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
+}
+
+function formatBytes(size?: number | null) {
+  if (size === null || size === undefined) return "-";
+  if (size < 1024) return `${size} B`;
+  const kb = size / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  const mb = kb / 1024;
+  if (mb < 1024) return `${mb.toFixed(1)} MB`;
+  const gb = mb / 1024;
+  return `${gb.toFixed(1)} GB`;
+}
+
+function kindFromMime(mime?: string | null): AttachmentKind {
+  if (!mime) return "document";
+  if (mime.startsWith("image/")) return "image";
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("audio/")) return "audio";
+  return "document";
 }
 
 function fmtTime(iso?: string | null) {
@@ -112,6 +202,33 @@ function badgeColor(x: string) {
   return "border-slate-800 text-slate-300 bg-slate-950/40";
 }
 
+function slaBadgeColor(x?: string | null) {
+  if (x === "breached") return "border-rose-500/40 text-rose-200 bg-rose-500/10";
+  if (x === "due_soon") return "border-amber-500/40 text-amber-200 bg-amber-500/10";
+  if (x === "ok") return "border-emerald-500/30 text-emerald-200 bg-emerald-500/10";
+  return "border-slate-800 text-slate-300 bg-slate-950/40";
+}
+
+function commsBadgeColor(x?: string | null) {
+  if (x === "blacklisted") return "border-rose-500/40 text-rose-200 bg-rose-500/10";
+  if (x === "whitelisted") return "border-emerald-500/30 text-emerald-200 bg-emerald-500/10";
+  return "border-slate-800 text-slate-300 bg-slate-950/40";
+}
+
+function shortId(value?: string | null) {
+  if (!value) return "-";
+  if (value.length <= 10) return value;
+  return `${value.slice(0, 6)}…${value.slice(-4)}`;
+}
+
+function fieldChoices(field: CrmField) {
+  const raw = field.options;
+  if (!raw || typeof raw !== "object") return [] as string[];
+  const choices = (raw as { choices?: unknown }).choices;
+  if (!Array.isArray(choices)) return [] as string[];
+  return choices.filter((c): c is string => typeof c === "string");
+}
+
 export default function InboxApp({ selectedId }: Props) {
   const router = useRouter();
 
@@ -132,7 +249,30 @@ export default function InboxApp({ selectedId }: Props) {
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [notes, setNotes] = useState<NoteRow[]>([]);
+  const [escalations, setEscalations] = useState<EscalationRow[]>([]);
+  const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [transferTeamId, setTransferTeamId] = useState<string>("");
+  const [assignedMemberUserId, setAssignedMemberUserId] = useState<string | null>(null);
+  const [activeTeamName, setActiveTeamName] = useState<string | null>(null);
   const [composer, setComposer] = useState("");
+  const [crmFields, setCrmFields] = useState<CrmField[]>([]);
+  const [crmValues, setCrmValues] = useState<
+    Record<string, { valueText: string | null; valueJson: unknown | null }>
+  >({});
+  const [crmLoading, setCrmLoading] = useState(false);
+  const [crmSaving, setCrmSaving] = useState(false);
+  const [crmError, setCrmError] = useState<string | null>(null);
+  const [crmDirty, setCrmDirty] = useState(false);
+  const [commsSaving, setCommsSaving] = useState(false);
+  const [commsError, setCommsError] = useState<string | null>(null);
+  const [attachmentUrls, setAttachmentUrls] = useState<
+    Record<string, { url?: string; thumbUrl?: string }>
+  >({});
+  const [attachmentStatus, setAttachmentStatus] = useState<
+    Record<string, "idle" | "loading" | "error">
+  >({});
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   // load list (server-side filters)
   useEffect(() => {
@@ -188,6 +328,25 @@ export default function InboxApp({ selectedId }: Props) {
     filterPinned,
   ]);
 
+  useEffect(() => {
+    let dead = false;
+    async function loadTeams() {
+      try {
+        const res = await fetch("/api/admin/teams", { cache: "no-store" });
+        const js = (await res.json().catch(() => ({}))) as { teams?: TeamRow[] };
+        if (!res.ok) return;
+        if (!dead) setTeams(js.teams ?? []);
+      } catch {
+        // ignore
+      }
+    }
+    loadTeams();
+    return () => {
+      dead = true;
+    };
+  }, []);
+
+
   const convById = useMemo(
     () => Object.fromEntries(conversations.map((c) => [c.id, c])),
     [conversations]
@@ -220,6 +379,80 @@ export default function InboxApp({ selectedId }: Props) {
 
   const activeConv = activeId ? convById[activeId] : null;
   const activeContact = activeConv?.contact ?? null;
+  const crmDisabled = crmLoading || crmSaving;
+
+  useEffect(() => {
+    if (!activeConv) return;
+    setTransferTeamId(activeConv.team_id ?? "");
+  }, [activeConv]);
+
+  useEffect(() => {
+    let dead = false;
+    async function loadCrmFields() {
+      if (!activeContact?.id) {
+        setCrmFields([]);
+        setCrmValues({});
+        setCrmError(null);
+        setCrmDirty(false);
+        return;
+      }
+      setCrmLoading(true);
+      setCrmError(null);
+      try {
+        const res = await fetch(
+          `/api/admin/crm/contacts/${activeContact.id}/fields`,
+          { cache: "no-store" }
+        );
+        const js = (await res.json().catch(() => ({}))) as CrmFieldsResponse;
+        if (!res.ok) {
+          const errMsg =
+            typeof js.error === "string" ? js.error : "Gagal load custom fields";
+          throw new Error(errMsg);
+        }
+        if (dead) return;
+        const valuesMap: Record<string, { valueText: string | null; valueJson: unknown | null }> =
+          {};
+        (js.values ?? []).forEach((val) => {
+          valuesMap[val.field_id] = {
+            valueText: val.value_text ?? null,
+            valueJson: val.value_json ?? null,
+          };
+        });
+        setCrmFields(js.fields ?? []);
+        setCrmValues(valuesMap);
+        setCrmDirty(false);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Error";
+        if (!dead) setCrmError(msg);
+      } finally {
+        if (!dead) setCrmLoading(false);
+      }
+    }
+    loadCrmFields();
+    return () => {
+      dead = true;
+    };
+  }, [activeContact?.id]);
+
+  const slaSummary = useMemo(() => {
+    const dueAt = activeConv?.next_response_due_at;
+    if (!dueAt) {
+      return { label: "SLA not set", status: null };
+    }
+    const dueMs = new Date(dueAt).getTime();
+    if (Number.isNaN(dueMs)) {
+      return { label: "SLA not set", status: null };
+    }
+    const diffMs = dueMs - now;
+    const minutes = Math.max(0, Math.ceil(Math.abs(diffMs) / 60_000));
+    if (diffMs < 0) {
+      return { label: `Breached ${minutes}m ago`, status: activeConv?.sla_status ?? "breached" };
+    }
+    return {
+      label: `Next response due in ${minutes}m`,
+      status: activeConv?.sla_status ?? "ok",
+    };
+  }, [activeConv, now]);
 
   useEffect(() => {
     if (!activeId || !activeConv) return;
@@ -228,6 +461,11 @@ export default function InboxApp({ selectedId }: Props) {
     patchConv(activeId, { unread_count: 0, last_read_at: nowIso });
     updateThread(activeId, { unread_count: 0, last_read_at: nowIso }).catch(() => {});
   }, [activeId, activeConv]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
   // load thread detail + lightweight polling
   useEffect(() => {
@@ -249,6 +487,9 @@ export default function InboxApp({ selectedId }: Props) {
         if (dead) return;
         setMessages(js.messages ?? []);
         setNotes(js.notes ?? []);
+        setEscalations(js.escalations ?? []);
+        setAssignedMemberUserId(js.thread?.assignedMemberUserId ?? null);
+        setActiveTeamName(js.thread?.teamName ?? null);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Error";
         if (!dead) setError(msg);
@@ -305,6 +546,64 @@ export default function InboxApp({ selectedId }: Props) {
     await updateThread(id, { assigned_to: asg ?? null });
   }
 
+  async function autoAssign() {
+    if (!activeConv) return;
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeConv.id}/auto-assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team_id: activeConv.team_id }),
+      });
+      const js = (await res.json().catch(() => ({}))) as {
+        thread?: { assignedTo?: string; assignedMemberId?: string; teamId?: string };
+        error?: string;
+      };
+      if (!res.ok || !js.thread) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal auto-assign";
+        throw new Error(errMsg);
+      }
+      patchConv(activeConv.id, {
+        assigned_to: js.thread.assignedTo ?? null,
+        assigned_member_id: js.thread.assignedMemberId ?? null,
+        team_id: js.thread.teamId ?? null,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
+    }
+  }
+
+  async function transferTeam() {
+    if (!activeConv) return;
+    if (!transferTeamId) {
+      setError("team_id_required");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeConv.id}/transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team_id: transferTeamId }),
+      });
+      const js = (await res.json().catch(() => ({}))) as {
+        thread?: { assignedTo?: string; assignedMemberId?: string; teamId?: string };
+        error?: string;
+      };
+      if (!res.ok || !js.thread) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal transfer";
+        throw new Error(errMsg);
+      }
+      patchConv(activeConv.id, {
+        assigned_to: js.thread.assignedTo ?? null,
+        assigned_member_id: js.thread.assignedMemberId ?? null,
+        team_id: js.thread.teamId ?? null,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
+    }
+  }
+
   async function togglePin() {
     if (!activeConv) return;
     const next = !activeConv.pinned;
@@ -341,6 +640,94 @@ export default function InboxApp({ selectedId }: Props) {
     const until = minutes === 0 ? null : new Date(Date.now() + minutes * 60_000).toISOString();
     patchConv(activeConv.id, { snoozed_until: until });
     await updateThread(activeConv.id, { snoozed_until: until });
+  }
+
+  function updateCrmValue(field: CrmField, next: string | boolean) {
+    setCrmValues((prev) => ({
+      ...prev,
+      [field.id]: {
+        valueText: field.type === "bool" ? null : String(next ?? ""),
+        valueJson: field.type === "bool" ? Boolean(next) : null,
+      },
+    }));
+    setCrmDirty(true);
+  }
+
+  async function saveCrmFields() {
+    if (!activeContact?.id || crmFields.length === 0) return;
+    setCrmSaving(true);
+    setCrmError(null);
+    try {
+      const values: Record<string, unknown> = {};
+      crmFields.forEach((field) => {
+        const current = crmValues[field.id];
+        if (field.type === "bool") {
+          values[field.id] = current?.valueJson ?? null;
+          return;
+        }
+        const text = current?.valueText ?? "";
+        values[field.id] = text === "" ? null : text;
+      });
+
+      const res = await fetch(`/api/admin/crm/contacts/${activeContact.id}/fields`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ values }),
+      });
+      const js = (await res.json().catch(() => ({}))) as CrmSaveResponse;
+      if (!res.ok) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal simpan fields";
+        throw new Error(errMsg);
+      }
+      const nextValues: Record<string, { valueText: string | null; valueJson: unknown | null }> =
+        {};
+      (js.values ?? []).forEach((val) => {
+        nextValues[val.field_id] = {
+          valueText: val.value_text ?? null,
+          valueJson: val.value_json ?? null,
+        };
+      });
+      setCrmValues(nextValues);
+      setCrmDirty(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setCrmError(msg);
+    } finally {
+      setCrmSaving(false);
+    }
+  }
+
+  async function updateCommsStatus(nextStatus: "normal" | "blacklisted" | "whitelisted") {
+    if (!activeContact?.id) return;
+    setCommsSaving(true);
+    setCommsError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/crm/contacts/${activeContact.id}/comms-status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ comms_status: nextStatus }),
+        }
+      );
+      const js = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal update status";
+        throw new Error(errMsg);
+      }
+      setConversations((prev) =>
+        prev.map((t) =>
+          t.contact_id === activeContact.id
+            ? { ...t, contact: { ...t.contact, comms_status: nextStatus } }
+            : t
+        )
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setCommsError(msg);
+    } finally {
+      setCommsSaving(false);
+    }
   }
 
   async function send() {
@@ -420,9 +807,109 @@ export default function InboxApp({ selectedId }: Props) {
     return messages.slice().sort((a, b) => (a.ts < b.ts ? -1 : 1));
   }, [messages]);
 
+  useEffect(() => {
+    const ids = new Set<string>();
+    activeMessages.forEach((m) => {
+      (m.attachments ?? []).forEach((a) => {
+        if (
+          a.requiresSign &&
+          !a.url &&
+          !attachmentUrls[a.id] &&
+          attachmentStatus[a.id] !== "loading"
+        ) {
+          ids.add(a.id);
+        }
+      });
+    });
+
+    if (ids.size === 0) return;
+
+    const toSign = Array.from(ids);
+    setAttachmentStatus((prev) => {
+      const next = { ...prev };
+      toSign.forEach((id) => {
+        next[id] = "loading";
+      });
+      return next;
+    });
+
+    fetch("/api/admin/attachments/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attachmentIds: toSign }),
+    })
+      .then(async (res) => {
+        const js = (await res.json().catch(() => ({}))) as {
+          items?: Array<{ id: string; url?: string; thumbUrl?: string; error?: string }>;
+        };
+        if (!res.ok) throw new Error(js?.items ? "sign_failed" : "sign_failed");
+        return js.items ?? [];
+      })
+      .then((items) => {
+        setAttachmentUrls((prev) => {
+          const next = { ...prev };
+          items.forEach((item) => {
+            if (item.url) next[item.id] = { url: item.url, thumbUrl: item.thumbUrl };
+          });
+          return next;
+        });
+        setAttachmentStatus((prev) => {
+          const next = { ...prev };
+          items.forEach((item) => {
+            next[item.id] = item.url ? "idle" : "error";
+          });
+          return next;
+        });
+      })
+      .catch(() => {
+        setAttachmentStatus((prev) => {
+          const next = { ...prev };
+          toSign.forEach((id) => {
+            next[id] = "error";
+          });
+          return next;
+        });
+      });
+  }, [activeMessages, attachmentUrls, attachmentStatus]);
+
+  function getMessageAttachments(m: MessageRow) {
+    const direct = (m.attachments ?? []).filter(Boolean);
+    if (direct.length > 0) return direct;
+    if (!m.mediaUrl && !m.mediaMime) return [];
+    return [
+      {
+        id: `legacy-${m.id}`,
+        kind: kindFromMime(m.mediaMime),
+        mimeType: m.mediaMime ?? undefined,
+        fileName: "attachment",
+        url: m.mediaUrl ?? undefined,
+      },
+    ];
+  }
+
   const activeNotes = useMemo(() => {
     return notes.slice().sort((a, b) => (a.ts < b.ts ? 1 : -1));
   }, [notes]);
+
+  const activeEscalations = useMemo(() => {
+    return escalations.slice().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }, [escalations]);
+
+  const resolvedTeamName = useMemo(() => {
+    if (!activeConv?.team_id) return activeTeamName ?? null;
+    return teams.find((t) => t.id === activeConv.team_id)?.name ?? activeTeamName ?? null;
+  }, [activeConv?.team_id, activeTeamName, teams]);
+
+  const assignedLabel = useMemo(() => {
+    if (!activeConv) return "Unassigned";
+    const rawAssigned = activeConv.assigned_to;
+    if (rawAssigned && rawAssigned !== activeConv.assigned_member_id) {
+      return rawAssigned;
+    }
+    if (assignedMemberUserId) return shortId(assignedMemberUserId);
+    if (activeConv.assigned_member_id) return shortId(activeConv.assigned_member_id);
+    return "Unassigned";
+  }, [activeConv, assignedMemberUserId]);
 
   return (
     <div className="min-h-[calc(100vh-0px)] w-full">
@@ -631,6 +1118,11 @@ export default function InboxApp({ selectedId }: Props) {
                         <div className="truncate text-base font-semibold">
                           {activeContact.name}
                         </div>
+                        {activeEscalations.length > 0 && (
+                          <span className="text-[11px] px-2 py-1 rounded-full border border-rose-500/40 text-rose-200 bg-rose-500/10">
+                            Escalated
+                          </span>
+                        )}
                         <span
                           className={clsx(
                             "text-[11px] px-2 py-1 rounded-full border",
@@ -676,6 +1168,13 @@ export default function InboxApp({ selectedId }: Props) {
                           </option>
                         ))}
                       </select>
+
+                      <button
+                        onClick={autoAssign}
+                        className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm hover:bg-slate-800"
+                      >
+                        Auto-assign
+                      </button>
 
                       <div className="flex gap-2">
                         <select
@@ -755,11 +1254,7 @@ export default function InboxApp({ selectedId }: Props) {
                         : statusLabel === "queued"
                           ? "border-amber-500/40 text-amber-200"
                           : "border-slate-700 text-slate-300";
-                    const isImage = !!m.mediaMime && m.mediaMime.startsWith("image/");
-                    const isPdf = m.mediaMime === "application/pdf";
-                    const hasMedia = !!m.mediaUrl || !!m.mediaMime;
-                    const mediaUrl =
-                      m.mediaUrl && m.mediaUrl.startsWith("http") ? m.mediaUrl : null;
+                    const attachments = getMessageAttachments(m);
                     return (
                       <div key={m.id} className={clsx("flex", isOut ? "justify-end" : "justify-start")}>
                         <div
@@ -773,49 +1268,166 @@ export default function InboxApp({ selectedId }: Props) {
                           <div className="whitespace-pre-wrap text-sm leading-relaxed">
                             {m.text}
                           </div>
-                          {hasMedia && (
-                            <div className="mt-2 rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-xs text-slate-300">
-                              <div className="mb-1 flex items-center justify-between">
-                                <span>{m.mediaMime || "attachment"}</span>
-                                {m.mediaUrl?.startsWith("wa-media://") && (
-                                  <span className="text-[10px] text-slate-500">pending url</span>
-                                )}
-                              </div>
-                              {isImage && mediaUrl && (
-                                <Image
-                                  src={mediaUrl}
-                                  alt="attachment"
-                                  width={320}
-                                  height={200}
-                                  unoptimized
-                                  className="max-h-48 w-auto rounded-md border border-slate-800"
-                                />
+                          {attachments.length > 0 && (
+                            <div
+                              className={clsx(
+                                "mt-2 grid gap-2",
+                                attachments.length > 1 ? "grid-cols-2" : "grid-cols-1"
                               )}
-                              {isPdf && mediaUrl && (
-                                <a
-                                  href={mediaUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="underline"
-                                >
-                                  Open PDF
-                                </a>
-                              )}
-                              {mediaUrl && !isImage && !isPdf && (
-                                <a
-                                  href={mediaUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="underline"
-                                >
-                                  Download attachment
-                                </a>
-                              )}
-                              {!mediaUrl && (
-                                <div className="text-[11px] text-slate-500">
-                                  Attachment stored (no public URL yet)
-                                </div>
-                              )}
+                            >
+                              {attachments.map((a) => {
+                                const signed = attachmentUrls[a.id];
+                                const rawUrl = a.url ?? signed?.url ?? null;
+                                const displayUrl =
+                                  rawUrl && rawUrl.startsWith("http") ? rawUrl : null;
+                                const thumb =
+                                  (a.thumbUrl ?? signed?.thumbUrl) &&
+                                  (a.thumbUrl ?? signed?.thumbUrl)?.startsWith("http")
+                                    ? (a.thumbUrl ?? signed?.thumbUrl)
+                                    : displayUrl;
+                                const lightboxTarget = displayUrl ?? thumb ?? null;
+                                const isLoading =
+                                  a.requiresSign && !displayUrl && attachmentStatus[a.id] === "loading";
+                                const isError =
+                                  a.requiresSign && !displayUrl && attachmentStatus[a.id] === "error";
+                                const isPending = !a.requiresSign && !displayUrl;
+                                const label = a.fileName || a.mimeType || "attachment";
+
+                                if (a.kind === "image") {
+                                  return (
+                                    <div
+                                      key={a.id}
+                                      className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-xs text-slate-300"
+                                    >
+                                      <div className="mb-1 flex items-center justify-between">
+                                        <span className="truncate">{label}</span>
+                                        {isPending && (
+                                          <span className="text-[10px] text-slate-500">
+                                            pending url
+                                          </span>
+                                        )}
+                                        {isLoading && (
+                                          <span className="text-[10px] text-slate-500">
+                                            loading
+                                          </span>
+                                        )}
+                                        {isError && (
+                                          <span className="text-[10px] text-rose-300">
+                                            expired
+                                          </span>
+                                        )}
+                                      </div>
+                                      {thumb && (
+                                        <button
+                                          onClick={() => setLightboxUrl(lightboxTarget)}
+                                          className="block"
+                                        >
+                                          <Image
+                                            src={thumb}
+                                            alt="attachment"
+                                            width={220}
+                                            height={160}
+                                            unoptimized
+                                            className="max-h-40 w-auto rounded-md border border-slate-800"
+                                          />
+                                        </button>
+                                      )}
+                                      {!thumb && (
+                                        <div className="text-[11px] text-slate-500">
+                                          Attachment unavailable
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                }
+
+                                if (a.kind === "video") {
+                                  return (
+                                    <div
+                                      key={a.id}
+                                      className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-xs text-slate-300"
+                                    >
+                                      <div className="mb-1 flex items-center justify-between">
+                                        <span className="truncate">{label}</span>
+                                        {isError && (
+                                          <span className="text-[10px] text-rose-300">
+                                            expired
+                                          </span>
+                                        )}
+                                      </div>
+                                      {displayUrl ? (
+                                        <video
+                                          controls
+                                          src={displayUrl}
+                                          className="w-full rounded-md border border-slate-800"
+                                        />
+                                      ) : (
+                                        <div className="text-[11px] text-slate-500">
+                                          {isLoading ? "Loading video..." : "Video unavailable"}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                }
+
+                                if (a.kind === "audio") {
+                                  return (
+                                    <div
+                                      key={a.id}
+                                      className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-xs text-slate-300"
+                                    >
+                                      <div className="mb-1 flex items-center justify-between">
+                                        <span className="truncate">{label}</span>
+                                        {isError && (
+                                          <span className="text-[10px] text-rose-300">
+                                            expired
+                                          </span>
+                                        )}
+                                      </div>
+                                      {displayUrl ? (
+                                        <audio controls src={displayUrl} className="w-full" />
+                                      ) : (
+                                        <div className="text-[11px] text-slate-500">
+                                          {isLoading ? "Loading audio..." : "Audio unavailable"}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div
+                                    key={a.id}
+                                    className="rounded-lg border border-slate-800 bg-slate-950/60 p-2 text-xs text-slate-300"
+                                  >
+                                    <div className="mb-2 flex items-center justify-between">
+                                      <span className="truncate">{label}</span>
+                                      {isError && (
+                                        <span className="text-[10px] text-rose-300">
+                                          expired
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-slate-500">
+                                      {formatBytes(a.sizeBytes)}
+                                    </div>
+                                    {displayUrl ? (
+                                      <a
+                                        href={displayUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="mt-2 inline-flex items-center gap-2 rounded-md border border-slate-700 px-2 py-1 text-[11px] hover:bg-slate-900"
+                                      >
+                                        Download
+                                      </a>
+                                    ) : (
+                                      <div className="mt-2 text-[11px] text-slate-500">
+                                        {isLoading ? "Loading file..." : "File unavailable"}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                           <div className="mt-1 flex items-center justify-end gap-2 text-[11px] text-slate-400">
@@ -880,12 +1492,155 @@ export default function InboxApp({ selectedId }: Props) {
               <div className="p-3 space-y-4">
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                   <div className="text-xs text-slate-400">Assigned</div>
-                  <div className="mt-1 text-sm">{activeConv?.assigned_to ?? "Unassigned"}</div>
+                  <div className="mt-1 flex items-center gap-2 text-sm">
+                    <span>{assignedLabel}</span>
+                    {resolvedTeamName && (
+                      <span className="rounded-full border border-slate-700 px-2 py-[1px] text-[11px] text-slate-300">
+                        {resolvedTeamName}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
                   <div className="text-xs text-slate-400">Last seen</div>
                   <div className="mt-1 text-sm">{fmtTime(activeContact?.last_seen_at)}</div>
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-sm font-semibold">Comms status</div>
+                    <span
+                      className={clsx(
+                        "text-[10px] px-2 py-[2px] rounded-full border",
+                        commsBadgeColor(activeContact?.comms_status ?? "normal")
+                      )}
+                    >
+                      {activeContact?.comms_status ?? "normal"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={activeContact?.comms_status ?? "normal"}
+                      onChange={(e) =>
+                        updateCommsStatus(
+                          e.target.value as "normal" | "blacklisted" | "whitelisted"
+                        )
+                      }
+                      className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
+                      disabled={commsSaving}
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="whitelisted">Whitelisted</option>
+                      <option value="blacklisted">Blacklisted</option>
+                    </select>
+                    {commsSaving && (
+                      <span className="text-xs text-slate-500">Saving...</span>
+                    )}
+                  </div>
+                  {commsError && <div className="mt-2 text-xs text-rose-300">{commsError}</div>}
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-sm font-semibold">Custom fields</div>
+                    <button
+                      onClick={saveCrmFields}
+                      className="rounded-lg border border-slate-700 px-3 py-1 text-xs hover:bg-slate-900"
+                      disabled={crmDisabled || !crmDirty || crmFields.length === 0}
+                    >
+                      {crmSaving ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+
+                  {crmLoading && (
+                    <div className="text-sm text-slate-400">Loading custom fields...</div>
+                  )}
+
+                  {!crmLoading && crmFields.length === 0 && (
+                    <div className="text-sm text-slate-400">Belum ada custom fields.</div>
+                  )}
+
+                  {!crmLoading && crmFields.length > 0 && (
+                    <div className="space-y-2">
+                      {crmFields.map((field) => {
+                        const valueText = crmValues[field.id]?.valueText ?? "";
+                        const valueBool = Boolean(crmValues[field.id]?.valueJson ?? false);
+                        const choices = field.type === "select" ? fieldChoices(field) : [];
+                        return (
+                          <div key={field.id} className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs text-slate-400">
+                                {field.label}
+                                {field.is_required ? " *" : ""}
+                              </label>
+                              <span className="text-[10px] text-slate-500">{field.key}</span>
+                            </div>
+
+                            {field.type === "text" && (
+                              <input
+                                value={valueText}
+                                onChange={(e) => updateCrmValue(field, e.target.value)}
+                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
+                                disabled={crmDisabled}
+                              />
+                            )}
+
+                            {field.type === "number" && (
+                              <input
+                                type="number"
+                                value={valueText}
+                                onChange={(e) => updateCrmValue(field, e.target.value)}
+                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
+                                disabled={crmDisabled}
+                              />
+                            )}
+
+                            {field.type === "date" && (
+                              <input
+                                type="date"
+                                value={valueText}
+                                onChange={(e) => updateCrmValue(field, e.target.value)}
+                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
+                                disabled={crmDisabled}
+                              />
+                            )}
+
+                            {field.type === "select" && (
+                              <select
+                                value={valueText}
+                                onChange={(e) => updateCrmValue(field, e.target.value)}
+                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
+                                disabled={crmDisabled}
+                              >
+                                <option value="">Pilih...</option>
+                                {choices.map((choice) => (
+                                  <option key={choice} value={choice}>
+                                    {choice}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
+                            {field.type === "bool" && (
+                              <label className="flex items-center gap-2 text-sm text-slate-200">
+                                <input
+                                  type="checkbox"
+                                  checked={valueBool}
+                                  onChange={(e) => updateCrmValue(field, e.target.checked)}
+                                  disabled={crmDisabled}
+                                  className="h-4 w-4 rounded border border-slate-700 bg-slate-950"
+                                />
+                                {valueBool ? "Yes" : "No"}
+                              </label>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {crmError && <div className="mt-2 text-xs text-rose-300">{crmError}</div>}
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
@@ -899,6 +1654,32 @@ export default function InboxApp({ selectedId }: Props) {
                       Snoozed until {fmtTime(activeConv.snoozed_until)}
                     </div>
                   )}
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="text-xs text-slate-400">Transfer team</div>
+                  <div className="mt-2 flex flex-col gap-2">
+                    <select
+                      value={transferTeamId}
+                      onChange={(e) => setTransferTeamId(e.target.value)}
+                      className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
+                    >
+                      <option value="">Pilih team</option>
+                      {teams.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}
+                          {t.is_default ? " (default)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={transferTeam}
+                      className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm hover:bg-slate-800"
+                      disabled={!transferTeamId}
+                    >
+                      Transfer
+                    </button>
+                  </div>
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
@@ -932,8 +1713,52 @@ export default function InboxApp({ selectedId }: Props) {
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-500">
-                  Next: SLA timer, routing/round-robin, CRM fields.
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-sm font-semibold">Escalations</div>
+                    <span className="text-xs text-slate-500">
+                      {activeEscalations.length}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {activeEscalations.map((e) => (
+                      <div
+                        key={e.id}
+                        className="rounded-lg border border-slate-800 bg-slate-950/40 p-2"
+                      >
+                        <div className="text-xs text-slate-400 flex items-center justify-between">
+                          <span>{e.breachType}</span>
+                          <span>{fmtTime(e.createdAt)}</span>
+                        </div>
+                        <div className="mt-1 text-sm">{e.reason}</div>
+                        <div className="mt-1 text-[11px] text-slate-500">
+                          Due {fmtTime(e.dueAt)}
+                        </div>
+                      </div>
+                    ))}
+
+                    {activeEscalations.length === 0 && (
+                      <div className="text-sm text-slate-400">
+                        Belum ada escalations.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="mb-1 flex items-center justify-between">
+                    <div className="text-xs text-slate-400">SLA</div>
+                    <span
+                      className={clsx(
+                        "text-[10px] px-2 py-[2px] rounded-full border",
+                        slaBadgeColor(slaSummary.status)
+                      )}
+                    >
+                      {slaSummary.status ?? "n/a"}
+                    </span>
+                  </div>
+                  <div className="text-sm">{slaSummary.label}</div>
                 </div>
               </div>
             </div>
@@ -947,6 +1772,33 @@ export default function InboxApp({ selectedId }: Props) {
           </code>
         </div>
       </div>
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <div
+            className="relative max-h-[90vh] max-w-[90vw]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute -top-3 -right-3 rounded-full border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+              onClick={() => setLightboxUrl(null)}
+            >
+              Close
+            </button>
+            <Image
+              src={lightboxUrl}
+              alt="attachment"
+              width={1200}
+              height={800}
+              unoptimized
+              className="max-h-[90vh] w-auto rounded-lg border border-slate-800"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

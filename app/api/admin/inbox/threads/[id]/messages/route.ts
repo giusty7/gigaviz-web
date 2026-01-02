@@ -17,6 +17,18 @@ type MessageRow = {
   media_sha256: string | null;
 };
 
+type AttachmentRow = {
+  id: string;
+  message_id: string;
+  kind: string;
+  mime_type: string | null;
+  file_name: string | null;
+  size_bytes: number | null;
+  url: string | null;
+  storage_path: string | null;
+  thumb_path: string | null;
+};
+
 export async function GET(req: NextRequest, ctx: Ctx) {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
@@ -37,6 +49,24 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     );
   }
 
+  const messageIds = (data ?? []).map((m: MessageRow) => m.id);
+  const attachmentsByMessage: Record<string, AttachmentRow[]> = {};
+  if (messageIds.length > 0) {
+    const { data: attachments, error: aErr } = await db
+      .from("message_attachments")
+      .select("id, message_id, kind, mime_type, file_name, size_bytes, url, storage_path, thumb_path")
+      .in("message_id", messageIds);
+
+    if (!aErr && attachments) {
+      (attachments as AttachmentRow[]).forEach((a) => {
+        if (!attachmentsByMessage[a.message_id]) attachmentsByMessage[a.message_id] = [];
+        attachmentsByMessage[a.message_id].push(a);
+      });
+    } else if (aErr) {
+      console.log("ATTACHMENTS_SELECT_ERROR", aErr.message);
+    }
+  }
+
   const messages = (data ?? []).map((m: MessageRow) => ({
     id: m.id,
     conversationId: m.conversation_id,
@@ -49,6 +79,16 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     mediaUrl: m.media_url ?? undefined,
     mediaMime: m.media_mime ?? undefined,
     mediaSha256: m.media_sha256 ?? undefined,
+    attachments: (attachmentsByMessage[m.id] ?? []).map((a) => ({
+      id: a.id,
+      kind: a.kind,
+      mimeType: a.mime_type ?? undefined,
+      fileName: a.file_name ?? undefined,
+      sizeBytes: a.size_bytes ?? undefined,
+      url: a.url ?? undefined,
+      requiresSign: Boolean(a.storage_path),
+      hasThumb: Boolean(a.thumb_path),
+    })),
   }));
 
   return withCookies(NextResponse.json({ messages }));

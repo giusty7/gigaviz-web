@@ -1,5 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { fetchWhatsAppMediaUrl } from "@/lib/wa/cloud";
+import { recomputeConversationSla } from "@/lib/inbox/sla";
+import { normalizePhone } from "@/lib/contacts/normalize";
 
 const VERIFY_TOKEN =
   process.env.WA_VERIFY_TOKEN || process.env.WA_WEBHOOK_VERIFY_TOKEN || "";
@@ -32,7 +34,7 @@ type WaChangeValue = {
   contacts?: WaContact[];
 };
 type WaEntry = { changes?: Array<{ value?: WaChangeValue }> };
-type WaWebhookPayload = { entry?: WaEntry[] };
+export type WaWebhookPayload = { entry?: WaEntry[] };
 
 async function resolveMediaUrl(mediaId?: string) {
   if (!mediaId) return { url: null, error: null };
@@ -62,13 +64,27 @@ export function handleWhatsAppVerify(req: Request) {
   return new Response("OK", { status: 200 });
 }
 
-export async function handleWhatsAppWebhook(req: Request) {
-  const body = (await req.json().catch(() => null)) as WaWebhookPayload | null;
-  if (!body) return new Response("OK", { status: 200 });
+type DbQuery = {
+  select: (columns: string) => DbQuery;
+  eq: (column: string, value: unknown) => DbQuery;
+  update: (values: Record<string, unknown>) => DbQuery;
+  insert: (values: Record<string, unknown>) => DbQuery;
+};
 
-  const db = supabaseAdmin();
-  const entries = body?.entry ?? [];
-  const workspaceId = process.env.DEFAULT_WORKSPACE_ID;
+type DbClient = {
+  from: (table: string) => DbQuery;
+};
+
+type DbResult<T> = { data: T | null; error: { message: string } | null };
+
+export async function processWhatsAppPayload(params: {
+  db: unknown;
+  workspaceId?: string | null;
+  payload: WaWebhookPayload;
+}) {
+  const { db, payload, workspaceId } = params;
+  const client = db as DbClient;
+  const entries = payload?.entry ?? [];
 
   for (const entry of entries) {
     const changes = entry?.changes ?? [];
@@ -86,26 +102,27 @@ export async function handleWhatsAppWebhook(req: Request) {
         const errorReason =
           status?.errors?.[0]?.title || status?.errors?.[0]?.message || null;
 
-        const { data: updated, error } = await db
+        const updatedRes = (await (client
           .from("messages")
           .update({
             status: mapped,
             error_reason: mapped === "failed" ? errorReason : null,
           })
           .eq("wa_message_id", waId)
-          .select("id, conversation_id")
-          .maybeSingle();
+          .select("id, conversation_id") as unknown as Promise<
+          DbResult<{ id?: string | null; conversation_id?: string | null }>
+        >)) as DbResult<{ id?: string | null; conversation_id?: string | null }>;
 
-        if (!error && updated?.id) {
-          const { error: eventErr } = await db
+        if (!updatedRes.error && updatedRes.data?.id) {
+          const eventRes = (await (client
             .from("message_events")
             .insert({
-              message_id: updated.id,
+              message_id: updatedRes.data.id,
               event_type: `status.${mapped}`,
               payload: status ?? {},
-            });
-          if (eventErr) {
-            console.log("message_events insert failed (status)", eventErr.message);
+            }) as unknown as Promise<DbResult<unknown>>)) as DbResult<unknown>;
+          if (eventRes.error) {
+            console.log("message_events insert failed (status)", eventRes.error.message);
           }
         }
       }
@@ -118,12 +135,13 @@ export async function handleWhatsAppWebhook(req: Request) {
           const from = msg?.from;
           if (!waMessageId || !from) continue;
 
-          const { data: existing } = await db
+          const existingRes = (await (client
             .from("messages")
             .select("id")
-            .eq("wa_message_id", waMessageId)
-            .maybeSingle();
-          if (existing?.id) continue;
+            .eq("wa_message_id", waMessageId) as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+            id?: string;
+          }>;
+          if (existingRes.data?.id) continue;
 
           const contactProfile = inboundContacts.find((c) => c?.wa_id === from);
           const contactName = contactProfile?.profile?.name || from;
@@ -159,42 +177,46 @@ export async function handleWhatsAppWebhook(req: Request) {
             textBody = `[${msg?.type || "message"}]`;
           }
 
-          const { data: contact } = await db
+          const contactRes = (await (client
             .from("contacts")
             .select("id")
             .eq("workspace_id", workspaceId)
-            .eq("phone", from)
-            .maybeSingle();
+            .eq("phone", from) as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+            id?: string;
+          }>;
 
-          let contactId = contact?.id;
+          let contactId = contactRes.data?.id;
           if (!contactId) {
-            const { data: insertedContact } = await db
+            const insertedRes = (await (client
               .from("contacts")
               .insert({
                 workspace_id: workspaceId,
                 name: contactName,
                 phone: from,
+                phone_norm: normalizePhone(from),
                 last_seen_at: new Date().toISOString(),
               })
-              .select("id")
-              .single();
-            contactId = insertedContact?.id;
+              .select("id") as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+              id?: string;
+            }>;
+            contactId = insertedRes.data?.id;
           }
 
           if (!contactId) continue;
 
-          const { data: conv } = await db
+          const convRes = (await (client
             .from("conversations")
             .select("id, unread_count")
             .eq("workspace_id", workspaceId)
-            .eq("contact_id", contactId)
-            .maybeSingle();
+            .eq("contact_id", contactId) as unknown as Promise<
+            DbResult<{ id?: string; unread_count?: number | null }>
+          >)) as DbResult<{ id?: string; unread_count?: number | null }>;
 
-          let conversationId = conv?.id;
-          let unreadCount = conv?.unread_count ?? 0;
+          let conversationId = convRes.data?.id;
+          let unreadCount = convRes.data?.unread_count ?? 0;
 
           if (!conversationId) {
-            const { data: insertedConv } = await db
+            const insertedConvRes = (await (client
               .from("conversations")
               .insert({
                 workspace_id: workspaceId,
@@ -203,9 +225,10 @@ export async function handleWhatsAppWebhook(req: Request) {
                 priority: "low",
                 unread_count: 0,
               })
-              .select("id")
-              .single();
-            conversationId = insertedConv?.id;
+              .select("id") as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+              id?: string;
+            }>;
+            conversationId = insertedConvRes.data?.id;
             unreadCount = 0;
           }
 
@@ -217,7 +240,7 @@ export async function handleWhatsAppWebhook(req: Request) {
 
           const { url: mediaUrl } = await resolveMediaUrl(mediaId);
 
-          const { data: insertedMessage } = await db
+          const insertedMessageRes = (await (client
             .from("messages")
             .insert({
               workspace_id: workspaceId,
@@ -231,42 +254,63 @@ export async function handleWhatsAppWebhook(req: Request) {
               media_mime: mediaMime ?? null,
               media_sha256: mediaSha ?? null,
             })
-            .select("id")
-            .single();
+            .select("id") as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+            id?: string;
+          }>;
 
-          await db
+          await client
             .from("conversations")
             .update({
               last_message_at: ts,
+              last_customer_message_at: ts,
               unread_count: unreadCount + 1,
             })
             .eq("workspace_id", workspaceId)
             .eq("id", conversationId);
 
-          await db
+          await client
             .from("contacts")
-            .update({ last_seen_at: ts })
+            .update({ last_seen_at: ts, phone_norm: normalizePhone(from) })
             .eq("workspace_id", workspaceId)
             .eq("id", contactId);
 
-          if (insertedMessage?.id) {
-            const { error: inboundErr } = await db
+          if (insertedMessageRes.data?.id) {
+            const inboundRes = (await (client
               .from("message_events")
               .insert({
-                message_id: insertedMessage.id,
+                message_id: insertedMessageRes.data.id,
                 event_type: "inbound.message",
                 payload: msg ?? {},
-              });
-            if (inboundErr) {
-              console.log("message_events insert failed (inbound)", inboundErr.message);
+              }) as unknown as Promise<DbResult<unknown>>)) as DbResult<unknown>;
+            if (inboundRes.error) {
+              console.log("message_events insert failed (inbound)", inboundRes.error.message);
             }
           }
+
+          await recomputeConversationSla({
+            db,
+            workspaceId,
+            conversationId,
+            overrides: {
+              lastCustomerMessageAt: ts,
+              ticketStatus: "open",
+            },
+          });
         } catch (err: unknown) {
           console.log("WEBHOOK_INBOUND_ERROR", err);
         }
       }
     }
   }
+}
+
+export async function handleWhatsAppWebhook(req: Request) {
+  const body = (await req.json().catch(() => null)) as WaWebhookPayload | null;
+  if (!body) return new Response("OK", { status: 200 });
+
+  const db = supabaseAdmin();
+  const workspaceId = process.env.DEFAULT_WORKSPACE_ID;
+  await processWhatsAppPayload({ db, workspaceId, payload: body });
 
   return new Response("OK", { status: 200 });
 }
