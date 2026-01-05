@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { computeFirstResponseAt } from "@/lib/inbox/first-response";
+import { sendWhatsAppText } from "@/lib/wa/cloud";
 
 export const runtime = "nodejs";
 
@@ -45,6 +46,22 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function hashIdempotencySeed(seed: string) {
   return createHash("sha256").update(seed).digest("hex");
+}
+
+function isTruthy(value: string | undefined) {
+  const v = (value || "").trim().toLowerCase();
+  return v === "true" || v === "1" || v === "yes";
+}
+
+function extractWaMessageId(payload: unknown) {
+  if (!payload || typeof payload !== "object") return null;
+  const messages = (payload as { messages?: Array<{ id?: unknown }> }).messages;
+  const id = messages?.[0]?.id;
+  return typeof id === "string" ? id : null;
+}
+
+function toErrorMessage(err: unknown) {
+  return err instanceof Error ? err.message : "wa_send_failed";
 }
 
 export async function POST(req: NextRequest, { params }: Ctx) {
@@ -256,7 +273,95 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     console.log("message_events insert failed (send_queued)", eventErr.message);
   }
 
+  const waSendEnabled = isTruthy(process.env.ENABLE_WA_SEND);
+  const logPayload = {
+    workspaceId,
+    conversationId: id,
+    messageId: inserted.id,
+    outboxId: outboxInsert?.id ?? null,
+    toPhone,
+  };
+
+  if (!waSendEnabled) {
+    console.log("[WA_SEND] skipped (dry-run)", JSON.stringify(logPayload));
+    return withCookies(
+      NextResponse.json({ ok: true, queued: true, message: mapMessage(inserted) }, { status: 202 })
+    );
+  }
+
+  console.log("[WA_SEND] attempting", JSON.stringify(logPayload));
+
+  let sendError: string | null = null;
+  let waMessageId: string | null = null;
+
+  try {
+    const res = await sendWhatsAppText({ to: toPhone, body: text });
+    waMessageId = extractWaMessageId(res.data);
+  } catch (err: unknown) {
+    sendError = toErrorMessage(err);
+  }
+
+  const nextStatus = sendError ? "failed" : "sent";
+  const nowIso = new Date().toISOString();
+
+  const { data: updatedMessage, error: updErr } = await db
+    .from("messages")
+    .update({
+      status: nextStatus,
+      wa_message_id: waMessageId,
+      error_reason: sendError,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", inserted.id)
+    .select(
+      "id, conversation_id, direction, text, ts, status, wa_message_id, error_reason, media_url, media_mime, media_sha256"
+    )
+    .single();
+
+  if (updErr) {
+    console.log("messages update failed (wa_send)", updErr.message);
+  }
+
+  if (outboxInsert?.id) {
+    const { error: outboxUpdateErr } = await db
+      .from("outbox_messages")
+      .update({
+        status: sendError ? "failed" : "sent",
+        attempts: 1,
+        last_error: sendError,
+        updated_at: nowIso,
+      })
+      .eq("id", outboxInsert.id);
+
+    if (outboxUpdateErr) {
+      console.log("outbox_messages update failed (wa_send)", outboxUpdateErr.message);
+    }
+  }
+
+  const { error: sendEventErr } = await db.from("message_events").insert({
+    message_id: inserted.id,
+    event_type: sendError ? "send.failed" : "send.sent",
+    payload: sendError ? { error: sendError } : { wa_message_id: waMessageId, to: toPhone },
+  });
+
+  if (sendEventErr) {
+    console.log("message_events insert failed (send_result)", sendEventErr.message);
+  }
+
+  if (sendError) {
+    console.warn("[WA_SEND] failed", JSON.stringify({ ...logPayload, error: sendError }));
+  } else {
+    console.log(
+      "[WA_SEND] success",
+      JSON.stringify({ ...logPayload, waMessageId })
+    );
+  }
+
+  const finalMessage = (updatedMessage as MessageRow | null) ?? inserted;
   return withCookies(
-    NextResponse.json({ ok: true, queued: true, message: mapMessage(inserted) }, { status: 202 })
+    NextResponse.json(
+      { ok: true, queued: false, message: mapMessage(finalMessage) },
+      { status: 200 }
+    )
   );
 }

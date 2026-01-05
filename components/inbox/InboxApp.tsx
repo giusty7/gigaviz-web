@@ -1491,12 +1491,17 @@ export default function InboxApp({ selectedId }: Props) {
                   activeMessages.map((m) => {
                     const isOut = m.direction === "out";
                     const statusLabel = m.status ?? "sent";
+                    const attempted = statusLabel !== "queued";
+                    const attemptedLabel = attempted ? "attempted" : "not attempted";
                     const statusClass =
                       statusLabel === "failed"
                         ? "border-rose-500/40 text-rose-200"
                         : statusLabel === "queued"
                           ? "border-amber-500/40 text-amber-200"
                           : "border-slate-700 text-slate-300";
+                    const attemptedClass = attempted
+                      ? "border-emerald-500/30 text-emerald-300"
+                      : "border-slate-700 text-slate-400";
                     const attachments = getMessageAttachments(m);
                     return (
                       <div key={m.id} className={clsx("flex", isOut ? "justify-end" : "justify-start")}>
@@ -1676,9 +1681,19 @@ export default function InboxApp({ selectedId }: Props) {
                           <div className="mt-1 flex items-center justify-end gap-2 text-[11px] text-slate-400">
                             <span>{fmtTime(m.ts)}</span>
                             {isOut && (
-                              <span className={clsx("rounded-full border px-2 py-[1px]", statusClass)}>
-                                {statusLabel}
-                              </span>
+                              <>
+                                <span className={clsx("rounded-full border px-2 py-[1px]", statusClass)}>
+                                  {statusLabel}
+                                </span>
+                                <span
+                                  className={clsx(
+                                    "rounded-full border px-2 py-[1px]",
+                                    attemptedClass
+                                  )}
+                                >
+                                  {attemptedLabel}
+                                </span>
+                              </>
                             )}
                           </div>
                           {isOut && statusLabel === "failed" && m.errorReason && (

@@ -47,7 +47,7 @@ type DbQuery = {
   update: (values: Record<string, unknown>) => DbQuery;
   insert: (values: Record<string, unknown>) => DbQuery;
   upsert: (values: Record<string, unknown>, opts?: { onConflict?: string }) => DbQuery;
-  maybeSingle: () => Promise<DbResult<any>>;
+  maybeSingle: () => Promise<DbResult<unknown>>;
 };
 
 type DbClient = { from: (table: string) => DbQuery };
