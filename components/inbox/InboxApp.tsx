@@ -17,6 +17,12 @@ type Contact = {
   tags: string[];
   last_seen_at: string | null;
   comms_status?: "normal" | "blacklisted" | "whitelisted";
+  opted_in?: boolean | null;
+  opted_in_at?: string | null;
+  opt_in_source?: string | null;
+  opted_out?: boolean | null;
+  opted_out_at?: string | null;
+  opt_out_reason?: string | null;
 };
 
 type ConversationRow = {
@@ -68,6 +74,8 @@ type TemplateRow = {
   status?: string | null;
   updated_at?: string | null;
 };
+
+const META_EVENT_OPTIONS = ["Lead", "Purchase", "AddToCart", "QualifiedProspect"] as const;
 
 type AttachmentRow = {
   id: string;
@@ -306,6 +314,10 @@ export default function InboxApp({ selectedId }: Props) {
   const [templatesError, setTemplatesError] = useState<string | null>(null);
   const [selectedTemplateKey, setSelectedTemplateKey] = useState<string>("");
   const [templateSending, setTemplateSending] = useState(false);
+  const [eventType, setEventType] = useState<(typeof META_EVENT_OPTIONS)[number]>("Lead");
+  const [eventPhone, setEventPhone] = useState("");
+  const [eventSending, setEventSending] = useState(false);
+  const [eventResult, setEventResult] = useState<{ message: string; ok: boolean } | null>(null);
   const [crmFields, setCrmFields] = useState<CrmField[]>([]);
   const [crmValues, setCrmValues] = useState<
     Record<string, { valueText: string | null; valueJson: unknown | null }>
@@ -316,6 +328,9 @@ export default function InboxApp({ selectedId }: Props) {
   const [crmDirty, setCrmDirty] = useState(false);
   const [commsSaving, setCommsSaving] = useState(false);
   const [commsError, setCommsError] = useState<string | null>(null);
+  const [optInSaving, setOptInSaving] = useState(false);
+  const [optInError, setOptInError] = useState<string | null>(null);
+  const [optInSource, setOptInSource] = useState("manual");
   const [attachmentUrls, setAttachmentUrls] = useState<
     Record<string, { url?: string; thumbUrl?: string }>
   >({});
@@ -514,6 +529,13 @@ export default function InboxApp({ selectedId }: Props) {
     if (!activeConv) return;
     setTransferTeamId(activeConv.team_id ?? "");
   }, [activeConv]);
+
+  useEffect(() => {
+    setEventResult(null);
+    if (activeContact?.phone) {
+      setEventPhone(activeContact.phone);
+    }
+  }, [activeContact?.phone]);
 
   useEffect(() => {
     let dead = false;
@@ -1025,6 +1047,59 @@ export default function InboxApp({ selectedId }: Props) {
     }
   }
 
+  async function markOptIn() {
+    if (!activeContact?.id) return;
+    setOptInSaving(true);
+    setOptInError(null);
+    try {
+      const res = await fetch(`/api/admin/crm/contacts/${activeContact.id}/opt-in`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: optInSource }),
+      });
+      const js = (await res.json().catch(() => ({}))) as {
+        contact?: {
+          opted_in?: boolean;
+          opted_in_at?: string | null;
+          opt_in_source?: string | null;
+          opted_out?: boolean;
+          opted_out_at?: string | null;
+          opt_out_reason?: string | null;
+        };
+        error?: string;
+      };
+      if (!res.ok || !js.contact) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal update opt-in";
+        throw new Error(errMsg);
+      }
+
+      setConversations((prev) =>
+        prev.map((t) =>
+          t.contact_id === activeContact.id
+            ? {
+                ...t,
+                contact: {
+                  ...t.contact,
+                  opted_in: js.contact?.opted_in ?? true,
+                  opted_in_at: js.contact?.opted_in_at ?? null,
+                  opt_in_source: js.contact?.opt_in_source ?? optInSource,
+                  opted_out: js.contact?.opted_out ?? false,
+                  opted_out_at: js.contact?.opted_out_at ?? null,
+                  opt_out_reason: js.contact?.opt_out_reason ?? null,
+                  comms_status: "normal",
+                },
+              }
+            : t
+        )
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setOptInError(msg);
+    } finally {
+      setOptInSaving(false);
+    }
+  }
+
   async function send() {
     if (!activeId) return;
     const text = composer.trim();
@@ -1131,6 +1206,41 @@ export default function InboxApp({ selectedId }: Props) {
       );
     } finally {
       setTemplateSending(false);
+    }
+  }
+
+  async function recordMetaEvent() {
+    if (!activeId) return;
+    if (!eventPhone.trim()) {
+      setError("Nomor telepon wajib diisi.");
+      return;
+    }
+    setEventSending(true);
+    setEventResult(null);
+    try {
+      const res = await fetch("/api/admin/meta/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventName: eventType,
+          phoneE164: eventPhone,
+          contactId: activeContact?.id,
+          source: "inbox",
+          customData: { conversationId: activeId },
+        }),
+      });
+      const js = (await res.json().catch(() => ({}))) as { status?: string; error?: string };
+      if (!res.ok) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal record event";
+        throw new Error(errMsg);
+      }
+      const statusLabel = js.status ? `Status: ${js.status}` : "Recorded";
+      setEventResult({ message: statusLabel, ok: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setEventResult({ message: msg, ok: false });
+    } finally {
+      setEventSending(false);
     }
   }
 
@@ -1894,6 +2004,53 @@ export default function InboxApp({ selectedId }: Props) {
                     <span className="text-xs text-rose-300">{templatesError}</span>
                   )}
                 </div>
+                <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="text-xs text-slate-400">
+                    Record event (Meta Events)
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <input
+                      value={eventPhone}
+                      onChange={(e) => setEventPhone(e.target.value)}
+                      placeholder="Phone (E.164)"
+                      className="min-w-[200px] flex-1 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
+                    />
+                    <select
+                      value={eventType}
+                      onChange={(e) =>
+                        setEventType(e.target.value as (typeof META_EVENT_OPTIONS)[number])
+                      }
+                      className="rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
+                    >
+                      {META_EVENT_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={recordMetaEvent}
+                      disabled={eventSending}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-60"
+                    >
+                      {eventSending ? "Recording..." : "Record"}
+                    </button>
+                  </div>
+                  <div className="mt-2 text-[11px] text-slate-500">
+                    Events are recorded for measurement/reporting. Sending to Meta is disabled by
+                    default (dry-run).
+                  </div>
+                  {eventResult && (
+                    <div
+                      className={clsx(
+                        "mt-2 text-xs",
+                        eventResult.ok ? "text-emerald-300" : "text-rose-300"
+                      )}
+                    >
+                      {eventResult.message}
+                    </div>
+                  )}
+                </div>
                 <div className="mt-2 text-xs text-slate-500">
                   *Default dry-run. Set ENABLE_WA_SEND=true untuk kirim WhatsApp asli.
                 </div>
@@ -1987,6 +2144,59 @@ export default function InboxApp({ selectedId }: Props) {
                     )}
                   </div>
                   {commsError && <div className="mt-2 text-xs text-rose-300">{commsError}</div>}
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="text-sm font-semibold">Opt-in status</div>
+                    <span
+                      className={clsx(
+                        "text-[10px] px-2 py-[2px] rounded-full border",
+                        activeContact?.opted_out
+                          ? "border-rose-500/40 text-rose-200 bg-rose-500/10"
+                          : activeContact?.opted_in
+                            ? "border-emerald-500/30 text-emerald-200 bg-emerald-500/10"
+                            : "border-slate-800 text-slate-300 bg-slate-950"
+                      )}
+                    >
+                      {activeContact?.opted_out
+                        ? "opted_out"
+                        : activeContact?.opted_in
+                          ? "opted_in"
+                          : "unknown"}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    Opted in at: {fmtTime(activeContact?.opted_in_at)}
+                  </div>
+                  {activeContact?.opt_in_source && (
+                    <div className="mt-1 text-[11px] text-slate-500">
+                      Source: {activeContact.opt_in_source}
+                    </div>
+                  )}
+                  {activeContact?.opted_out && (
+                    <div className="mt-2 text-xs text-rose-300">
+                      Opted out: {fmtTime(activeContact?.opted_out_at)}{" "}
+                      {activeContact?.opt_out_reason ? `(${activeContact.opt_out_reason})` : ""}
+                    </div>
+                  )}
+                  <div className="mt-3 flex items-center gap-2">
+                    <input
+                      value={optInSource}
+                      onChange={(e) => setOptInSource(e.target.value)}
+                      className="flex-1 rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
+                      placeholder="Source (manual)"
+                      disabled={optInSaving}
+                    />
+                    <button
+                      onClick={markOptIn}
+                      disabled={optInSaving}
+                      className="rounded-lg border border-slate-700 px-3 py-1 text-xs hover:bg-slate-900"
+                    >
+                      {optInSaving ? "Saving..." : "Mark as Opt-in"}
+                    </button>
+                  </div>
+                  {optInError && <div className="mt-2 text-xs text-rose-300">{optInError}</div>}
                 </div>
 
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3">

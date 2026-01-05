@@ -76,6 +76,11 @@ function safePhoneNorm(raw: string) {
   return digits.length > 0 ? digits : raw;
 }
 
+function isOptOutKeyword(text: string) {
+  const normalized = text.trim().toLowerCase();
+  return normalized === "stop" || normalized === "unsubscribe";
+}
+
 export async function processWhatsAppPayload(params: {
   db: unknown;
   workspaceId?: string | null; // fallback
@@ -393,13 +398,21 @@ export async function processWhatsAppPayload(params: {
             .eq("workspace_id", resolvedWorkspaceId)
             .eq("id", conversationId);
 
+          const contactUpdate: Record<string, unknown> = {
+            last_seen_at: ts,
+            phone: fromRaw,
+            phone_norm: phoneNorm,
+          };
+          if (msg?.type === "text" && isOptOutKeyword(textBody)) {
+            contactUpdate.opted_in = false;
+            contactUpdate.opted_out = true;
+            contactUpdate.opted_out_at = ts;
+            contactUpdate.opt_out_reason = "keyword";
+          }
+
           await client
             .from("contacts")
-            .update({
-              last_seen_at: ts,
-              phone: fromRaw,
-              phone_norm: phoneNorm,
-            })
+            .update(contactUpdate)
             .eq("workspace_id", resolvedWorkspaceId)
             .eq("id", contactId);
 

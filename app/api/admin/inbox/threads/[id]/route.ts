@@ -10,6 +10,12 @@ type ContactRow = {
   tags: string[] | null;
   last_seen_at: string | null;
   comms_status: string | null;
+  opted_in: boolean | null;
+  opted_in_at: string | null;
+  opt_in_source: string | null;
+  opted_out: boolean | null;
+  opted_out_at: string | null;
+  opt_out_reason: string | null;
 };
 
 type ConversationRow = {
@@ -115,7 +121,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
   const { data: contact, error: cErr } = await db
     .from("contacts")
-    .select("id, name, phone, tags, last_seen_at, comms_status")
+    .select("id, name, phone, tags, last_seen_at, comms_status, opted_in, opted_in_at, opt_in_source, opted_out, opted_out_at, opt_out_reason")
     .eq("workspace_id", workspaceId)
     .eq("id", conv.contact_id)
     .single();
@@ -251,6 +257,12 @@ export async function GET(req: NextRequest, { params }: Ctx) {
         tags: (contact as ContactRow).tags ?? [],
         lastSeenAt: (contact as ContactRow).last_seen_at ?? undefined,
         commsStatus: (contact as ContactRow).comms_status ?? "normal",
+        optedIn: (contact as ContactRow).opted_in ?? false,
+        optedInAt: (contact as ContactRow).opted_in_at ?? undefined,
+        optInSource: (contact as ContactRow).opt_in_source ?? undefined,
+        optedOut: (contact as ContactRow).opted_out ?? false,
+        optedOutAt: (contact as ContactRow).opted_out_at ?? undefined,
+        optOutReason: (contact as ContactRow).opt_out_reason ?? undefined,
       },
       messages: (msgs ?? []).map((m: MessageRow) => ({
         id: m.id,

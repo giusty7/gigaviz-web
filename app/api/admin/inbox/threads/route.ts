@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
       snoozed_until,
       last_read_at,
       contact:contacts (
-        id, name, phone, tags, last_seen_at, comms_status
+        id, name, phone, tags, last_seen_at, comms_status, opted_in, opted_in_at, opt_in_source, opted_out, opted_out_at, opt_out_reason
       )
     `
     )
