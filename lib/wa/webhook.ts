@@ -29,12 +29,14 @@ type WaMessage = {
   video?: { id?: string; mime_type?: string; sha256?: string; caption?: string };
   audio?: { id?: string; mime_type?: string; sha256?: string };
 };
+type WaMetadata = { phone_number_id?: string };
 type WaChangeValue = {
   statuses?: WaStatus[];
   messages?: WaMessage[];
   contacts?: WaContact[];
+  metadata?: WaMetadata;
 };
-type WaEntry = { changes?: Array<{ value?: WaChangeValue }> };
+type WaEntry = { id?: string; changes?: Array<{ value?: WaChangeValue }> };
 export type WaWebhookPayload = { entry?: WaEntry[] };
 
 async function resolveMediaUrl(mediaId?: string) {
@@ -70,6 +72,7 @@ type DbQuery = {
   eq: (column: string, value: unknown) => DbQuery;
   update: (values: Record<string, unknown>) => DbQuery;
   insert: (values: Record<string, unknown>) => DbQuery;
+  maybeSingle: () => Promise<DbResult<unknown>>;
 };
 
 type DbClient = {
@@ -78,14 +81,86 @@ type DbClient = {
 
 type DbResult<T> = { data: T | null; error: { message: string } | null };
 
+type WaProcessResult = { processedMessages: number; errors: string[] };
+
+function toErrorMessage(err: unknown) {
+  return err instanceof Error ? err.message : "unknown_error";
+}
+
 export async function processWhatsAppPayload(params: {
   db: unknown;
   workspaceId?: string | null;
   payload: WaWebhookPayload;
-}) {
+}): Promise<WaProcessResult> {
   const { db, payload, workspaceId } = params;
   const client = db as DbClient;
   const entries = payload?.entry ?? [];
+  const errors: string[] = [];
+  const workspaceCache = new Map<string, string | null>();
+  let processedMessages = 0;
+
+  const resolveWorkspaceId = async (
+    phoneNumberId?: string | null,
+    wabaId?: string | null
+  ) => {
+    const normalizedPhoneId = phoneNumberId ? String(phoneNumberId) : "";
+    const normalizedWabaId = wabaId ? String(wabaId) : "";
+    if (!normalizedPhoneId && !normalizedWabaId) {
+      if (!workspaceId) errors.push("workspace_not_resolved");
+      return workspaceId ?? null;
+    }
+    const phoneKey = normalizedPhoneId ? `pn:${normalizedPhoneId}` : "";
+    const wabaKey = normalizedWabaId ? `waba:${normalizedWabaId}` : "";
+    if (phoneKey && workspaceCache.has(phoneKey)) {
+      return workspaceCache.get(phoneKey) ?? null;
+    }
+    if (wabaKey && workspaceCache.has(wabaKey)) {
+      return workspaceCache.get(wabaKey) ?? null;
+    }
+    let res = null as DbResult<{ id?: string | null }> | null;
+    if (normalizedPhoneId) {
+      res = (await (client
+        .from("workspaces")
+        .select("id")
+        .eq("wa_phone_number_id", normalizedPhoneId)
+        .maybeSingle() as unknown as Promise<DbResult<{ id?: string | null }>>)) as DbResult<{
+        id?: string | null;
+      }>;
+      if (res.error) {
+        errors.push("workspace_lookup_failed");
+      }
+      if (res.data?.id) {
+        workspaceCache.set(phoneKey, res.data.id);
+        return res.data.id;
+      }
+    }
+    if (normalizedWabaId) {
+      res = (await (client
+        .from("workspaces")
+        .select("id")
+        .eq("wa_waba_id", normalizedWabaId)
+        .maybeSingle() as unknown as Promise<DbResult<{ id?: string | null }>>)) as DbResult<{
+        id?: string | null;
+      }>;
+      if (res.error) {
+        errors.push("workspace_lookup_failed");
+      }
+      if (res.data?.id) {
+        workspaceCache.set(wabaKey, res.data.id);
+        return res.data.id;
+      }
+    }
+    errors.push("workspace_not_found");
+    const fallbackId = workspaceId ?? null;
+    if (fallbackId) {
+      console.log("WA_WORKSPACE_FALLBACK_USED", JSON.stringify({ phoneNumberId, wabaId }));
+    } else {
+      console.log("WA_WORKSPACE_NOT_FOUND", JSON.stringify({ phoneNumberId, wabaId }));
+    }
+    if (phoneKey) workspaceCache.set(phoneKey, fallbackId);
+    if (wabaKey) workspaceCache.set(wabaKey, fallbackId);
+    return fallbackId;
+  };
 
   for (const entry of entries) {
     const changes = entry?.changes ?? [];
@@ -94,6 +169,8 @@ export async function processWhatsAppPayload(params: {
       const statuses = value?.statuses ?? [];
       const inboundMessages = value?.messages ?? [];
       const inboundContacts = value?.contacts ?? [];
+      const phoneNumberId = value?.metadata?.phone_number_id;
+      const wabaId = entry?.id;
 
       for (const status of statuses) {
         const waId = status?.id;
@@ -110,11 +187,15 @@ export async function processWhatsAppPayload(params: {
             error_reason: mapped === "failed" ? errorReason : null,
           })
           .eq("wa_message_id", waId)
-          .select("id, conversation_id") as unknown as Promise<
+          .select("id, conversation_id")
+          .maybeSingle() as unknown as Promise<
           DbResult<{ id?: string | null; conversation_id?: string | null }>
         >)) as DbResult<{ id?: string | null; conversation_id?: string | null }>;
 
-        if (!updatedRes.error && updatedRes.data?.id) {
+        if (updatedRes.error) {
+          console.log("WA_STATUS_UPDATE_FAILED", updatedRes.error.message);
+          errors.push("status_update_failed");
+        } else if (updatedRes.data?.id) {
           const eventRes = (await (client
             .from("message_events")
             .insert({
@@ -124,11 +205,14 @@ export async function processWhatsAppPayload(params: {
             }) as unknown as Promise<DbResult<unknown>>)) as DbResult<unknown>;
           if (eventRes.error) {
             console.log("message_events insert failed (status)", eventRes.error.message);
+            errors.push("status_event_insert_failed");
           }
         }
       }
 
-      if (!workspaceId || inboundMessages.length === 0) continue;
+      if (inboundMessages.length === 0) continue;
+      const resolvedWorkspaceId = await resolveWorkspaceId(phoneNumberId, wabaId);
+      if (!resolvedWorkspaceId) continue;
 
       for (const msg of inboundMessages) {
         try {
@@ -139,10 +223,21 @@ export async function processWhatsAppPayload(params: {
           const existingRes = (await (client
             .from("messages")
             .select("id")
-            .eq("wa_message_id", waMessageId) as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+            .eq("wa_message_id", waMessageId)
+            .eq("workspace_id", resolvedWorkspaceId)
+            .maybeSingle() as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
             id?: string;
           }>;
+          if (existingRes.error) {
+            console.log("WA_MESSAGE_LOOKUP_FAILED", existingRes.error.message);
+            errors.push("message_lookup_failed");
+            continue;
+          }
           if (existingRes.data?.id) continue;
+
+          const ts = msg?.timestamp
+            ? new Date(Number(msg.timestamp) * 1000).toISOString()
+            : new Date().toISOString();
 
           const contactProfile = inboundContacts.find((c) => c?.wa_id === from);
           const contactName = contactProfile?.profile?.name || from;
@@ -181,25 +276,35 @@ export async function processWhatsAppPayload(params: {
           const contactRes = (await (client
             .from("contacts")
             .select("id")
-            .eq("workspace_id", workspaceId)
-            .eq("phone", from) as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+            .eq("workspace_id", resolvedWorkspaceId)
+            .eq("phone", from)
+            .maybeSingle() as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
             id?: string;
           }>;
+          if (contactRes.error) {
+            console.log("WA_CONTACT_LOOKUP_FAILED", contactRes.error.message);
+            errors.push("contact_lookup_failed");
+          }
 
           let contactId = contactRes.data?.id;
           if (!contactId) {
             const insertedRes = (await (client
               .from("contacts")
               .insert({
-                workspace_id: workspaceId,
+                workspace_id: resolvedWorkspaceId,
                 name: contactName,
                 phone: from,
                 phone_norm: normalizePhone(from),
-                last_seen_at: new Date().toISOString(),
+                last_seen_at: ts,
               })
-              .select("id") as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+              .select("id")
+              .maybeSingle() as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
               id?: string;
             }>;
+            if (insertedRes.error) {
+              console.log("WA_CONTACT_INSERT_FAILED", insertedRes.error.message);
+              errors.push("contact_insert_failed");
+            }
             contactId = insertedRes.data?.id;
           }
 
@@ -208,10 +313,15 @@ export async function processWhatsAppPayload(params: {
           const convRes = (await (client
             .from("conversations")
             .select("id, unread_count")
-            .eq("workspace_id", workspaceId)
-            .eq("contact_id", contactId) as unknown as Promise<
+            .eq("workspace_id", resolvedWorkspaceId)
+            .eq("contact_id", contactId)
+            .maybeSingle() as unknown as Promise<
             DbResult<{ id?: string; unread_count?: number | null }>
           >)) as DbResult<{ id?: string; unread_count?: number | null }>;
+          if (convRes.error) {
+            console.log("WA_CONVERSATION_LOOKUP_FAILED", convRes.error.message);
+            errors.push("conversation_lookup_failed");
+          }
 
           let conversationId = convRes.data?.id;
           let unreadCount = convRes.data?.unread_count ?? 0;
@@ -220,31 +330,34 @@ export async function processWhatsAppPayload(params: {
             const insertedConvRes = (await (client
               .from("conversations")
               .insert({
-                workspace_id: workspaceId,
+                workspace_id: resolvedWorkspaceId,
                 contact_id: contactId,
                 ticket_status: "open",
                 priority: "low",
                 unread_count: 0,
+                last_message_at: ts,
+                last_customer_message_at: ts,
               })
-              .select("id") as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+              .select("id")
+              .maybeSingle() as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
               id?: string;
             }>;
+            if (insertedConvRes.error) {
+              console.log("WA_CONVERSATION_INSERT_FAILED", insertedConvRes.error.message);
+              errors.push("conversation_insert_failed");
+            }
             conversationId = insertedConvRes.data?.id;
             unreadCount = 0;
           }
 
           if (!conversationId) continue;
 
-          const ts = msg?.timestamp
-            ? new Date(Number(msg.timestamp) * 1000).toISOString()
-            : new Date().toISOString();
-
           const { url: mediaUrl } = await resolveMediaUrl(mediaId);
 
           const insertedMessageRes = (await (client
             .from("messages")
             .insert({
-              workspace_id: workspaceId,
+              workspace_id: resolvedWorkspaceId,
               conversation_id: conversationId,
               direction: "in",
               text: textBody || "",
@@ -255,9 +368,14 @@ export async function processWhatsAppPayload(params: {
               media_mime: mediaMime ?? null,
               media_sha256: mediaSha ?? null,
             })
-            .select("id") as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
+            .select("id")
+            .maybeSingle() as unknown as Promise<DbResult<{ id?: string }>>)) as DbResult<{
             id?: string;
           }>;
+          if (insertedMessageRes.error) {
+            console.log("WA_MESSAGE_INSERT_FAILED", insertedMessageRes.error.message);
+            errors.push("message_insert_failed");
+          }
 
           await client
             .from("conversations")
@@ -266,13 +384,13 @@ export async function processWhatsAppPayload(params: {
               last_customer_message_at: ts,
               unread_count: unreadCount + 1,
             })
-            .eq("workspace_id", workspaceId)
+            .eq("workspace_id", resolvedWorkspaceId)
             .eq("id", conversationId);
 
           await client
             .from("contacts")
             .update({ last_seen_at: ts, phone_norm: normalizePhone(from) })
-            .eq("workspace_id", workspaceId)
+            .eq("workspace_id", resolvedWorkspaceId)
             .eq("id", contactId);
 
           if (insertedMessageRes.data?.id) {
@@ -285,12 +403,13 @@ export async function processWhatsAppPayload(params: {
               }) as unknown as Promise<DbResult<unknown>>)) as DbResult<unknown>;
             if (inboundRes.error) {
               console.log("message_events insert failed (inbound)", inboundRes.error.message);
+              errors.push("inbound_event_insert_failed");
             }
           }
 
           await recomputeConversationSla({
             db,
-            workspaceId,
+            workspaceId: resolvedWorkspaceId,
             conversationId,
             overrides: {
               lastCustomerMessageAt: ts,
@@ -300,16 +419,20 @@ export async function processWhatsAppPayload(params: {
 
           await maybeAutoRouteInbound({
             db,
-            workspaceId,
+            workspaceId: resolvedWorkspaceId,
             conversationId,
             text: textBody || "",
           });
+          processedMessages += 1;
         } catch (err: unknown) {
           console.log("WEBHOOK_INBOUND_ERROR", err);
+          errors.push(toErrorMessage(err));
         }
       }
     }
   }
+
+  return { processedMessages, errors };
 }
 
 export async function handleWhatsAppWebhook(req: Request) {
@@ -318,7 +441,10 @@ export async function handleWhatsAppWebhook(req: Request) {
 
   const db = supabaseAdmin();
   const workspaceId = process.env.DEFAULT_WORKSPACE_ID;
-  await processWhatsAppPayload({ db, workspaceId, payload: body });
+  const result = await processWhatsAppPayload({ db, workspaceId, payload: body });
+  if (result.errors.length > 0) {
+    console.log("WA_WEBHOOK_PROCESS_ERRORS", result.errors.join("; "));
+  }
 
   return new Response("OK", { status: 200 });
 }
