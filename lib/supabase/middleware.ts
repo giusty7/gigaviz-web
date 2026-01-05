@@ -81,13 +81,13 @@ export async function withSupabaseAuth(request: NextRequest) {
 
   /**
    * 1) /login behavior
-   * - Jika sudah login & admin -> lempar ke /admin/inbox (default)
+   * - Jika sudah login & admin -> lempar ke /admin (default)
    * - Jika sudah login tapi bukan admin -> tetap di /login?error=not_admin
    * - Jika belum login -> allow buka /login (jangan redirect balik)
    */
   if (isLoginPath) {
-    if (user && isAdmin) return makeRedirect("/admin/inbox");
-    if (user && !isAdmin) return makeRedirect("/admin/inbox");
+    if (user && isAdmin) return makeRedirect("/admin");
+    if (user && !isAdmin) return makeRedirect("/admin");
     return makeNext();
   }
 

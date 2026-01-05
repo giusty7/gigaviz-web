@@ -60,6 +60,15 @@ type MessageRow = {
   attachments?: AttachmentRow[] | null;
 };
 
+type TemplateRow = {
+  id: string;
+  name: string;
+  category?: string | null;
+  language?: string | null;
+  status?: string | null;
+  updated_at?: string | null;
+};
+
 type AttachmentRow = {
   id: string;
   kind: AttachmentKind;
@@ -244,6 +253,13 @@ function shortId(value?: string | null) {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
 }
 
+function templateKey(row: TemplateRow) {
+  if (row.id) return `id:${row.id}`;
+  const name = row.name || "";
+  const lang = row.language || "";
+  return `name:${name}:${lang}`;
+}
+
 function fieldChoices(field: CrmField) {
   const raw = field.options;
   if (!raw || typeof raw !== "object") return [] as string[];
@@ -285,6 +301,11 @@ export default function InboxApp({ selectedId }: Props) {
   const [supervisorTakeoverEnabled, setSupervisorTakeoverEnabled] = useState(false);
   const [memberRole, setMemberRole] = useState<string | null>(null);
   const [composer, setComposer] = useState("");
+  const [templates, setTemplates] = useState<TemplateRow[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templatesError, setTemplatesError] = useState<string | null>(null);
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState<string>("");
+  const [templateSending, setTemplateSending] = useState(false);
   const [crmFields, setCrmFields] = useState<CrmField[]>([]);
   const [crmValues, setCrmValues] = useState<
     Record<string, { valueText: string | null; valueJson: unknown | null }>
@@ -410,11 +431,52 @@ export default function InboxApp({ selectedId }: Props) {
     };
   }, [skillRoutingEnabled]);
 
+  useEffect(() => {
+    let dead = false;
+    async function loadTemplates() {
+      setTemplatesLoading(true);
+      setTemplatesError(null);
+      try {
+        const res = await fetch("/api/admin/wa/templates", { cache: "no-store" });
+        const js = (await res.json().catch(() => ({}))) as {
+          items?: TemplateRow[];
+          error?: string;
+        };
+        if (!res.ok) {
+          const errMsg = typeof js.error === "string" ? js.error : "Gagal load templates";
+          throw new Error(errMsg);
+        }
+        if (!dead) setTemplates(js.items ?? []);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Error";
+        if (!dead) setTemplatesError(msg);
+      } finally {
+        if (!dead) setTemplatesLoading(false);
+      }
+    }
+    loadTemplates();
+    return () => {
+      dead = true;
+    };
+  }, []);
+
 
   const convById = useMemo(
     () => Object.fromEntries(conversations.map((c) => [c.id, c])),
     [conversations]
   );
+
+  const approvedTemplates = useMemo(() => {
+    return templates.filter((t) => (t.status || "").toUpperCase() === "APPROVED");
+  }, [templates]);
+
+  useEffect(() => {
+    if (approvedTemplates.length === 0) return;
+    const existing = approvedTemplates.find((t) => templateKey(t) === selectedTemplateKey);
+    if (!existing) {
+      setSelectedTemplateKey(templateKey(approvedTemplates[0]));
+    }
+  }, [approvedTemplates, selectedTemplateKey]);
 
   const agents = useMemo(() => {
     const s = new Set<string>();
@@ -1011,6 +1073,67 @@ export default function InboxApp({ selectedId }: Props) {
     }
   }
 
+  async function sendTemplate() {
+    if (!activeId) return;
+    const selected = approvedTemplates.find(
+      (t) => templateKey(t) === selectedTemplateKey
+    );
+    if (!selected) {
+      setError("Template belum dipilih.");
+      return;
+    }
+
+    const templateName = selected.name;
+    const language = selected.language || "id";
+    const displayText = `Template: ${templateName}`;
+
+    setTemplateSending(true);
+    const optimistic: MessageRow = {
+      id: `tmp_tpl_${Math.random().toString(16).slice(2)}`,
+      conversationId: activeId,
+      direction: "out",
+      text: displayText,
+      ts: new Date().toISOString(),
+      status: "queued",
+      waMessageId: null,
+      errorReason: null,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${activeId}/send-template`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateName,
+          language,
+          components: [],
+        }),
+      });
+      const js = (await res.json().catch(() => ({}))) as SendResponse;
+      const message = js.message;
+      if (!res.ok || !message) {
+        const errMsg = typeof js.error === "string" ? js.error : "Gagal kirim template";
+        throw new Error(errMsg);
+      }
+
+      setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? message : m)));
+      patchConv(activeId, { last_message_at: message.ts });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error";
+      setError(msg);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === optimistic.id
+            ? { ...m, status: "failed", errorReason: msg || "Failed" }
+            : m
+        )
+      );
+    } finally {
+      setTemplateSending(false);
+    }
+  }
+
   async function addNote() {
     if (!activeId) return;
     const t = prompt("Tulis catatan internal:");
@@ -1039,6 +1162,10 @@ export default function InboxApp({ selectedId }: Props) {
   const activeMessages = useMemo(() => {
     return messages.slice().sort((a, b) => (a.ts < b.ts ? -1 : 1));
   }, [messages]);
+
+  const selectedTemplate = useMemo(() => {
+    return approvedTemplates.find((t) => templateKey(t) === selectedTemplateKey) ?? null;
+  }, [approvedTemplates, selectedTemplateKey]);
 
   useEffect(() => {
     const ids = new Set<string>();
@@ -1171,6 +1298,12 @@ export default function InboxApp({ selectedId }: Props) {
               href="/admin/contacts"
             >
               Contacts
+            </Link>
+            <Link
+              className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"
+              href="/admin/templates"
+            >
+              Templates
             </Link>
             <span className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300">
               Workspace: Gigaviz
@@ -1731,6 +1864,35 @@ export default function InboxApp({ selectedId }: Props) {
                   >
                     Kirim
                   </button>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <select
+                    value={selectedTemplateKey}
+                    onChange={(e) => setSelectedTemplateKey(e.target.value)}
+                    disabled={templatesLoading || approvedTemplates.length === 0}
+                    className="flex-1 min-w-[220px] rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
+                  >
+                    {approvedTemplates.length === 0 && (
+                      <option value="">
+                        {templatesLoading ? "Loading templates..." : "No approved templates"}
+                      </option>
+                    )}
+                    {approvedTemplates.map((t) => (
+                      <option key={templateKey(t)} value={templateKey(t)}>
+                        {t.name} {t.language ? `(${t.language})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={sendTemplate}
+                    disabled={!selectedTemplate || templateSending}
+                    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {templateSending ? "Sending..." : "Send Template"}
+                  </button>
+                  {templatesError && (
+                    <span className="text-xs text-rose-300">{templatesError}</span>
+                  )}
                 </div>
                 <div className="mt-2 text-xs text-slate-500">
                   *Default dry-run. Set ENABLE_WA_SEND=true untuk kirim WhatsApp asli.

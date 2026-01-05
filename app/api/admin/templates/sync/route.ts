@@ -67,8 +67,18 @@ export async function POST(req: NextRequest) {
   try {
     metaResponse = await fetchMetaTemplates();
   } catch (err: unknown) {
-    const data = err as { message?: string; code?: number; subcode?: number; fbtrace_id?: string };
-    const message = data?.message || (err instanceof Error ? err.message : "Meta API error");
+    const data = err as {
+      message?: string;
+      code?: number;
+      subcode?: number;
+      fbtrace_id?: string;
+      status?: number;
+      requestUrl?: string;
+    };
+    const requestUrl = typeof data?.requestUrl === "string" ? data.requestUrl : null;
+    const baseMessage =
+      data?.message || (err instanceof Error ? err.message : "Meta API error");
+    const message = requestUrl ? `${baseMessage} (url: ${requestUrl})` : baseMessage;
     return withCookies(
       NextResponse.json(
         {
@@ -78,6 +88,8 @@ export async function POST(req: NextRequest) {
             code: data?.code ?? null,
             subcode: data?.subcode ?? null,
             fbtrace_id: data?.fbtrace_id ?? null,
+            status: data?.status ?? null,
+            request_url: requestUrl,
           },
         },
         { status: 502 }

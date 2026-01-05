@@ -60,12 +60,12 @@ export default function TemplatesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/templates", { cache: "no-store" });
+      const res = await fetch("/api/admin/wa/templates", { cache: "no-store" });
       if (!res.ok) {
         throw new Error(await readError(res));
       }
-      const js = await readJson<{ templates?: TemplateRow[] }>(res);
-      setItems(js.templates || []);
+      const js = await readJson<{ items?: TemplateRow[]; templates?: TemplateRow[] }>(res);
+      setItems(js.items || js.templates || []);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";
       setError(msg);
@@ -82,7 +82,7 @@ export default function TemplatesPage() {
     setSyncing(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/templates/sync", { method: "POST" });
+      const res = await fetch("/api/admin/wa/templates/sync", { method: "POST" });
       if (!res.ok) {
         throw new Error(await readError(res));
       }

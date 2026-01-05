@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
-import { buildTemplatePayload, createMetaTemplate } from "@/lib/wa/templates";
+import { buildTemplatePayload, createMetaTemplate, fetchMetaTemplates } from "@/lib/wa/templates";
 
 type CreatePayload = {
   name?: unknown;
@@ -10,6 +10,14 @@ type CreatePayload = {
   header?: unknown;
   footer?: unknown;
   buttons?: unknown;
+};
+
+type MetaTemplate = {
+  id?: string;
+  name?: string;
+  status?: string;
+  category?: string;
+  language?: string;
 };
 
 const CATEGORY_ALLOWED = new Set(["MARKETING", "UTILITY", "AUTHENTICATION"]);
@@ -86,10 +94,42 @@ export async function GET(req: NextRequest) {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    return withCookies(NextResponse.json({ error: error.message }, { status: 500 }));
+    const message = error.message || "";
+    const lower = message.toLowerCase();
+    const missingTable =
+      error.code === "42P01" ||
+      (lower.includes("wa_templates") && lower.includes("exist"));
+    if (!missingTable) {
+      return withCookies(NextResponse.json({ error: error.message }, { status: 500 }));
+    }
+    try {
+      const metaResponse = await fetchMetaTemplates();
+      const raw = (metaResponse as { data?: MetaTemplate[] }).data ?? [];
+      const items = raw.map((t) => ({
+        id: asString(t.id) || asString(t.name),
+        name: asString(t.name),
+        category: asString(t.category),
+        language: asString(t.language),
+        status: asString(t.status),
+        updated_at: null,
+      }));
+      return withCookies(NextResponse.json({ items }));
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Meta API error";
+      return withCookies(NextResponse.json({ error: errMsg }, { status: 502 }));
+    }
   }
 
-  return withCookies(NextResponse.json({ items: data ?? [] }));
+  const items = (data ?? []).map((row) => ({
+    id: row.meta_template_id ?? row.id,
+    name: row.name,
+    category: row.category,
+    language: row.language,
+    status: row.status,
+    updated_at: row.updated_at,
+  }));
+
+  return withCookies(NextResponse.json({ items }));
 }
 
 export async function POST(req: NextRequest) {

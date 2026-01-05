@@ -22,6 +22,32 @@ type MetaTemplatePayload = {
   components: MetaTemplateComponent[];
 };
 
+type MetaApiError = {
+  message?: string;
+  code?: number;
+  error_subcode?: number;
+  fbtrace_id?: string;
+};
+
+type MetaTemplatesResponse = {
+  data?: Array<{
+    id?: string;
+    name?: string;
+    status?: string;
+    category?: string;
+    language?: string;
+  }>;
+  paging?: {
+    cursors?: {
+      after?: string;
+    };
+    next?: string;
+  };
+  error?: MetaApiError;
+};
+
+type MetaTemplateItem = NonNullable<MetaTemplatesResponse["data"]>[number];
+
 function sanitizeToken(value: string) {
   const trimmed = value.trim();
   const unquoted =
@@ -43,6 +69,22 @@ function requiredEnvAny(names: string[], opts?: { sanitizeToken?: boolean }) {
     }
   }
   throw new Error(`Missing env: ${names.join(" or ")}`);
+}
+
+function normalizeGraphVersion(raw?: string) {
+  const cleaned = (raw || "").trim();
+  if (!cleaned) return "v22.0";
+  return cleaned.startsWith("v") ? cleaned : `v${cleaned}`;
+}
+
+function buildTemplatesUrl(version: string, wabaId: string, params?: Record<string, string>) {
+  const url = new URL(`https://graph.facebook.com/${version}/${wabaId}/message_templates`);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) url.searchParams.set(key, value);
+    });
+  }
+  return url;
 }
 
 export function buildTemplatePayload(input: TemplateInput): MetaTemplatePayload {
@@ -74,11 +116,10 @@ export async function createMetaTemplate(payload: MetaTemplatePayload) {
     sanitizeToken: true,
   });
   const wabaId = requiredEnvAny(["WA_WABA_ID"]);
-  const version = process.env.WA_GRAPH_VERSION || "v22.0";
+  const version = normalizeGraphVersion(process.env.WA_GRAPH_VERSION);
+  const url = buildTemplatesUrl(version, wabaId);
 
-  const url = `https://graph.facebook.com/${version}/${wabaId}/message_templates`;
-
-  const res = await fetch(url, {
+  const res = await fetch(url.toString(), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -87,9 +128,7 @@ export async function createMetaTemplate(payload: MetaTemplatePayload) {
     body: JSON.stringify(payload),
   });
 
-  const data = (await res.json().catch(() => ({}))) as {
-    error?: { message?: string; code?: number; error_subcode?: number; fbtrace_id?: string };
-  };
+  const data = (await res.json().catch(() => ({}))) as { error?: MetaApiError };
   if (!res.ok) {
     const message =
       typeof data?.error?.message === "string"
@@ -99,10 +138,14 @@ export async function createMetaTemplate(payload: MetaTemplatePayload) {
       code?: number;
       subcode?: number;
       fbtrace_id?: string;
+      status?: number;
+      requestUrl?: string;
     };
     err.code = data?.error?.code;
     err.subcode = data?.error?.error_subcode;
     err.fbtrace_id = data?.error?.fbtrace_id;
+    err.status = res.status;
+    err.requestUrl = url.toString();
     throw err;
   }
 
@@ -114,35 +157,61 @@ export async function fetchMetaTemplates() {
     sanitizeToken: true,
   });
   const wabaId = requiredEnvAny(["WA_WABA_ID"]);
-  const version = process.env.WA_GRAPH_VERSION || "v22.0";
+  const version = normalizeGraphVersion(process.env.WA_GRAPH_VERSION);
+  const fields = "name,language,status,category,id";
 
-  const url = `https://graph.facebook.com/${version}/${wabaId}/message_templates`;
+  const templates: MetaTemplateItem[] = [];
+  let after: string | null = null;
 
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  do {
+    const url = buildTemplatesUrl(version, wabaId, {
+      fields,
+      limit: "250",
+      after: after ?? "",
+    });
 
-  const data = (await res.json().catch(() => ({}))) as {
-    error?: { message?: string; code?: number; error_subcode?: number; fbtrace_id?: string };
-  };
-  if (!res.ok) {
-    const message =
-      typeof data?.error?.message === "string"
-        ? data.error.message
-        : `Meta API error (${res.status})`;
-    const err = new Error(message) as Error & {
-      code?: number;
-      subcode?: number;
-      fbtrace_id?: string;
-    };
-    err.code = data?.error?.code;
-    err.subcode = data?.error?.error_subcode;
-    err.fbtrace_id = data?.error?.fbtrace_id;
-    throw err;
-  }
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  return data;
+    const data = (await res.json().catch(() => ({}))) as MetaTemplatesResponse;
+    if (!res.ok) {
+      const message =
+        typeof data?.error?.message === "string"
+          ? data.error.message
+          : `Meta API error (${res.status})`;
+      console.log(
+        "WA_TEMPLATES_FETCH_FAILED",
+        JSON.stringify({ url: url.toString(), status: res.status, message })
+      );
+      const err = new Error(message) as Error & {
+        code?: number;
+        subcode?: number;
+        fbtrace_id?: string;
+        status?: number;
+        requestUrl?: string;
+      };
+      err.code = data?.error?.code;
+      err.subcode = data?.error?.error_subcode;
+      err.fbtrace_id = data?.error?.fbtrace_id;
+      err.status = res.status;
+      err.requestUrl = url.toString();
+      throw err;
+    }
+
+    if (Array.isArray(data.data)) {
+      templates.push(...data.data);
+    }
+
+    const nextAfter =
+      typeof data?.paging?.cursors?.after === "string"
+        ? data.paging.cursors.after
+        : null;
+    after = nextAfter;
+  } while (after);
+
+  return { data: templates };
 }

@@ -14,7 +14,7 @@ export default function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const nextPath = sp.get("next") || "/admin/leads";
+  const nextPath = sp.get("next") || "/admin";
   const error = sp.get("error");
 
   const errorMsg = useMemo(
