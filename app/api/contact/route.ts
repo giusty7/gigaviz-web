@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { contactSchema } from "@/lib/validation/contact";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const runtime = "nodejs";
 
 // email tujuan utama (inbox kamu)
 const TO_EMAIL =
@@ -22,15 +22,16 @@ export async function POST(req: Request) {
 
     // Honeypot: kalau field "website" terisi, anggap bot, tapi balas sukses
     if (parsed.website && parsed.website.trim().length > 0) {
-      console.warn("Contact spam detected (honeypot filled).", parsed);
+      console.warn("[CONTACT] Spam detected (honeypot).", parsed);
       return NextResponse.json(
         { message: "Terima kasih, pesan Anda sudah kami terima." },
         { status: 200 }
       );
     }
 
-    // Kalau API key belum di-set → cuma log, tapi tetap balas sukses
-    if (!process.env.RESEND_API_KEY) {
+    // Kalau API key belum di-set → jangan pernah new Resend() saat build
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
       console.warn(
         "[CONTACT] RESEND_API_KEY belum di-set. Pesan hanya dicatat di log.",
         parsed
@@ -43,6 +44,8 @@ export async function POST(req: Request) {
         { status: 200 }
       );
     }
+
+    const resend = new Resend(apiKey);
 
     const text = `Ada pesan baru dari form kontak Gigaviz.com:
 
