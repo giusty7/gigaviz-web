@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --gv-navy: #0b1220;
+  --gv-gold: #d6b25e;
+  --gv-magenta: #e24ba8;
+  --gv-cream: #f7f1e7;
+  --gv-bg: #0b1220;
+  --gv-surface: #111a2b;
+  --gv-card: #141f33;
+  --gv-card-soft: rgba(20, 31, 51, 0.7);
+  --gv-surface-soft: rgba(17, 26, 43, 0.9);
+  --gv-text: #f7f1e7;
+  --gv-muted: #c6c1b8;
+  --gv-border: #22304a;
+  --gv-accent: #d6b25e;
+  --gv-accent-2: #e24ba8;
+  --gv-accent-soft: rgba(214, 178, 94, 0.15);
+  --gv-magenta-soft: rgba(226, 75, 168, 0.15);
+}
+
+.gv-marketing {
+  background-color: var(--gv-bg);
+  color: var(--gv-text);
+  font-family: var(--font-gv), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
 html,
 body {
   height: 100%;

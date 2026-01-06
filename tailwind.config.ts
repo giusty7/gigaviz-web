@@ -18,6 +18,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["system-ui", "ui-sans-serif", "sans-serif"],
+        gv: ["var(--font-gv)", "system-ui", "ui-sans-serif", "sans-serif"],
+        gvDisplay: ["var(--font-gv-display)", "ui-serif", "serif"],
       },
       borderRadius: {
         xl: "1rem",

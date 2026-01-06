@@ -1,13 +1,24 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendWhatsAppText } from "@/lib/wa/cloud";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const leadSchema = z.object({
+  name: z.string().min(1).max(80),
+  phone: z.string().min(3).max(30),
+  business: z.string().max(120).optional(),
+  need: z.string().min(1).max(60),
+  notes: z.string().max(800).optional(),
+  source: z.enum(["wa-platform", "get-started"]).optional(),
+  website: z.string().optional(),
+});
+
 type Lead = {
   name: string;
-  phone: string; // digits only (contoh: 62812xxxx)
+  phone: string;
   business?: string;
   need: string;
   notes?: string;
@@ -29,6 +40,13 @@ type Attempt = {
   ip?: string | null;
   lead_id?: string | null;
 };
+
+const memoryRateLimit = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 8;
 
 function onlyDigits(s: string) {
   return (s || "").replace(/\D+/g, "");
@@ -69,6 +87,21 @@ function getErrorCode(err: unknown) {
   return typeof record.code === "string" ? record.code : null;
 }
 
+function isMemoryRateLimited(ip: string | null) {
+  if (!ip) return false;
+  const now = Date.now();
+  const entry = memoryRateLimit.get(ip);
+
+  if (!entry || entry.resetAt < now) {
+    memoryRateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  entry.count += 1;
+  memoryRateLimit.set(ip, entry);
+  return entry.count > RATE_LIMIT_MAX;
+}
+
 export async function POST(req: Request) {
   const supabase = supabaseAdmin();
 
@@ -88,47 +121,105 @@ export async function POST(req: Request) {
         lead_id: a.lead_id ?? null,
       });
     } catch (e) {
-      // best effort, jangan ganggu response user
       console.error("[LEADS] attempt log failed:", e);
     }
   }
 
   try {
-    const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+    const body = (await req.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+
     if (!body) {
-      await logAttempt({ status: "invalid", reason: "invalid_payload", ip: getIP(req), user_agent: req.headers.get("user-agent") });
+      await logAttempt({
+        status: "invalid",
+        reason: "invalid_payload",
+        ip: getIP(req),
+        user_agent: req.headers.get("user-agent"),
+      });
       return NextResponse.json({ ok: false, message: "Payload tidak valid." }, { status: 400 });
     }
 
-    // Honeypot anti-bot
-    const honeypot = String(body?.website || "").trim();
+    const parsed = leadSchema.safeParse(body);
+    if (!parsed.success) {
+      await logAttempt({
+        status: "invalid",
+        reason: "invalid_schema",
+        ip: getIP(req),
+        user_agent: req.headers.get("user-agent"),
+      });
+      return NextResponse.json({ ok: false, message: "Data tidak valid." }, { status: 400 });
+    }
+
+    const payload = parsed.data;
+
+    const honeypot = String(payload.website || "").trim();
     if (honeypot.length > 0) {
-      await logAttempt({ status: "honeypot", reason: "honeypot_filled", ip: getIP(req), user_agent: req.headers.get("user-agent") });
+      await logAttempt({
+        status: "honeypot",
+        reason: "honeypot_filled",
+        ip: getIP(req),
+        user_agent: req.headers.get("user-agent"),
+      });
       return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
     }
 
-    const name = clamp(String(body?.name || ""), 80);
-    const phone = normalizePhone(String(body?.phone || ""));
-    const business = clamp(String(body?.business || ""), 120);
-    const need = clamp(String(body?.need || ""), 60);
-    const notes = clamp(String(body?.notes || ""), 800);
+    const name = clamp(payload.name, 80);
+    const phone = normalizePhone(payload.phone);
+    const business = clamp(payload.business || "", 120);
+    const need = clamp(payload.need, 60);
+    const notes = clamp(payload.notes || "", 800);
+    const source = payload.source === "get-started" ? "get-started" : "wa-platform";
 
     const ip = getIP(req);
     const ua = clamp(req.headers.get("user-agent") || "", 200) || null;
 
     if (!name) {
-      await logAttempt({ status: "invalid", reason: "missing_name", name, phone, business, need, notes, ip, user_agent: ua });
+      await logAttempt({
+        status: "invalid",
+        reason: "missing_name",
+        name,
+        phone,
+        business,
+        need,
+        notes,
+        ip,
+        user_agent: ua,
+        source,
+      });
       return NextResponse.json({ ok: false, message: "Nama wajib diisi." }, { status: 400 });
     }
     if (!isValidPhoneDigits(phone)) {
-      await logAttempt({ status: "invalid", reason: "invalid_phone", name, phone, business, need, notes, ip, user_agent: ua });
+      await logAttempt({
+        status: "invalid",
+        reason: "invalid_phone",
+        name,
+        phone,
+        business,
+        need,
+        notes,
+        ip,
+        user_agent: ua,
+        source,
+      });
       return NextResponse.json(
         { ok: false, message: "Nomor WA tidak valid. Gunakan format 62xxxx atau 08xxxx." },
         { status: 400 }
       );
     }
     if (!need) {
-      await logAttempt({ status: "invalid", reason: "missing_need", name, phone, business, need, notes, ip, user_agent: ua });
+      await logAttempt({
+        status: "invalid",
+        reason: "missing_need",
+        name,
+        phone,
+        business,
+        need,
+        notes,
+        ip,
+        user_agent: ua,
+        source,
+      });
       return NextResponse.json({ ok: false, message: "Kebutuhan wajib dipilih." }, { status: 400 });
     }
 
@@ -138,15 +229,16 @@ export async function POST(req: Request) {
       business: business || undefined,
       need,
       notes: notes || undefined,
-      source: "wa-platform",
+      source,
       user_agent: ua,
       ip,
     };
 
-    /**
-     * Rate limit ringan per IP:
-     * max 6 request / 60 detik
-     */
+    if (isMemoryRateLimited(ip)) {
+      await logAttempt({ status: "rate_limited", reason: "memory_limit", ...lead });
+      return NextResponse.json({ ok: false, message: "Terlalu cepat. Coba lagi." }, { status: 429 });
+    }
+
     const ipKey = lead.ip || "unknown";
     if (ipKey !== "unknown") {
       const rlSince = isoSecondsAgo(60);
@@ -159,14 +251,13 @@ export async function POST(req: Request) {
 
       if (!rlErr && (recentByIp?.length || 0) >= 6) {
         await logAttempt({ status: "rate_limited", reason: "ip_60s_limit", ...lead });
-        return NextResponse.json({ ok: false, message: "Terlalu cepat. Coba lagi sebentar lagi." }, { status: 429 });
+        return NextResponse.json(
+          { ok: false, message: "Terlalu cepat. Coba lagi sebentar lagi." },
+          { status: 429 }
+        );
       }
     }
 
-    /**
-     * Dedupe 10 menit (soft) + ada UNIQUE index di DB (hard)
-     * - Kalau mau dedupe bener-bener cuma 10 menit, UNIQUE index perlu di-drop.
-     */
     const dedupeSince = isoMinutesAgo(10);
     const { data: existing, error: existErr } = await supabase
       .from("leads")
@@ -182,13 +273,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, deduped: true }, { status: 200 });
     }
 
-    /**
-     * Insert lead
-     */
-    const { data: insData, error: insErr } = await supabase.from("leads").insert(lead).select("id").maybeSingle();
+    const { data: insData, error: insErr } = await supabase
+      .from("leads")
+      .insert(lead)
+      .select("id")
+      .maybeSingle();
 
     if (insErr) {
-      // kalau kena unique constraint (23505), anggap deduped
       const code = getErrorCode(insErr);
       if (code === "23505") {
         await logAttempt({ status: "deduped", reason: "unique_constraint", ...lead });
@@ -202,15 +293,13 @@ export async function POST(req: Request) {
     const leadId = insData?.id || null;
     await logAttempt({ status: "inserted", reason: "ok", ...lead, lead_id: leadId });
 
-    /**
-     * Notif WA admin (best effort)
-     */
     const adminPhoneRaw = process.env.WA_ADMIN_PHONE || "";
     const adminPhone = normalizePhone(adminPhoneRaw);
 
     if (adminPhone && isValidPhoneDigits(adminPhone)) {
+      const label = lead.source === "get-started" ? "Lead Baru - Get Started" : "Lead Baru - WA Platform";
       const lines = [
-        "📩 Lead Baru - WA Platform",
+        label,
         `Nama: ${lead.name}`,
         `WA: ${lead.phone}`,
         `Bisnis: ${lead.business ?? "-"}`,

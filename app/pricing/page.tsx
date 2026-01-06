@@ -5,243 +5,183 @@ import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description:
-    "Paket layanan Gigaviz untuk WhatsApp Cloud API (resmi) dan pendamping operasional (by request).",
+  description: "Paket langganan Gigaviz dan informasi token usage untuk AI generation.",
 };
 
-const bullets = {
-  api: [
-    "Berbasis WhatsApp Cloud API (jalur resmi)",
-    "Broadcast & campaign dengan throttling aman",
-    "Template pesan resmi (opsional) + best practice compliance",
-    "Log pengiriman (sukses/gagal) + retry terbatas",
-    "Segmentasi kontak & jadwal kirim (opsional)",
-    "Onboarding & SOP (opt-in, STOP/opt-out, batas harian)",
-  ],
-  ops: [
-    "Workflow pendamping untuk kebutuhan khusus/internal",
-    "Dijalankan berdasarkan evaluasi use-case (By Request)",
-    "Mengutamakan kepatuhan, opt-in, dan batas pengiriman aman",
-    "Cocok sebagai pelengkap proses operasional tertentu",
-    "Tidak menggantikan WhatsApp Cloud API",
-  ],
-};
-
-const faqs = [
+const plans = [
   {
-    q: "Apa bedanya paket Cloud API dan Pendamping Operasional?",
-    a: "Cloud API adalah jalur resmi dan paling aman untuk skala bisnis. Pendamping operasional bersifat terbatas/by request untuk kebutuhan khusus setelah evaluasi.",
+    name: "Starter",
+    price: "Rp 299.000",
+    note: "Mulai dari",
+    desc: "Untuk tim kecil yang butuh modul inti dan workflow dasar.",
+    features: [
+      "Akses ke Core OS dan Workspace",
+      "2 modul aktif",
+      "1 workspace",
+      "Dukungan email dasar",
+    ],
   },
   {
-    q: "Apakah bisa kirim 500–1000 pesan per hari?",
-    a: "Bisa untuk use-case tertentu, dengan penerapan batas harian, jeda aman, kualitas opt-in, serta pemantauan delivery. Rekomendasi utama: Cloud API.",
+    name: "Pro",
+    price: "Rp 799.000",
+    note: "Mulai dari",
+    desc: "Untuk tim operasional yang butuh automasi dan inbox.",
+    features: [
+      "Semua fitur Starter",
+      "5 modul aktif",
+      "Scheduler kampanye",
+      "Support prioritas",
+    ],
+    highlight: "Paling dipilih",
   },
   {
-    q: "Apakah layanan ini sesuai kebijakan WhatsApp?",
-    a: "Kami mendorong penggunaan jalur resmi (Cloud API) dan menerapkan prinsip compliance: opt-in, opt-out (STOP), serta pembatasan pengiriman untuk menghindari spam.",
+    name: "Business",
+    price: "Rp 1.900.000",
+    note: "Mulai dari",
+    desc: "Untuk tim yang butuh multi workspace dan integrasi lanjutan.",
+    features: [
+      "Semua fitur Pro",
+      "10 modul aktif",
+      "Multi workspace",
+      "Role dan audit tingkat lanjut",
+    ],
   },
   {
-    q: "Apakah ada trial / demo?",
-    a: "Ada. Anda bisa request demo untuk melihat alur, dashboard/log, dan rekomendasi implementasi sesuai kebutuhan.",
+    name: "Enterprise",
+    price: "Custom",
+    note: "Hubungi tim",
+    desc: "Untuk kebutuhan enterprise, SLA, dan integrasi khusus.",
+    features: [
+      "Semua fitur Business",
+      "SLA dan onboarding khusus",
+      "Integrasi custom",
+      "Account manager dedicated",
+    ],
   },
 ];
 
 export default function PricingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-gigaviz-bg">
-      <Navbar />
+    <div className="gv-marketing flex min-h-screen flex-col bg-[color:var(--gv-bg)] font-gv">
+      <Navbar variant="marketing" />
 
-      <main className="flex-1 border-b border-slate-800/60">
-        {/* Hero */}
-        <section className="container py-12 md:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-white/5 px-3 py-1 text-xs text-slate-300">
-              <span className="h-2 w-2 rounded-full bg-cyan-300/80" />
-              Paket & Harga
-            </div>
-
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-100 md:text-4xl">
-              Pilih paket yang paling cocok untuk operasional WhatsApp bisnis Anda
-            </h1>
-
-            <p className="mt-3 text-sm leading-relaxed text-slate-300 md:text-base">
-              Fokus utama kami adalah implementasi <b>WhatsApp Cloud API (resmi)</b> untuk kebutuhan
-              broadcast, CS, dan automasi yang aman serta scalable.
-            </p>
-
-            <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">
-              <Link
-                href="/wa-platform"
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-cyan-300 sm:w-auto"
-              >
-                Request Demo
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-700/70 bg-transparent px-5 py-3 text-sm font-semibold text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200 sm:w-auto"
-              >
-                Konsultasi via Kontak
-              </Link>
-            </div>
-
-            <p className="mt-4 text-xs text-slate-400">
-              Catatan: layanan hanya untuk kontak yang <b>memberi persetujuan (opt-in)</b>. Setiap kampanye
-              menerapkan <b>batas pengiriman & jeda aman</b>. Opt-out tersedia dengan perintah <b>STOP</b>.
-            </p>
-          </div>
-        </section>
-
-        {/* Cards */}
-        <section className="container pb-12 md:pb-16">
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Cloud API */}
-            <div className="rounded-3xl border border-cyan-400/20 bg-cyan-400/5 p-6 ring-1 ring-cyan-400/10">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs text-cyan-200">Rekomendasi Utama</div>
-                  <h2 className="mt-1 text-xl font-semibold text-slate-100">
-                    WhatsApp Cloud API (Resmi)
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-300">
-                    Untuk broadcast & automasi dengan jalur resmi, lebih stabil dan lebih aman untuk skala bisnis.
-                  </p>
-                </div>
-                <span className="rounded-full bg-cyan-400 px-2.5 py-1 text-[11px] font-semibold text-slate-900">
-                  Best Choice
-                </span>
-              </div>
-
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-xs text-slate-400">Harga</div>
-                <div className="mt-1 text-2xl font-semibold text-slate-100">
-                  Custom / sesuai kebutuhan
-                </div>
-                <div className="mt-1 text-xs text-slate-400">
-                  Ditentukan dari volume, fitur, dan kebutuhan integrasi.
-                </div>
-              </div>
-
-              <ul className="mt-5 space-y-2 text-sm text-slate-200">
-                {bullets.api.map((t) => (
-                  <li key={t} className="flex gap-2">
-                    <span className="mt-1 h-2 w-2 rounded-full bg-cyan-300/80" />
-                    <span className="text-slate-300">{t}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-                <Link
-                  href="/wa-platform"
-                  className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-cyan-300"
-                >
-                  Request Demo
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center justify-center rounded-2xl border border-slate-700/70 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200"
-                >
-                  Tanya Paket
-                </Link>
-              </div>
-            </div>
-
-            {/* Ops By Request */}
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs text-slate-400">By Request</div>
-                  <h2 className="mt-1 text-xl font-semibold text-slate-100">
-                    Pendamping Operasional
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-300">
-                    Pendekatan pendamping untuk kebutuhan khusus/internal, setelah evaluasi kelayakan.
-                  </p>
-                </div>
-                <span className="rounded-full border border-slate-600/60 bg-transparent px-2.5 py-1 text-[11px] font-semibold text-slate-200">
-                  Limited
-                </span>
-              </div>
-
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-xs text-slate-400">Harga</div>
-                <div className="mt-1 text-2xl font-semibold text-slate-100">
-                  Evaluasi dulu
-                </div>
-                <div className="mt-1 text-xs text-slate-400">
-                  Ketersediaan tergantung use-case & kebutuhan.
-                </div>
-              </div>
-
-              <ul className="mt-5 space-y-2 text-sm text-slate-200">
-                {bullets.ops.map((t) => (
-                  <li key={t} className="flex gap-2">
-                    <span className="mt-1 h-2 w-2 rounded-full bg-slate-400/70" />
-                    <span className="text-slate-300">{t}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-xs text-amber-100/90">
-                <b>Catatan:</b> pendekatan ini tidak menggantikan Cloud API dan tidak menjamin bebas pembatasan WhatsApp.
-                Direkomendasikan hanya untuk use-case tertentu setelah evaluasi.
-              </div>
-
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center justify-center rounded-2xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/15"
-                >
-                  Ajukan Kebutuhan
-                </Link>
-                <Link
-                  href="/wa-platform"
-                  className="inline-flex items-center justify-center rounded-2xl border border-slate-700/70 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200"
-                >
-                  Lihat WA Platform
-                </Link>
-              </div>
+      <main className="flex-1">
+        <section className="border-b border-[color:var(--gv-border)]">
+          <div className="container py-16 md:py-24">
+            <div className="mx-auto max-w-3xl space-y-4 text-center">
+              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                Harga
+              </p>
+              <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
+                Paket langganan untuk seluruh ekosistem
+              </h1>
+              <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
+                Harga di bawah ini adalah starting price dan dapat disesuaikan dengan kebutuhan modul serta volume penggunaan.
+              </p>
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="container pb-14 md:pb-20">
-          <div className="mx-auto max-w-3xl">
-            <h3 className="text-xl font-semibold text-slate-100">FAQ</h3>
-            <p className="mt-2 text-sm text-slate-300">
-              Jawaban cepat untuk pertanyaan yang paling sering ditanyakan.
-            </p>
-
-            <div className="mt-6 space-y-3">
-              {faqs.map((f) => (
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
+          <div className="container py-12 md:py-16">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {plans.map((plan) => (
                 <div
-                  key={f.q}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                  key={plan.name}
+                  className="flex h-full flex-col justify-between rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6"
                 >
-                  <div className="font-semibold text-slate-100">{f.q}</div>
-                  <div className="mt-2 text-sm text-slate-300 leading-relaxed">
-                    {f.a}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
+                        {plan.name}
+                      </h2>
+                      {plan.highlight ? (
+                        <span className="rounded-full border border-[color:var(--gv-accent)] bg-[color:var(--gv-accent-soft)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--gv-accent)]">
+                          {plan.highlight}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                      {plan.note}
+                    </p>
+                    <div className="mt-2 text-2xl font-semibold text-[color:var(--gv-text)]">
+                      {plan.price}
+                    </div>
+                    <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
+                      {plan.desc}
+                    </p>
+                    <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex gap-2">
+                          <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
+                  <Link
+                    href="/get-started"
+                    className="mt-6 inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
+                  >
+                    Get Started
+                  </Link>
                 </div>
               ))}
             </div>
+          </div>
+        </section>
 
-            <div className="mt-8 flex flex-col items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/5 p-6 sm:flex-row">
-              <div>
-                <div className="text-sm font-semibold text-slate-100">
-                  Siap mulai?
-                </div>
-                <div className="mt-1 text-sm text-slate-300">
-                  Request demo untuk lihat alur, log, dan rekomendasi implementasi.
-                </div>
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]">
+          <div className="container py-12 md:py-16">
+            <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                  Penggunaan token
+                </p>
+                <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
+                  Biaya AI generation berbasis token
+                </h2>
+                <p className="text-sm text-[color:var(--gv-muted)]">
+                  Token digunakan untuk fitur AI seperti copy generator, summarizer, dan studio kreatif. Harga token dapat berubah sesuai biaya model dan penggunaan.
+                </p>
               </div>
-              <Link
-                href="/wa-platform"
-                className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-cyan-300"
-              >
-                Request Demo
-              </Link>
+              <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
+                <p className="font-semibold text-[color:var(--gv-text)]">Catatan penggunaan</p>
+                <ul className="mt-3 space-y-2">
+                  <li>- Token dihitung per output atau permintaan.</li>
+                  <li>- Harga token akan ditampilkan sebelum penggunaan masif.</li>
+                  <li>- Anda dapat menetapkan limit token per workspace.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[color:var(--gv-bg)]">
+          <div className="container py-12 md:py-16">
+            <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
+                  Ingin paket khusus?
+                </h2>
+                <p className="text-sm text-[color:var(--gv-muted)]">
+                  Hubungi tim kami untuk paket enterprise, SLA, dan integrasi custom.
+                </p>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
+                <Link
+                  href="/get-started"
+                  className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
+                >
+                  Start subscription
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
+                >
+                  Talk to sales
+                </Link>
+              </div>
             </div>
           </div>
         </section>

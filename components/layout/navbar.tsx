@@ -2,159 +2,349 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { products } from "@/lib/products";
 
 type NavItem = {
   href: string;
   label: string;
-  highlight?: boolean; // untuk menu yang mau ditonjolkan
-  badge?: string; // misal "New"
+  highlight?: boolean;
+  badge?: string;
 };
+
+type NavbarProps = {
+  variant?: "default" | "marketing";
+};
+
+const navItems: NavItem[] = [
+  { href: "/", label: "Home" },
+  { href: "/roadmap", label: "Roadmap" },
+  { href: "/policies", label: "Policies" },
+  { href: "/pricing", label: "Pricing" },
+];
+
+const productNavOrder = [
+  "platform",
+  "meta-hub",
+  "helper",
+  "office",
+  "studio",
+  "graph",
+  "tracks",
+  "apps",
+  "pay",
+  "community",
+];
+
+const productNav: NavItem[] = [
+  { href: "/products", label: "Overview" },
+  ...productNavOrder.map((slug) => {
+    const product = products.find((item) => item.slug === slug);
+    return {
+      href: `/products/${slug}`,
+      label: product?.name ?? slug,
+    };
+  }),
+];
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function Navbar() {
+export function Navbar({ variant = "default" }: NavbarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [productsOpen, setProductsOpen] = useState(false);
+  const [productsMobileOpen, setProductsMobileOpen] = useState(false);
 
-  const navItems: NavItem[] = useMemo(
-    () => [
-      { href: "/", label: "Beranda" },
-      { href: "/about", label: "Tentang" },
-      { href: "/products", label: "Produk" },
-      { href: "/wa-platform", label: "WA Platform", highlight: true, badge: "NEW" },
-      { href: "/pricing", label: "Pricing" },
-      { href: "/blog", label: "Blog" },
-    ],
-    []
-  );
+  const isMarketing = variant === "marketing";
 
-  const closeMenu = () => setOpen(false);
+  const closeMenu = () => {
+    setOpen(false);
+    setProductsOpen(false);
+    setProductsMobileOpen(false);
+  };
+
+  const headerClass = isMarketing
+    ? "sticky top-0 z-40 border-b border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] backdrop-blur"
+    : "sticky top-0 z-30 border-b border-slate-800/60 bg-gigaviz-bg/80 backdrop-blur";
+
+  const navTextClass = isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-300";
+  const navHoverClass = isMarketing ? "hover:text-[color:var(--gv-accent)]" : "hover:text-cyan-300";
+  const activeClass = isMarketing ? "text-[color:var(--gv-accent)]" : "text-cyan-300";
+
+  const ctaGhost = isMarketing
+    ? "border border-[color:var(--gv-border)] bg-transparent text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
+    : "border border-slate-700/70 bg-transparent text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200";
+
+  const ctaPrimary = isMarketing
+    ? "bg-[color:var(--gv-accent)] text-slate-900 hover:bg-[color:var(--gv-cream)]"
+    : "bg-cyan-400 text-slate-900 hover:bg-cyan-300";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-800/60 bg-gigaviz-bg/80 backdrop-blur">
+    <header className={headerClass}>
       <div className="container flex h-16 items-center justify-between">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-2xl bg-cyan-400/10 ring-1 ring-cyan-400/40">
-            <span className="text-xs font-bold tracking-widest text-cyan-300">GV</span>
+        <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
+          <div
+            className={
+              isMarketing
+                ? "grid h-9 w-9 place-items-center rounded-2xl bg-[color:var(--gv-card)] ring-1 ring-[color:var(--gv-border)]"
+                : "grid h-9 w-9 place-items-center rounded-2xl bg-cyan-400/10 ring-1 ring-cyan-400/40"
+            }
+          >
+            <span
+              className={
+                isMarketing
+                  ? "text-xs font-bold tracking-widest text-[color:var(--gv-accent)]"
+                  : "text-xs font-bold tracking-widest text-cyan-300"
+              }
+            >
+              GV
+            </span>
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold tracking-wide text-slate-100">
+            <div
+              className={
+                isMarketing
+                  ? "text-sm font-semibold tracking-wide text-[color:var(--gv-text)]"
+                  : "text-sm font-semibold tracking-wide text-slate-100"
+              }
+            >
               Gigaviz
             </div>
             <div className="hidden text-[11px] text-slate-400 md:block">
-              Ekosistem digital • Web • WA Platform
+              Ekosistem digital terpadu
             </div>
           </div>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
-          {navItems.map((item) => {
+        <nav className={`hidden items-center gap-6 text-sm md:flex ${navTextClass}`}>
+          {navItems.slice(0, 1).map((item) => {
             const active = isActive(pathname, item.href);
-
-            if (item.highlight) {
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={[
-                    "group relative inline-flex items-center gap-2 rounded-2xl px-3 py-1.5",
-                    "bg-cyan-400/10 ring-1 ring-cyan-400/30",
-                    "text-cyan-200 hover:text-cyan-100 hover:ring-cyan-400/50",
-                    active ? "ring-cyan-400/70" : "",
-                  ].join(" ")}
-                >
-                  <span className="font-medium">{item.label}</span>
-                  {item.badge ? (
-                    <span className="rounded-full bg-cyan-400 px-2 py-0.5 text-[10px] font-semibold text-slate-900">
-                      {item.badge}
-                    </span>
-                  ) : null}
-                  <span className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 blur-lg transition group-hover:opacity-30 bg-cyan-400/40" />
-                </Link>
-              );
-            }
-
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={[
-                  "relative transition hover:text-cyan-300",
-                  active ? "text-cyan-300" : "",
-                ].join(" ")}
+                className={["relative transition", navHoverClass, active ? activeClass : ""].join(
+                  " "
+                )}
               >
                 {item.label}
                 {active ? (
-                  <span className="absolute -bottom-2 left-0 h-[2px] w-full rounded bg-cyan-300/70" />
+                  <span
+                    className={
+                      isMarketing
+                        ? "absolute -bottom-2 left-0 h-[2px] w-full rounded bg-[color:var(--gv-accent)]"
+                        : "absolute -bottom-2 left-0 h-[2px] w-full rounded bg-cyan-300/70"
+                    }
+                  />
+                ) : null}
+              </Link>
+            );
+          })}
+
+          <div
+            className="relative"
+            onMouseLeave={() => setProductsOpen(false)}
+          >
+            <button
+              type="button"
+              className={[
+                "inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 text-sm transition",
+                navHoverClass,
+                productsOpen ? activeClass : "",
+              ].join(" ")}
+              aria-expanded={productsOpen}
+              aria-controls="products-menu"
+              onClick={() => setProductsOpen((value) => !value)}
+              onMouseEnter={() => setProductsOpen(true)}
+            >
+              Products
+              <span className="text-xs">+</span>
+            </button>
+
+            <div
+              id="products-menu"
+              className={[
+                "absolute right-0 mt-3 w-[360px] rounded-3xl border p-4 shadow-xl transition",
+                isMarketing
+                  ? "border-[color:var(--gv-border)] bg-[color:var(--gv-surface)] text-[color:var(--gv-text)]"
+                  : "border-slate-800 bg-slate-950/95 text-slate-200",
+                productsOpen ? "opacity-100" : "pointer-events-none opacity-0",
+              ].join(" ")}
+            >
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Ekosistem Gigaviz
+              </div>
+              <div className="mt-3 grid gap-2">
+                {productNav.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={
+                      isMarketing
+                        ? "rounded-2xl border border-transparent bg-[color:var(--gv-card-soft)] px-3 py-2 text-sm text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
+                        : "rounded-2xl border border-transparent bg-white/5 px-3 py-2 text-sm text-slate-200 hover:border-cyan-400/40"
+                    }
+                    onClick={closeMenu}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+          {navItems.slice(1).map((item) => {
+            const active = isActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={["relative transition", navHoverClass, active ? activeClass : ""].join(
+                  " "
+                )}
+              >
+                {item.label}
+                {active ? (
+                  <span
+                    className={
+                      isMarketing
+                        ? "absolute -bottom-2 left-0 h-[2px] w-full rounded bg-[color:var(--gv-accent)]"
+                        : "absolute -bottom-2 left-0 h-[2px] w-full rounded bg-cyan-300/70"
+                    }
+                  />
                 ) : null}
               </Link>
             );
           })}
         </nav>
 
-        {/* Desktop CTA */}
         <div className="hidden items-center gap-2 md:flex">
           <Link
             href="/pricing"
-            className="rounded-2xl border border-slate-700/70 bg-transparent px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200"
+            className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
           >
             Lihat Paket
           </Link>
           <Link
-            href="/wa-platform"
-            className="rounded-2xl bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-900 shadow-sm hover:bg-cyan-300"
+            href="/get-started"
+            className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
           >
-            Request Demo
+            Get Started
           </Link>
         </div>
 
-        {/* Mobile Button */}
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-2xl border border-slate-700/70 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/60 md:hidden"
+          className={
+            isMarketing
+              ? "inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] bg-transparent px-3 py-2 text-xs font-medium text-[color:var(--gv-text)] md:hidden"
+              : "inline-flex items-center justify-center rounded-2xl border border-slate-700/70 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/60 md:hidden"
+          }
           aria-label="Buka menu"
           aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen((value) => !value)}
         >
           {open ? "Tutup" : "Menu"}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {open ? (
-        <div className="md:hidden border-t border-slate-800/60 bg-gigaviz-bg/95 backdrop-blur">
+        <div
+          className={
+            isMarketing
+              ? "md:hidden border-t border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]"
+              : "md:hidden border-t border-slate-800/60 bg-gigaviz-bg/95 backdrop-blur"
+          }
+        >
           <div className="container py-4">
             <div className="grid gap-2">
-              {navItems.map((item) => {
+              {navItems.slice(0, 1).map((item) => {
                 const active = isActive(pathname, item.href);
-
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={[
                       "flex items-center justify-between rounded-2xl px-4 py-3 text-sm",
-                      item.highlight
-                        ? "bg-cyan-400/10 ring-1 ring-cyan-400/30 text-cyan-200"
+                      isMarketing
+                        ? "bg-[color:var(--gv-card-soft)] text-[color:var(--gv-text)]"
                         : "bg-white/5 text-slate-200 hover:bg-white/10",
-                      active ? "ring-1 ring-cyan-400/40" : "",
+                      active
+                        ? isMarketing
+                          ? "ring-1 ring-[color:var(--gv-accent)]"
+                          : "ring-1 ring-cyan-400/40"
+                        : "",
                     ].join(" ")}
                     onClick={closeMenu}
                   >
                     <span className="font-medium">{item.label}</span>
-                    {item.badge ? (
-                      <span className="rounded-full bg-cyan-400 px-2 py-0.5 text-[10px] font-semibold text-slate-900">
-                        {item.badge}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">→</span>
-                    )}
+                    <span className={isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-400"}>
+                      +
+                    </span>
+                  </Link>
+                );
+              })}
+
+              <button
+                type="button"
+                className={
+                  isMarketing
+                    ? "flex items-center justify-between rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-4 py-3 text-sm text-[color:var(--gv-text)]"
+                    : "flex items-center justify-between rounded-2xl border border-slate-800 bg-white/5 px-4 py-3 text-sm text-slate-200"
+                }
+                aria-expanded={productsMobileOpen}
+                onClick={() => setProductsMobileOpen((value) => !value)}
+              >
+                <span className="font-medium">Products</span>
+                <span className={isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-400"}>
+                  {productsMobileOpen ? "-" : "+"}
+                </span>
+              </button>
+
+              {productsMobileOpen ? (
+                <div className="grid gap-2">
+                  {productNav.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={
+                        isMarketing
+                          ? "rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface)] px-4 py-3 text-sm text-[color:var(--gv-text)]"
+                          : "rounded-2xl border border-slate-800 bg-white/5 px-4 py-3 text-sm text-slate-200"
+                      }
+                      onClick={closeMenu}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+
+              {navItems.slice(1).map((item) => {
+                const active = isActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={[
+                      "flex items-center justify-between rounded-2xl px-4 py-3 text-sm",
+                      isMarketing
+                        ? "bg-[color:var(--gv-card-soft)] text-[color:var(--gv-text)]"
+                        : "bg-white/5 text-slate-200 hover:bg-white/10",
+                      active
+                        ? isMarketing
+                          ? "ring-1 ring-[color:var(--gv-accent)]"
+                          : "ring-1 ring-cyan-400/40"
+                        : "",
+                    ].join(" ")}
+                    onClick={closeMenu}
+                  >
+                    <span className="font-medium">{item.label}</span>
+                    <span className={isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-400"}>
+                      +
+                    </span>
                   </Link>
                 );
               })}
@@ -163,22 +353,26 @@ export function Navbar() {
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Link
                 href="/pricing"
-                className="rounded-2xl border border-slate-700/70 bg-transparent px-4 py-3 text-center text-sm font-semibold text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200"
+                className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
                 onClick={closeMenu}
               >
                 Lihat Paket
               </Link>
               <Link
-                href="/wa-platform"
-                className="rounded-2xl bg-cyan-400 px-4 py-3 text-center text-sm font-semibold text-slate-900 hover:bg-cyan-300"
+                href="/get-started"
+                className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
                 onClick={closeMenu}
               >
-                Request Demo
+                Get Started
               </Link>
             </div>
 
-            <div className="mt-3 text-center text-xs text-slate-400">
-              Fokus utama: WhatsApp Cloud API (resmi) • Konsultasi gratis untuk kebutuhan bisnis.
+            <div className={
+              isMarketing
+                ? "mt-3 text-center text-xs text-[color:var(--gv-muted)]"
+                : "mt-3 text-center text-xs text-slate-400"
+            }>
+              Satu akun, satu dashboard untuk seluruh ekosistem Gigaviz.
             </div>
           </div>
         </div>
