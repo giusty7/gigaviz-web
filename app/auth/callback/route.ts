@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const next = getSafeNext(requestUrl.searchParams.get("next"));
 
-  let response = NextResponse.redirect(new URL(next, requestUrl.origin));
+  const response = NextResponse.redirect(new URL(next, requestUrl.origin));
 
   if (!code) {
     return NextResponse.redirect(new URL("/login", requestUrl.origin));

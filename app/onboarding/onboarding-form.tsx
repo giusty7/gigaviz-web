@@ -40,73 +40,74 @@ export default function OnboardingForm({
   error,
   errorSlug,
 }: OnboardingFormProps) {
+  const initialSlug = errorSlug ? normalizeSlug(errorSlug) : "";
   const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugEdited, setSlugEdited] = useState(false);
-  const [status, setStatus] = useState<SlugStatus>("idle");
-  const [message, setMessage] = useState<string | null>(null);
+  const [slug, setSlug] = useState(initialSlug);
+  const [slugEdited, setSlugEdited] = useState(Boolean(initialSlug));
+  const [availability, setAvailability] = useState<
+    "idle" | "available" | "taken" | "invalid" | "error"
+  >("idle");
+  const [checkedSlug, setCheckedSlug] = useState("");
 
-  useEffect(() => {
+  const message = useMemo(() => {
     if (error === "slug_taken") {
-      setMessage("Slug sudah dipakai. Pilih slug lain.");
-    } else if (error === "slug_invalid") {
-      setMessage("Slug tidak valid. Gunakan 3-32 karakter: a-z, 0-9, '-'.");
-    } else if (error === "workspace_name_required") {
-      setMessage("Nama workspace wajib diisi.");
-    } else if (error) {
-      setMessage(decodeURIComponent(error));
-    } else {
-      setMessage(null);
+      return "Slug sudah dipakai. Pilih slug lain.";
     }
+    if (error === "slug_invalid") {
+      return "Slug tidak valid. Gunakan 3-32 karakter: a-z, 0-9, '-'.";
+    }
+    if (error === "workspace_name_required") {
+      return "Nama workspace wajib diisi.";
+    }
+    if (error) {
+      return decodeURIComponent(error);
+    }
+    return null;
   }, [error]);
 
-  useEffect(() => {
-    if (errorSlug) {
-      setSlug(normalizeSlug(errorSlug));
-      setSlugEdited(true);
-      setStatus("taken");
-    }
-  }, [errorSlug]);
+  const slugValue = slugEdited ? slug : normalizeSlug(errorSlug ?? name);
+  const slugValid = slugPattern.test(slugValue);
+  const shouldCheck = Boolean(slugValue) && slugValid;
+  const isChecking = shouldCheck && checkedSlug !== slugValue;
+  const status: SlugStatus = !slugValue
+    ? "idle"
+    : !slugValid
+    ? "invalid"
+    : isChecking
+    ? "checking"
+    : availability === "invalid"
+    ? "invalid"
+    : availability === "idle"
+    ? "checking"
+    : availability;
 
   useEffect(() => {
-    if (!slugEdited) {
-      setSlug(normalizeSlug(name));
-    }
-  }, [name, slugEdited]);
-
-  useEffect(() => {
-    const normalized = normalizeSlug(slug);
-    if (slug !== normalized) {
-      setSlug(normalized);
+    if (!shouldCheck) {
       return;
     }
 
-    if (!slug) {
-      setStatus("idle");
-      return;
-    }
-
-    if (!slugPattern.test(slug)) {
-      setStatus("invalid");
-      return;
-    }
-
-    setStatus("checking");
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/workspaces/check?slug=${encodeURIComponent(slug)}`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `/api/workspaces/check?slug=${encodeURIComponent(slugValue)}`,
+          {
+            signal: controller.signal,
+          }
+        );
+        if (controller.signal.aborted) return;
         if (!res.ok) {
-          setStatus(res.status === 400 ? "invalid" : "error");
+          setAvailability(res.status === 400 ? "invalid" : "error");
+          setCheckedSlug(slugValue);
           return;
         }
         const payload = (await res.json()) as { available?: boolean };
-        setStatus(payload.available ? "available" : "taken");
-      } catch (err) {
+        setAvailability(payload.available ? "available" : "taken");
+        setCheckedSlug(slugValue);
+      } catch {
         if (!controller.signal.aborted) {
-          setStatus("error");
+          setAvailability("error");
+          setCheckedSlug(slugValue);
         }
       }
     }, 400);
@@ -115,15 +116,15 @@ export default function OnboardingForm({
       controller.abort();
       clearTimeout(timer);
     };
-  }, [slug]);
+  }, [shouldCheck, slugValue]);
 
   const suggestions = useMemo(() => {
-    if (status !== "taken" || !slug) return [];
-    const base = slug.slice(0, 30);
+    if (status !== "taken" || !slugValue) return [];
+    const base = slugValue.slice(0, 30);
     return [`${base}-2`, `${base}-3`].map((value) =>
       normalizeSlug(value).slice(0, 32)
     );
-  }, [slug, status]);
+  }, [slugValue, status]);
 
   const statusLabel =
     status === "available"
@@ -164,7 +165,6 @@ export default function OnboardingForm({
           value={name}
           onChange={(e) => {
             setName(e.target.value);
-            if (!slugEdited) setSlug(normalizeSlug(e.target.value));
           }}
           required
         />
@@ -176,7 +176,7 @@ export default function OnboardingForm({
           name="workspace_slug"
           className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none"
           placeholder="contoh: gigaviz-studio"
-          value={slug}
+          value={slugValue}
           onChange={(e) => {
             setSlug(normalizeSlug(e.target.value));
             setSlugEdited(true);
