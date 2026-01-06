@@ -1,16 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabaseClient } from "@/lib/supabase/client";
 
 export default function LoginClient() {
+  const supabase = useMemo(() => supabaseClient(), []);
   const sp = useSearchParams();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const nextPath = sp.get("next") || "/app";
+  const nextParam = sp.get("next");
+  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
   const error = sp.get("error");
 
   const errorMsg = useMemo(
@@ -19,26 +25,76 @@ export default function LoginClient() {
   );
   const displayMsg = msg ?? errorMsg;
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      if (data.user) {
+        router.replace(nextSafe || "/app");
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [supabase, router, nextSafe]);
+
+  async function sendOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setMsg(null);
     setLoading(true);
 
-    const res = await fetch("/api/auth/otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), next: nextPath }),
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { shouldCreateUser: false },
     });
 
     setLoading(false);
 
-    if (!res.ok) {
-      const payload = await res.json().catch(() => ({}));
-      setMsg(payload?.error || "Gagal mengirim magic link.");
+    if (error) {
+      const lower = error.message.toLowerCase();
+      if (
+        lower.includes("signup") ||
+        lower.includes("sign up") ||
+        lower.includes("not allowed") ||
+        lower.includes("not found")
+      ) {
+        setMsg("Email belum terdaftar. Silakan klik Mulai untuk daftar.");
+        return;
+      }
+      setMsg(error.message);
       return;
     }
 
-    setMsg("Magic link dikirim. Cek email untuk login.");
+    setStep("otp");
+    setMsg("Kode OTP sudah dikirim ke email Anda.");
+  }
+
+  async function verifyOtp(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setMsg(null);
+
+    const sanitized = code.replace(/\D+/g, "");
+    if (sanitized.length < 6 || sanitized.length > 10) {
+      setMsg("Kode OTP harus 6-10 digit.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: sanitized,
+      type: "email",
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setMsg(error.message);
+      return;
+    }
+
+    router.replace(nextSafe || "/app");
   }
 
   return (
@@ -47,7 +103,7 @@ export default function LoginClient() {
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-white">Masuk ke Gigaviz</h1>
           <p className="text-white/70 text-sm">
-            Login dengan magic link atau OAuth untuk akses App Area.
+            Login dengan OTP atau OAuth untuk akses App Area.
           </p>
         </div>
 
@@ -57,27 +113,74 @@ export default function LoginClient() {
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="space-y-3">
-          <div>
-            <label className="text-white/80 text-sm">Email</label>
-            <input
-              type="email"
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@email.com"
-              autoComplete="email"
-              required
-            />
-          </div>
+        {step === "email" ? (
+          <form onSubmit={sendOtp} className="space-y-3">
+            <div>
+              <label className="text-white/80 text-sm">Email</label>
+              <input
+                type="email"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                autoComplete="email"
+                required
+              />
+            </div>
 
-          <button
-            disabled={loading}
-            className="w-full rounded-xl bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold py-2 disabled:opacity-60"
-          >
-            {loading ? "Mengirim..." : "Kirim Magic Link"}
-          </button>
-        </form>
+            <button
+              disabled={loading}
+              className="w-full rounded-xl bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold py-2 disabled:opacity-60"
+            >
+              {loading ? "Mengirim..." : "Kirim OTP"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={verifyOtp} className="space-y-3">
+            <div>
+              <label className="text-white/80 text-sm">Email</label>
+              <input
+                type="email"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none"
+                value={email}
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="text-white/80 text-sm">Kode OTP</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={10}
+                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none tracking-[0.3em] text-center"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D+/g, "").slice(0, 10))}
+                placeholder="------"
+                required
+              />
+            </div>
+
+            <button
+              disabled={loading}
+              className="w-full rounded-xl bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold py-2 disabled:opacity-60"
+            >
+              {loading ? "Memverifikasi..." : "Verifikasi OTP"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setStep("email");
+                setCode("");
+                setMsg(null);
+              }}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10"
+            >
+              Ganti email
+            </button>
+          </form>
+        )}
 
         <div className="my-4 flex items-center gap-3 text-xs text-white/50">
           <div className="h-px flex-1 bg-white/10" />
@@ -87,16 +190,23 @@ export default function LoginClient() {
 
         <div className="space-y-2">
           <a
-            href={`/api/auth/oauth?provider=google&next=${encodeURIComponent(nextPath)}`}
+            href={`/api/auth/oauth?provider=google&next=${encodeURIComponent(nextSafe)}`}
             className="block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm text-white hover:bg-white/10"
           >
             Lanjutkan dengan Google
           </a>
           <a
-            href={`/api/auth/oauth?provider=facebook&next=${encodeURIComponent(nextPath)}`}
+            href={`/api/auth/oauth?provider=facebook&next=${encodeURIComponent(nextSafe)}`}
             className="block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-sm text-white hover:bg-white/10"
           >
             Lanjutkan dengan Facebook
+          </a>
+        </div>
+
+        <div className="mt-5 text-center text-xs text-white/60">
+          Belum punya akun?{" "}
+          <a href="/get-started" className="text-white hover:underline">
+            Mulai di sini
           </a>
         </div>
       </div>

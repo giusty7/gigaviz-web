@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import GetStartedForm from "@/components/marketing/get-started-form";
+import GetStartedAuth from "@/components/marketing/get-started-auth";
 
 export const metadata: Metadata = {
   title: "Get Started",
@@ -77,7 +78,10 @@ export default function GetStartedPage() {
               </div>
             </div>
 
-            <GetStartedForm />
+            <div className="space-y-6">
+              <GetStartedAuth />
+              <GetStartedForm />
+            </div>
           </div>
         </section>
 

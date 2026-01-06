@@ -85,3 +85,7 @@
 - Media URL lookup: fallback stores `wa-media://<id>` when URL fetch fails.
 - Rate control: simple in-memory cap; restart resets counters (acceptable for MVP).
 - Inbound webhook uses `DEFAULT_WORKSPACE_ID` to map messages to a workspace.
+
+## E) Auth Notes
+
+- Supabase Email OTP template must use `{{ .Token }}` (not `{{ .ConfirmationURL }}`) to send OTP codes.
