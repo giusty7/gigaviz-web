@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -18,6 +19,8 @@ type NavbarProps = {
 
 const navItems: NavItem[] = [
   { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/blog", label: "Blog" },
   { href: "/roadmap", label: "Roadmap" },
   { href: "/policies", label: "Policies" },
   { href: "/pricing", label: "Pricing" },
@@ -73,6 +76,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
   const navTextClass = isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-300";
   const navHoverClass = isMarketing ? "hover:text-[color:var(--gv-accent)]" : "hover:text-cyan-300";
   const activeClass = isMarketing ? "text-[color:var(--gv-accent)]" : "text-cyan-300";
+  const taglineClass = isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-400";
 
   const ctaGhost = isMarketing
     ? "border border-[color:var(--gv-border)] bg-transparent text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
@@ -85,37 +89,27 @@ export function Navbar({ variant = "default" }: NavbarProps) {
   return (
     <header className={headerClass}>
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-          <div
-            className={
-              isMarketing
-                ? "grid h-9 w-9 place-items-center rounded-2xl bg-[color:var(--gv-card)] ring-1 ring-[color:var(--gv-border)]"
-                : "grid h-9 w-9 place-items-center rounded-2xl bg-cyan-400/10 ring-1 ring-cyan-400/40"
-            }
-          >
-            <span
-              className={
-                isMarketing
-                  ? "text-xs font-bold tracking-widest text-[color:var(--gv-accent)]"
-                  : "text-xs font-bold tracking-widest text-cyan-300"
-              }
-            >
-              GV
+        <Link href="/" className="flex items-center" onClick={closeMenu}>
+          <div className="flex flex-col items-start">
+            <Image
+              src="/brand/gigaviz-logo-horizontal.png"
+              alt="Gigaviz"
+              width={180}
+              height={40}
+              className="hidden h-7 w-auto md:block"
+              priority
+            />
+            <Image
+              src="/brand/gigaviz-mark.png"
+              alt="Gigaviz"
+              width={36}
+              height={36}
+              className="block h-8 w-8 md:hidden"
+              priority
+            />
+            <span className={`mt-1 hidden text-[11px] md:block ${taglineClass}`}>
+              Ekosistem Digital Terpadu
             </span>
-          </div>
-          <div className="leading-tight">
-            <div
-              className={
-                isMarketing
-                  ? "text-sm font-semibold tracking-wide text-[color:var(--gv-text)]"
-                  : "text-sm font-semibold tracking-wide text-slate-100"
-              }
-            >
-              Gigaviz
-            </div>
-            <div className="hidden text-[11px] text-slate-400 md:block">
-              Ekosistem digital terpadu
-            </div>
           </div>
         </Link>
 
