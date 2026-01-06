@@ -15,10 +15,4 @@ D) Duplicate candidates
 - None
 
 E) Orphan routes (fs only)
-- /about
-- /blog
-- /data-deletion
 - /login
-- /privacy
-- /terms
-- /wa-platform

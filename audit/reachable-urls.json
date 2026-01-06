@@ -34,10 +34,10 @@
     "finalUrl": "/pricing",
     "status": 200,
     "title": "Pricing | Gigaviz",
-    "metaDescription": "Paket langganan Gigaviz dan informasi token usage untuk AI generation.",
+    "metaDescription": "Paket langganan Gigaviz dengan modul fleksibel, onboarding terarah, dan transparansi penggunaan token.",
     "canonical": null,
     "h1": "Paket langganan untuk seluruh ekosistem",
-    "contentHash": "4faeaa4558bb451e"
+    "contentHash": "6201a8c31c4a8dd0"
   },
   {
     "url": "/products",
@@ -154,10 +154,10 @@
     "finalUrl": "/get-started",
     "status": 200,
     "title": "Get Started | Gigaviz",
-    "metaDescription": "Mulai onboarding Gigaviz dan pilih paket yang sesuai kebutuhan tim Anda.",
+    "metaDescription": "Mulai onboarding Gigaviz dengan sesi kickoff, setup workspace, dan rekomendasi modul yang presisi.",
     "canonical": null,
     "h1": "Mulai onboarding Gigaviz",
-    "contentHash": "862f7fd56306362e"
+    "contentHash": "3ad64a40a892c078"
   },
   {
     "url": "/policies/terms-of-service",
