@@ -103,11 +103,11 @@ const modules = [
   "Meta Hub",
   "Helper",
   "Office",
-  "Studio",
+  "Studio (Graph + Tracks)",
+  "Marketplace",
+  "Arena",
   "Apps",
   "Pay",
-  "Graph",
-  "Tracks",
   "Community",
 ];
 

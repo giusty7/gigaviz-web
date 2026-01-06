@@ -19,7 +19,15 @@ async function resolveParams(params: PageProps["params"]) {
 }
 
 export async function generateStaticParams() {
-  const excluded = new Set(["platform", "meta-hub", "helper", "office", "studio"]);
+  const excluded = new Set([
+    "platform",
+    "meta-hub",
+    "helper",
+    "office",
+    "studio",
+    "marketplace",
+    "arena",
+  ]);
   return products
     .filter((product) => !excluded.has(product.slug))
     .map((product) => ({ slug: product.slug }));

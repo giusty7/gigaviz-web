@@ -58,6 +58,33 @@ const featureCards = [
   },
 ];
 
+const submodules = [
+  {
+    id: "graph",
+    title: "Graph (Gallery)",
+    desc: "Galeri visual untuk menata karya dan membangun portofolio.",
+    points: [
+      "Public/private galleries untuk presentasi fleksibel",
+      "Collections dan tagging untuk organisasi karya",
+      "Share link dengan kontrol akses",
+      "Quick search berdasarkan judul, tag, dan metadata",
+    ],
+    cta: "Explore Graph",
+  },
+  {
+    id: "tracks",
+    title: "Tracks (Music)",
+    desc: "Submodule musik untuk mengelola asset audio dan distribusi terarah.",
+    points: [
+      "Organisasi asset musik dan release",
+      "Metadata dan catatan lisensi tingkat tinggi",
+      "Pengaturan export dan sharing untuk tim",
+      "Distribusi bertahap sesuai kebutuhan brand",
+    ],
+    cta: "Explore Tracks",
+  },
+];
+
 const workflowSteps = [
   {
     title: "Create assets",
@@ -146,22 +173,16 @@ const relatedLinks = [
     cta: "Lihat Core OS",
   },
   {
-    title: "Gigaviz Graph",
-    desc: "Galeri karya untuk publikasi visual dan studi kasus.",
-    href: "/products/graph",
-    cta: "Lihat Graph",
-  },
-  {
-    title: "Gigaviz Tracks",
-    desc: "Library musik dan lisensi untuk kebutuhan brand.",
-    href: "/products/tracks",
-    cta: "Lihat Tracks",
-  },
-  {
     title: "Gigaviz Office",
     desc: "Template kerja dan automasi dokumen untuk operasional.",
     href: "/products/office",
     cta: "Lihat Office",
+  },
+  {
+    title: "Gigaviz Marketplace",
+    desc: "Jual beli template, prompt pack, dan asset kreatif.",
+    href: "/products/marketplace",
+    cta: "Lihat Marketplace",
   },
 ];
 
@@ -219,13 +240,13 @@ export default function StudioPage() {
                   Lihat Pricing
                 </Link>
                 <Link
-                  href="/products/graph"
+                  href="/products/studio#graph"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
                   Lihat Graph
                 </Link>
                 <Link
-                  href="/products/tracks"
+                  href="/products/studio#tracks"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
                   Lihat Tracks
@@ -319,6 +340,56 @@ export default function StudioPage() {
                   <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
                     {feature.desc}
                   </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
+          <div className="container py-12 md:py-16">
+            <div className="max-w-2xl space-y-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                Submodules
+              </p>
+              <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
+                Graph dan Tracks berjalan di dalam Studio
+              </h2>
+              <p className="text-sm text-[color:var(--gv-muted)]">
+                Studio menampung galeri visual (Graph) dan asset musik (Tracks) sebagai submodule.
+              </p>
+            </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {submodules.map((module) => (
+                <div
+                  key={module.id}
+                  id={module.id}
+                  className="scroll-mt-24 rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-[color:var(--gv-text)]">
+                        {module.title}
+                      </h3>
+                      <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
+                        {module.desc}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/products/studio#${module.id}`}
+                      className="text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--gv-accent)]"
+                    >
+                      {module.cta}
+                    </Link>
+                  </div>
+                  <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
+                    {module.points.map((point) => (
+                      <li key={point} className="flex gap-2">
+                        <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent-2)]" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>

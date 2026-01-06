@@ -21,8 +21,8 @@ export type ProductIcon =
   | "helper"
   | "office"
   | "studio"
-  | "graph"
-  | "tracks"
+  | "marketplace"
+  | "arena"
   | "apps"
   | "pay"
   | "community";
@@ -147,51 +147,52 @@ export const products: Product[] = [
       "UMKM yang butuh materi cepat",
       "Agency dan studio kecil",
     ],
-    related: ["graph", "tracks", "helper"],
+    related: ["helper", "office", "marketplace"],
   },
   {
-    slug: "graph",
-    name: "Gigaviz Graph",
-    short: "Galeri dan portfolio untuk karya visual dan studi kasus.",
+    slug: "marketplace",
+    name: "Gigaviz Marketplace",
+    short: "Tempat jual beli template, prompt pack, asset, dan mini-app.",
     description:
-      "Etalase karya, studi kasus, dan portofolio visual untuk memperkuat reputasi dan kredibilitas tim.",
-    status: "coming",
-    icon: "graph",
-    categories: ["Creative", "Portfolio"],
+      "Marketplace untuk menjual dan membeli template Office, prompt pack Studio/Helper, asset kreatif, dan mini-app.",
+    status: "beta",
+    icon: "marketplace",
+    categories: ["Commerce", "Marketplace"],
     features: [
-      "Galeri karya dengan kurasi",
-      "Highlight proyek unggulan",
-      "Tag dan kategori konten",
-      "Analytics untuk karya populer",
+      "Listing produk digital dengan katalog yang rapi",
+      "Lisensi personal dan komersial",
+      "Bundle dan paket promosi",
+      "Discovery dan rekomendasi",
+      "Payout dan komisi (bertahap)",
     ],
     whoFor: [
-      "Tim kreatif dan studio",
-      "Brand yang ingin showcase",
-      "Portfolio individu dan agency",
+      "Creator dan studio kreatif",
+      "Tim yang butuh aset cepat",
+      "Bisnis yang ingin monetisasi template",
     ],
-    related: ["studio", "community"],
+    related: ["platform", "studio", "apps"],
   },
   {
-    slug: "tracks",
-    name: "Gigaviz Tracks",
-    short: "Library musik, remix, dan lisensi untuk kebutuhan brand.",
+    slug: "arena",
+    name: "Gigaviz Arena",
+    short: "Play, create, dan commission mini-game untuk brand engagement.",
     description:
-      "Koleksi musik dan workflow lisensi untuk brand yang butuh identitas audio yang konsisten.",
-    status: "coming",
-    icon: "tracks",
-    categories: ["Creative", "Music"],
+      "Arena untuk bermain game kurasi, membuat mini-game berbasis template, dan request game khusus untuk brand.",
+    status: "beta",
+    icon: "arena",
+    categories: ["Engagement", "Games"],
     features: [
-      "Library musik dengan filter",
-      "Remix dan mood variations",
-      "Lisensi untuk campaign",
-      "Distribusi ke platform digital",
+      "Koleksi game kurasi dari Gigaviz",
+      "Builder mini-game berbasis template (bertahap)",
+      "Request game custom via Apps",
+      "Gamification ringan untuk engagement",
     ],
     whoFor: [
-      "Brand marketing",
-      "Kreator konten",
-      "Bisnis yang butuh audio signature",
+      "Brand marketing dan campaign",
+      "Community manager",
+      "Tim yang butuh engagement baru",
     ],
-    related: ["studio", "graph"],
+    related: ["platform", "studio", "apps"],
   },
   {
     slug: "apps",
@@ -257,7 +258,7 @@ export const products: Product[] = [
       "Komunitas kreatif",
       "Partner dan kolaborator",
     ],
-    related: ["graph", "tracks", "apps"],
+    related: ["studio", "arena", "apps"],
   },
 ];
 

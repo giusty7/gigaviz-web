@@ -104,6 +104,16 @@ export default function ProductsOverview() {
               <p className="text-sm text-[color:var(--gv-muted)]">
                 {product.short}
               </p>
+              {product.slug === "studio" ? (
+                <div className="flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
+                  <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] px-2.5 py-1">
+                    Graph
+                  </span>
+                  <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] px-2.5 py-1">
+                    Tracks
+                  </span>
+                </div>
+              ) : null}
             </div>
             <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--gv-accent)]">
               Lihat detail

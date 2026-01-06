@@ -23,12 +23,16 @@ const icons: Record<ProductIcon, string[]> = {
     "M12 4l8 4-8 4-8-4z",
     "M20 12l-8 4-8-4",
   ],
-  graph: [
-    "M5 6h14v12H5z",
-    "M9 14l3-3 3 2 3-4",
+  marketplace: [
+    "M4 9h16v10H4z",
+    "M6 9l2-4h8l2 4",
+    "M8 13h8",
   ],
-  tracks: [
-    "M6 16c2-2 2-4 4-4s2 2 4 2 2-4 4-4 2 2 4 2",
+  arena: [
+    "M6 18h12",
+    "M8 14h8",
+    "M10 14l-2-4h8l-2 4",
+    "M12 8a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5",
   ],
   apps: [
     "M5 5h6v6H5z",
