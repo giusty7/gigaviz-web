@@ -182,7 +182,7 @@ export default async function AdminLeadsPage({
           <div>
             <h1 className="text-2xl font-bold text-white">Leads</h1>
             <p className="text-white/70 text-sm">
-              Data terbaru dari form /wa-platform (dan log attempt untuk badge status).
+              Data terbaru dari form marketing (dan log attempt untuk badge status).
             </p>
           </div>
           <Link href="/" className="text-sm text-cyan-300 hover:text-cyan-200 underline">
