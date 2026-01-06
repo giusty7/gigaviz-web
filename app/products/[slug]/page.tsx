@@ -19,7 +19,9 @@ async function resolveParams(params: PageProps["params"]) {
 }
 
 export async function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  return products
+    .filter((product) => product.slug !== "platform")
+    .map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
