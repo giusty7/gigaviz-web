@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureProfile } from "@/lib/profiles";
 import { getUserWorkspaces, WORKSPACE_COOKIE } from "@/lib/workspaces";
+import OnboardingForm from "./onboarding-form";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,13 @@ export const metadata: Metadata = {
 };
 
 function slugify(input: string) {
-  const slug = input
+  return input
     .toLowerCase()
+    .trim()
     .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
     .replace(/(^-|-$)+/g, "")
-    .slice(0, 48);
-  return slug || "workspace";
+    .slice(0, 32);
 }
 
 async function createWorkspace(formData: FormData) {
@@ -41,17 +43,22 @@ async function createWorkspace(formData: FormData) {
   await ensureProfile(data.user);
 
   const db = supabaseAdmin();
-  const slugBase = slugify(name);
-  let slug = slugBase;
+  const rawSlug = String(formData.get("workspace_slug") || "").trim();
+  const slug = slugify(rawSlug || name);
+  const slugValid = /^[a-z0-9-]{3,32}$/.test(slug);
 
-  for (let i = 0; i < 5; i += 1) {
-    const { data: existing } = await db
-      .from("workspaces")
-      .select("id")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (!existing) break;
-    slug = `${slugBase}-${Math.random().toString(36).slice(2, 6)}`;
+  if (!slugValid) {
+    redirect(`/onboarding?error=slug_invalid&slug=${encodeURIComponent(slug)}`);
+  }
+
+  const { data: existing } = await db
+    .from("workspaces")
+    .select("id")
+    .ilike("slug", slug)
+    .maybeSingle();
+
+  if (existing) {
+    redirect(`/onboarding?error=slug_taken&slug=${encodeURIComponent(slug)}`);
   }
 
   const { data: workspace, error } = await db
@@ -65,6 +72,9 @@ async function createWorkspace(formData: FormData) {
     .single();
 
   if (error) {
+    if (error.code === "23505") {
+      redirect(`/onboarding?error=slug_taken&slug=${encodeURIComponent(slug)}`);
+    }
     redirect(`/onboarding?error=${encodeURIComponent(error.message)}`);
   }
 
@@ -80,7 +90,11 @@ async function createWorkspace(formData: FormData) {
   redirect("/app");
 }
 
-export default async function OnboardingPage() {
+type OnboardingPageProps = {
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
+
+export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
 
@@ -95,6 +109,11 @@ export default async function OnboardingPage() {
     redirect("/app");
   }
 
+  const errorParam =
+    typeof searchParams?.error === "string" ? searchParams.error : null;
+  const slugParam =
+    typeof searchParams?.slug === "string" ? searchParams.slug : null;
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#070B18]">
       <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl">
@@ -103,21 +122,11 @@ export default async function OnboardingPage() {
           Workspace adalah container billing untuk subscription dan token.
         </p>
 
-        <form action={createWorkspace} className="mt-6 space-y-4">
-          <div>
-            <label className="text-white/80 text-sm">Nama Workspace</label>
-            <input
-              name="workspace_name"
-              className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white outline-none"
-              placeholder="Contoh: Gigaviz Studio"
-              required
-            />
-          </div>
-
-          <button className="w-full rounded-xl bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold py-2">
-            Lanjutkan
-          </button>
-        </form>
+        <OnboardingForm
+          action={createWorkspace}
+          error={errorParam}
+          errorSlug={slugParam}
+        />
       </div>
     </div>
   );

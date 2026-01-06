@@ -67,6 +67,8 @@ create table if not exists usage_counters (
 create index if not exists idx_workspace_memberships_user_id on workspace_memberships(user_id);
 create index if not exists idx_token_ledger_workspace_id on token_ledger(workspace_id);
 create index if not exists idx_token_ledger_created_at on token_ledger(created_at desc);
+create unique index if not exists workspaces_slug_lower_unique
+  on public.workspaces (lower(slug));
 
 create or replace function handle_new_workspace()
 returns trigger as $$
