@@ -28,6 +28,7 @@ export async function generateStaticParams() {
     "marketplace",
     "arena",
     "apps",
+    "pay",
   ]);
   return products
     .filter((product) => !excluded.has(product.slug))
