@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { SCHEMA_CONTEXT, personSchema } from "@/lib/seo/schema";
 
 export const metadata: Metadata = {
   title: "Tentang Gigaviz",
@@ -69,9 +70,18 @@ const values = [
 ];
 
 export default function AboutPage() {
+  const personJsonLd = {
+    "@context": SCHEMA_CONTEXT,
+    ...personSchema(),
+  };
+
   return (
     <div className="gv-marketing flex min-h-screen flex-col bg-[color:var(--gv-bg)] font-gv">
       <Navbar variant="marketing" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
 
       <main className="flex-1">
         <section className="border-b border-[color:var(--gv-border)]">

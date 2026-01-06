@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { formatBlogDate, getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { renderMarkdown } from "@/lib/markdown";
+import { SCHEMA_CONTEXT, blogPostingSchema } from "@/lib/seo/schema";
 
 type PageProps = {
   params: { slug: string } | Promise<{ slug: string }>;
@@ -54,9 +55,23 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
+  const blogJsonLd = {
+    "@context": SCHEMA_CONTEXT,
+    ...blogPostingSchema({
+      slug: post.slug,
+      title: post.title,
+      description: post.description,
+      date: post.date,
+    }),
+  };
+
   return (
     <div className="gv-marketing flex min-h-screen flex-col bg-[color:var(--gv-bg)] font-gv">
       <Navbar variant="marketing" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
 
       <main className="flex-1">
         <section className="border-b border-[color:var(--gv-border)]">

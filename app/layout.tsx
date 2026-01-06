@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { defaultMetadata } from "@/lib/seo";
+import { SCHEMA_CONTEXT, organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -31,11 +32,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const globalSchema = {
+    "@context": SCHEMA_CONTEXT,
+    "@graph": [organizationSchema(), websiteSchema()],
+  };
+
   return (
     <html lang="id">
       <body
         className={`min-h-screen bg-gigaviz-bg text-slate-50 font-sans ${gvSans.variable} ${gvDisplay.variable}`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(globalSchema) }}
+        />
         {children}
       </body>
     </html>
