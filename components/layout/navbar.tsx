@@ -221,18 +221,37 @@ export function Navbar({ variant = "default" }: NavbarProps) {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link
-            href="/pricing"
-            className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
-          >
-            Lihat Paket
-          </Link>
-          <Link
-            href="/get-started"
-            className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
-          >
-            Get Started
-          </Link>
+          {isMarketing ? (
+            <>
+              <Link
+                href="/login"
+                className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
+              >
+                Masuk
+              </Link>
+              <Link
+                href="/get-started"
+                className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
+              >
+                Mulai
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/pricing"
+                className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
+              >
+                Lihat Paket
+              </Link>
+              <Link
+                href="/get-started"
+                className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -351,20 +370,41 @@ export function Navbar({ variant = "default" }: NavbarProps) {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <Link
-                href="/pricing"
-                className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
-                onClick={closeMenu}
-              >
-                Lihat Paket
-              </Link>
-              <Link
-                href="/get-started"
-                className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
-                onClick={closeMenu}
-              >
-                Get Started
-              </Link>
+              {isMarketing ? (
+                <>
+                  <Link
+                    href="/login"
+                    className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
+                    onClick={closeMenu}
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href="/get-started"
+                    className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
+                    onClick={closeMenu}
+                  >
+                    Mulai
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/pricing"
+                    className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
+                    onClick={closeMenu}
+                  >
+                    Lihat Paket
+                  </Link>
+                  <Link
+                    href="/get-started"
+                    className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
+                    onClick={closeMenu}
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
 
             <div className={
