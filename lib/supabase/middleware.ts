@@ -1,17 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-function parseAdminEmails() {
-  const raw =
-    process.env.ADMIN_EMAILS ||
-    process.env.ADMIN_EMAIL || // optional fallback
-    "";
-
-  return raw
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
+import { parseAdminEmails } from "@/lib/admin";
 
 function buildNextParam(pathname: string, search: string) {
   return encodeURIComponent(pathname + (search || ""));
@@ -50,6 +39,8 @@ export async function withSupabaseAuth(request: NextRequest) {
 
   // Paths
   const isLoginPath = pathname === "/login";
+  const isOnboardingPath = pathname === "/onboarding";
+  const isAppPath = pathname === "/app" || pathname.startsWith("/app/");
   const isAdminPath = pathname.startsWith("/admin");
   const isAdminApiPath = pathname.startsWith("/api/admin");
   const isInboxPath = pathname.startsWith("/admin/inbox");
@@ -81,13 +72,33 @@ export async function withSupabaseAuth(request: NextRequest) {
 
   /**
    * 1) /login behavior
-   * - Jika sudah login & admin -> lempar ke /admin (default)
-   * - Jika sudah login tapi bukan admin -> tetap di /login?error=not_admin
+   * - Jika sudah login -> lempar ke /app
    * - Jika belum login -> allow buka /login (jangan redirect balik)
    */
   if (isLoginPath) {
-    if (user && isAdmin) return makeRedirect("/admin");
-    if (user && !isAdmin) return makeRedirect("/admin");
+    if (user) return makeRedirect("/app");
+    return makeNext();
+  }
+
+  /**
+   * 1b) /onboarding behavior (authed-only)
+   */
+  if (isOnboardingPath) {
+    if (!user) {
+      const next = buildNextParam(pathname, search);
+      return makeRedirect(`/login?next=${next}`);
+    }
+    return makeNext();
+  }
+
+  /**
+   * 1c) /app behavior (authed-only)
+   */
+  if (isAppPath) {
+    if (!user) {
+      const next = buildNextParam(pathname, search);
+      return makeRedirect(`/login?next=${next}`);
+    }
     return makeNext();
   }
 

@@ -7,5 +7,15 @@ export async function middleware(req: NextRequest) {
 
 // jalankan middleware utk /admin, /login, dan /api/admin (biar export CSV aman)
 export const config = {
-  matcher: ["/admin/:path*", "/login", "/api/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/login",
+    "/onboarding",
+    "/app/:path*",
+    "/api/admin/:path*",
+    "/api/auth/:path*",
+    "/api/tokens/:path*",
+    "/api/workspaces/:path*",
+    "/api/subscriptions/:path*",
+  ],
 };

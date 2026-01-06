@@ -1,10 +1,26 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import LoginClient from "./login-client";
+import { supabaseServer } from "@/lib/supabase/server";
 
-// Biar Next.js ga maksa prerender statik untuk page login
 export const dynamic = "force-dynamic";
 
-export default function LoginPage() {
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default async function LoginPage() {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.auth.getUser();
+
+  if (data.user) {
+    redirect("/app");
+  }
+
   return (
     <Suspense fallback={<LoginFallback />}>
       <LoginClient />

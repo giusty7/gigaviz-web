@@ -39,6 +39,8 @@ Required:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `DEFAULT_WORKSPACE_ID`
+- `ADMIN_EMAILS`
+- `ENABLE_BILLING_TEST_MODE`
 
 Attachments:
 - `ATTACHMENTS_BUCKET`
@@ -88,11 +90,16 @@ Apply SQL files in Supabase SQL Editor, in order:
 11) `docs/sql/20260112_inbox_completeness.sql`
 12) `docs/sql/20260113_outbox.sql`
 13) `docs/sql/20260114_wa_templates.sql`
+14) `docs/sql/20260115_saas.sql`
 
 ## Smoke Test Checklist
 
 Local URLs:
 - http://localhost:3000/login
+- http://localhost:3000/onboarding
+- http://localhost:3000/app
+- http://localhost:3000/app/billing
+- http://localhost:3000/app/tokens
 - http://localhost:3000/admin/inbox
 - http://localhost:3000/admin/contacts
 - http://localhost:3000/admin/inbox/<conversation_id>
