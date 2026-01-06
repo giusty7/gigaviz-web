@@ -2,45 +2,101 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import GetStartedForm from "@/components/marketing/get-started-form";
-import GetStartedAuth from "@/components/marketing/get-started-auth";
+import GetStartedFunnel from "@/components/marketing/get-started-funnel";
 
 export const metadata: Metadata = {
-  title: "Get Started",
+  title: "Mulai dengan Gigaviz",
   description:
-    "Mulai onboarding Gigaviz dengan sesi kickoff, setup workspace, dan rekomendasi modul yang presisi.",
+    "Pilih cara paling cepat untuk masuk ke ekosistem Gigaviz: Individu atau Tim (Workspace).",
+  alternates: {
+    canonical: "/get-started",
+  },
+  openGraph: {
+    title: "Mulai dengan Gigaviz",
+    description:
+      "Pilih cara paling cepat untuk masuk ke ekosistem Gigaviz: Individu atau Tim (Workspace).",
+    url: "/get-started",
+  },
 };
 
-const onboardingSteps = [
+type ComparisonRow = {
+  label: string;
+  individu: string;
+  tim: string;
+  planned?: boolean;
+};
+
+const comparisonRows: ComparisonRow[] = [
   {
-    title: "Kickoff 30 menit",
-    desc: "Susun tujuan utama, volume use-case, dan modul prioritas untuk tim Anda.",
-    timing: "Hari 1",
+    label: "Account & workspace",
+    individu: "1 workspace, 1 user",
+    tim: "Multi workspace, multi member",
   },
   {
-    title: "Setup workspace",
-    desc: "Konfigurasi role, workflow awal, serta modul yang disepakati.",
-    timing: "Hari 1-2",
+    label: "Roles & permissions",
+    individu: "Akses owner dasar",
+    tim: "Owner, Admin, Member, Viewer",
   },
   {
-    title: "Go-live terkendali",
-    desc: "Uji coba terbatas, training singkat, dan checklist operasional.",
-    timing: "Hari 3",
+    label: "Billing & invoice",
+    individu: "Segera",
+    tim: "Segera",
+    planned: true,
+  },
+  {
+    label: "Audit log",
+    individu: "Segera",
+    tim: "Segera",
+    planned: true,
+  },
+  {
+    label: "Akses modul",
+    individu: "Terbatas sesuai paket",
+    tim: "Lebih luas sesuai paket",
+  },
+  {
+    label: "Support",
+    individu: "Dokumentasi + komunitas",
+    tim: "Prioritas sesuai paket",
   },
 ];
 
-const kickoffBenefits = [
+const trustPoints = [
+  "Security-first dengan validasi input dan kontrol akses.",
+  "Auditability untuk aktivitas penting di workspace.",
+  "Fair use dan anti-abuse untuk menjaga kualitas layanan.",
+];
+
+const faqItems = [
   {
-    title: "Peta modul prioritas",
-    desc: "Rekomendasi modul berdasarkan alur kerja harian Anda.",
+    question: "Apakah bisa daftar gratis?",
+    answer:
+      "Bisa. Akun gratis memiliki akses terbatas (view-only/locked) hingga paket aktif.",
   },
   {
-    title: "Template operasional awal",
-    desc: "Checklist proses, SLA, dan pengaturan KPI yang siap dipakai.",
+    question: "Apa bedanya Individu vs Tim?",
+    answer:
+      "Individu untuk solo creator dengan 1 workspace. Tim memberikan multi member, RBAC, dan kontrol lebih lengkap.",
   },
   {
-    title: "Pilot scope aman",
-    desc: "Rencana go-live bertahap dengan risiko terukur.",
+    question: "Biaya token itu apa?",
+    answer:
+      "Token adalah biaya pemakaian AI/WhatsApp API yang dihitung terpisah dari langganan, berdasarkan penggunaan.",
+  },
+  {
+    question: "Apakah bisa upgrade atau downgrade?",
+    answer:
+      "Ya, paket dapat disesuaikan kapan saja sesuai kebutuhan tim dan modul yang diaktifkan.",
+  },
+  {
+    question: "Apakah butuh kartu kredit?",
+    answer:
+      "Tidak selalu. Detail metode pembayaran mengikuti paket dan kebijakan billing yang berlaku.",
+  },
+  {
+    question: "Bagaimana kebijakan penggunaan & keamanan?",
+    answer:
+      "Gigaviz menerapkan aturan penggunaan, kontrol akses, dan audit untuk menjaga keamanan serta mencegah penyalahgunaan.",
   },
 ];
 
@@ -50,109 +106,194 @@ export default function GetStartedPage() {
       <Navbar variant="marketing" />
 
       <main className="flex-1">
-        <section className="border-b border-[color:var(--gv-border)]">
-          <div className="container grid gap-10 py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-24">
-            <div className="space-y-4">
+        <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(214,178,94,0.22),_transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(226,75,168,0.18),_transparent_60%)]" />
+            <div
+              className="absolute inset-0 opacity-40"
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, rgba(247,241,231,0.08) 1px, transparent 1px), linear-gradient(0deg, rgba(247,241,231,0.08) 1px, transparent 1px)",
+                backgroundSize: "64px 64px",
+              }}
+            />
+          </div>
+
+          <div className="container relative z-10 grid gap-10 py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-24">
+            <div className="space-y-5">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
                 Get Started
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Mulai onboarding Gigaviz
+                Mulai dengan Gigaviz
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Isi data singkat, pilih paket, dan tim kami akan menghubungi Anda untuk setup awal.
+                Pilih cara paling cepat untuk masuk ke ekosistem: Individu atau Tim (Workspace).
               </p>
-              <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5 text-sm text-[color:var(--gv-muted)]">
-                <p className="font-semibold text-[color:var(--gv-text)]">Catatan</p>
-                <ul className="mt-3 space-y-2">
-                  <li>- Onboarding dilakukan dalam 1 sampai 2 hari kerja.</li>
-                  <li>- Paket dan modul dapat disesuaikan setelah konsultasi.</li>
-                  <li>- Token usage untuk AI dihitung berdasarkan penggunaan.</li>
-                </ul>
+              <div className="flex flex-wrap items-center gap-3 text-sm">
                 <Link
-                  href="/pricing"
-                  className="mt-4 inline-flex text-sm font-semibold text-[color:var(--gv-accent)] hover:underline"
+                  href="/login?next=/onboarding"
+                  className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Lihat detail pricing
+                  Buat Akun
                 </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
+                >
+                  Masuk
+                </Link>
+              </div>
+              <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-sm text-[color:var(--gv-muted)]">
+                Fitur tertentu dibuka sesuai paket langganan. Biaya token (AI/WhatsApp API) dihitung terpisah sesuai pemakaian.
               </div>
             </div>
 
-            <div className="space-y-6">
-              <GetStartedAuth />
-              <GetStartedForm />
+            <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
+              <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                Ringkasan funnel
+              </div>
+              <h2 className="mt-2 text-xl font-semibold text-[color:var(--gv-text)]">
+                Masuk ekosistem dalam beberapa langkah
+              </h2>
+              <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
+                Pilih paket, selesaikan akun, lalu aktifkan modul sesuai kebutuhan.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-[color:var(--gv-muted)]">
+                <li className="flex gap-2">
+                  <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
+                  <span>Pilih Individu atau Tim (Workspace).</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
+                  <span>Lengkapi akun dan verifikasi email.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
+                  <span>Aktifkan modul, billing, dan token sesuai paket.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <GetStartedFunnel />
+
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
+          <div className="container py-12 md:py-16">
+            <div className="max-w-2xl space-y-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                Apa yang Anda dapatkan
+              </p>
+              <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
+                Perbandingan fitur inti
+              </h2>
+              <p className="text-sm text-[color:var(--gv-muted)]">
+                Modul dan akses disesuaikan dengan paket yang Anda pilih.
+              </p>
+            </div>
+            <div className="mt-8 overflow-hidden rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)]">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-[color:var(--gv-muted)]">
+                  <thead className="bg-[color:var(--gv-surface)] text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
+                    <tr>
+                      <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
+                        Fitur
+                      </th>
+                      <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
+                        Individu
+                      </th>
+                      <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
+                        Tim (Workspace)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisonRows.map((row) => (
+                      <tr key={row.label} className="border-t border-[color:var(--gv-border)]">
+                        <td className="px-5 py-4 font-semibold text-[color:var(--gv-text)]">
+                          {row.label}
+                        </td>
+                        <td className="px-5 py-4">
+                          {row.planned ? (
+                            <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
+                              Segera
+                            </span>
+                          ) : (
+                            row.individu
+                          )}
+                        </td>
+                        <td className="px-5 py-4">
+                          {row.planned ? (
+                            <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
+                              Segera
+                            </span>
+                          ) : (
+                            row.tim
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]">
+          <div className="container py-12 md:py-16">
+            <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-center">
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                  Trust & safety
+                </p>
+                <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
+                  Keamanan tetap jadi prioritas
+                </h2>
+                <p className="text-sm text-[color:var(--gv-muted)]">
+                  Kami menyiapkan fondasi keamanan sejak awal onboarding agar ekosistem tetap aman saat tumbuh.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
+                <ul className="space-y-3 text-sm text-[color:var(--gv-muted)]">
+                  {trustPoints.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent-2)]" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </section>
 
         <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
           <div className="container py-12 md:py-16">
-            <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-start">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Alur onboarding
-                </p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Jalur cepat, tetap terukur
-                </h2>
-                <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                  Kami fokus pada konfigurasi inti, lalu mengaktifkan modul tambahan secara bertahap agar tim cepat produktif.
-                </p>
-                <div className="mt-6 space-y-3">
-                  {onboardingSteps.map((step, index) => (
-                    <div
-                      key={step.title}
-                      className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1 grid h-8 w-8 place-items-center rounded-2xl bg-[color:var(--gv-accent-soft)] text-xs font-semibold text-[color:var(--gv-accent)]">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-sm font-semibold text-[color:var(--gv-text)]">
-                              {step.title}
-                            </h3>
-                            <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-0.5 text-[11px] text-[color:var(--gv-muted)]">
-                              {step.timing}
-                            </span>
-                          </div>
-                          <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                            {step.desc}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            <div className="max-w-2xl space-y-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                FAQ
+              </p>
+              <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
+                Pertanyaan yang sering muncul
+              </h2>
+            </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {faqItems.map((item) => (
+                <div
+                  key={item.question}
+                  className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6"
+                >
+                  <h3 className="text-base font-semibold text-[color:var(--gv-text)]">
+                    {item.question}
+                  </h3>
+                  <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
+                    {item.answer}
+                  </p>
                 </div>
-              </div>
-
-              <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
-                <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Hasil kickoff
-                </div>
-                <h3 className="mt-2 text-lg font-semibold text-[color:var(--gv-text)]">
-                  Yang Anda terima di minggu pertama
-                </h3>
-                <div className="mt-4 space-y-3">
-                  {kickoffBenefits.map((item) => (
-                    <div
-                      key={item.title}
-                      className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-4"
-                    >
-                      <div className="text-sm font-semibold text-[color:var(--gv-text)]">
-                        {item.title}
-                      </div>
-                      <p className="mt-1 text-sm text-[color:var(--gv-muted)]">
-                        {item.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 rounded-2xl border border-[color:var(--gv-accent-2)] bg-[color:var(--gv-magenta-soft)] p-4 text-sm text-[color:var(--gv-text)]">
-                  Tim Anda akan mendapat ringkasan rekomendasi modul serta prioritas aktivasi dalam format yang mudah dipresentasikan.
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -165,21 +306,21 @@ export default function GetStartedPage() {
                   Siap mulai sekarang?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Bandingkan paket dulu atau langsung jadwalkan onboarding bersama tim kami.
+                  Buat akun untuk memilih paket, lalu lihat detail pricing jika dibutuhkan.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
                 <Link
+                  href="/login?next=/onboarding"
+                  className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
+                >
+                  Buat Akun
+                </Link>
+                <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Paket
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
-                >
-                  Jadwalkan Call
+                  Lihat Pricing
                 </Link>
               </div>
             </div>
