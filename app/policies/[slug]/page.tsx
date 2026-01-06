@@ -9,15 +9,23 @@ import { renderMarkdown } from "@/lib/markdown";
 import { getPolicyBySlug, policySlugs } from "@/lib/policies";
 
 type PageProps = {
-  params: { slug: string };
+  params: { slug: string } | Promise<{ slug: string }>;
 };
+
+async function resolveParams(params: PageProps["params"]) {
+  if (typeof (params as Promise<{ slug: string }>).then === "function") {
+    return params as Promise<{ slug: string }>;
+  }
+  return params as { slug: string };
+}
 
 export async function generateStaticParams() {
   return policySlugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const policy = getPolicyBySlug(params.slug);
+  const { slug } = await resolveParams(params);
+  const policy = getPolicyBySlug(slug);
 
   if (!policy) {
     return {
@@ -32,7 +40,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PolicyDetailPage({ params }: PageProps) {
-  const policy = getPolicyBySlug(params.slug);
+  const { slug } = await resolveParams(params);
+  const policy = getPolicyBySlug(slug);
 
   if (!policy) {
     notFound();

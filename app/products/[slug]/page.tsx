@@ -8,15 +8,22 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 import { getProductBySlug, productStatusLabel, products } from "@/lib/products";
 
 type PageProps = {
-  params: { slug: string };
+  params: { slug: string } | Promise<{ slug: string }>;
 };
+
+async function resolveParams(params: PageProps["params"]) {
+  if (typeof (params as Promise<{ slug: string }>).then === "function") {
+    return params as Promise<{ slug: string }>;
+  }
+  return params as { slug: string };
+}
 
 export async function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await resolveParams(params);
   const product = getProductBySlug(slug);
 
   if (!product) {
@@ -32,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const { slug } = params;
+  const { slug } = await resolveParams(params);
   const product = getProductBySlug(slug);
 
   if (!product) {

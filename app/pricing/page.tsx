@@ -5,7 +5,8 @@ import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Paket langganan Gigaviz dan informasi token usage untuk AI generation.",
+  description:
+    "Paket langganan Gigaviz dengan modul fleksibel, onboarding terarah, dan transparansi penggunaan token.",
 };
 
 const plans = [
@@ -57,6 +58,29 @@ const plans = [
       "Integrasi custom",
       "Account manager dedicated",
     ],
+  },
+];
+
+const platformIncludes = [
+  "Single sign-on dan manajemen role",
+  "Template workflow operasional utama",
+  "Onboarding dan training singkat untuk tim inti",
+  "Audit trail untuk aktivitas penting",
+  "Roadmap produk yang sinkron dengan kebutuhan tim",
+];
+
+const assuranceItems = [
+  {
+    title: "Setup berlapis",
+    desc: "Rencana implementasi bertahap agar tim siap tanpa overload.",
+  },
+  {
+    title: "Kontrol anggaran",
+    desc: "Limit usage per workspace + laporan penggunaan berkala.",
+  },
+  {
+    title: "Dukungan prioritas",
+    desc: "SLA khusus untuk paket Business dan Enterprise.",
   },
 ];
 
@@ -127,6 +151,50 @@ export default function PricingPage() {
                   </Link>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]">
+          <div className="container py-12 md:py-16">
+            <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-start">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                  Selalu termasuk
+                </p>
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
+                  Fondasi ekosistem Gigaviz
+                </h2>
+                <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
+                  Setiap paket sudah mencakup modul inti dan setup awal agar tim Anda bisa langsung beroperasi.
+                </p>
+                <ul className="mt-6 space-y-2 text-sm text-[color:var(--gv-muted)]">
+                  {platformIncludes.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="space-y-3">
+                {assuranceItems.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5"
+                  >
+                    <div className="text-sm font-semibold text-[color:var(--gv-text)]">
+                      {item.title}
+                    </div>
+                    <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
+                      {item.desc}
+                    </p>
+                  </div>
+                ))}
+                <div className="rounded-3xl border border-[color:var(--gv-accent-2)] bg-[color:var(--gv-magenta-soft)] p-5 text-sm text-[color:var(--gv-text)]">
+                  Paket Business & Enterprise mendapat review roadmap dan penyesuaian modul setiap kuartal.
+                </div>
+              </div>
             </div>
           </div>
         </section>
