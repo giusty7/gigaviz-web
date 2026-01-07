@@ -9,6 +9,7 @@ import {
   contactTopics,
   budgetRanges,
 } from "@/lib/validation/contact";
+import { track } from "@/lib/analytics";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
@@ -58,6 +59,14 @@ export function ContactForm() {
         setServerMessage(json?.message ?? "Gagal mengirim pesan.");
         return;
       }
+
+      const eventParams: Record<string, string> = {
+        topic: data.topic,
+      };
+      if (data.budgetRange) {
+        eventParams.budget_range = data.budgetRange;
+      }
+      track("contact_submit_success", eventParams);
 
       setStatus("success");
       setServerMessage(json?.message ?? "Pesan berhasil dikirim.");

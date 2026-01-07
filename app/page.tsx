@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 import { products } from "@/lib/products";
 import { roadmap } from "@/lib/roadmap";
 import { policies } from "@/lib/policies";
+import TrackedLink from "@/components/analytics/tracked-link";
 
 export const metadata: Metadata = {
   title: "Gigaviz Ecosystem Platform",
@@ -75,12 +76,14 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <Link
+                <TrackedLink
                   href="/get-started"
+                  label="Mulai"
+                  location="homepage_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
                   Get Started
-                </Link>
+                </TrackedLink>
                 <Link
                   href="/products"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] bg-transparent px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
@@ -361,12 +364,14 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="mt-6 flex flex-wrap gap-3 md:mt-0">
-                <Link
+                <TrackedLink
                   href="/get-started"
+                  label="Mulai"
+                  location="homepage_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
                   Mulai langganan
-                </Link>
+                </TrackedLink>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"

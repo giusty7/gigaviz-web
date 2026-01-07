@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 type PlanKey = "individu" | "tim";
 
@@ -37,6 +38,7 @@ export default function GetStartedFunnel() {
 
   const handleSelect = (key: PlanKey) => {
     setSelected(key);
+    track("plan_select", { plan: key });
   };
 
   return (

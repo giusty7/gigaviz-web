@@ -65,6 +65,9 @@ App:
 - `RATE_DELAY_MIN_MS`
 - `RATE_DELAY_MAX_MS`
 
+Analytics:
+- `NEXT_PUBLIC_GA_ID` (optional, GA4 Measurement ID, e.g. `G-XXXXXXXXXX`)
+
 Feature flags:
 - `ENABLE_WA_SEND`
 - `MERGE_ENABLED` (used by CRM merge routes; add to `.env.local` if needed)
@@ -124,3 +127,8 @@ See `docs/SMOKE_TEST.md` for a copy-paste checklist.
   - Reset via Supabase Auth (magic link or password reset).
 - Next.js middleware deprecation warning:
   - See Next.js warning in build output; consider migrating to proxy middleware later.
+
+## Analytics (GA4)
+
+1) Add `NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX` to `.env.local`.
+2) Open GA4 DebugView or Tag Assistant to verify `page_view` and `cta_click` events.

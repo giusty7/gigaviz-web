@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import MediaKitCopyBlock from "@/components/marketing/media-kit-copy";
+import MediaKitLogos from "@/components/marketing/media-kit-logos";
 
 export const metadata: Metadata = {
   title: "Media Kit Gigaviz",
@@ -207,38 +207,7 @@ export default function MediaKitPage() {
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {logoAssets.map((logo) => (
-                <div
-                  key={logo.file}
-                  className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5"
-                >
-                  <div
-                    className={`flex h-36 items-center justify-center rounded-2xl border border-[color:var(--gv-border)] ${logo.previewClass}`}
-                  >
-                    <Image
-                      src={logo.file}
-                      alt={logo.label}
-                      width={logo.width}
-                      height={logo.height}
-                      className="h-20 w-auto object-contain"
-                    />
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="text-sm font-semibold text-[color:var(--gv-text)]">
-                      {logo.label}
-                    </div>
-                    <a
-                      href={logo.file}
-                      download
-                      className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-accent)] hover:underline"
-                    >
-                      Download
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <MediaKitLogos items={logoAssets} />
 
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">

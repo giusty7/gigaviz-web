@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import GetStartedFunnel from "@/components/marketing/get-started-funnel";
+import TrackedLink from "@/components/analytics/tracked-link";
 
 export const metadata: Metadata = {
   title: "Mulai dengan Gigaviz",
@@ -132,18 +132,22 @@ export default function GetStartedPage() {
                 Pilih cara paling cepat untuk masuk ke ekosistem: Individu atau Tim (Workspace).
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <Link
+                <TrackedLink
                   href="/login?next=/onboarding"
+                  label="Buat Akun"
+                  location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
                   Buat Akun
-                </Link>
-                <Link
+                </TrackedLink>
+                <TrackedLink
                   href="/login"
+                  label="Masuk"
+                  location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
                   Masuk
-                </Link>
+                </TrackedLink>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-sm text-[color:var(--gv-muted)]">
                 Fitur tertentu dibuka sesuai paket langganan. Biaya token (AI/WhatsApp API) dihitung terpisah sesuai pemakaian.
@@ -310,18 +314,22 @@ export default function GetStartedPage() {
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
-                <Link
+                <TrackedLink
                   href="/login?next=/onboarding"
+                  label="Buat Akun"
+                  location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
                   Buat Akun
-                </Link>
-                <Link
+                </TrackedLink>
+                <TrackedLink
                   href="/pricing"
+                  label="Lihat Pricing"
+                  location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
                   Lihat Pricing
-                </Link>
+                </TrackedLink>
               </div>
             </div>
           </div>

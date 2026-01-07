@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { products } from "@/lib/products";
+import { trackCta } from "@/lib/analytics";
 
 type NavItem = {
   href: string;
@@ -221,12 +222,14 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               <Link
                 href="/login"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
+                onClick={() => trackCta("Masuk", "navbar", "/login")}
               >
                 Masuk
               </Link>
               <Link
                 href="/get-started"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
+                onClick={() => trackCta("Mulai", "navbar", "/get-started")}
               >
                 Mulai
               </Link>
@@ -236,12 +239,14 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               <Link
                 href="/pricing"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
+                onClick={() => trackCta("Lihat Paket", "navbar", "/pricing")}
               >
                 Lihat Paket
               </Link>
               <Link
                 href="/get-started"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
+                onClick={() => trackCta("Mulai", "navbar", "/get-started")}
               >
                 Get Started
               </Link>
@@ -370,14 +375,20 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                   <Link
                     href="/login"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
-                    onClick={closeMenu}
+                    onClick={() => {
+                      trackCta("Masuk", "navbar", "/login");
+                      closeMenu();
+                    }}
                   >
                     Masuk
                   </Link>
                   <Link
                     href="/get-started"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
-                    onClick={closeMenu}
+                    onClick={() => {
+                      trackCta("Mulai", "navbar", "/get-started");
+                      closeMenu();
+                    }}
                   >
                     Mulai
                   </Link>
@@ -387,14 +398,20 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                   <Link
                     href="/pricing"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
-                    onClick={closeMenu}
+                    onClick={() => {
+                      trackCta("Lihat Paket", "navbar", "/pricing");
+                      closeMenu();
+                    }}
                   >
                     Lihat Paket
                   </Link>
                   <Link
                     href="/get-started"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
-                    onClick={closeMenu}
+                    onClick={() => {
+                      trackCta("Mulai", "navbar", "/get-started");
+                      closeMenu();
+                    }}
                   >
                     Get Started
                   </Link>

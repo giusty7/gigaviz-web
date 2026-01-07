@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { defaultMetadata } from "@/lib/seo";
 import { SCHEMA_CONTEXT, organizationSchema, websiteSchema } from "@/lib/seo/schema";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { GAPageView } from "@/components/analytics/ga-pageview";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -46,6 +48,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(globalSchema) }}
         />
+        <GoogleAnalytics />
+        <GAPageView />
         {children}
       </body>
     </html>
