@@ -11,6 +11,9 @@ export function Footer() {
           </p>
         </div>
         <nav className="flex flex-wrap gap-4 text-slate-400">
+          <Link href="/contact" className="hover:text-slate-200">
+            Contact
+          </Link>
           <Link href="/media-kit" className="hover:text-slate-200">
             Media Kit
           </Link>
