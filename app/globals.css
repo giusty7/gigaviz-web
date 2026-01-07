@@ -19,6 +19,25 @@
   --gv-accent-2: #e24ba8;
   --gv-accent-soft: rgba(214, 178, 94, 0.15);
   --gv-magenta-soft: rgba(226, 75, 168, 0.15);
+  --gv-text-xs: 0.75rem;
+  --gv-text-sm: 0.875rem;
+  --gv-text-base: 1rem;
+  --gv-text-lg: 1.125rem;
+  --gv-text-xl: 1.25rem;
+  --gv-text-2xl: 1.5rem;
+  --gv-text-3xl: 1.875rem;
+  --gv-text-4xl: 2.25rem;
+  --gv-space-1: 0.25rem;
+  --gv-space-2: 0.5rem;
+  --gv-space-3: 0.75rem;
+  --gv-space-4: 1rem;
+  --gv-space-5: 1.5rem;
+  --gv-space-6: 2rem;
+  --gv-radius-sm: 0.5rem;
+  --gv-radius-md: 0.75rem;
+  --gv-radius-lg: 1rem;
+  --gv-radius-xl: 1.25rem;
+  --gv-radius-2xl: 1.5rem;
 }
 
 .gv-marketing {
@@ -34,10 +53,10 @@ body {
 }
 
 body {
-  background-color: #020617;
-  color: #f9fafb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  background-color: var(--gv-bg);
+  color: var(--gv-text);
+  font-family: var(--font-gv), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -54,4 +73,9 @@ a:hover {
 
 * {
   scroll-behavior: smooth;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gv-gold);
+  outline-offset: 2px;
 }

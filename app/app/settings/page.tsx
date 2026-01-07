@@ -3,6 +3,10 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAppContext } from "@/lib/app-context";
 import { getWorkspaceMembership } from "@/lib/workspaces";
+import { SettingsLayout } from "@/components/layout/settings-layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export const dynamic = "force-dynamic";
 
@@ -78,61 +82,60 @@ export default async function SettingsPage() {
     Boolean(profile?.is_admin);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Account Settings</h2>
-        <p className="text-sm text-white/60 mt-1">
-          Update your profile basics.
-        </p>
+    <SettingsLayout
+      title="Settings"
+      description="Manage your account and workspace preferences."
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Settings</CardTitle>
+          <CardDescription>Update your profile basics.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={updateProfile} className="grid gap-3 md:grid-cols-2">
+            <Input
+              name="full_name"
+              placeholder="Full name"
+              defaultValue={profile?.full_name ?? ""}
+            />
+            <Input
+              value={profile?.email ?? ctx.user.email ?? ""}
+              readOnly
+              className="text-gigaviz-muted"
+            />
+            <Button type="submit" className="md:col-span-2">
+              Save profile
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-        <form action={updateProfile} className="mt-4 grid gap-3 md:grid-cols-2">
-          <input
-            name="full_name"
-            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
-            placeholder="Full name"
-            defaultValue={profile?.full_name ?? ""}
-          />
-          <input
-            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/60"
-            value={profile?.email ?? ctx.user.email ?? ""}
-            readOnly
-          />
-          <button className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20 md:col-span-2">
-            Save profile
-          </button>
-        </form>
-      </section>
-
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Workspace Settings</h2>
-        <p className="text-sm text-white/60 mt-1">
-          Only owners/admins can update workspace data.
-        </p>
-
-        <form
-          action={updateWorkspace}
-          className="mt-4 grid gap-3 md:grid-cols-2"
-        >
-          <input type="hidden" name="workspace_id" value={ctx.currentWorkspace.id} />
-          <input
-            name="workspace_name"
-            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
-            defaultValue={ctx.currentWorkspace.name}
-            disabled={!canEditWorkspace}
-          />
-          <input
-            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/60"
-            value={ctx.currentWorkspace.slug}
-            readOnly
-          />
-          <button
-            disabled={!canEditWorkspace}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20 disabled:opacity-50 md:col-span-2"
-          >
-            Save workspace
-          </button>
-        </form>
-      </section>
-    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Workspace Settings</CardTitle>
+          <CardDescription>
+            Only owners/admins can update workspace data.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={updateWorkspace} className="grid gap-3 md:grid-cols-2">
+            <input type="hidden" name="workspace_id" value={ctx.currentWorkspace.id} />
+            <Input
+              name="workspace_name"
+              defaultValue={ctx.currentWorkspace.name}
+              disabled={!canEditWorkspace}
+            />
+            <Input
+              value={ctx.currentWorkspace.slug}
+              readOnly
+              className="text-gigaviz-muted"
+            />
+            <Button type="submit" disabled={!canEditWorkspace} className="md:col-span-2">
+              Save workspace
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </SettingsLayout>
   );
 }

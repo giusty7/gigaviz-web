@@ -1,54 +1,56 @@
-import Link from "next/link";
-import type {
-  AnchorHTMLAttributes,
-  ButtonHTMLAttributes,
-  ReactNode,
-} from "react";
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "ghost";
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold focus-visible:ring-offset-2 focus-visible:ring-offset-gigaviz-bg disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-gigaviz-gold text-gigaviz-navy hover:bg-gigaviz-gold/90 active:bg-gigaviz-gold/80",
+        secondary:
+          "bg-gigaviz-card text-gigaviz-cream border border-gigaviz-border hover:bg-gigaviz-surface",
+        outline:
+          "border border-gigaviz-border text-gigaviz-cream hover:bg-gigaviz-surface",
+        ghost: "text-gigaviz-cream hover:bg-gigaviz-surface",
+        link: "text-gigaviz-gold underline-offset-4 hover:underline",
+        destructive:
+          "bg-rose-500/90 text-white hover:bg-rose-500 active:bg-rose-600",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 px-3",
+        lg: "h-11 px-6",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
 
-type ButtonBaseProps = {
-  variant?: Variant;
-  className?: string;
-  children: ReactNode;
-};
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
 
-type ButtonAsButton = ButtonBaseProps &
-  ButtonHTMLAttributes<HTMLButtonElement> & {
-    href?: undefined;
-  };
-
-type ButtonAsLink = ButtonBaseProps &
-  AnchorHTMLAttributes<HTMLAnchorElement> & {
-    href: string;
-  };
-
-export type ButtonProps = ButtonAsButton | ButtonAsLink;
-
-export function Button(props: ButtonProps) {
-  const base =
-    "inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gigaviz-bg";
-
-  const variantClass = (variant?: Variant) =>
-    variant === "ghost"
-      ? "border border-slate-700 text-slate-100 hover:bg-slate-900/60 active:bg-slate-900"
-      : "bg-cyan-400 text-slate-900 hover:bg-cyan-300 active:bg-cyan-200";
-
-  if ("href" in props && typeof props.href === "string") {
-    const { variant = "primary", className = "", children, href, ...rest } = props;
-    const classes = `${base} ${variantClass(variant)} ${className}`;
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
     return (
-      <Link href={href} className={classes} {...rest}>
-        {children}
-      </Link>
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
     );
   }
+);
+Button.displayName = "Button";
 
-  const { variant = "primary", className = "", children, ...rest } = props;
-  const classes = `${base} ${variantClass(variant)} ${className}`;
-  return (
-    <button className={classes} {...rest}>
-      {children}
-    </button>
-  );
-}
+export { Button, buttonVariants };

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import WorkspaceSwitcher from "@/components/app/WorkspaceSwitcher";
+import { AppShell as Shell } from "@/components/layout/app-shell";
 
 type WorkspaceItem = {
   id: string;
@@ -25,30 +26,42 @@ export default function AppShell({
   children,
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-gigaviz-bg text-slate-50">
-      <div className="flex min-h-screen">
-        <aside className="w-64 border-r border-slate-800 bg-black/30 px-5 py-6 hidden lg:flex lg:flex-col">
+    <Shell
+      sidebar={
+        <>
           <div className="mb-8">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               Gigaviz
             </Link>
-            <p className="text-xs text-white/50 mt-1">App Area</p>
+            <p className="mt-1 text-xs text-gigaviz-muted">App Area</p>
           </div>
 
           <nav className="flex flex-col gap-2 text-sm">
-            <Link href="/app" className="rounded-xl px-3 py-2 hover:bg-white/5">
+            <Link href="/app" className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface">
               Dashboard
             </Link>
-            <Link href="/app/modules" className="rounded-xl px-3 py-2 hover:bg-white/5">
+            <Link
+              href="/app/modules"
+              className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
+            >
               Modules
             </Link>
-            <Link href="/app/tokens" className="rounded-xl px-3 py-2 hover:bg-white/5">
+            <Link
+              href="/app/tokens"
+              className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
+            >
               Tokens
             </Link>
-            <Link href="/app/billing" className="rounded-xl px-3 py-2 hover:bg-white/5">
+            <Link
+              href="/app/billing"
+              className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
+            >
               Billing
             </Link>
-            <Link href="/app/settings" className="rounded-xl px-3 py-2 hover:bg-white/5">
+            <Link
+              href="/app/settings"
+              className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
+            >
               Settings
             </Link>
           </nav>
@@ -58,27 +71,24 @@ export default function AppShell({
               Admin override active
             </div>
           )}
-        </aside>
-
-        <div className="flex-1">
-          <header className="sticky top-0 z-20 border-b border-slate-800 bg-black/40 backdrop-blur">
-            <div className="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm text-white/70">Welcome back</p>
-                <p className="text-lg font-semibold">{userEmail}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <WorkspaceSwitcher
-                  workspaces={workspaces}
-                  currentWorkspaceId={currentWorkspaceId}
-                />
-              </div>
-            </div>
-          </header>
-
-          <main className="px-6 py-8">{children}</main>
+        </>
+      }
+      header={
+        <div className="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm text-gigaviz-muted">Welcome back</p>
+            <p className="text-lg font-semibold">{userEmail}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <WorkspaceSwitcher
+              workspaces={workspaces}
+              currentWorkspaceId={currentWorkspaceId}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+      }
+    >
+      {children}
+    </Shell>
   );
 }

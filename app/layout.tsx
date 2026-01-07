@@ -3,6 +3,7 @@ import { defaultMetadata } from "@/lib/seo";
 import { SCHEMA_CONTEXT, organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { GAPageView } from "@/components/analytics/ga-pageview";
+import { Toaster } from "@/components/ui/toaster";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -42,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-        className={`min-h-screen bg-gigaviz-bg text-slate-50 font-sans ${gvSans.variable} ${gvDisplay.variable}`}
+        className={`min-h-screen bg-gigaviz-bg text-gigaviz-cream font-sans ${gvSans.variable} ${gvDisplay.variable}`}
       >
         <script
           type="application/ld+json"
@@ -51,6 +52,7 @@ export default function RootLayout({
         <GoogleAnalytics />
         <GAPageView />
         {children}
+        <Toaster />
       </body>
     </html>
   );
