@@ -10,7 +10,13 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/login",
+    "/register",
+    "/verify-email",
+    "/forgot-password",
+    "/reset-password",
+    "/logout",
     "/onboarding",
+    "/app/onboarding",
     "/app/:path*",
     "/api/admin/:path*",
     "/api/auth/:path*",

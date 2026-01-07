@@ -10,6 +10,7 @@ export type WorkspaceSummary = {
   name: string;
   slug: string;
   owner_id: string | null;
+  workspace_type: string;
   created_at: string;
   role: string;
 };
@@ -23,6 +24,7 @@ function isWorkspaceRow(value: unknown): value is WorkspaceRow {
     typeof record.id === "string" &&
     typeof record.name === "string" &&
     typeof record.slug === "string" &&
+    typeof record.workspace_type === "string" &&
     typeof record.created_at === "string" &&
     ("owner_id" in record)
   );
@@ -43,9 +45,14 @@ export async function getWorkspaceCookie() {
 
 export function resolveCurrentWorkspace(
   workspaces: WorkspaceSummary[],
-  cookieId?: string | null
+  cookieId?: string | null,
+  slug?: string | null
 ) {
   if (!workspaces.length) return null;
+  if (slug) {
+    const match = workspaces.find((ws) => ws.slug === slug);
+    if (match) return match;
+  }
   if (cookieId) {
     const match = workspaces.find((ws) => ws.id === cookieId);
     if (match) return match;
@@ -56,9 +63,9 @@ export function resolveCurrentWorkspace(
 export async function getUserWorkspaces(userId: string) {
   const db = supabaseAdmin();
   const { data, error } = await db
-    .from("workspace_memberships")
+    .from("workspace_members")
     .select(
-      "workspace_id, role, workspaces(id, name, slug, owner_id, created_at)"
+      "workspace_id, role, workspaces(id, name, slug, owner_id, workspace_type, created_at)"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
@@ -75,6 +82,7 @@ export async function getUserWorkspaces(userId: string) {
           name: ws.name,
           slug: ws.slug,
           owner_id: ws.owner_id,
+          workspace_type: ws.workspace_type,
           created_at: ws.created_at,
           role: row.role,
         },
@@ -89,7 +97,7 @@ export async function getWorkspaceMembership(
 ) {
   const db = supabaseAdmin();
   const { data, error } = await db
-    .from("workspace_memberships")
+    .from("workspace_members")
     .select("workspace_id, role")
     .eq("user_id", userId)
     .eq("workspace_id", workspaceId)

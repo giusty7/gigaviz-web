@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const providerParam = req.nextUrl.searchParams.get("provider");
   const providerKey = (providerParam || "").toLowerCase();
   const nextParam = req.nextUrl.searchParams.get("next");
-  if (providerKey !== "google" && providerKey !== "facebook") {
+  if (providerKey !== "google") {
     return NextResponse.json({ error: "invalid_provider" }, { status: 400 });
   }
   const provider: Provider = providerKey;

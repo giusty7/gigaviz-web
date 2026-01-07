@@ -133,7 +133,7 @@ export default function GetStartedPage() {
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
-                  href="/login?next=/onboarding"
+                  href="/login?next=/app/onboarding"
                   label="Buat Akun"
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
@@ -315,7 +315,7 @@ export default function GetStartedPage() {
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
                 <TrackedLink
-                  href="/login?next=/onboarding"
+                  href="/login?next=/app/onboarding"
                   label="Buat Akun"
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"

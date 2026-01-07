@@ -38,8 +38,13 @@ export async function withSupabaseAuth(request: NextRequest) {
   const search = request.nextUrl.search || "";
 
   // Paths
-  const isLoginPath = pathname === "/login";
-  const isOnboardingPath = pathname === "/onboarding";
+  const isLoginPath =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/verify-email" ||
+    pathname === "/forgot-password";
+  const isResetPasswordPath = pathname === "/reset-password";
+  const isOnboardingPath = pathname === "/app/onboarding";
   const isAppPath = pathname === "/app" || pathname.startsWith("/app/");
   const isAdminPath = pathname.startsWith("/admin");
   const isAdminApiPath = pathname.startsWith("/api/admin");
@@ -80,8 +85,12 @@ export async function withSupabaseAuth(request: NextRequest) {
     return makeNext();
   }
 
+  if (isResetPasswordPath) {
+    return makeNext();
+  }
+
   /**
-   * 1b) /onboarding behavior (authed-only)
+   * 1b) /app/onboarding behavior (authed-only)
    */
   if (isOnboardingPath) {
     if (!user) {

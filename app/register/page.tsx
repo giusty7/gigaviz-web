@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { supabaseServer } from "@/lib/supabase/server";
-import LoginForm from "./login-form";
+import RegisterForm from "./register-form";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LoginPage() {
+export default async function RegisterPage() {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
 
@@ -23,10 +23,10 @@ export default async function LoginPage() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      description="Sign in to access your Gigaviz workspace."
+      title="Create your account"
+      description="Start with a verified email and a secure password."
     >
-      <LoginForm />
+      <RegisterForm />
     </AuthLayout>
   );
 }

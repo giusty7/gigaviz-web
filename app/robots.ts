@@ -5,7 +5,16 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/login", "/onboarding", "/app"],
+      disallow: [
+        "/login",
+        "/register",
+        "/verify-email",
+        "/forgot-password",
+        "/reset-password",
+        "/onboarding",
+        "/app/onboarding",
+        "/app",
+      ],
     },
     sitemap: "https://gigaviz.com/sitemap.xml",
   };
