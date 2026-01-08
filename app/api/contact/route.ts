@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getResendFromContact } from "@/lib/email";
 import { contactSchema } from "@/lib/validation/contact";
 
 export const runtime = "nodejs";
@@ -12,10 +13,7 @@ const rateLimitStore = new Map<string, number[]>();
 const TO_EMAIL =
   process.env.CONTACT_RECIPIENT_EMAIL ?? "your-email@example.com";
 
-// alamat pengirim (boleh pakai onboarding@resend.dev dulu)
-const FROM_EMAIL =
-  process.env.CONTACT_FROM_EMAIL ??
-  "Gigaviz Contact <onboarding@resend.dev>";
+// alamat pengirim (gunakan RESEND_FROM_CONTACT)
 
 function getClientIp(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -114,7 +112,7 @@ ${parsed.message}
 `;
 
     const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: getResendFromContact(),
       to: [TO_EMAIL],
       replyTo: parsed.email,
       subject: `[Gigaviz.com] Kontak baru: ${parsed.topic}`,

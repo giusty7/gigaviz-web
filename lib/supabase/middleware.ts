@@ -71,6 +71,10 @@ export async function withSupabaseAuth(request: NextRequest) {
   // Admin check (email whitelist)
   const adminEmails = parseAdminEmails();
   const email = (user?.email || "").toLowerCase();
+  const isVerified = Boolean(user?.email_confirmed_at || user?.confirmed_at);
+  const verifyEmailUrl = email
+    ? `/verify-email?email=${encodeURIComponent(email)}`
+    : "/verify-email";
 
   // kalau ADMIN_EMAILS kosong -> anggap semua user yg login boleh admin (MVP)
   const isAdmin = adminEmails.length === 0 ? true : adminEmails.includes(email);
@@ -81,7 +85,14 @@ export async function withSupabaseAuth(request: NextRequest) {
    * - Jika belum login -> allow buka /login (jangan redirect balik)
    */
   if (isLoginPath) {
-    if (user) return makeRedirect("/app");
+    if (user) {
+      if (!isVerified && pathname !== "/verify-email") {
+        return makeRedirect(verifyEmailUrl);
+      }
+      if (isVerified) {
+        return makeRedirect("/app");
+      }
+    }
     return makeNext();
   }
 
@@ -97,6 +108,9 @@ export async function withSupabaseAuth(request: NextRequest) {
       const next = buildNextParam(pathname, search);
       return makeRedirect(`/login?next=${next}`);
     }
+    if (!isVerified) {
+      return makeRedirect(verifyEmailUrl);
+    }
     return makeNext();
   }
 
@@ -107,6 +121,9 @@ export async function withSupabaseAuth(request: NextRequest) {
     if (!user) {
       const next = buildNextParam(pathname, search);
       return makeRedirect(`/login?next=${next}`);
+    }
+    if (!isVerified) {
+      return makeRedirect(verifyEmailUrl);
     }
     return makeNext();
   }

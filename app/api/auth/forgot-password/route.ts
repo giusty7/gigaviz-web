@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getResendFromAuth } from "@/lib/email";
 import { forgotPasswordSchema } from "@/lib/validation/auth";
 
 export const runtime = "nodejs";
-
-const FROM_EMAIL =
-  process.env.AUTH_FROM_EMAIL ??
-  "Gigaviz Auth <onboarding@resend.dev>";
 
 function getBaseUrl(req: NextRequest) {
   return process.env.APP_BASE_URL ?? req.nextUrl.origin;
@@ -51,7 +48,7 @@ export async function POST(req: NextRequest) {
   const actionLink = data.properties.action_link;
 
   const { error: sendError } = await resend.emails.send({
-    from: FROM_EMAIL,
+    from: getResendFromAuth(),
     to: [email],
     subject: "Reset your Gigaviz password",
     text: `Reset your password with the link below:\n${actionLink}\n\nIf you did not request this, you can ignore this email.`,

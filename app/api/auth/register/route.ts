@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getResendFromAuth } from "@/lib/email";
 import { registerSchema } from "@/lib/validation/auth";
 
 export const runtime = "nodejs";
-
-const FROM_EMAIL =
-  process.env.AUTH_FROM_EMAIL ??
-  "Gigaviz Auth <onboarding@resend.dev>";
 
 function getBaseUrl(req: NextRequest) {
   return process.env.APP_BASE_URL ?? req.nextUrl.origin;
@@ -55,7 +52,7 @@ export async function POST(req: NextRequest) {
   const actionLink = data.properties.action_link;
 
   const { error: sendError } = await resend.emails.send({
-    from: FROM_EMAIL,
+    from: getResendFromAuth(),
     to: [email],
     subject: "Verify your Gigaviz account",
     text: `Welcome to Gigaviz.\n\nVerify your email to continue:\n${actionLink}\n\nIf you did not request this, you can ignore this email.`,
