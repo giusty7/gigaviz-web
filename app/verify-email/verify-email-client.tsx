@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { supabaseClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -42,11 +43,11 @@ export default function VerifyEmailClient() {
       <div className="flex flex-col gap-2">
         {status === "verified" ? (
           <Button asChild>
-            <a href="/app">Continue</a>
+            <Link href="/app">Continue</Link>
           </Button>
         ) : (
           <Button asChild variant="secondary">
-            <a href="/login">Back to login</a>
+            <Link href="/login">Back to login</Link>
           </Button>
         )}
       </div>
