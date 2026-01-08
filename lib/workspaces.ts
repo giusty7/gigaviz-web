@@ -15,29 +15,6 @@ export type WorkspaceSummary = {
   role: string;
 };
 
-type WorkspaceRow = Omit<WorkspaceSummary, "role">;
-
-function isWorkspaceRow(value: unknown): value is WorkspaceRow {
-  if (!value || typeof value !== "object") return false;
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record.id === "string" &&
-    typeof record.name === "string" &&
-    typeof record.slug === "string" &&
-    typeof record.workspace_type === "string" &&
-    typeof record.created_at === "string" &&
-    ("owner_id" in record)
-  );
-}
-
-function normalizeWorkspace(value: unknown): WorkspaceRow | null {
-  if (Array.isArray(value)) {
-    const match = value.find(isWorkspaceRow);
-    return match ?? null;
-  }
-  return isWorkspaceRow(value) ? value : null;
-}
-
 export async function getWorkspaceCookie() {
   const cookieStore = await cookies();
   return cookieStore.get(WORKSPACE_COOKIE)?.value ?? null;
@@ -62,33 +39,42 @@ export function resolveCurrentWorkspace(
 
 export async function getUserWorkspaces(userId: string) {
   const db = supabaseAdmin();
-  const { data, error } = await db
+  const { data: memberships, error } = await db
     .from("workspace_members")
-    .select(
-      "workspace_id, role, workspaces(id, name, slug, owner_id, workspace_type, created_at)"
-    )
+    .select("workspace_id, role, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
+  if (!memberships?.length) return [];
 
-  return (
-    data?.flatMap((row) => {
-      const ws = normalizeWorkspace(row.workspaces);
-      if (!ws) return [];
-      return [
-        {
-          id: ws.id,
-          name: ws.name,
-          slug: ws.slug,
-          owner_id: ws.owner_id,
-          workspace_type: ws.workspace_type,
-          created_at: ws.created_at,
-          role: row.role,
-        },
-      ];
-    }) ?? []
+  const workspaceIds = memberships.map((membership) => membership.workspace_id);
+  const { data: workspaces, error: workspaceError } = await db
+    .from("workspaces")
+    .select("id, name, slug, owner_id, workspace_type, created_at")
+    .in("id", workspaceIds);
+
+  if (workspaceError) throw workspaceError;
+
+  const workspaceMap = new Map(
+    (workspaces ?? []).map((workspace) => [workspace.id, workspace])
   );
+
+  return memberships.flatMap((membership) => {
+    const workspace = workspaceMap.get(membership.workspace_id);
+    if (!workspace) return [];
+    return [
+      {
+        id: workspace.id,
+        name: workspace.name,
+        slug: workspace.slug,
+        owner_id: workspace.owner_id,
+        workspace_type: workspace.workspace_type,
+        created_at: workspace.created_at,
+        role: membership.role,
+      },
+    ];
+  });
 }
 
 export async function getWorkspaceMembership(

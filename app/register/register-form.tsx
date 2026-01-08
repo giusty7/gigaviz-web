@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { registerSchema } from "@/lib/validation/auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -49,7 +49,7 @@ export default function RegisterForm() {
     },
   });
 
-  const passwordValue = form.watch("password");
+  const passwordValue = useWatch({ control: form.control, name: "password" }) ?? "";
   const strength = useMemo(() => getStrength(passwordValue), [passwordValue]);
   const strengthLabel =
     strength <= 1
