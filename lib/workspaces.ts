@@ -20,6 +20,18 @@ export async function getWorkspaceCookie() {
   return cookieStore.get(WORKSPACE_COOKIE)?.value ?? null;
 }
 
+export async function ensureWorkspaceCookie(workspaceId: string) {
+  const cookieStore = await cookies();
+  if (cookieStore.get(WORKSPACE_COOKIE)?.value === workspaceId) return;
+  cookieStore.set(WORKSPACE_COOKIE, workspaceId, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+}
+
 export function resolveCurrentWorkspace(
   workspaces: WorkspaceSummary[],
   cookieId?: string | null,

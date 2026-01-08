@@ -3,9 +3,12 @@ import { tokenSafetyCopy } from "@/lib/tokenRates";
 
 type TokenCardProps = {
   balance: number;
+  workspaceSlug?: string | null;
 };
 
-export default function TokenCard({ balance }: TokenCardProps) {
+export default function TokenCard({ balance, workspaceSlug }: TokenCardProps) {
+  const tokensHref = workspaceSlug ? `/app/${workspaceSlug}/tokens` : "/app/tokens";
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <div className="flex items-start justify-between">
@@ -15,7 +18,7 @@ export default function TokenCard({ balance }: TokenCardProps) {
           <p className="text-xs text-white/50 mt-1">Tokens available</p>
         </div>
         <Link
-          href="/app/tokens"
+          href={tokensHref}
           className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"
         >
           Token rates

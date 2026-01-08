@@ -5,9 +5,17 @@ type PlanCardProps = {
   plan: PlanMeta;
   status?: string | null;
   seatLimit?: number | null;
+  workspaceSlug?: string | null;
 };
 
-export default function PlanCard({ plan, status, seatLimit }: PlanCardProps) {
+export default function PlanCard({
+  plan,
+  status,
+  seatLimit,
+  workspaceSlug,
+}: PlanCardProps) {
+  const billingHref = workspaceSlug ? `/app/${workspaceSlug}/billing` : "/app/billing";
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <div className="flex items-start justify-between">
@@ -19,7 +27,7 @@ export default function PlanCard({ plan, status, seatLimit }: PlanCardProps) {
           </p>
         </div>
         <Link
-          href="/app/billing"
+          href={billingHref}
           className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"
         >
           {plan.ctaLabel}

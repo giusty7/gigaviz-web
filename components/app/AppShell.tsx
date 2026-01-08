@@ -14,6 +14,7 @@ type AppShellProps = {
   userEmail: string;
   workspaces: WorkspaceItem[];
   currentWorkspaceId: string;
+  currentWorkspaceSlug?: string | null;
   isAdmin: boolean;
   children: ReactNode;
 };
@@ -22,9 +23,20 @@ export default function AppShell({
   userEmail,
   workspaces,
   currentWorkspaceId,
+  currentWorkspaceSlug,
   isAdmin,
   children,
 }: AppShellProps) {
+  const currentWorkspace =
+    workspaces.find((ws) => ws.id === currentWorkspaceId) ?? null;
+  const workspaceSlug = currentWorkspaceSlug ?? currentWorkspace?.slug ?? null;
+  const dashboardHref = workspaceSlug
+    ? `/app/${workspaceSlug}/dashboard`
+    : "/app";
+  const modulesHref = workspaceSlug ? `/app/${workspaceSlug}/modules` : "/app/modules";
+  const tokensHref = workspaceSlug ? `/app/${workspaceSlug}/tokens` : "/app/tokens";
+  const billingHref = workspaceSlug ? `/app/${workspaceSlug}/billing` : "/app/billing";
+
   return (
     <Shell
       sidebar={
@@ -37,23 +49,23 @@ export default function AppShell({
           </div>
 
           <nav className="flex flex-col gap-2 text-sm">
-            <Link href="/app" className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface">
+            <Link href={dashboardHref} className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface">
               Dashboard
             </Link>
             <Link
-              href="/app/modules"
+              href={modulesHref}
               className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
             >
               Modules
             </Link>
             <Link
-              href="/app/tokens"
+              href={tokensHref}
               className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
             >
               Tokens
             </Link>
             <Link
-              href="/app/billing"
+              href={billingHref}
               className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
             >
               Billing
