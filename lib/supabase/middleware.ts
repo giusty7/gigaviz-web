@@ -55,11 +55,25 @@ export async function withSupabaseAuth(request: NextRequest) {
     pathname === "/api/admin/attachments/sign" ||
     pathname.startsWith("/api/admin/crm/contacts/");
 
-  // Helper bikin response + apply cookie buffer
+  // Extract workspace slug from /app/:workspaceSlug/* paths
+  const workspaceSlugMatch = pathname.match(/^\/app\/([^\/]+)/);
+  const workspaceSlug = workspaceSlugMatch ? workspaceSlugMatch[1] : null;
+
+  // Helper bikin response + apply cookie buffer + workspace cookie
   const applyCookies = (res: NextResponse) => {
     cookiesToSet.forEach(({ name, value, options }) =>
       res.cookies.set(name, value, options)
     );
+    // Set workspace cookie if on /app/:workspaceSlug/* (but not /app/onboarding)
+    if (workspaceSlug && workspaceSlug !== "onboarding") {
+      res.cookies.set("gv_workspace_slug", workspaceSlug, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
     return res;
   };
 

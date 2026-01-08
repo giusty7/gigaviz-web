@@ -8,15 +8,16 @@ import { ensureWorkspaceCookie } from "@/lib/workspaces";
 export const dynamic = "force-dynamic";
 
 type TokensPageProps = {
-  params: { workspaceSlug: string };
+  params: Promise<{ workspaceSlug: string }>;
 };
 
 export default async function TokensPage({ params }: TokensPageProps) {
-  const ctx = await getAppContext(params.workspaceSlug);
+  const { workspaceSlug } = await params;
+  const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/app/onboarding");
 
-  if (ctx.currentWorkspace.slug !== params.workspaceSlug) {
+  if (ctx.currentWorkspace.slug !== workspaceSlug) {
     redirect(`/app/${ctx.currentWorkspace.slug}/tokens`);
   }
 

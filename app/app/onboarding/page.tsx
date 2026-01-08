@@ -179,10 +179,11 @@ async function createInvites(formData: FormData) {
 }
 
 type OnboardingPageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
 
@@ -197,16 +198,16 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
     redirect(`/app/${workspaces[0].slug}/dashboard`);
   }
 
-  const stepParam = typeof searchParams?.step === "string" ? searchParams.step : null;
+  const stepParam = typeof resolvedSearchParams?.step === "string" ? resolvedSearchParams.step : null;
   const workspaceParam =
-    typeof searchParams?.workspace === "string" ? searchParams.workspace : null;
+    typeof resolvedSearchParams?.workspace === "string" ? resolvedSearchParams.workspace : null;
 
   const step =
     stepParam === "invites" && workspaceParam ? "invites" : "create";
   const errorParam =
-    typeof searchParams?.error === "string" ? searchParams.error : null;
+    typeof resolvedSearchParams?.error === "string" ? resolvedSearchParams.error : null;
   const slugParam =
-    typeof searchParams?.slug === "string" ? searchParams.slug : null;
+    typeof resolvedSearchParams?.slug === "string" ? resolvedSearchParams.slug : null;
 
   return (
     <div className="min-h-screen bg-gigaviz-bg text-gigaviz-cream">

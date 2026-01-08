@@ -10,18 +10,19 @@ import { ensureWorkspaceCookie } from "@/lib/workspaces";
 export const dynamic = "force-dynamic";
 
 type ModuleDetailPageProps = {
-  params: { workspaceSlug: string; moduleKey: string };
+  params: Promise<{ workspaceSlug: string; moduleKey: string }>;
 };
 
 export default async function ModuleDetailPage({ params }: ModuleDetailPageProps) {
-  const moduleConfig = getAppModule(params.moduleKey);
+  const { workspaceSlug, moduleKey } = await params;
+  const moduleConfig = getAppModule(moduleKey);
   if (!moduleConfig) notFound();
 
-  const ctx = await getAppContext(params.workspaceSlug);
+  const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/app/onboarding");
 
-  if (ctx.currentWorkspace.slug !== params.workspaceSlug) {
+  if (ctx.currentWorkspace.slug !== workspaceSlug) {
     redirect(`/app/${ctx.currentWorkspace.slug}/modules/${moduleConfig.slug}`);
   }
 

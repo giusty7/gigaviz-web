@@ -9,14 +9,11 @@ import { renderMarkdown } from "@/lib/markdown";
 import { getPolicyBySlug, policySlugs } from "@/lib/policies";
 
 type PageProps = {
-  params: { slug: string } | Promise<{ slug: string }>;
+  params: Promise<{ slug: string }>;
 };
 
-async function resolveParams(params: PageProps["params"]) {
-  if (typeof (params as Promise<{ slug: string }>).then === "function") {
-    return params as Promise<{ slug: string }>;
-  }
-  return params as { slug: string };
+async function resolveParams(params: Promise<{ slug: string }>) {
+  return await params;
 }
 
 export async function generateStaticParams() {
