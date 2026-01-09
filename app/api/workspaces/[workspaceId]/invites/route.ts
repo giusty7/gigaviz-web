@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "node:crypto";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendWorkspaceInviteEmail } from "@/lib/email";
-import crypto from "node:crypto";
 
 export const runtime = "nodejs";
 
 type Ctx =
-  | { params: Promise<{ workspaceSlug: string }> }
-  | { params: { workspaceSlug: string } };
+  | { params: Promise<{ workspaceId: string }> }
+  | { params: { workspaceId: string } };
 
 function sha256Hex(input: string) {
   return crypto.createHash("sha256").update(input).digest("hex");
@@ -40,22 +40,23 @@ export async function POST(req: NextRequest, context: Ctx) {
   }
 
   const db = supabaseAdmin();
+  const slug = params.workspaceId;
 
   // Resolve workspace by slug (service role to avoid RLS empties)
   if (process.env.NODE_ENV === "development") {
-    console.log(`[invite] Looking up workspace slug: ${params.workspaceSlug}`);
+    console.log(`[invite] Looking up workspace slug: ${slug}`);
   }
 
   const { data: wsRow, error: wsErr } = await db
     .from("workspaces")
     .select("id, name")
-    .eq("slug", params.workspaceSlug)
+    .eq("slug", slug)
     .maybeSingle();
 
   if (wsErr || !wsRow) {
     if (process.env.NODE_ENV === "development") {
       console.warn("[invite] workspace lookup failed", {
-        slug: params.workspaceSlug,
+        slug,
         error: wsErr?.message ?? "no row found",
         code: wsErr?.code ?? null,
       });
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest, context: Ctx) {
     );
   }
 
-  // Generate token + token_hash (DB kamu butuh token_hash NOT NULL)
+  // Generate token + token_hash (DB requires token_hash NOT NULL)
   const token = crypto.randomBytes(32).toString("base64url");
   const token_hash = sha256Hex(token);
 
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest, context: Ctx) {
     .from("workspace_invites")
     .insert(inviteRow)
     .select(
-      // jangan balikin token/token_hash ke client (biar aman)
+      // Do not return token/token_hash to client
       "id, workspace_id, email, role, invited_by, created_at, expires_at, accepted_at, accepted_by, revoked_at"
     )
     .maybeSingle();
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest, context: Ctx) {
   if (insertErr) {
     const code = insertErr.code ?? null;
 
-    // 23505 = unique_violation (mis: invite aktif sudah ada)
+    // 23505 = unique_violation (active invite already exists)
     if (code === "23505") {
       return withCookies(
         NextResponse.json({ error: "invite_already_exists" }, { status: 409 })
@@ -150,7 +151,7 @@ export async function POST(req: NextRequest, context: Ctx) {
     );
   }
 
-  // Send email (accept link pakai token RAW)
+  // Send email (accept link uses raw token)
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
   const acceptUrl = `${origin}/invite/${token}`;
 
@@ -170,7 +171,7 @@ export async function POST(req: NextRequest, context: Ctx) {
     if (process.env.NODE_ENV === "development") {
       console.warn("[invite] Email send failed", { error: String(err) });
     }
-    // email gagal: tetap return 201 karena invite udah kebuat di DB
+    // Even if email fails, invite already exists in DB so return success
   }
 
   if (process.env.NODE_ENV === "development") {

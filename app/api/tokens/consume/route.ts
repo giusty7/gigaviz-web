@@ -11,6 +11,7 @@ import {
 } from "@/lib/tokens";
 import { rateLimit } from "@/lib/rate-limit";
 import { enforceUsageCap, recordUsage } from "@/lib/usage/server";
+import type { TokenActionKey } from "@/lib/tokenRates";
 
 export async function POST(req: NextRequest) {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
@@ -38,15 +39,60 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null);
-  const workspaceId =
-    typeof body?.workspace_id === "string" ? body.workspace_id : null;
+  const headerWorkspaceId = req.headers.get("x-workspace-id");
+  const bodyWorkspaceId =
+    typeof body?.workspaceId === "string"
+      ? body.workspaceId
+      : typeof body?.workspace_id === "string"
+        ? body.workspace_id
+        : null;
+  const workspaceId = headerWorkspaceId?.trim() || bodyWorkspaceId || null;
+
   const action = typeof body?.action === "string" ? body.action : null;
   const refType = typeof body?.ref_type === "string" ? body.ref_type : null;
   const refId = typeof body?.ref_id === "string" ? body.ref_id : null;
+  const metadata =
+    body && typeof body === "object" && typeof body?.metadata === "object"
+      ? (body.metadata as Record<string, unknown>)
+      : undefined;
 
-  if (!workspaceId || !action || !(action in tokenRates)) {
+  const allowedActions = Object.keys(tokenRates) as TokenActionKey[];
+
+  if (!workspaceId) {
     return withCookies(
-      NextResponse.json({ error: "invalid_request" }, { status: 400 })
+      NextResponse.json(
+        {
+          error: "invalid_request",
+          reason: "workspace_required",
+        },
+        { status: 400 }
+      )
+    );
+  }
+
+  if (!action) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: "invalid_request",
+          reason: "action_required",
+          allowedActions,
+        },
+        { status: 400 }
+      )
+    );
+  }
+
+  if (!(action in tokenRates)) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: "invalid_request",
+          reason: "unknown_action",
+          allowedActions,
+        },
+        { status: 400 }
+      )
     );
   }
 
@@ -103,6 +149,7 @@ export async function POST(req: NextRequest) {
       eventType: "tokens",
       amount: cost,
       metadata: {
+        ...metadata,
         route: "/api/tokens/consume",
         action,
         feature: featureKey,

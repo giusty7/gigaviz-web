@@ -7,6 +7,7 @@ import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import LockedScreen from "@/components/app/LockedScreen";
+import UsageSummaryCard from "@/components/usage/UsageSummaryCard";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,7 @@ export default async function TokensPage({ params }: TokensPageProps) {
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
   const allowed = canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, "tokens_view");
+  const canEditCap = ctx.currentRole === "owner" || ctx.currentRole === "admin";
 
   if (!allowed) {
     return (
@@ -49,6 +51,12 @@ export default async function TokensPage({ params }: TokensPageProps) {
 
   return (
     <div className="space-y-6">
+      <UsageSummaryCard
+        workspaceId={ctx.currentWorkspace.id}
+        workspaceSlug={ctx.currentWorkspace.slug}
+        canEditCap={canEditCap}
+      />
+
       <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="text-lg font-semibold">Token Wallet</h2>
         <p className="text-3xl font-semibold mt-2">{balance.toLocaleString()}</p>
