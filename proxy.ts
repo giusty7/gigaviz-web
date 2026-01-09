@@ -5,6 +5,6 @@ export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   return withSupabaseAuth(req);
 }

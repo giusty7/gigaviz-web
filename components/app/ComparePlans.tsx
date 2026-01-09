@@ -5,9 +5,10 @@ import type { PlanMeta } from "@/lib/entitlements";
 
 type ComparePlansProps = {
   plans: PlanMeta[];
+  activePlanId?: string | null;
 };
 
-export default function ComparePlans({ plans }: ComparePlansProps) {
+export default function ComparePlans({ plans, activePlanId }: ComparePlansProps) {
   const [mode, setMode] = useState<"individual" | "team">("individual");
 
   const filtered = useMemo(
@@ -43,7 +44,11 @@ export default function ComparePlans({ plans }: ComparePlansProps) {
         {filtered.map((plan) => (
           <div
             key={plan.plan_id}
-            className="rounded-2xl border border-white/10 bg-black/20 p-5"
+            className={`rounded-2xl border ${
+              activePlanId === plan.plan_id
+                ? "border-[color:var(--gv-accent)]"
+                : "border-white/10"
+            } bg-black/20 p-5`}
           >
             <div className="flex items-start justify-between">
               <div>
@@ -52,7 +57,13 @@ export default function ComparePlans({ plans }: ComparePlansProps) {
                   Seat limit: {plan.seat_limit}
                 </p>
               </div>
-              <span className="text-xs text-white/40">{plan.plan_id}</span>
+              <span
+                className={`text-xs ${
+                  activePlanId === plan.plan_id ? "text-[color:var(--gv-accent)]" : "text-white/40"
+                }`}
+              >
+                {activePlanId === plan.plan_id ? "Plan aktif" : plan.plan_id}
+              </span>
             </div>
             <ul className="mt-3 space-y-2 text-sm text-white/70">
               {plan.highlightBenefits.map((benefit) => (

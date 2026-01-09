@@ -177,7 +177,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
         />
       </section>
 
-      <ComparePlans plans={planMeta} />
+      <ComparePlans plans={planMeta} activePlanId={plan.plan_id} />
 
       {isAdmin && (
         <AdminPanel
