@@ -83,6 +83,44 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   return (
     <div className="space-y-8">
       <SetPasswordModal />
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold">Quick Access</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Buka modul utama lebih cepat. Modul yang belum aktif ditandai.
+        </p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {moduleCards.map((m) => (
+            <div
+              key={m.key}
+              className="flex items-center justify-between rounded-xl border border-border bg-background p-4"
+            >
+              <div>
+                <p className="text-base font-semibold text-foreground">{m.name}</p>
+                <p className="text-sm text-muted-foreground">{m.description}</p>
+              </div>
+              {m.status === "available" && m.href ? (
+                <Link
+                  href={m.href}
+                  className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
+                >
+                  Open
+                </Link>
+              ) : m.status === "locked" ? (
+                <Link
+                  href={m.lockedHref ?? `${basePath}/billing`}
+                  className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
+                >
+                  Unlock
+                </Link>
+              ) : (
+                <span className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-muted-foreground">
+                  Coming soon
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold">Workspace Overview</h2>

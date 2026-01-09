@@ -6,6 +6,7 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { redirect as nextRedirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,9 @@ type ModuleDetailPageProps = {
 
 export default async function ModuleDetailPage({ params }: ModuleDetailPageProps) {
   const { workspaceSlug, moduleKey } = await params;
+  if (moduleKey === "meta-hub") {
+    return nextRedirect(`/app/${workspaceSlug}/meta-hub`);
+  }
   const moduleConfig = getAppModule(moduleKey);
   if (!moduleConfig) notFound();
 

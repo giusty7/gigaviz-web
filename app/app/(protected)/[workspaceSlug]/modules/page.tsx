@@ -47,12 +47,19 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
       ? "locked"
       : "available";
 
+    const href =
+      module.key === "meta_hub"
+        ? `${basePath}/meta-hub`
+        : !comingSoon && !locked
+          ? `${basePath}/modules/${module.slug}`
+          : undefined;
+
     return {
       key: module.key,
       name: module.name,
       description: module.short || module.description,
       status,
-      href: !comingSoon && !locked ? `${basePath}/modules/${module.slug}` : undefined,
+      href,
       lockedHref: locked ? `${basePath}/billing` : undefined,
       lockedLabel: locked ? "Buka di Billing" : undefined,
     };
