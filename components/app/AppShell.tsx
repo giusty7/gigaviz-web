@@ -40,6 +40,7 @@ export default function AppShell({
 
   return (
     <Shell
+      className="gv-app"
       sidebar={
         <>
           <div className="mb-8">

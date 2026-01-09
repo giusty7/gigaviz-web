@@ -32,13 +32,13 @@ const productNavOrder = [
   "platform",
   "meta-hub",
   "helper",
-  "office",
   "studio",
+  "apps",
   "marketplace",
   "arena",
-  "apps",
   "pay",
   "community",
+  "trade",
 ];
 
 const productNav: NavItem[] = [

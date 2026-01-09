@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAppContext } from "@/lib/app-context";
@@ -223,10 +224,34 @@ export default async function SettingsPage({ params }: Props) {
     redirect("/app");
   }
 
+  const navLinks = [
+    { href: `/app/${workspaceSlug}/settings`, label: "Overview" },
+    { href: `/app/${workspaceSlug}/settings#members`, label: "Members" },
+    { href: `/app/${workspaceSlug}/billing`, label: "Billing" },
+    {
+      href: `/app/${workspaceSlug}/settings/design-tokens`,
+      label: "Design Tokens",
+      visible: canEditWorkspace || process.env.NODE_ENV !== "production",
+    },
+  ].filter((item) => item.visible !== false);
+
   return (
     <SettingsLayout
       title="Settings"
       description="Manage your account and workspace preferences."
+      nav={
+        <nav className="space-y-1 text-sm text-muted-foreground">
+          {navLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="block rounded-lg px-2 py-1 hover:bg-gigaviz-surface text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      }
     >
       <Card>
         <CardHeader>

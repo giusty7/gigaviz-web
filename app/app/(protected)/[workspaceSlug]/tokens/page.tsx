@@ -57,21 +57,21 @@ export default async function TokensPage({ params }: TokensPageProps) {
         canEditCap={canEditCap}
       />
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Token Wallet</h2>
-        <p className="text-3xl font-semibold mt-2">{balance.toLocaleString()}</p>
-        <p className="text-sm text-white/60 mt-2">{tokenSafetyCopy}</p>
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground">Token Wallet</h2>
+        <p className="text-3xl font-semibold mt-2 text-foreground">{balance.toLocaleString()}</p>
+        <p className="text-sm text-muted-foreground mt-2">{tokenSafetyCopy}</p>
         <button
           disabled
-          className="mt-4 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white opacity-60"
+          className="mt-4 rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground opacity-60"
         >
           Top up (coming soon)
         </button>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">How tokens work</h2>
-        <p className="text-sm text-white/60 mt-2">
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground">How tokens work</h2>
+        <p className="text-sm text-muted-foreground mt-2">
           Token dipakai untuk biaya pemakaian AI/API per aksi. Subscription
           membuka akses modul dan seat, sementara token usage dihitung terpisah.
         </p>
@@ -79,16 +79,16 @@ export default async function TokensPage({ params }: TokensPageProps) {
 
       <TokenEstimator />
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Token Rates</h2>
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground">Token Rates</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {tokenRateList.map((rate) => (
             <div
               key={rate.action}
-              className="rounded-xl border border-white/10 bg-black/20 p-4"
+              className="rounded-xl border border-border bg-gigaviz-surface p-4"
             >
-              <p className="text-sm font-semibold">{rate.description}</p>
-              <p className="text-xs text-white/60 mt-1">
+              <p className="text-sm font-semibold text-foreground">{rate.description}</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 {rate.tokens} tokens per action
               </p>
             </div>
@@ -96,20 +96,20 @@ export default async function TokensPage({ params }: TokensPageProps) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Token Ledger</h2>
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground">Token Ledger</h2>
         <div className="mt-4 space-y-3">
           {ledger.length === 0 && (
-            <p className="text-sm text-white/60">Belum ada transaksi token.</p>
+            <p className="text-sm text-muted-foreground">Belum ada transaksi token.</p>
           )}
           {ledger.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm"
+              className="flex items-center justify-between rounded-xl border border-border bg-gigaviz-surface px-4 py-3 text-sm"
             >
               <div>
-                <p className="font-semibold">{entry.reason}</p>
-                <p className="text-xs text-white/60">
+                <p className="font-semibold text-foreground">{entry.reason}</p>
+                <p className="text-xs text-muted-foreground">
                   {new Date(entry.created_at).toLocaleString()}
                 </p>
               </div>

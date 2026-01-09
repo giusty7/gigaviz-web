@@ -1,3 +1,4 @@
+import { topLevelModules, type ModuleStatus } from "@/lib/modules/catalog";
 import type { FeatureKey } from "@/lib/entitlements";
 
 export type ModuleAvailability = "available" | "coming_soon";
@@ -13,92 +14,26 @@ export type AppModule = {
   lockedDescription?: string;
   summary?: string;
   note?: string;
+  status?: ModuleStatus;
 };
 
-export const appModules: AppModule[] = [
-  {
-    key: "meta-hub",
-    slug: "meta-hub",
-    name: "Meta Hub",
-    description: "Meta automation, templates, and compliance tools.",
-    availability: "available",
-    feature: "meta_hub",
-    lockedTitle: "Meta Hub is locked",
-    lockedDescription: "Upgrade to unlock Meta Hub messaging and automation.",
-    summary:
-      "Stub module. Manage templates, send messages, and connect Meta tools.",
-    note: "Meta Hub actions consume tokens (see rate card).",
-  },
-  {
-    key: "helper",
-    slug: "helper",
-    name: "Helper",
-    description: "AI-assisted responses with policy-safe guardrails.",
-    availability: "available",
-    feature: "helper",
-    lockedTitle: "Helper is locked",
-    lockedDescription:
-      "Upgrade your plan to access Helper chat and tokenized responses.",
-    summary:
-      "Stub module. Add your assistant workflows and tokenized actions here.",
-    note: "Helper actions will consume tokens on execution.",
-  },
-  {
-    key: "tracks",
-    slug: "tracks",
-    name: "Tracks",
-    description: "Workflow orchestration and journey tracking.",
-    availability: "available",
-    feature: "tracks",
-    lockedTitle: "Tracks is locked",
-    lockedDescription:
-      "Upgrade to unlock Tracks orchestration and automation.",
-    summary:
-      "Stub module. Build multi-step journeys and orchestration flows.",
-    note: "Tracks runs consume tokens when executed.",
-  },
-  {
-    key: "office",
-    slug: "office",
-    name: "Office",
-    description: "Automate docs, exports, and internal ops.",
-    availability: "available",
-    feature: "office",
-    lockedTitle: "Office is locked",
-    lockedDescription: "Upgrade to access Office automations and exports.",
-    summary: "Stub module. Configure office automation workflows and exports.",
-    note: "Office exports consume tokens on execution.",
-  },
-  {
-    key: "graph",
-    slug: "graph",
-    name: "Graph",
-    description: "Generate visuals and data-driven insights.",
-    availability: "available",
-    feature: "graph",
-    lockedTitle: "Graph is locked",
-    lockedDescription: "Upgrade to generate graph visuals and insights.",
-    summary:
-      "Stub module. Generate charts, imagery, and analytics exports.",
-    note: "Graph generation actions consume tokens on execution.",
-  },
-  {
-    key: "apps",
-    slug: "apps",
-    name: "Apps",
-    description: "Launch internal mini apps and partner tools.",
-    availability: "coming_soon",
-    summary: "App catalog sedang disiapkan untuk workspace ini.",
-  },
-  {
-    key: "trade",
-    slug: "trade",
-    name: "Trade",
-    description: "Market insights and trading automation workflows.",
-    availability: "coming_soon",
-    summary: "Workflow Trade masih dalam tahap perencanaan.",
-  },
-];
+function availabilityFromStatus(status: ModuleStatus): ModuleAvailability {
+  return status === "coming" ? "coming_soon" : "available";
+}
+
+export const appModules: AppModule[] = topLevelModules.map((module) => ({
+  key: module.key,
+  slug: module.slug,
+  name: module.name,
+  description: module.short || module.description,
+  availability: availabilityFromStatus(module.status),
+  feature: module.requiresEntitlement,
+  lockedTitle: `${module.name} terkunci`,
+  lockedDescription: "Upgrade untuk membuka modul ini sesuai entitlement plan.",
+  summary: module.description,
+  note: module.status === "beta" ? "Status beta: mungkin ada perubahan." : undefined,
+  status: module.status,
+}));
 
 export function getAppModule(slug: string) {
   return appModules.find((module) => module.slug === slug);

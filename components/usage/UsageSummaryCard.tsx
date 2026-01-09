@@ -116,12 +116,14 @@ export default function UsageSummaryCard({
   }
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">
+    <section className="rounded-2xl border border-border bg-card p-6 text-foreground shadow-lg shadow-gigaviz-navy/30">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-wide text-white/60">Usage</p>
+          <p className="text-sm uppercase tracking-wide text-muted-foreground">
+            Usage
+          </p>
           <h2 className="text-xl font-semibold">Ringkasan Pemakaian</h2>
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-muted-foreground">
             Workspace: {workspaceSlug} • Bulan {summary?.yyyymm ?? "—"}
           </p>
         </div>
@@ -129,7 +131,7 @@ export default function UsageSummaryCard({
           <button
             onClick={fetchSummary}
             disabled={loading}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/15 disabled:opacity-60"
+            className="rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:bg-gigaviz-surface/80 disabled:opacity-60"
           >
             Refresh
           </button>
@@ -141,7 +143,7 @@ export default function UsageSummaryCard({
           {error}{" "}
           <button
             onClick={fetchSummary}
-            className="underline decoration-dashed decoration-white/40"
+            className="underline decoration-dashed decoration-foreground/40"
           >
             Coba lagi
           </button>
@@ -149,28 +151,28 @@ export default function UsageSummaryCard({
       )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-4">
-        <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs text-white/60">Cap</p>
+        <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
+          <p className="text-xs text-muted-foreground">Cap</p>
           <p className="mt-1 text-lg font-semibold">
             {summary?.cap === null ? "Unlimited" : formatNumber(summary?.cap)}
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs text-white/60">Used (bulan ini)</p>
+        <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
+          <p className="text-xs text-muted-foreground">Used (bulan ini)</p>
           <p className="mt-1 text-lg font-semibold">
             {loading ? "Loading..." : formatNumber(summary?.used)}
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs text-white/60">Remaining</p>
+        <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
+          <p className="text-xs text-muted-foreground">Remaining</p>
           <p className="mt-1 text-lg font-semibold">
             {summary?.cap === null
               ? "Unlimited"
               : formatNumber(summary?.remaining)}
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs text-white/60">Progress</p>
+        <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
+          <p className="text-xs text-muted-foreground">Progress</p>
           <p className="mt-1 text-lg font-semibold">
             {summary?.percentUsed !== null && summary?.percentUsed !== undefined
               ? `${Math.round(summary.percentUsed)}%`
@@ -179,9 +181,9 @@ export default function UsageSummaryCard({
         </div>
       </div>
 
-      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gigaviz-surface">
         <div
-          className="h-full rounded-full bg-emerald-400 transition-all duration-300"
+          className="h-full rounded-full bg-gigaviz-gold transition-all duration-300"
           style={{ width: `${percentUsed}%` }}
         />
       </div>
@@ -197,28 +199,30 @@ export default function UsageSummaryCard({
               value={capInput}
               onChange={(e) => setCapInput(e.target.value)}
               placeholder="Kosongkan untuk Unlimited"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-emerald-400 focus:outline-none"
+              className="mt-2 w-full rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gigaviz-gold focus:outline-none"
             />
-            <p className="mt-1 text-xs text-white/50">
+            <p className="mt-1 text-xs text-muted-foreground">
               Isi angka untuk batasi token bulanan, kosongkan untuk Unlimited.
             </p>
           </div>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="h-10 rounded-xl border border-emerald-300/30 bg-emerald-500/80 px-4 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 disabled:opacity-60"
+            className="h-10 rounded-xl border border-gigaviz-gold/40 bg-gigaviz-gold px-4 text-sm font-semibold text-gigaviz-navy shadow-lg shadow-gigaviz-gold/20 hover:bg-gigaviz-gold/90 disabled:opacity-60"
           >
             {saving ? "Menyimpan..." : "Simpan Cap"}
           </button>
         </div>
       ) : (
-        <p className="mt-4 text-xs text-white/50">
+        <p className="mt-4 text-xs text-muted-foreground">
           Hanya owner/admin yang bisa mengubah usage cap. Hubungi admin workspace untuk update.
         </p>
       )}
 
       {saveError && <p className="mt-3 text-sm text-red-300">{saveError}</p>}
-      {saveSuccess && <p className="mt-3 text-sm text-emerald-300">{saveSuccess}</p>}
+      {saveSuccess && (
+        <p className="mt-3 text-sm text-gigaviz-gold">{saveSuccess}</p>
+      )}
     </section>
   );
 }

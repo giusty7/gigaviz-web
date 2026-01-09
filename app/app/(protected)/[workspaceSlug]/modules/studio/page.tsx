@@ -4,22 +4,21 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
-import { topLevelModules } from "@/lib/modules/catalog";
+import { studioChildren } from "@/lib/modules/catalog";
 
 export const dynamic = "force-dynamic";
 
-type ModulesPageProps = {
+type PageProps = {
   params: Promise<{ workspaceSlug: string }>;
 };
 
-export default async function ModulesPage({ params }: ModulesPageProps) {
+export default async function StudioModulesPage({ params }: PageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/app/onboarding");
-
   if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/modules`);
+    redirect(`/app/${ctx.currentWorkspace.slug}/modules/studio`);
   }
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
@@ -35,7 +34,7 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
   const isAdmin = Boolean(ctx.profile?.is_admin);
   const basePath = `/app/${ctx.currentWorkspace.slug}`;
 
-  const moduleCards = topLevelModules.map((module) => {
+  const moduleCards = studioChildren.map((module) => {
     const comingSoon = module.status === "coming";
     const locked =
       !comingSoon &&
@@ -61,9 +60,9 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Modules</h1>
+        <h1 className="text-xl font-semibold">Studio Suite</h1>
         <p className="text-sm text-muted-foreground">
-          Jelajahi modul yang tersedia. Locked modules butuh upgrade plan.
+          Office, Graph, dan Tracks dalam satu suite. Locked modules dapat dibuka melalui Billing.
         </p>
       </div>
       <ModuleGrid modules={moduleCards} />

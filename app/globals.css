@@ -3,22 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --gv-navy: #0b1220;
-  --gv-gold: #d6b25e;
-  --gv-magenta: #e24ba8;
-  --gv-cream: #f7f1e7;
-  --gv-bg: #0b1220;
-  --gv-surface: #111a2b;
-  --gv-card: #141f33;
-  --gv-card-soft: rgba(20, 31, 51, 0.7);
-  --gv-surface-soft: rgba(17, 26, 43, 0.9);
-  --gv-text: #f7f1e7;
-  --gv-muted: #c6c1b8;
-  --gv-border: #22304a;
-  --gv-accent: #d6b25e;
-  --gv-accent-2: #e24ba8;
-  --gv-accent-soft: rgba(214, 178, 94, 0.15);
-  --gv-magenta-soft: rgba(226, 75, 168, 0.15);
+  /* Marketing default (homepage) */
+  --gv-navy: hsl(220 40% 6%);
+  --gv-gold: hsl(42 62% 62%);
+  --gv-magenta: hsl(323 70% 60%);
+  --gv-cream: hsl(38 52% 94%);
+
+  --gv-bg: hsl(220 40% 6%);
+  --gv-surface: hsl(223 32% 12%);
+  --gv-card: hsl(222 30% 14%);
+  --gv-card-soft: hsla(222 30% 14% / 0.75);
+  --gv-surface-soft: hsla(223 32% 12% / 0.9);
+  --gv-text: hsl(38 52% 94%);
+  --gv-muted: hsl(40 16% 76%);
+  --gv-border: hsl(225 22% 26%);
+  --gv-accent: var(--gv-gold);
+  --gv-accent-2: var(--gv-magenta);
+  --gv-accent-soft: hsla(42 62% 62% / 0.2);
+  --gv-magenta-soft: hsla(323 70% 60% / 0.2);
+
+  --background: var(--gv-bg);
+  --foreground: var(--gv-text);
+  --card: var(--gv-card);
+  --card-foreground: var(--gv-text);
+  --muted-foreground: hsl(40 16% 76%);
+  --muted: var(--gv-muted);
+  --accent: var(--gv-accent);
+  --accent-foreground: hsl(220 44% 10%);
+  --border: var(--gv-border);
+  --ring: var(--gv-accent);
+  --input: var(--gv-border);
+
+  /* Typography scale */
   --gv-text-xs: 0.75rem;
   --gv-text-sm: 0.875rem;
   --gv-text-base: 1rem;
@@ -40,6 +56,53 @@
   --gv-radius-2xl: 1.5rem;
 }
 
+/* App area overrides (product UI) */
+.gv-app {
+  --gv-navy: hsl(220 49% 8%);
+  --gv-gold: hsl(42 59% 60%);
+  --gv-magenta: hsl(323 72% 59%);
+  --gv-cream: hsl(38 50% 94%);
+
+  --gv-bg: hsl(220 49% 8%);
+  --gv-surface: hsl(219 43% 12%);
+  --gv-card: hsl(219 44% 14%);
+  --gv-card-soft: hsla(219 44% 14% / 0.7);
+  --gv-surface-soft: hsla(219 43% 12% / 0.9);
+  --gv-text: hsl(38 50% 94%);
+  --gv-muted: hsl(40 16% 76%);
+  --gv-border: hsl(219 37% 21%);
+  --gv-accent: hsl(42 59% 60%);
+  --gv-accent-2: hsl(323 72% 59%);
+  --gv-accent-soft: hsla(42 59% 60% / 0.15);
+  --gv-magenta-soft: hsla(323 72% 59% / 0.15);
+
+  --background: var(--gv-bg);
+  --foreground: var(--gv-text);
+  --card: var(--gv-card);
+  --card-foreground: var(--gv-text);
+  --muted-foreground: hsl(40 16% 76%);
+  --muted: var(--gv-muted);
+  --accent: var(--gv-accent);
+  --accent-foreground: hsl(220 44% 10%);
+  --border: var(--gv-border);
+  --ring: var(--gv-accent);
+  --input: var(--gv-border);
+}
+
+.dark {
+  --background: var(--gv-bg);
+  --foreground: var(--gv-text);
+  --card: var(--gv-card);
+  --card-foreground: var(--gv-text);
+  --muted-foreground: hsl(40 16% 76%);
+  --muted: var(--gv-muted);
+  --accent: var(--gv-accent);
+  --accent-foreground: hsl(220 44% 10%);
+  --border: var(--gv-border);
+  --ring: var(--gv-accent);
+  --input: var(--gv-border);
+}
+
 .gv-marketing {
   background-color: var(--gv-bg);
   color: var(--gv-text);
@@ -53,8 +116,8 @@ body {
 }
 
 body {
-  background-color: var(--gv-bg);
-  color: var(--gv-text);
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-gv), system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { products, productCategories } from "@/lib/products";
+import { topLevelProducts, productCategories } from "@/lib/products";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 
@@ -15,7 +15,7 @@ export default function ProductsOverview() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    return products.filter((product) => {
+    return topLevelProducts.filter((product) => {
       const matchCategory =
         category === "Semua" || product.categories.includes(category);
       if (!matchCategory) return false;
@@ -104,16 +104,6 @@ export default function ProductsOverview() {
               <p className="text-sm text-[color:var(--gv-muted)]">
                 {product.short}
               </p>
-              {product.slug === "studio" ? (
-                <div className="flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                  <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] px-2.5 py-1">
-                    Graph
-                  </span>
-                  <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] px-2.5 py-1">
-                    Tracks
-                  </span>
-                </div>
-              ) : null}
             </div>
             <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--gv-accent)]">
               Lihat detail

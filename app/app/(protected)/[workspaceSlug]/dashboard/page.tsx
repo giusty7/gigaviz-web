@@ -8,7 +8,7 @@ import ComparePlans from "@/components/app/ComparePlans";
 import AdminPanel from "@/components/app/AdminPanel";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { appModules } from "@/lib/app-modules";
+import { topLevelModules } from "@/lib/modules/catalog";
 import { canAccess, getPlanMeta, planMeta } from "@/lib/entitlements";
 import { getWallet } from "@/lib/tokens";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
@@ -56,12 +56,12 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   ).toLocaleDateString();
   const basePath = `/app/${ctx.currentWorkspace.slug}`;
 
-  const moduleCards = appModules.map((module) => {
-    const comingSoon = module.availability === "coming_soon";
+  const moduleCards = topLevelModules.map((module) => {
+    const comingSoon = module.status === "coming";
     const locked =
       !comingSoon &&
-      module.feature &&
-      !canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.feature);
+      module.requiresEntitlement &&
+      !canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement);
     const status: ModuleStatus = comingSoon
       ? "coming_soon"
       : locked
@@ -71,10 +71,12 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     return {
       key: module.key,
       name: module.name,
-      description: module.description,
+      description: module.short || module.description,
       status,
       href:
         !comingSoon && !locked ? `${basePath}/modules/${module.slug}` : undefined,
+      lockedHref: locked ? `${basePath}/billing` : undefined,
+      lockedLabel: locked ? "Buka di Billing" : undefined,
     };
   });
 
@@ -82,58 +84,58 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     <div className="space-y-8">
       <SetPasswordModal />
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold">Workspace Overview</h2>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 text-sm text-white/70">
+          <div className="mt-4 grid gap-3 md:grid-cols-2 text-sm text-muted-foreground">
             <div>
-              <p className="text-xs text-white/50">Name</p>
-              <p className="text-base text-white">{ctx.currentWorkspace.name}</p>
+              <p className="text-xs text-muted-foreground/80">Name</p>
+              <p className="text-base text-foreground">{ctx.currentWorkspace.name}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50">Slug</p>
-              <p className="text-base text-white">{ctx.currentWorkspace.slug}</p>
+              <p className="text-xs text-muted-foreground/80">Slug</p>
+              <p className="text-base text-foreground">{ctx.currentWorkspace.slug}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50">Type</p>
-              <p className="text-base text-white">{workspaceTypeLabel}</p>
+              <p className="text-xs text-muted-foreground/80">Type</p>
+              <p className="text-base text-foreground">{workspaceTypeLabel}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50">Created</p>
-              <p className="text-base text-white">{createdAtLabel}</p>
+              <p className="text-xs text-muted-foreground/80">Created</p>
+              <p className="text-base text-foreground">{createdAtLabel}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50">Members</p>
-              <p className="text-base text-white">{memberCount ?? 0}</p>
+              <p className="text-xs text-muted-foreground/80">Members</p>
+              <p className="text-base text-foreground">{memberCount ?? 0}</p>
             </div>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold">Quick Actions</h2>
-          <p className="text-sm text-white/60 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Jump straight to the most used areas.
           </p>
           <div className="mt-4 grid gap-2 text-sm">
             <Link
               href={`${basePath}/modules`}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-semibold text-white hover:bg-white/20"
+              className="rounded-xl border border-border bg-gigaviz-surface px-4 py-2 font-semibold text-foreground hover:border-gigaviz-gold"
             >
               Modules
             </Link>
             <Link
               href={`${basePath}/settings#members`}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-semibold text-white hover:bg-white/20"
+              className="rounded-xl border border-border bg-gigaviz-surface px-4 py-2 font-semibold text-foreground hover:border-gigaviz-gold"
             >
               Members
             </Link>
             <Link
               href={`${basePath}/tokens`}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-semibold text-white hover:bg-white/20"
+              className="rounded-xl border border-border bg-gigaviz-surface px-4 py-2 font-semibold text-foreground hover:border-gigaviz-gold"
             >
               Tokens
             </Link>
             <Link
               href={`${basePath}/billing`}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-semibold text-white hover:bg-white/20"
+              className="rounded-xl border border-border bg-gigaviz-surface px-4 py-2 font-semibold text-foreground hover:border-gigaviz-gold"
             >
               Billing
             </Link>
@@ -141,9 +143,9 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="rounded-2xl border border-border bg-card p-6">
         <h2 className="text-lg font-semibold">Status & Coming Next</h2>
-        <ul className="mt-3 space-y-2 text-sm text-white/70">
+        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           <li>Member invites dan approvals sedang disiapkan.</li>
           <li>Token top up akan tersedia setelah billing live.</li>
           <li>Dashboard insights akan menampilkan usage detail per modul.</li>
@@ -161,9 +163,9 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
       </section>
 
       {plan.plan_id === "free_locked" && !isAdmin && (
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <section className="rounded-2xl border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">Free Locked (Beta)</h2>
-          <p className="text-sm text-white/70 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             Free tier sementara dikunci untuk mencegah abuse dan menjaga
             reliability/compliance. Upgrade untuk membuka semua modul.
           </p>
@@ -171,10 +173,16 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
       )}
 
       <section>
-        <h2 className="text-lg font-semibold mb-4">Modules</h2>
-        <ModuleGrid
-          modules={moduleCards}
-        />
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Modules</h2>
+          <Link
+            href={`${basePath}/modules`}
+            className="text-sm font-semibold text-gigaviz-gold hover:underline"
+          >
+            Lihat semua modul
+          </Link>
+        </div>
+        <ModuleGrid modules={moduleCards} />
       </section>
 
       <ComparePlans plans={planMeta} activePlanId={plan.plan_id} />

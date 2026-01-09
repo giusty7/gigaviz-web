@@ -1,6 +1,6 @@
-import type { ProductIcon } from "@/lib/products";
+import type { ModuleIcon } from "@/lib/modules/catalog";
 
-const icons: Record<ProductIcon, string[]> = {
+const icons: Record<ModuleIcon, string[]> = {
   platform: [
     "M4 7h16v11H4z",
     "M8 7V4h8v3",
@@ -57,7 +57,7 @@ export function MarketingIcon({
   name,
   className = "",
 }: {
-  name: ProductIcon;
+  name: ModuleIcon;
   className?: string;
 }) {
   const paths = icons[name] ?? icons.platform;
