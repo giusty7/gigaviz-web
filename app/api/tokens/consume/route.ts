@@ -10,6 +10,7 @@ import {
   tokenActionFeatureMap,
 } from "@/lib/tokens";
 import { rateLimit } from "@/lib/rate-limit";
+import { enforceUsageCap, recordUsage } from "@/lib/usage/server";
 
 export async function POST(req: NextRequest) {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
@@ -74,6 +75,20 @@ export async function POST(req: NextRequest) {
   }
 
   const cost = tokenRates[action as keyof typeof tokenRates].tokens;
+  const capCheck = await enforceUsageCap(workspaceId, "usage_cap_tokens", cost, "tokens");
+  if (!capCheck.allowed) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: "usage_limit_reached",
+          cap: capCheck.cap,
+          used: capCheck.used,
+          attempted: capCheck.attempted,
+        },
+        { status: 402 }
+      )
+    );
+  }
 
   try {
     const balance = await consumeTokens(workspaceId, cost, {
@@ -81,6 +96,20 @@ export async function POST(req: NextRequest) {
       ref_type: refType,
       ref_id: refId,
       created_by: user.id,
+    });
+
+    await recordUsage({
+      workspaceId,
+      eventType: "tokens",
+      amount: cost,
+      metadata: {
+        route: "/api/tokens/consume",
+        action,
+        feature: featureKey,
+        ref_type: refType,
+        ref_id: refId,
+        user_id: user.id,
+      },
     });
 
     return withCookies(NextResponse.json({ balance }));
