@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendWorkspaceInviteEmail } from "@/lib/email";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -16,14 +17,18 @@ function sha256Hex(input: string) {
 
 export async function POST(req: NextRequest, context: Ctx) {
   const params = await Promise.resolve(context.params);
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
+  const guard = await guardWorkspace(req, params);
+  if (!guard.ok) return guard.response;
+  const { user, withCookies, workspaceId } = guard;
 
-  // Ensure authenticated session from cookies
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  const user = userData?.user;
-  if (userErr || !user) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const limit = rateLimit(`workspace-invite:${workspaceId}:${user.id}:${ip}`, {
+    windowMs: 60_000,
+    max: 20,
+  });
+  if (!limit.ok) {
     return withCookies(
-      NextResponse.json({ error: "unauthorized" }, { status: 401 })
+      NextResponse.json({ error: "rate_limited", reason: "rate_limited", resetAt: limit.resetAt }, { status: 429 })
     );
   }
 
@@ -40,41 +45,6 @@ export async function POST(req: NextRequest, context: Ctx) {
   }
 
   const db = supabaseAdmin();
-  const slug = params.workspaceId;
-
-  // Resolve workspace by slug (service role to avoid RLS empties)
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[invite] Looking up workspace slug: ${slug}`);
-  }
-
-  const { data: wsRow, error: wsErr } = await db
-    .from("workspaces")
-    .select("id, name")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (wsErr || !wsRow) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[invite] workspace lookup failed", {
-        slug,
-        error: wsErr?.message ?? "no row found",
-        code: wsErr?.code ?? null,
-      });
-    }
-    return withCookies(
-      NextResponse.json({ error: "workspace_not_found" }, { status: 404 })
-    );
-  }
-
-  const workspaceId = wsRow.id as string;
-
-  // Verify current user is owner/admin in workspace_members
-  if (process.env.NODE_ENV === "development") {
-    console.log(
-      `[invite] Checking membership user=${user.id} workspace=${workspaceId}`
-    );
-  }
-
   const { data: memberRow, error: memberErr } = await db
     .from("workspace_members")
     .select("role")
@@ -82,24 +52,19 @@ export async function POST(req: NextRequest, context: Ctx) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (memberErr || !memberRow) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[invite] membership check failed", {
-        error: memberErr?.message ?? "no membership found",
-        code: memberErr?.code ?? null,
-      });
-    }
-    return withCookies(
-      NextResponse.json({ error: "forbidden" }, { status: 403 })
-    );
+  if (memberErr || !memberRow || !(memberRow.role === "owner" || memberRow.role === "admin")) {
+    return forbiddenResponse(withCookies);
   }
 
-  if (!(memberRow.role === "owner" || memberRow.role === "admin")) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[invite] user is not owner/admin", { role: memberRow.role });
-    }
+  const { data: wsRow, error: wsErr } = await db
+    .from("workspaces")
+    .select("id, name")
+    .eq("id", workspaceId)
+    .maybeSingle();
+
+  if (wsErr || !wsRow) {
     return withCookies(
-      NextResponse.json({ error: "forbidden" }, { status: 403 })
+      NextResponse.json({ error: "workspace_not_found", reason: "workspace_required" }, { status: 404 })
     );
   }
 

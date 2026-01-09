@@ -31,7 +31,9 @@ function parseAmount(value: unknown) {
 }
 
 export async function POST(req: NextRequest) {
-  if (process.env.ENABLE_BILLING_TEST_MODE !== "true") {
+  const isProd =
+    process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return new NextResponse("Not Found", { status: 404 });
   }
 
@@ -100,28 +102,36 @@ function notFound() {
 }
 
 export function GET() {
-  if (process.env.ENABLE_BILLING_TEST_MODE !== "true") {
+  const isProd =
+    process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
 }
 
 export function PUT() {
-  if (process.env.ENABLE_BILLING_TEST_MODE !== "true") {
+  const isProd =
+    process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
 }
 
 export function DELETE() {
-  if (process.env.ENABLE_BILLING_TEST_MODE !== "true") {
+  const isProd =
+    process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
 }
 
 export function HEAD() {
-  if (process.env.ENABLE_BILLING_TEST_MODE !== "true") {
+  const isProd =
+    process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();

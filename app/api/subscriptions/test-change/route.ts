@@ -6,8 +6,10 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { planMeta, type PlanId } from "@/lib/entitlements";
 
 export async function POST(req: NextRequest) {
-  if (process.env.ENABLE_BILLING_TEST_MODE !== "true") {
-    return NextResponse.json({ error: "test_mode_disabled" }, { status: 403 });
+  const isProd =
+    process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+  if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
   const { supabase, withCookies } = createSupabaseRouteClient(req);

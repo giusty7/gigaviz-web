@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import { ensureProfile } from "@/lib/profiles";
-import { getUserWorkspaces } from "@/lib/workspaces";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { canAccess } from "@/lib/entitlements";
 import { tokenRates } from "@/lib/tokenRates";
@@ -12,19 +9,12 @@ import {
 import { rateLimit } from "@/lib/rate-limit";
 import { enforceUsageCap, recordUsage } from "@/lib/usage/server";
 import type { TokenActionKey } from "@/lib/tokenRates";
+import { guardWorkspace } from "@/lib/auth/guard";
 
 export async function POST(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  const user = userData?.user;
-
-  if (userErr || !user) {
-    return withCookies(
-      NextResponse.json({ error: "unauthorized" }, { status: 401 })
-    );
-  }
-
-  const profile = await ensureProfile(user);
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { withCookies, user, workspaceId, role } = guard;
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const limit = rateLimit(`token-consume:${user.id}:${ip}`, {
@@ -38,16 +28,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  const headerWorkspaceId = req.headers.get("x-workspace-id");
-  const bodyWorkspaceId =
-    typeof body?.workspaceId === "string"
-      ? body.workspaceId
-      : typeof body?.workspace_id === "string"
-        ? body.workspace_id
-        : null;
-  const workspaceId = headerWorkspaceId?.trim() || bodyWorkspaceId || null;
-
+  const body = guard.body || (await req.json().catch(() => null));
   const action = typeof body?.action === "string" ? body.action : null;
   const refType = typeof body?.ref_type === "string" ? body.ref_type : null;
   const refId = typeof body?.ref_id === "string" ? body.ref_id : null;
@@ -57,18 +38,6 @@ export async function POST(req: NextRequest) {
       : undefined;
 
   const allowedActions = Object.keys(tokenRates) as TokenActionKey[];
-
-  if (!workspaceId) {
-    return withCookies(
-      NextResponse.json(
-        {
-          error: "invalid_request",
-          reason: "workspace_required",
-        },
-        { status: 400 }
-      )
-    );
-  }
 
   if (!action) {
     return withCookies(
@@ -96,14 +65,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const workspaces = await getUserWorkspaces(user.id);
-  const allowed = workspaces.some((ws) => ws.id === workspaceId);
-  if (!allowed) {
-    return withCookies(
-      NextResponse.json({ error: "forbidden" }, { status: 403 })
-    );
-  }
-
   const db = supabaseAdmin();
   const { data: subscription } = await db
     .from("subscriptions")
@@ -114,9 +75,13 @@ export async function POST(req: NextRequest) {
   const planId = subscription?.plan_id ?? "free_locked";
   const featureKey = tokenActionFeatureMap[action as keyof typeof tokenActionFeatureMap];
 
-  if (!canAccess({ plan_id: planId, is_admin: profile.is_admin }, featureKey)) {
+  const isAdmin = role === "owner" || role === "admin";
+  if (!canAccess({ plan_id: planId, is_admin: isAdmin }, featureKey)) {
     return withCookies(
-      NextResponse.json({ error: "plan_locked" }, { status: 403 })
+      NextResponse.json(
+        { error: "plan_locked", reason: "workspace_access_denied" },
+        { status: 403 }
+      )
     );
   }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
 
 export const runtime = "nodejs";
 
@@ -19,17 +19,9 @@ function parseCap(input: unknown) {
 
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const params = await Promise.resolve(ctx.params);
-  const workspaceId = params?.workspaceId;
-  if (!workspaceId) {
-    return NextResponse.json({ error: "workspace_required" }, { status: 400 });
-  }
-
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  const user = userData?.user;
-  if (userErr || !user) {
-    return withCookies(NextResponse.json({ error: "unauthorized" }, { status: 401 }));
-  }
+  const guard = await guardWorkspace(req, params);
+  if (!guard.ok) return guard.response;
+  const { withCookies, user, workspaceId } = guard;
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const limiter = rateLimit(`usage-cap:${workspaceId}:${user.id}:${ip}`, { windowMs: 60_000, max: 10 });
@@ -49,7 +41,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
   const role = membership?.role;
   if (!(role === "owner" || role === "admin")) {
-    return withCookies(NextResponse.json({ error: "forbidden" }, { status: 403 }));
+    return forbiddenResponse(withCookies);
   }
 
   const body = await req.json().catch(() => null);
