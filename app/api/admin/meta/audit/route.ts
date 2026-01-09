@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
+import { requireEntitlement } from "@/lib/entitlements/server";
 
 export const runtime = "nodejs";
 
@@ -8,6 +9,13 @@ export async function GET(req: NextRequest) {
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
+
+  const entitlement = await requireEntitlement(workspaceId, "audit_log");
+  if (!entitlement.allowed) {
+    return withCookies(
+      NextResponse.json({ error: "feature_locked", feature: "audit_log" }, { status: 403 })
+    );
+  }
   const { searchParams } = req.nextUrl;
   const rawLimit = Number(searchParams.get("limit") || 20);
   const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 100) : 20;
