@@ -13,12 +13,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LoginPage() {
+type LoginPageProps =
+  | { searchParams?: { next?: string } }
+  | { searchParams?: Promise<{ next?: string }> };
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
+  const resolvedSearch = await Promise.resolve(searchParams ?? {});
+  const nextParam =
+    typeof (resolvedSearch as { next?: string })?.next === "string"
+      ? (resolvedSearch as { next?: string }).next
+      : undefined;
+  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
 
   if (data.user) {
-    redirect("/app");
+    const confirmed = data.user.email_confirmed_at || data.user.confirmed_at;
+    if (!confirmed) {
+      const emailParam = data.user.email
+        ? `?email=${encodeURIComponent(data.user.email)}`
+        : "";
+      redirect(`/verify-email${emailParam}`);
+    }
+    redirect(nextSafe);
   }
 
   return (

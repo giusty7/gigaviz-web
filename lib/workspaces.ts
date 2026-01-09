@@ -22,7 +22,7 @@ export async function getWorkspaceCookie() {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function ensureWorkspaceCookie(_workspaceId: string) {
-  // DEPRECATED: Cookie is now set in middleware.ts
+  // DEPRECATED: Cookie is now set in proxy.ts
   // This function is a no-op and kept for backward compatibility.
   // Do not attempt to set cookies from server components.
   return;

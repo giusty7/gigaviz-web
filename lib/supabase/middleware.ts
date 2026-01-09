@@ -2,11 +2,32 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { parseAdminEmails } from "@/lib/admin";
 
-function buildNextParam(pathname: string, search: string) {
-  return encodeURIComponent(pathname + (search || ""));
+function buildNextParam(request: NextRequest) {
+  const next = request.nextUrl.pathname + request.nextUrl.search;
+  return encodeURIComponent(next);
 }
 
 export async function withSupabaseAuth(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const nextParam = request.nextUrl.searchParams.get("next");
+  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
+
+  const isInvitePath = pathname === "/invite" || pathname.startsWith("/invite/");
+  const isAuthPath = pathname.startsWith("/auth/");
+  const isAuthApiPath = pathname.startsWith("/api/auth/");
+  const isInviteAcceptApi = pathname === "/api/invites/accept";
+  const isWorkspaceInviteApi = /^\/api\/workspaces\/[^/]+\/invites$/.test(pathname);
+
+  if (
+    isInvitePath ||
+    isAuthPath ||
+    isAuthApiPath ||
+    isInviteAcceptApi ||
+    isWorkspaceInviteApi
+  ) {
+    return NextResponse.next();
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -33,9 +54,6 @@ export async function withSupabaseAuth(request: NextRequest) {
   // penting: trigger refresh session jika perlu
   const { data } = await supabase.auth.getUser();
   const user = data.user;
-
-  const pathname = request.nextUrl.pathname;
-  const search = request.nextUrl.search || "";
 
   // Paths
   const isLoginPath =
@@ -104,7 +122,7 @@ export async function withSupabaseAuth(request: NextRequest) {
         return makeRedirect(verifyEmailUrl);
       }
       if (isVerified) {
-        return makeRedirect("/app");
+        return makeRedirect(nextSafe);
       }
     }
     return makeNext();
@@ -119,7 +137,7 @@ export async function withSupabaseAuth(request: NextRequest) {
    */
   if (isOnboardingPath) {
     if (!user) {
-      const next = buildNextParam(pathname, search);
+      const next = buildNextParam(request);
       return makeRedirect(`/login?next=${next}`);
     }
     if (!isVerified) {
@@ -133,7 +151,7 @@ export async function withSupabaseAuth(request: NextRequest) {
    */
   if (isAppPath) {
     if (!user) {
-      const next = buildNextParam(pathname, search);
+      const next = buildNextParam(request);
       return makeRedirect(`/login?next=${next}`);
     }
     if (!isVerified) {
@@ -149,7 +167,7 @@ export async function withSupabaseAuth(request: NextRequest) {
    */
   if (isAdminPath || isAdminApiPath) {
     if (!user) {
-      const next = buildNextParam(pathname, search);
+      const next = buildNextParam(request);
       return makeRedirect(`/login?next=${next}`);
     }
     if (!isAdmin && !(isInboxPath || isInboxApiPath || isInboxRelatedApi)) {

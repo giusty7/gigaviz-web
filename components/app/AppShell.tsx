@@ -36,6 +36,7 @@ export default function AppShell({
   const modulesHref = workspaceSlug ? `/app/${workspaceSlug}/modules` : "/app/modules";
   const tokensHref = workspaceSlug ? `/app/${workspaceSlug}/tokens` : "/app/tokens";
   const billingHref = workspaceSlug ? `/app/${workspaceSlug}/billing` : "/app/billing";
+  const settingsHref = workspaceSlug ? `/app/${workspaceSlug}/settings` : "/app/settings";
 
   return (
     <Shell
@@ -71,7 +72,7 @@ export default function AppShell({
               Billing
             </Link>
             <Link
-              href="/app/settings"
+              href={settingsHref}
               className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
             >
               Settings

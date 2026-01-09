@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, type Provider } from "@supabase/supabase-js";
+import { type Provider } from "@supabase/supabase-js";
+import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
@@ -21,13 +22,11 @@ export async function GET(req: NextRequest) {
   }
   const provider: Provider = providerKey;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  const supabase = createClient(url, anon);
+  const { supabase, withCookies } = createSupabaseRouteClient(req);
 
   const origin = req.nextUrl.origin;
   const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
-  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(nextSafe)}`;
+  const redirectTo = `${origin}/api/auth/callback?next=${encodeURIComponent(nextSafe)}`;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -39,5 +38,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error?.message || "oauth_failed" }, { status: 400 });
   }
 
-  return NextResponse.redirect(data.url);
+  return withCookies(NextResponse.redirect(data.url));
 }

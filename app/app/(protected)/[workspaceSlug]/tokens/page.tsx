@@ -4,6 +4,9 @@ import { getAppContext } from "@/lib/app-context";
 import { getWallet, getLedger } from "@/lib/tokens";
 import { tokenRateList, tokenSafetyCopy } from "@/lib/tokenRates";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +29,23 @@ export default async function TokensPage({ params }: TokensPageProps) {
   const wallet = await getWallet(ctx.currentWorkspace.id);
   const ledger = await getLedger(ctx.currentWorkspace.id, { page: 1, pageSize: 10 });
   const balance = Number(wallet.balance_bigint ?? 0);
+
+  const db = supabaseAdmin();
+  const { data: subscription } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(subscription?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const allowed = canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, "tokens_view");
+
+  if (!allowed) {
+    return (
+      <LockedScreen title="Tokens locked" description="Upgrade to access tokens and top up features." workspaceSlug={ctx.currentWorkspace.slug} />
+    );
+  }
 
   return (
     <div className="space-y-6">

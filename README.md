@@ -119,14 +119,14 @@ See `docs/SMOKE_TEST.md` for a copy-paste checklist.
 ## Troubleshooting
 
 - Windows/OneDrive EPERM during build:
-  - Close dev server, delete `.next`, then re-run `npm run build`.
+  - Stop dev server, run `npm run clean`, then re-run `npm run build`.
 - Redirect loop `/login?error=not_admin`:
   - Ensure user has `workspace_members.role` set to `supervisor` or `admin`.
   - Clear cookies and re-login.
 - “Password can’t be viewed”:
   - Reset via Supabase Auth (magic link or password reset).
-- Next.js middleware deprecation warning:
-  - See Next.js warning in build output; consider migrating to proxy middleware later.
+ - Next.js middleware deprecation warning:
+  - Next 16 uses the new proxy entrypoint. Keep `proxy.ts` at the repo root and do not add a separate `middleware.ts`.
 
 ## Analytics (GA4)
 

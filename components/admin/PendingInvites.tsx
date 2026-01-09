@@ -1,0 +1,46 @@
+"use client";
+import { useState } from "react";
+
+type Invite = {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+};
+
+export default function PendingInvites({ invites }: { invites: Invite[] }) {
+  const [items, setItems] = useState(invites);
+
+  async function revoke(id: string) {
+    try {
+      const res = await fetch("/api/invites/revoke", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteId: id }),
+      });
+      if (!res.ok) throw new Error("revoke_failed");
+      setItems((prev) => prev.filter((it) => it.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to revoke");
+    }
+  }
+
+  if (items.length === 0) return <div className="text-sm text-gigaviz-muted">No pending invites.</div>;
+
+  return (
+    <div className="space-y-2">
+      {items.map((invite) => (
+        <div key={invite.id} className="flex items-center justify-between rounded-md border bg-[color:var(--gv-card)] p-2">
+          <div className="text-sm">
+            <div className="font-semibold">{invite.email}</div>
+            <div className="text-xs text-gigaviz-muted">{invite.role} • {new Date(invite.created_at).toLocaleString()}</div>
+          </div>
+          <div>
+            <button className="rounded-md bg-red-600 px-2 py-1 text-xs" onClick={() => revoke(invite.id)}>Revoke</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

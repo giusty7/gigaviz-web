@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import SetPasswordModal from "@/components/auth/SetPasswordModal";
 import PlanCard from "@/components/app/PlanCard";
 import TokenCard from "@/components/app/TokenCard";
 import ModuleGrid, { type ModuleStatus } from "@/components/app/ModuleGrid";
@@ -79,6 +80,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
 
   return (
     <div className="space-y-8">
+      <SetPasswordModal />
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="text-lg font-semibold">Workspace Overview</h2>
@@ -118,7 +120,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
               Modules
             </Link>
             <Link
-              href="/app/settings#members"
+              href={`${basePath}/settings#members`}
               className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 font-semibold text-white hover:bg-white/20"
             >
               Members
