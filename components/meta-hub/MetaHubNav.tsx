@@ -9,6 +9,7 @@ type NavItem = {
   label: string;
   href: string;
   status: "live" | "beta" | "soon";
+  children?: NavItem[];
 };
 
 function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
@@ -20,6 +21,10 @@ function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
       label: "Messaging - WhatsApp",
       href: `${base}/messaging/whatsapp`,
       status: flags.waEnabled ? "live" : "beta",
+      children: [
+        { label: "Templates", href: `${base}/messaging/whatsapp`, status: "live" },
+        { label: "Inbox", href: `${base}/messaging/whatsapp/inbox`, status: "live" },
+      ],
     },
     {
       label: "Messaging - Instagram",
@@ -48,19 +53,43 @@ export function MetaHubNav({ basePath, flags }: { basePath: string; flags: MetaH
     <nav className="space-y-1 text-sm text-muted-foreground">
       {items.map((item) => {
         const active = pathname === item.href || pathname?.startsWith(item.href);
+        const hasChildren = item.children && item.children.length > 0;
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center justify-between rounded-lg px-3 py-2 transition ${
-              active
-                ? "bg-gigaviz-surface text-foreground border border-border"
-                : "hover:bg-gigaviz-surface"
-            }`}
-          >
-            <span className="mr-2">{item.label}</span>
-            <MetaHubBadge status={item.status} />
-          </Link>
+          <div key={item.href} className="space-y-1">
+            <Link
+              href={item.href}
+              className={`flex items-center justify-between rounded-lg px-3 py-2 transition ${
+                active
+                  ? "bg-gigaviz-surface text-foreground border border-border"
+                  : "hover:bg-gigaviz-surface"
+              }`}
+            >
+              <span className="mr-2">{item.label}</span>
+              <MetaHubBadge status={item.status} />
+            </Link>
+            {hasChildren ? (
+              <div className="pl-4">
+                {item.children!.map((child) => {
+                  const childActive =
+                    pathname === child.href || pathname?.startsWith(child.href);
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs transition ${
+                        childActive
+                          ? "bg-gigaviz-surface text-foreground border border-border"
+                          : "hover:bg-gigaviz-surface"
+                      }`}
+                    >
+                      <span className="mr-2">{child.label}</span>
+                      <MetaHubBadge status={child.status} />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </nav>

@@ -1,30 +1,64 @@
-export default function MetaHubConnectionsPage() {
+import { redirect } from "next/navigation";
+import { WhatsappConnectionForm } from "@/components/meta-hub/WhatsappConnectionForm";
+import { getAppContext } from "@/lib/app-context";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+
+type Props = {
+  params: Promise<{ workspaceSlug: string }>;
+};
+
+export default async function MetaHubConnectionsPage({ params }: Props) {
+  const { workspaceSlug } = await params;
+  const ctx = await getAppContext(workspaceSlug);
+  if (!ctx.user) redirect("/login");
+  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+
+  const workspaceId = ctx.currentWorkspace.id;
+  const canEdit = ["owner", "admin"].includes(ctx.currentRole ?? "");
+
+  const db = supabaseAdmin();
+  const { data: phone } = await db
+    .from("wa_phone_numbers")
+    .select("phone_number_id, waba_id, display_name, status, last_tested_at, last_test_result")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .maybeSingle();
+
+  const { data: tokenRow } = await db
+    .from("meta_tokens")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("provider", "meta_whatsapp")
+    .maybeSingle();
+
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Connections</h2>
         <p className="text-sm text-muted-foreground">
-          Kelola koneksi Meta. Integrasi akan tersedia bertahap.
+          Simpan kredensial WhatsApp dengan aman. Token tidak akan pernah ditampilkan kembali di
+          browser.
         </p>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-foreground">Daftar koneksi</p>
-          <button
-            type="button"
-            disabled
-            className="rounded-lg border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-muted-foreground disabled:opacity-60"
-          >
-            Connect (coming soon)
-          </button>
-        </div>
-        <div className="mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background px-6 py-10 text-center">
-          <p className="text-sm font-semibold text-foreground">Belum ada koneksi</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            WhatsApp dan kanal lain akan muncul di sini setelah konfigurasi.
+        <WhatsappConnectionForm
+          workspaceId={workspaceId}
+          workspaceSlug={workspaceSlug}
+          canEdit={canEdit}
+          initialPhoneNumberId={phone?.phone_number_id ?? null}
+          initialWabaId={phone?.waba_id ?? null}
+          initialDisplayName={phone?.display_name ?? null}
+          status={phone?.status ?? null}
+          lastTestedAt={phone?.last_tested_at ?? null}
+          lastTestResult={phone?.last_test_result ?? null}
+          tokenSet={Boolean(tokenRow)}
+        />
+        {!canEdit ? (
+          <p className="mt-4 text-xs text-muted-foreground">
+            Hanya owner atau admin yang dapat memperbarui koneksi. Anda tetap dapat melihat status.
           </p>
-        </div>
+        ) : null}
       </div>
     </div>
   );

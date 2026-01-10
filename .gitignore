@@ -43,3 +43,6 @@ next-env.d.ts
 
 # local leads / runtime data
 data/
+
+# temporary webhook file
+echo tmp-webhook.json >> .gitignore

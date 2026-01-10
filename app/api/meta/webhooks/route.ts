@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
@@ -58,11 +59,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "rate_limited", resetAt: limit.resetAt }, { status: 429 });
   }
 
-  const payload = (await req.json().catch(() => null)) as WaPayload | null;
+  const raw = await req.text().catch(() => "");
+  if (!raw) {
+    return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
+  }
+
+  let payload: WaPayload | null = null;
+  try {
+    payload = JSON.parse(raw) as WaPayload;
+  } catch {
+    return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
+  }
+
   if (!payload) {
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
+  const eventKey = createHash("md5").update(raw).digest("hex");
   const phoneNumberId = extractPhoneNumberId(payload);
   const { object, eventType, externalId } = extractEventInfo(payload);
   const channel = "whatsapp";
@@ -93,18 +106,55 @@ export async function POST(req: NextRequest) {
     object,
     event_type: eventType,
     external_event_id: externalId,
+    event_key: eventKey,
     payload_json: payload,
     received_at: new Date().toISOString(),
   };
 
+  const { data: existing } = await db
+    .from("meta_webhook_events")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("event_key", eventKey)
+    .maybeSingle();
+
   const { error } = await db
     .from("meta_webhook_events")
-    .upsert(insertPayload, { onConflict: "workspace_id,external_event_id" });
+    .upsert(insertPayload, { onConflict: "workspace_id,event_key" });
 
-  if (error && error.code !== "23505") {
-    logger.error("[meta-webhook] insert failed", { message: error.message, code: error.code });
-    return NextResponse.json({ error: "db_error" }, { status: 500 });
+  if (error) {
+    const missingUnique =
+      error.message?.includes("no unique") ||
+      error.message?.includes("unique or exclusion constraint");
+    if (process.env.NODE_ENV === "development") {
+      console.error("[meta-webhook] upsert error", error);
+    }
+    return NextResponse.json(
+      {
+        ok: false,
+        code: missingUnique ? "missing_unique_index" : "db_error",
+        message: "Gagal menyimpan webhook",
+        details: error.details ?? error.message,
+        hint: (error as { hint?: string }).hint ?? null,
+      },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({ status: "ok" });
+  // Best-effort inline processing to keep inbox fresh
+  try {
+    const { processWhatsappEvents } = await import("@/lib/meta/wa-inbox");
+    await processWhatsappEvents(workspaceId, 5);
+  } catch (e) {
+    logger.dev("[meta-webhook] inline processing skipped", {
+      message: e instanceof Error ? e.message : String(e),
+    });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    workspaceId,
+    stored: true,
+    deduped: Boolean(existing),
+  });
 }
