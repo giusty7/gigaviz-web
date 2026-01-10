@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,7 @@ type Thread = {
   unread_count: number | null;
   assigned_to: string | null;
   last_message_at: string | null;
+  last_message_preview?: string | null;
   contact?: { id: string; display_name?: string | null; phone?: string | null } | null;
 };
 
@@ -57,9 +57,11 @@ export function WhatsappInboxClient({
   initialNotes,
   templates = [],
 }: Props) {
-  const router = useRouter();
   const { toast } = useToast();
   const [selectedId, setSelectedId] = useState<string | null>(threads[0]?.id ?? null);
+  const [threadList, setThreadList] = useState<Thread[]>(threads);
+  const [threadsLoading, setThreadsLoading] = useState(false);
+  const [threadsError, setThreadsError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [notes, setNotes] = useState<Note[]>(initialNotes);
@@ -72,29 +74,62 @@ export function WhatsappInboxClient({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assignFilter, setAssignFilter] = useState<string>("all");
 
-  const filteredThreads = useMemo(() => {
-    return threads.filter((t) => {
-      const statusOk = statusFilter === "all" || (t.status ?? "open") === statusFilter;
-      const assignOk =
-        assignFilter === "all" ||
-        (assignFilter === "assigned" ? Boolean(t.assigned_to) : !t.assigned_to);
-      const searchText = `${t.contact?.display_name ?? ""} ${t.contact?.phone ?? ""} ${
-        t.external_thread_id ?? ""
-      }`.toLowerCase();
-      const searchOk = searchText.includes(search.toLowerCase());
-      return statusOk && assignOk && searchOk;
-    });
-  }, [threads, statusFilter, assignFilter, search]);
+  const visibleThreads = useMemo(() => threadList, [threadList]);
 
   const selectedThread = useMemo(
-    () => filteredThreads.find((t) => t.id === selectedId) ?? filteredThreads[0] ?? null,
-    [filteredThreads, selectedId]
+    () => visibleThreads.find((t) => t.id === selectedId) ?? visibleThreads[0] ?? null,
+    [visibleThreads, selectedId]
   );
 
   useEffect(() => {
     setStatus(selectedThread?.status ?? "open");
     setAssignedTo(selectedThread?.assigned_to ?? null);
   }, [selectedThread]);
+
+  useEffect(() => {
+    setThreadList(threads);
+  }, [threads]);
+
+  useEffect(() => {
+    if (threadList.length === 0) {
+      setSelectedId(null);
+      return;
+    }
+    if (!selectedId || !threadList.some((t) => t.id === selectedId)) {
+      setSelectedId(threadList[0]?.id ?? null);
+    }
+  }, [threadList, selectedId]);
+
+  const fetchThreads = useCallback(async () => {
+    setThreadsLoading(true);
+    setThreadsError(null);
+    try {
+      const params = new URLSearchParams({ workspaceId });
+      if (search.trim()) params.set("q", search.trim());
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      if (assignFilter !== "all") params.set("assigned", assignFilter);
+
+      const res = await fetch(`/api/meta/whatsapp/threads?${params.toString()}`, {
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.reason || data?.error || "Gagal memuat threads");
+      }
+      setThreadList(data.threads ?? []);
+    } catch (err) {
+      setThreadsError(err instanceof Error ? err.message : "Gagal memuat threads");
+    } finally {
+      setThreadsLoading(false);
+    }
+  }, [workspaceId, search, statusFilter, assignFilter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchThreads();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [fetchThreads]);
 
   async function loadThread(threadId: string) {
     setSelectedId(threadId);
@@ -113,7 +148,7 @@ export function WhatsappInboxClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ workspaceId, threadId }),
         });
-        router.refresh();
+        await fetchThreads();
       } catch (err) {
         toast({
           title: "Gagal memuat",
@@ -172,7 +207,7 @@ export function WhatsappInboxClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal update thread");
       toast({ title: "Thread diperbarui" });
-      router.refresh();
+      await fetchThreads();
     } catch (err) {
       toast({
         title: "Gagal update",
@@ -226,7 +261,7 @@ export function WhatsappInboxClient({
         title: "Inbox diperbarui",
         description: `Processed ${data.processed ?? 0}, messages ${data.messagesCreated ?? 0}, threads ${data.threadsCreated ?? 0}`,
       });
-      router.refresh();
+      await fetchThreads();
     } catch (err) {
       toast({
         title: "Refresh gagal",
@@ -289,7 +324,7 @@ export function WhatsappInboxClient({
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
-          {filteredThreads.map((thread) => {
+          {visibleThreads.map((thread) => {
             const active = thread.id === selectedId;
             const unread = thread.unread_count ?? 0;
             return (
@@ -311,12 +346,21 @@ export function WhatsappInboxClient({
                   ) : null}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {thread.status ?? "open"} · {thread.external_thread_id ?? "-"}
+                  {thread.status ?? "open"} - {thread.external_thread_id ?? "-"}
                 </p>
+                {thread.last_message_preview ? (
+                  <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                    {thread.last_message_preview}
+                  </p>
+                ) : null}
               </button>
             );
           })}
-          {filteredThreads.length === 0 ? (
+          {threadsLoading ? (
+            <p className="text-xs text-muted-foreground">Memuat threads...</p>
+          ) : null}
+          {threadsError ? <p className="text-xs text-rose-300">{threadsError}</p> : null}
+          {!threadsLoading && !threadsError && visibleThreads.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Belum ada percakapan. Klik Refresh Inbox setelah menerima webhook tes.
             </p>
