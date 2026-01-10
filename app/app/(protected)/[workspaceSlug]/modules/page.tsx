@@ -18,41 +18,42 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/app/onboarding");
 
-  if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/modules`);
+  const workspace = ctx.currentWorkspace;
+
+  if (workspace.slug !== workspaceSlug) {
+    redirect(`/app/${workspace.slug}/modules`);
   }
 
-  await ensureWorkspaceCookie(ctx.currentWorkspace.id);
+  await ensureWorkspaceCookie(workspace.id);
 
   const db = supabaseAdmin();
   const { data: subscription } = await db
     .from("subscriptions")
     .select("plan_id")
-    .eq("workspace_id", ctx.currentWorkspace.id)
+    .eq("workspace_id", workspace.id)
     .maybeSingle();
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const basePath = `/app/${ctx.currentWorkspace.slug}`;
+  const basePath = `/app/${workspace.slug}`;
 
   const moduleCards = topLevelModules.map((module) => {
     const comingSoon = module.status === "coming";
-    const locked =
+    const canUse =
       !comingSoon &&
-      module.requiresEntitlement &&
-      !canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement);
+      (!module.requiresEntitlement ||
+        canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement));
     const status: ModuleStatus = comingSoon
       ? "coming_soon"
-      : locked
-      ? "locked"
-      : "available";
+      : canUse
+        ? "available"
+        : "preview";
 
-    const href =
-      module.key === "meta_hub"
-        ? `${basePath}/meta-hub`
-        : !comingSoon && !locked
-          ? `${basePath}/modules/${module.slug}`
-          : undefined;
+    const href = !comingSoon
+      ? (module.hrefApp
+          ? module.hrefApp.replace("[workspaceSlug]", workspace.slug)
+          : `${basePath}/modules/${module.slug}`)
+      : undefined;
 
     return {
       key: module.key,
@@ -60,8 +61,6 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
       description: module.short || module.description,
       status,
       href,
-      lockedHref: locked ? `${basePath}/billing` : undefined,
-      lockedLabel: locked ? "Buka di Billing" : undefined,
     };
   });
 
@@ -70,7 +69,8 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
       <div>
         <h1 className="text-xl font-semibold">Modules</h1>
         <p className="text-sm text-muted-foreground">
-          Jelajahi modul yang tersedia. Locked modules butuh upgrade plan.
+          Jelajahi modul yang tersedia. Modul dengan status Preview bisa dibuka untuk melihat
+          tampilan.
         </p>
       </div>
       <ModuleGrid modules={moduleCards} />

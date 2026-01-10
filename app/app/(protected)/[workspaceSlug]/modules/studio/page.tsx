@@ -36,24 +36,22 @@ export default async function StudioModulesPage({ params }: PageProps) {
 
   const moduleCards = studioChildren.map((module) => {
     const comingSoon = module.status === "coming";
-    const locked =
+    const canUse =
       !comingSoon &&
-      module.requiresEntitlement &&
-      !canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement);
+      (!module.requiresEntitlement ||
+        canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement));
     const status: ModuleStatus = comingSoon
       ? "coming_soon"
-      : locked
-      ? "locked"
-      : "available";
+      : canUse
+        ? "available"
+        : "preview";
 
     return {
       key: module.key,
       name: module.name,
       description: module.short || module.description,
       status,
-      href: !comingSoon && !locked ? `${basePath}/modules/${module.slug}` : undefined,
-      lockedHref: locked ? `${basePath}/billing` : undefined,
-      lockedLabel: locked ? "Buka di Billing" : undefined,
+      href: !comingSoon ? `${basePath}/modules/${module.slug}` : undefined,
     };
   });
 
@@ -62,7 +60,7 @@ export default async function StudioModulesPage({ params }: PageProps) {
       <div>
         <h1 className="text-xl font-semibold">Studio Suite</h1>
         <p className="text-sm text-muted-foreground">
-          Office, Graph, dan Tracks dalam satu suite. Locked modules dapat dibuka melalui Billing.
+          Office, Graph, dan Tracks dalam satu suite. Modul dengan status Preview tetap bisa dibuka.
         </p>
       </div>
       <ModuleGrid modules={moduleCards} />

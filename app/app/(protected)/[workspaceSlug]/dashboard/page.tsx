@@ -25,17 +25,19 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/app/onboarding");
 
-  if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/dashboard`);
+  const workspace = ctx.currentWorkspace;
+
+  if (workspace.slug !== workspaceSlug) {
+    redirect(`/app/${workspace.slug}/dashboard`);
   }
 
-  await ensureWorkspaceCookie(ctx.currentWorkspace.id);
+  await ensureWorkspaceCookie(workspace.id);
 
   const db = supabaseAdmin();
   const { data: subscription } = await db
     .from("subscriptions")
     .select("plan_id, billing_mode, seat_limit, status")
-    .eq("workspace_id", ctx.currentWorkspace.id)
+    .eq("workspace_id", workspace.id)
     .maybeSingle();
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
@@ -49,34 +51,34 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     .select("user_id", { count: "exact", head: true })
     .eq("workspace_id", ctx.currentWorkspace.id);
 
-  const workspaceTypeLabel =
-    ctx.currentWorkspace.workspace_type === "individual" ? "Individual" : "Team";
-  const createdAtLabel = new Date(
-    ctx.currentWorkspace.created_at
-  ).toLocaleDateString();
-  const basePath = `/app/${ctx.currentWorkspace.slug}`;
+  const workspaceTypeLabel = workspace.workspace_type === "individual" ? "Individual" : "Team";
+  const createdAtLabel = new Date(workspace.created_at).toLocaleDateString();
+  const basePath = `/app/${workspace.slug}`;
 
   const moduleCards = topLevelModules.map((module) => {
     const comingSoon = module.status === "coming";
-    const locked =
+    const canUse =
       !comingSoon &&
-      module.requiresEntitlement &&
-      !canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement);
+      (!module.requiresEntitlement ||
+        canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement));
     const status: ModuleStatus = comingSoon
       ? "coming_soon"
-      : locked
-      ? "locked"
-      : "available";
+      : canUse
+        ? "available"
+        : "preview";
+
+    const href = !comingSoon
+      ? (module.hrefApp
+          ? module.hrefApp.replace("[workspaceSlug]", workspace.slug)
+          : `${basePath}/modules/${module.slug}`)
+      : undefined;
 
     return {
       key: module.key,
       name: module.name,
       description: module.short || module.description,
       status,
-      href:
-        !comingSoon && !locked ? `${basePath}/modules/${module.slug}` : undefined,
-      lockedHref: locked ? `${basePath}/billing` : undefined,
-      lockedLabel: locked ? "Buka di Billing" : undefined,
+      href,
     };
   });
 
@@ -98,19 +100,12 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
                 <p className="text-base font-semibold text-foreground">{m.name}</p>
                 <p className="text-sm text-muted-foreground">{m.description}</p>
               </div>
-              {m.status === "available" && m.href ? (
+              {m.href ? (
                 <Link
                   href={m.href}
                   className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
                 >
-                  Open
-                </Link>
-              ) : m.status === "locked" ? (
-                <Link
-                  href={m.lockedHref ?? `${basePath}/billing`}
-                  className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
-                >
-                  Unlock
+                  {m.status === "preview" ? "Open preview" : "Open"}
                 </Link>
               ) : (
                 <span className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-muted-foreground">

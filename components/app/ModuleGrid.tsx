@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback } from "react";
 import { toast } from "@/components/ui/use-toast";
 
-export type ModuleStatus = "available" | "locked" | "coming_soon";
+export type ModuleStatus = "available" | "preview" | "coming_soon";
 
 type ModuleItem = {
   key: string;
@@ -11,8 +12,7 @@ type ModuleItem = {
   description: string;
   status: ModuleStatus;
   href?: string;
-  lockedHref?: string;
-  lockedLabel?: string;
+  previewLabel?: string;
 };
 
 type ModuleGridProps = {
@@ -20,15 +20,15 @@ type ModuleGridProps = {
 };
 
 export default function ModuleGrid({ modules }: ModuleGridProps) {
-  const handleUnavailable = (status: ModuleStatus) => {
+  const handleUnavailable = useCallback((status: ModuleStatus) => {
     toast({
-      title: "Belum tersedia / Coming soon",
+      title: status === "preview" ? "Mode preview" : "Coming soon",
       description:
-        status === "locked"
-          ? "Fitur ini terkunci untuk plan aktif saat ini."
+        status === "preview"
+          ? "Kamu bisa melihat tampilan, aksi akan meminta upgrade."
           : "Modul ini masih dalam tahap persiapan.",
     });
-  };
+  }, []);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -46,52 +46,38 @@ export default function ModuleGrid({ modules }: ModuleGridProps) {
               className={`rounded-full px-2 py-1 text-[11px] uppercase tracking-wide ${
                 module.status === "available"
                   ? "bg-emerald-500/15 text-emerald-200"
-                  : module.status === "locked"
+                  : module.status === "preview"
                   ? "bg-amber-500/15 text-amber-200"
                   : "bg-muted text-muted-foreground"
               }`}
             >
               {module.status === "available"
                 ? "Available"
-                : module.status === "locked"
-                ? "Locked"
+                : module.status === "preview"
+                ? "Preview"
                 : "Coming soon"}
             </span>
           </div>
 
           <div className="mt-4">
-            {module.status === "available" && module.href ? (
+            {module.href ? (
               <Link
                 href={module.href}
+                onClick={() => module.status !== "available" && handleUnavailable(module.status)}
                 className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold"
               >
-                Open module
+                {module.status === "preview" ? "Open preview" : "Open module"}
               </Link>
             ) : (
-              <>
-                {module.status === "locked" && module.lockedHref ? (
-                  <Link
-                    href={module.lockedHref}
-                    className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold"
-                  >
-                    {module.lockedLabel ?? "Unlock"}
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleUnavailable(module.status)}
-                    className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold"
-                  >
-                    {module.status === "locked" ? "Locked" : "Coming soon"}
-                  </button>
-                )}
-              </>
+              <button
+                type="button"
+                onClick={() => handleUnavailable(module.status)}
+                className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold"
+              >
+                {module.status === "coming_soon" ? "Coming soon" : "Preview"}
+              </button>
             )}
           </div>
-
-          {module.status !== "available" && (
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-transparent to-black/45" />
-          )}
         </div>
       ))}
     </div>

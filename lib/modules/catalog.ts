@@ -60,7 +60,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     whoFor: ["Owner dan admin", "Ops yang butuh kontrol akses"],
     related: ["meta_hub", "helper", "pay"],
     hrefMarketing: "/products/platform",
-    hrefApp: "/app/[workspaceSlug]/dashboard",
+    hrefApp: "/app/[workspaceSlug]/platform",
     topLevel: true,
   },
   {
@@ -83,7 +83,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["platform", "helper"],
     requiresEntitlement: "meta_hub",
     hrefMarketing: "/products/meta-hub",
-    hrefApp: "/app/[workspaceSlug]/modules/meta-hub",
+    hrefApp: "/app/[workspaceSlug]/meta-hub",
     topLevel: true,
   },
   {
