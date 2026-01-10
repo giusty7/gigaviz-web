@@ -93,12 +93,6 @@ export default async function WhatsappInboxPage({ params }: Props) {
         .limit(50)
     : { data: [] };
 
-  const { data: templateOptions } = await supabase
-    .from("wa_templates")
-    .select("name, language, status")
-    .eq("workspace_id", workspaceId)
-    .eq("status", "APPROVED")
-    .order("name");
 
   return (
     <div className="space-y-4">
@@ -136,12 +130,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
         initialMessages={messages ?? []}
         initialTags={tags?.map((t) => t.tag) ?? []}
         initialNotes={notes ?? []}
-        templates={
-          templateOptions?.map((t) => ({
-            name: t.name as string,
-            language: (t.language as string | null) ?? "id",
-          })) ?? []
-        }
+        templates={[]}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,13 +42,14 @@ type Props = {
   initialMessages: Message[];
   initialTags: string[];
   initialNotes: Note[];
-  templates?: { name: string; language: string | null }[];
+  templates?: { name: string; language: string | null; status?: string | null }[];
 };
 
 const STATUS_OPTIONS = ["open", "pending", "closed"];
 
 export function WhatsappInboxClient({
   workspaceId,
+  workspaceSlug,
   userId,
   canEdit,
   threads,
@@ -65,6 +66,10 @@ export function WhatsappInboxClient({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [notes, setNotes] = useState<Note[]>(initialNotes);
+  const [templateOptions, setTemplateOptions] = useState(templates);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templatesError, setTemplatesError] = useState<string | null>(null);
+  const templateSlugRef = useRef(workspaceSlug);
   const [replyTemplate, setReplyTemplate] = useState({ name: "", language: "id", vars: "" });
   const [status, setStatus] = useState<string>(threads[0]?.status ?? "open");
   const [assignedTo, setAssignedTo] = useState<string | null>(threads[0]?.assigned_to ?? null);
@@ -130,6 +135,57 @@ export function WhatsappInboxClient({
     }, 250);
     return () => clearTimeout(timer);
   }, [fetchThreads]);
+
+  useEffect(() => {
+    let active = true;
+    const slug = templateSlugRef.current;
+    if (!slug) return;
+    setTemplatesLoading(true);
+    setTemplatesError(null);
+    async function run() {
+      try {
+        const params = new URLSearchParams({ workspaceSlug: slug });
+        const res = await fetch(`/api/meta/whatsapp/templates?${params.toString()}`, {
+          cache: "no-store",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.message || data?.error || "Gagal memuat templates");
+        }
+        const items = Array.isArray(data.templates) ? data.templates : [];
+        const normalized = items.map((tpl: Record<string, unknown>) => ({
+          name: String(tpl.name ?? ""),
+          language: (tpl.language as string | null) ?? "id",
+          status: (tpl.status as string | null) ?? null,
+        }));
+        if (active) setTemplateOptions(normalized);
+      } catch (err) {
+        if (active) {
+          setTemplatesError(err instanceof Error ? err.message : "Gagal memuat templates");
+        }
+      } finally {
+        if (active) setTemplatesLoading(false);
+      }
+    }
+    run();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const approvedTemplates = useMemo(() => {
+    return templateOptions.filter((tpl) => (tpl.status ?? "").toUpperCase() === "APPROVED");
+  }, [templateOptions]);
+
+  useEffect(() => {
+    if (approvedTemplates.length === 0 || replyTemplate.name) return;
+    const first = approvedTemplates[0];
+    setReplyTemplate((prev) => ({
+      ...prev,
+      name: first.name,
+      language: first.language ?? "id",
+    }));
+  }, [approvedTemplates, replyTemplate.name]);
 
   async function loadThread(threadId: string) {
     setSelectedId(threadId);
@@ -416,7 +472,7 @@ export function WhatsappInboxClient({
                   }}
                 >
                   <option value="::">Pilih template</option>
-                  {templates.map((tpl) => (
+                  {approvedTemplates.map((tpl) => (
                     <option
                       key={`${tpl.name}-${tpl.language ?? "id"}`}
                       value={`${tpl.name}::${tpl.language ?? "id"}`}
@@ -425,6 +481,12 @@ export function WhatsappInboxClient({
                     </option>
                   ))}
                 </select>
+                {templatesLoading ? (
+                  <p className="text-xs text-muted-foreground">Memuat templates...</p>
+                ) : null}
+                {templatesError ? (
+                  <p className="text-xs text-rose-300">{templatesError}</p>
+                ) : null}
               </div>
               <div className="space-y-1">
                 <Label htmlFor="tpl-lang">Language</Label>

@@ -39,7 +39,7 @@
 2) Copy `.env.example` to `.env.local` and fill Supabase + WhatsApp values.
 3) Apply SQL migration in `docs/sql/20260102_inbox.sql` to Supabase.
 4) Run `npm run dev`
-5) Open `http://localhost:3000/admin/inbox`
+5) Open `http://localhost:3000/app/<workspaceSlug>/meta-hub/messaging/whatsapp/inbox`
 
 ## C) How To Test
 
@@ -55,8 +55,8 @@
 
 ### Webhook status updates
 1) Expose the app (ngrok or similar) and set webhook URL to
-   `https://<host>/api/webhooks/whatsapp`.
-2) Verify GET using `WA_VERIFY_TOKEN`.
+   `https://<host>/api/webhooks/meta/whatsapp`.
+2) Verify GET using `META_WEBHOOK_VERIFY_TOKEN`.
 3) POST a sample payload:
 
 ```json
@@ -77,14 +77,14 @@
 }
 ```
 
-4) Confirm message status changes to `delivered` and a `message_events` row is added.
+4) Confirm message status changes to `delivered` and a `meta_webhook_events` row is added.
 
 ## D) Risks & Mitigations
 
 - Webhook payload variance: handler ignores unknown events and logs errors.
 - Media URL lookup: fallback stores `wa-media://<id>` when URL fetch fails.
 - Rate control: simple in-memory cap; restart resets counters (acceptable for MVP).
-- Inbound webhook uses `DEFAULT_WORKSPACE_ID` to map messages to a workspace.
+- Inbound webhook uses phone_number_id mapping to resolve workspace_id.
 
 ## E) Auth Notes
 
