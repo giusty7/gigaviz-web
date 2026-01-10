@@ -25,10 +25,13 @@ type Message = {
   id: string;
   direction: "in" | "out";
   content_json: Record<string, unknown>;
+  text_body?: string | null;
   status?: string | null;
   created_at?: string | null;
   received_at?: string | null;
   external_message_id?: string | null;
+  wa_message_id?: string | null;
+  wa_timestamp?: string | null;
 };
 
 type Note = { id: string; author_id: string; body: string; created_at: string };
@@ -71,6 +74,7 @@ export function WhatsappInboxClient({
   const [templatesError, setTemplatesError] = useState<string | null>(null);
   const templateSlugRef = useRef(workspaceSlug);
   const [replyTemplate, setReplyTemplate] = useState({ name: "", language: "id", vars: "" });
+  const [composerText, setComposerText] = useState("");
   const [status, setStatus] = useState<string>(threads[0]?.status ?? "open");
   const [assignedTo, setAssignedTo] = useState<string | null>(threads[0]?.assigned_to ?? null);
   const [isPending, startTransition] = useTransition();
@@ -78,6 +82,7 @@ export function WhatsappInboxClient({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assignFilter, setAssignFilter] = useState<string>("all");
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const visibleThreads = useMemo(() => threadList, [threadList]);
 
@@ -135,6 +140,12 @@ export function WhatsappInboxClient({
     }, 250);
     return () => clearTimeout(timer);
   }, [fetchThreads]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   useEffect(() => {
     let active = true;
@@ -273,6 +284,27 @@ export function WhatsappInboxClient({
     }
   }
 
+  async function handleSendText() {
+    if (!selectedId || !composerText.trim()) return;
+    try {
+      const res = await fetch("/api/meta/whatsapp/send-text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId, threadId: selectedId, text: composerText.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal kirim pesan");
+      setComposerText("");
+      await loadThread(selectedId);
+    } catch (err) {
+      toast({
+        title: "Kirim gagal",
+        description: err instanceof Error ? err.message : "Error",
+        variant: "destructive",
+      });
+    }
+  }
+
   async function handleReplyTemplate() {
     try {
       const variables = replyTemplate.vars
@@ -330,6 +362,7 @@ export function WhatsappInboxClient({
   }
 
   const renderMessageBody = (msg: Message) => {
+    if (msg.text_body) return msg.text_body;
     const content = msg.content_json as {
       text?: { body?: unknown };
       template?: { name?: unknown };
@@ -429,32 +462,68 @@ export function WhatsappInboxClient({
           <CardTitle className="text-base font-semibold text-foreground">Percakapan</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <div className="max-h-[420px] overflow-y-auto space-y-2 rounded-lg border border-border bg-background p-3">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-sm",
-                  msg.direction === "in"
-                    ? "bg-gigaviz-surface text-foreground"
-                    : "bg-gigaviz-gold/20 text-foreground"
-                )}
-              >
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{msg.direction === "in" ? "Incoming" : "Outgoing"}</span>
-                  <span>{msg.created_at ? new Date(msg.created_at).toLocaleString() : ""}</span>
+          <div
+            ref={scrollRef}
+            className="max-h-[460px] overflow-y-auto space-y-2 rounded-lg border border-border bg-background p-3"
+          >
+            {messages.map((msg) => {
+              const inbound = msg.direction === "in";
+              const time =
+                msg.wa_timestamp || msg.created_at || msg.received_at
+                  ? new Date(
+                      msg.wa_timestamp || msg.created_at || msg.received_at || ""
+                    ).toLocaleString()
+                  : "";
+              return (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    "flex w-full",
+                    inbound ? "justify-start" : "justify-end"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                      inbound
+                        ? "bg-gigaviz-surface text-foreground"
+                        : "bg-gigaviz-gold/20 text-foreground"
+                    )}
+                  >
+                    <div className="text-xs text-muted-foreground flex items-center justify-between gap-2">
+                      <span>{inbound ? "Incoming" : "Outgoing"}</span>
+                      <span>{time}</span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap">{renderMessageBody(msg)}</p>
+                    {!inbound && msg.status ? (
+                      <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground text-right">
+                        {msg.status}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap">{renderMessageBody(msg)}</p>
-                {msg.status ? (
-                  <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {msg.status}
-                  </p>
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
             {messages.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada pesan.</p>
+              <p className="text-sm text-muted-foreground">Belum ada pesan di thread ini.</p>
             ) : null}
+          </div>
+
+          <div className="rounded-lg border border-border bg-background p-3 space-y-3">
+            <p className="text-sm font-semibold text-foreground">Kirim pesan</p>
+            <Textarea
+              value={composerText}
+              onChange={(e) => setComposerText(e.target.value)}
+              placeholder="Tulis pesan..."
+              className="bg-card"
+              rows={3}
+              disabled={!canEdit}
+            />
+            <div className="flex items-center justify-between">
+              <Button onClick={handleSendText} disabled={!canEdit || !composerText.trim()}>
+                Kirim teks
+              </Button>
+            </div>
           </div>
 
           <div className="rounded-lg border border-border bg-background p-3 space-y-3">

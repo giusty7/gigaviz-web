@@ -172,7 +172,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     workspaceId,
-    stored: true,
+    stored: !existing,
     deduped: Boolean(existing),
   });
 }

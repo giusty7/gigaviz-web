@@ -7,6 +7,10 @@ type WaMessage = {
   timestamp?: string;
   type?: string;
   text?: { body?: string };
+  image?: { id?: string };
+  document?: { id?: string };
+  audio?: { id?: string };
+  video?: { id?: string };
 };
 
 type WaStatus = {
@@ -39,7 +43,7 @@ export async function processWhatsappEvents(workspaceId: string, limit = 25) {
   const db = supabaseAdmin();
   const { data: events, error } = await db
     .from("meta_webhook_events")
-    .select("id, payload_json, received_at")
+    .select("id, payload_json, received_at, event_key")
     .eq("workspace_id", workspaceId)
     .eq("channel", "whatsapp")
     .is("processed_at", null)
@@ -150,15 +154,18 @@ async function ingestMessage(
     ? `[${msg.type}]`
     : "[message]";
 
+  const phoneId = phoneNumberId ?? "unknown";
+  const receivedAt = toDate(msg.timestamp) ?? new Date().toISOString();
+
   const { data: thread } = await db
     .from("wa_threads")
     .upsert(
       {
         workspace_id: workspaceId,
-        phone_number_id: phoneNumberId ?? "unknown",
+        phone_number_id: phoneId,
         contact_wa_id: threadKey,
         contact_name: contactName,
-        last_message_at: toDate(msg.timestamp) ?? new Date().toISOString(),
+        last_message_at: receivedAt,
         unread_count: 1,
         last_message_preview: preview,
       },
@@ -170,24 +177,31 @@ async function ingestMessage(
   if (!thread) return { newThread: false };
   const newThread = thread.inserted_at === thread.updated_at;
 
-  const receivedAt = toDate(msg.timestamp) ?? new Date().toISOString();
+  const mediaId =
+    msg.image?.id ?? msg.document?.id ?? msg.audio?.id ?? msg.video?.id ?? null;
   const insertMessage = {
     workspace_id: workspaceId,
     thread_id: thread.id,
+    phone_number_id: phoneId,
     wa_message_id: msg.id ?? null,
     direction: "in",
-    message_type: msg.type ?? null,
-    body: msg.text?.body ?? null,
+    msg_type: msg.type ?? null,
+    text_body: msg.text?.body ?? null,
+    media_id: mediaId,
+    media_url: null as string | null,
     content_json: msg,
     status: "received",
-    received_at: receivedAt,
+    wa_timestamp: receivedAt,
     created_at: receivedAt,
+    updated_at: receivedAt,
+    from_wa_id: contactWaId ?? null,
+    to_wa_id: phoneId,
   };
 
   try {
     await db
       .from("wa_messages")
-      .upsert(insertMessage, { onConflict: "workspace_id,wa_message_id" })
+      .upsert(insertMessage, { onConflict: "workspace_id,phone_number_id,wa_message_id" })
       .select("id")
       .single();
   } catch {

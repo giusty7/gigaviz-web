@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
   const query = adminDb
     .from("wa_templates")
     .select(
-      "id, name, language, status, category, quality_score, rejection_reason, phone_number_id, last_synced_at, updated_at"
+      "id, name, language, status, category, quality_score, rejection_reason, phone_number_id, last_synced_at, updated_at, body, header, footer, buttons, meta_payload, meta_response"
     )
     .eq("workspace_id", workspace.id)
     .order("updated_at", { ascending: false });

@@ -20,7 +20,12 @@ type TemplateRow = {
   quality_score: string | null;
   rejection_reason: string | null;
   phone_number_id: string | null;
-  components_json?: unknown;
+  body?: string | null;
+  header?: string | null;
+  footer?: string | null;
+  buttons?: unknown;
+  meta_payload?: unknown;
+  meta_response?: unknown;
   last_synced_at?: string | null;
   updated_at?: string | null;
 };
@@ -39,24 +44,55 @@ type ComponentBlock = {
   text?: string;
 };
 
-function extractVariables(components: unknown): number {
-  if (!Array.isArray(components)) return 0;
-  const body = components.find((c: ComponentBlock) => c?.type === "BODY") as ComponentBlock | undefined;
-  const text = body?.text ?? "";
+type TemplatePieces = {
+  header?: string | null;
+  body?: string | null;
+  footer?: string | null;
+  buttons?: unknown;
+};
+
+function pickComponents(tpl: TemplateRow): TemplatePieces {
+  const fromPayload = (() => {
+    const meta = (tpl.meta_payload as { components?: unknown } | null)?.components;
+    if (!Array.isArray(meta)) return null;
+    const findText = (type: string) =>
+      (meta.find((c: ComponentBlock) => c?.type === type) as ComponentBlock | undefined)?.text;
+    const btns = meta.filter((c: ComponentBlock) => c?.type === "BUTTONS");
+    return {
+      header: findText("HEADER") ?? null,
+      body: findText("BODY") ?? null,
+      footer: findText("FOOTER") ?? null,
+      buttons: btns.length ? btns : tpl.buttons,
+    };
+  })();
+
+  return {
+    header: fromPayload?.header ?? tpl.header ?? null,
+    body: fromPayload?.body ?? tpl.body ?? null,
+    footer: fromPayload?.footer ?? tpl.footer ?? null,
+    buttons: fromPayload?.buttons ?? tpl.buttons ?? null,
+  };
+}
+
+function extractVariables(tpl: TemplateRow): number {
+  const pieces = pickComponents(tpl);
+  const text = pieces.body ?? "";
   const matches = Array.from(text.matchAll(/{{\d+}}/g));
   return Math.max(matches.length, 0);
 }
 
-function renderTemplatePreview(components: unknown, vars: string[]) {
-  if (!Array.isArray(components)) return "Tidak ada konten template.";
-  const body = components.find((c: ComponentBlock) => c?.type === "BODY") as ComponentBlock | undefined;
-  if (!body?.text) return "Tidak ada konten body.";
-  let rendered = body.text;
+function renderTemplatePreview(tpl: TemplateRow, vars: string[]) {
+  const pieces = pickComponents(tpl);
+  const base = pieces.body ?? "";
+  if (!base) return "Tidak ada konten body.";
+  let rendered = base;
   vars.forEach((value, idx) => {
     const placeholder = new RegExp(`{{${idx + 1}}}`, "g");
     rendered = rendered.replace(placeholder, value || `{{${idx + 1}}}`);
   });
-  return rendered;
+  const header = pieces.header ? `*${pieces.header}*\n` : "";
+  const footer = pieces.footer ? `\n${pieces.footer}` : "";
+  return `${header}${rendered}${footer}`;
 }
 
 export function WhatsappTemplatesClient({
@@ -99,10 +135,7 @@ export function WhatsappTemplatesClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered]);
 
-  const variableCount = useMemo(
-    () => extractVariables(selected?.components_json),
-    [selected?.components_json]
-  );
+  const variableCount = useMemo(() => extractVariables(selected ?? ({} as TemplateRow)), [selected]);
   const [variables, setVariables] = useState<string[]>([]);
   useEffect(() => {
     setVariables((prev) => {
@@ -400,7 +433,7 @@ export function WhatsappTemplatesClient({
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-foreground">Preview</p>
                   <div className="rounded-xl border border-border bg-background p-3 text-sm text-foreground">
-                    {renderTemplatePreview(selected.components_json, variables)}
+                    {renderTemplatePreview(selected, variables)}
                   </div>
                   {selected.rejection_reason ? (
                     <p className="text-xs text-rose-200">

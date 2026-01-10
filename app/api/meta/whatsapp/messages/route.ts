@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const threadId = url.searchParams.get("threadId");
   const workspaceParam = url.searchParams.get("workspaceId") ?? undefined;
+  const threadId = url.searchParams.get("threadId");
   const workspaceId = getWorkspaceId(req, undefined, workspaceParam);
   if (!workspaceId || !threadId) {
     return workspaceRequiredResponse(withCookies);
@@ -41,25 +41,9 @@ export async function GET(req: NextRequest) {
     .eq("thread_id", threadId)
     .order("wa_timestamp", { ascending: true });
 
-  const { data: tags } = await db
-    .from("wa_thread_tags")
-    .select("tag")
-    .eq("workspace_id", workspaceId)
-    .eq("thread_id", threadId);
-
-  const { data: notes } = await db
-    .from("wa_thread_notes")
-    .select("id, author_id, body, created_at")
-    .eq("workspace_id", workspaceId)
-    .eq("thread_id", threadId)
-    .order("created_at", { ascending: false })
-    .limit(50);
-
   return withCookies(
     NextResponse.json({
       messages: messages ?? [],
-      tags: tags?.map((t) => t.tag) ?? [],
-      notes: notes ?? [],
     })
   );
 }
