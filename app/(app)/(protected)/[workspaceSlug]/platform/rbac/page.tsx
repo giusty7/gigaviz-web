@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { ActionGate } from "@/components/gates/action-gate";
 import PreviewBanner from "@/components/modules/preview-banner";
 import { UpgradeButton } from "@/components/billing/upgrade-button";
@@ -23,11 +23,11 @@ export default async function RBACPage({ params }: RBACPageProps) {
 
   const planInfo = await getWorkspacePlan(ctx.currentWorkspace.id);
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const isPreview = planInfo.planId === "free_locked";
-  const allowRoles = canAccess(
-    { plan_id: planInfo.planId, is_admin: isAdmin },
-    "roles_permissions"
-  );
+  const isDevOverride = Boolean(planInfo.devOverride);
+  const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
+  const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
+  const allowRoles = canAccess(entitlementCtx, "roles_permissions");
+  const showUpgrade = !isDevOverride;
 
   const roles = [
     { name: "Owner", desc: "Kontrol penuh, billing, dan audit." },
@@ -58,7 +58,7 @@ export default async function RBACPage({ params }: RBACPageProps) {
                   aria-hidden
                   className="flex h-8 w-8 items-center justify-center rounded-full bg-gigaviz-surface text-xs text-gigaviz-gold"
                 >
-                  🛡️
+                  ⚙
                 </span>
                 <div>
                   <p className="font-semibold">{role.name}</p>
@@ -77,12 +77,12 @@ export default async function RBACPage({ params }: RBACPageProps) {
             <ActionGate allowed={allowRoles}>
               <Button size="sm">
                 <span aria-hidden className="mr-2 text-sm">
-                  ➕
+                  +
                 </span>
                 Tambah role
               </Button>
             </ActionGate>
-            <UpgradeButton label="Upgrade" variant="ghost" size="sm" />
+            {showUpgrade && <UpgradeButton label="Upgrade" variant="ghost" size="sm" />}
           </div>
 
           <div className="rounded-xl border border-border bg-background px-4 py-3 text-sm">
@@ -94,4 +94,3 @@ export default async function RBACPage({ params }: RBACPageProps) {
     </div>
   );
 }
-

@@ -35,17 +35,17 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   await ensureWorkspaceCookie(workspace.id);
 
   const planInfo = await getWorkspacePlan(workspace.id);
-  const isPreview = planInfo.planId === "free_locked";
+  const isDevOverride = Boolean(planInfo.devOverride);
+  const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const allowTemplates = canAccess(
-    { plan_id: planInfo.planId, is_admin: isAdmin },
-    "meta_templates"
-  );
-  const allowSend = canAccess({ plan_id: planInfo.planId, is_admin: isAdmin }, "meta_send");
+  const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
+  const allowTemplates = canAccess(entitlementCtx, "meta_templates");
+  const allowSend = canAccess(entitlementCtx, "meta_send");
 
   const overview = await getMetaHubOverview(workspace.id);
   const flags = getMetaHubFlags();
   const basePath = `/${workspace.slug}/meta-hub`;
+  const planLabel = isDevOverride ? "DEV (Full Access)" : planInfo.displayName;
 
   const connectors = [
     {
@@ -101,9 +101,9 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-gigaviz-gold text-gigaviz-gold">
-            Plan: {planInfo.plan.name}
+            Plan: {planLabel}
           </Badge>
-          <UpgradeButton variant="outline" size="sm" />
+          {!isDevOverride && <UpgradeButton variant="outline" size="sm" />}
         </div>
       </div>
 

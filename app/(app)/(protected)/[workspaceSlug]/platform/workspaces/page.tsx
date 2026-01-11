@@ -23,13 +23,13 @@ export default async function PlatformWorkspacesPage({ params }: WorkspacesPageP
   const workspace = ctx.currentWorkspace;
 
   const planInfo = await getWorkspacePlan(workspace.id);
+  const isDevOverride = Boolean(planInfo.devOverride);
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const isPreview = planInfo.planId === "free_locked";
+  const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
+  const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
 
-  const allowInvite = canAccess(
-    { plan_id: planInfo.planId, is_admin: isAdmin },
-    "member_invites"
-  );
+  const allowInvite = canAccess(entitlementCtx, "member_invites");
+  const showUpgrade = !isDevOverride;
 
   return (
     <div className="space-y-4">
@@ -70,7 +70,7 @@ export default async function PlatformWorkspacesPage({ params }: WorkspacesPageP
             <ActionGate allowed={allowInvite}>
               <Button size="sm">Undang Member</Button>
             </ActionGate>
-            <UpgradeButton label="Upgrade" variant="ghost" size="sm" />
+            {showUpgrade && <UpgradeButton label="Upgrade" variant="ghost" size="sm" />}
           </div>
         </CardContent>
       </Card>

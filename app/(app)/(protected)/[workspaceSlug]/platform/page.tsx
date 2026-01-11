@@ -33,8 +33,11 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
   await ensureWorkspaceCookie(workspace.id);
 
   const planInfo = await getWorkspacePlan(workspace.id);
-  const isPreview = planInfo.planId === "free_locked";
+  const isDevOverride = Boolean(planInfo.devOverride);
+  const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
   const isAdmin = Boolean(ctx.profile?.is_admin);
+  const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
+  const planLabel = isDevOverride ? "DEV (Full Access)" : planInfo.displayName;
 
   const db = supabaseAdmin();
   const { count: memberCount } = await db
@@ -60,7 +63,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
     },
     {
       title: "Status billing",
-      value: planInfo.plan.name,
+      value: planLabel,
       helper: planInfo.status ?? "Plan aktif saat ini",
     },
   ];
@@ -113,9 +116,9 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-gigaviz-gold text-gigaviz-gold">
-            Plan: {planInfo.plan.name}
+            Plan: {planLabel}
           </Badge>
-          <UpgradeButton label="Upgrade" variant="outline" size="sm" />
+          {!isDevOverride && <UpgradeButton label="Upgrade" variant="outline" size="sm" />}
         </div>
       </div>
 
@@ -143,8 +146,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         <CardContent className="grid gap-3 md:grid-cols-2">
           {quickActions.map((action) => {
             const allowed =
-              !action.entitlement ||
-              canAccess({ plan_id: planInfo.planId, is_admin: isAdmin }, action.entitlement);
+              !action.entitlement || canAccess(entitlementCtx, action.entitlement);
             return (
               <ActionGate key={action.label} allowed={allowed}>
                 <Link
@@ -220,10 +222,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
                   <p className="text-xs text-muted-foreground">Hak akses default role {role}</p>
                 </div>
                 <ActionGate
-                  allowed={canAccess(
-                    { plan_id: planInfo.planId, is_admin: isAdmin },
-                    "roles_permissions"
-                  )}
+                  allowed={canAccess(entitlementCtx, "roles_permissions")}
                 >
                   <Button size="sm" variant="outline">
                     Edit
@@ -264,7 +263,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="rounded-xl border border-border bg-background px-4 py-3">
-              <p className="font-semibold">{planInfo.plan.name}</p>
+              <p className="font-semibold">{planLabel}</p>
               <p className="text-xs text-muted-foreground">
                 {planInfo.status ?? copy.emptyStates.billing.helper}
               </p>

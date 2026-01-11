@@ -20,7 +20,8 @@ export default async function AuditPage({ params }: AuditPageProps) {
   const workspace = ctx.currentWorkspace;
 
   const planInfo = await getWorkspacePlan(workspace.id);
-  const isPreview = planInfo.planId === "free_locked";
+  const isPreview = planInfo.planId === "free_locked" && !planInfo.devOverride;
+  const showUpgrade = !planInfo.devOverride;
 
   const demoEvents = [
     { action: "auth.login", actor: ctx.user.email ?? "user", time: "baru saja" },
@@ -55,7 +56,9 @@ export default async function AuditPage({ params }: AuditPageProps) {
             <p className="text-muted-foreground">{copy.emptyStates.audit.helper}</p>
           </div>
 
-          <UpgradeButton label="Upgrade untuk audit penuh" variant="outline" size="sm" />
+          {showUpgrade && (
+            <UpgradeButton label="Upgrade untuk audit penuh" variant="outline" size="sm" />
+          )}
         </CardContent>
       </Card>
     </div>

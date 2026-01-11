@@ -23,7 +23,9 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
   const workspace = ctx.currentWorkspace;
 
   const planInfo = await getWorkspacePlan(workspace.id);
-  const isPreview = planInfo.planId === "free_locked";
+  const isDevOverride = Boolean(planInfo.devOverride);
+  const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
+  const planLabel = isDevOverride ? "DEV (Full Access)" : planInfo.displayName;
 
   return (
     <div className="space-y-4">
@@ -36,18 +38,18 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
             <CardDescription>Kelola paket, pembayaran, dan batasan.</CardDescription>
           </div>
           <Badge variant="outline" className="border-gigaviz-gold text-gigaviz-gold">
-            {planInfo.plan.name}
+            {planLabel}
           </Badge>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="rounded-xl border border-border bg-background px-4 py-3">
-            <p className="font-semibold">{planInfo.plan.name}</p>
+            <p className="font-semibold">{planLabel}</p>
             <p className="text-xs text-muted-foreground">
               {planInfo.status ?? copy.emptyStates.billing.helper}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <UpgradeButton label="Upgrade" />
+            {!isDevOverride && <UpgradeButton label="Upgrade" />}
             <Button asChild variant="outline" size="sm">
               <Link href={`/${workspaceSlug}/billing`}>Buka halaman billing</Link>
             </Button>

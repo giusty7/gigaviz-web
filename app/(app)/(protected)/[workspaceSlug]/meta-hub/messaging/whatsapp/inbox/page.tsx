@@ -26,7 +26,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
   const workspaceId = ctx.currentWorkspace.id;
   const canEdit = ["owner", "admin", "member"].includes(ctx.currentRole ?? "");
   const planInfo = await getWorkspacePlan(workspaceId);
-  const allowWrite = planInfo.planId !== "free_locked";
+  const allowWrite = planInfo.planId !== "free_locked" || Boolean(planInfo.devOverride);
 
   const { data: rawThreads } = await supabase
     .from("wa_threads")
