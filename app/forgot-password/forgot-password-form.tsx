@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -85,9 +86,9 @@ export default function ForgotPasswordForm() {
 
         <div className="text-center text-sm text-gigaviz-muted">
           Remembered your password?{" "}
-          <a href="/login" className="text-gigaviz-cream hover:underline">
+          <Link href="/login" className="text-gigaviz-cream hover:underline">
             Back to login
-          </a>
+          </Link>
         </div>
       </form>
     </Form>

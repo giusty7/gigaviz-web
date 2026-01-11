@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -202,9 +203,9 @@ export default function RegisterForm() {
 
         <div className="text-center text-sm text-gigaviz-muted">
           Already have an account?{" "}
-          <a href="/login" className="text-gigaviz-cream hover:underline">
+          <Link href="/login" className="text-gigaviz-cream hover:underline">
             Sign in
-          </a>
+          </Link>
         </div>
       </form>
     </Form>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -42,9 +43,9 @@ export default function GetStartedAuth() {
 
       <div className="mt-4 text-xs text-[color:var(--gv-muted)]">
         Sudah punya akun?{" "}
-        <a href="/login" className="text-[color:var(--gv-text)] hover:underline">
+        <Link href="/login" className="text-[color:var(--gv-text)] hover:underline">
           Masuk
-        </a>
+        </Link>
       </div>
     </div>
   );

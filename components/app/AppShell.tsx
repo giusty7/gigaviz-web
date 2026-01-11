@@ -31,13 +31,11 @@ export default function AppShell({
   const currentWorkspace =
     workspaces.find((ws) => ws.id === currentWorkspaceId) ?? null;
   const workspaceSlug = currentWorkspaceSlug ?? currentWorkspace?.slug ?? null;
-  const dashboardHref = workspaceSlug
-    ? `/app/${workspaceSlug}/dashboard`
-    : "/app";
-  const modulesHref = workspaceSlug ? `/app/${workspaceSlug}/modules` : "/app/modules";
-  const tokensHref = workspaceSlug ? `/app/${workspaceSlug}/tokens` : "/app/tokens";
-  const billingHref = workspaceSlug ? `/app/${workspaceSlug}/billing` : "/app/billing";
-  const settingsHref = workspaceSlug ? `/app/${workspaceSlug}/settings` : "/app/settings";
+  const dashboardHref = workspaceSlug ? `/${workspaceSlug}/dashboard` : "/";
+  const modulesHref = workspaceSlug ? `/${workspaceSlug}/modules` : "/modules";
+  const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
+  const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
+  const settingsHref = workspaceSlug ? `/${workspaceSlug}/settings` : "/settings";
 
   return (
     <UpgradeModalProvider billingHref={billingHref}>

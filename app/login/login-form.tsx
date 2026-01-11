@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -179,12 +180,12 @@ export default function LoginForm() {
         ) : null}
 
         <div className="flex items-center justify-between text-sm text-gigaviz-muted">
-          <a href="/forgot-password" className="hover:text-gigaviz-cream">
+          <Link href="/forgot-password" className="hover:text-gigaviz-cream">
             Forgot password?
-          </a>
-          <a href="/register" className="hover:text-gigaviz-cream">
+          </Link>
+          <Link href="/register" className="hover:text-gigaviz-cream">
             Create account
-          </a>
+          </Link>
         </div>
 
         <div className="pt-2">

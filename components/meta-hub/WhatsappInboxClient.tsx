@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { ActionGate } from "@/components/gates/action-gate";
+import PreviewBanner from "@/components/modules/preview-banner";
 
 type Thread = {
   id: string;
@@ -41,6 +43,8 @@ type Props = {
   workspaceSlug: string;
   userId: string;
   canEdit: boolean;
+  allowWrite: boolean;
+  isPreview?: boolean;
   threads: Thread[];
   initialMessages: Message[];
   initialTags: string[];
@@ -55,6 +59,8 @@ export function WhatsappInboxClient({
   workspaceSlug,
   userId,
   canEdit,
+  allowWrite,
+  isPreview = false,
   threads,
   initialMessages,
   initialTags,
@@ -372,8 +378,11 @@ export function WhatsappInboxClient({
     return JSON.stringify(content);
   };
 
+  const canSend = canEdit && allowWrite;
+
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1.5fr_1fr]">
+      {isPreview && <PreviewBanner />}
       <Card className="border-border bg-card">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
@@ -517,12 +526,14 @@ export function WhatsappInboxClient({
               placeholder="Tulis pesan..."
               className="bg-card"
               rows={3}
-              disabled={!canEdit}
+              disabled={!canSend}
             />
             <div className="flex items-center justify-between">
-              <Button onClick={handleSendText} disabled={!canEdit || !composerText.trim()}>
-                Kirim teks
-              </Button>
+              <ActionGate allowed={canSend}>
+                <Button onClick={handleSendText} disabled={!canSend || !composerText.trim()}>
+                  Kirim teks
+                </Button>
+              </ActionGate>
             </div>
           </div>
 
@@ -577,9 +588,11 @@ export function WhatsappInboxClient({
                 placeholder="contoh: John,12345"
               />
             </div>
-            <Button onClick={handleReplyTemplate} disabled={!canEdit}>
-              Kirim template
-            </Button>
+            <ActionGate allowed={canSend}>
+              <Button onClick={handleReplyTemplate} disabled={!canSend}>
+                Kirim template
+              </Button>
+            </ActionGate>
           </div>
         </CardContent>
       </Card>
@@ -595,7 +608,7 @@ export function WhatsappInboxClient({
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              disabled={!canEdit}
+              disabled={!canSend}
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -610,15 +623,17 @@ export function WhatsappInboxClient({
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               value={assignedTo || ""}
               onChange={(e) => setAssignedTo(e.target.value || null)}
-              disabled={!canEdit}
+              disabled={!canSend}
             >
               <option value="">Unassigned</option>
               <option value={userId}>Saya</option>
             </select>
           </div>
-          <Button onClick={handleUpdateThread} disabled={!canEdit}>
-            Simpan status/assign
-          </Button>
+          <ActionGate allowed={canSend}>
+            <Button onClick={handleUpdateThread} disabled={!canSend}>
+              Simpan status/assign
+            </Button>
+          </ActionGate>
 
           <div className="space-y-2">
             <Label>Tags</Label>
@@ -634,16 +649,18 @@ export function WhatsappInboxClient({
               }
               className="bg-background"
               placeholder="priority, vip"
-              disabled={!canEdit}
+              disabled={!canSend}
             />
-            <Button onClick={handleTagsSave} disabled={!canEdit}>
-              Simpan tags
-            </Button>
+            <ActionGate allowed={canSend}>
+              <Button onClick={handleTagsSave} disabled={!canSend}>
+                Simpan tags
+              </Button>
+            </ActionGate>
           </div>
 
           <div className="space-y-2">
             <Label>Catatan internal</Label>
-            <NoteForm onSubmit={handleNoteAdd} disabled={!canEdit} />
+            <NoteForm onSubmit={handleNoteAdd} disabled={!canSend} />
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {notes.map((note) => (
                 <div key={note.id} className="rounded-lg border border-border bg-background p-2 text-sm">

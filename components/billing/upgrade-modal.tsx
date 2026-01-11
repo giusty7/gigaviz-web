@@ -26,7 +26,7 @@ export default function UpgradeModal({
   open,
   onOpenChange,
   onClose,
-  billingHref = "/app/billing",
+  billingHref = "/billing",
   className,
 }: UpgradeModalProps) {
   const bullets = useMemo(

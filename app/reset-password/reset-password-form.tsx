@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -91,9 +92,9 @@ export default function ResetPasswordForm() {
       <Alert>
         <AlertTitle>Password updated</AlertTitle>
         <AlertDescription>
-          <a href="/login" className="text-gigaviz-cream underline">
+          <Link href="/login" className="text-gigaviz-cream underline">
             Return to login
-          </a>
+          </Link>
         </AlertDescription>
       </Alert>
     );

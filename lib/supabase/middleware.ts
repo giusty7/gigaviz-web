@@ -10,7 +10,35 @@ function buildNextParam(request: NextRequest) {
 export async function withSupabaseAuth(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const nextParam = request.nextUrl.searchParams.get("next");
-  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
+  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/";
+
+  const firstSegment = pathname.split("/")[1] ?? "";
+  const publicSegments = new Set([
+    "",
+    "about",
+    "pricing",
+    "products",
+    "blog",
+    "contact",
+    "get-started",
+    "login",
+    "logout",
+    "register",
+    "forgot-password",
+    "reset-password",
+    "verify-email",
+    "media-kit",
+    "status",
+    "policies",
+    "roadmap",
+    "pricing",
+    "icon.png",
+    "apple-icon.png",
+    "favicon.ico",
+    "invite",
+    "sitemap.xml",
+    "robots.txt",
+  ]);
 
   const isInvitePath = pathname === "/invite" || pathname.startsWith("/invite/");
   const isAuthPath = pathname.startsWith("/auth/");
@@ -25,6 +53,10 @@ export async function withSupabaseAuth(request: NextRequest) {
     isInviteAcceptApi ||
     isWorkspaceInviteApi
   ) {
+    return NextResponse.next();
+  }
+
+  if (publicSegments.has(firstSegment)) {
     return NextResponse.next();
   }
 
@@ -62,8 +94,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     pathname === "/verify-email" ||
     pathname === "/forgot-password";
   const isResetPasswordPath = pathname === "/reset-password";
-  const isOnboardingPath = pathname === "/app/onboarding";
-  const isAppPath = pathname === "/app" || pathname.startsWith("/app/");
+  const isOnboardingPath = pathname === "/onboarding";
   const isAdminPath = pathname.startsWith("/admin");
   const isAdminApiPath = pathname.startsWith("/api/admin");
   const isInboxPath = pathname.startsWith("/admin/inbox");
@@ -74,7 +105,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     pathname.startsWith("/api/admin/crm/contacts/");
 
   // Extract workspace slug from /app/:workspaceSlug/* paths
-  const workspaceSlugMatch = pathname.match(/^\/app\/([^\/]+)/);
+  const workspaceSlugMatch = pathname.match(/^\/([^\/]+)/);
   const workspaceSlug = workspaceSlugMatch ? workspaceSlugMatch[1] : null;
 
   // Helper bikin response + apply cookie buffer + workspace cookie
@@ -83,7 +114,13 @@ export async function withSupabaseAuth(request: NextRequest) {
       res.cookies.set(name, value, options)
     );
     // Set workspace cookie if on /app/:workspaceSlug/* (but not /app/onboarding)
-    if (workspaceSlug && workspaceSlug !== "onboarding") {
+    if (
+      workspaceSlug &&
+      workspaceSlug !== "onboarding" &&
+      !publicSegments.has(workspaceSlug) &&
+      workspaceSlug !== "admin" &&
+      workspaceSlug !== "api"
+    ) {
       res.cookies.set("gv_workspace_slug", workspaceSlug, {
         httpOnly: true,
         sameSite: "lax",
@@ -146,19 +183,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     return makeNext();
   }
 
-  /**
-   * 1c) /app behavior (authed-only)
-   */
-  if (isAppPath) {
-    if (!user) {
-      const next = buildNextParam(request);
-      return makeRedirect(`/login?next=${next}`);
-    }
-    if (!isVerified) {
-      return makeRedirect(verifyEmailUrl);
-    }
-    return makeNext();
-  }
+  const isProtectedArea = !publicSegments.has(firstSegment) && !isAdminPath && !pathname.startsWith("/api");
 
   /**
    * 2) Protect /admin/* dan /api/admin/*
@@ -173,6 +198,17 @@ export async function withSupabaseAuth(request: NextRequest) {
     if (!isAdmin && !(isInboxPath || isInboxApiPath || isInboxRelatedApi)) {
       return makeRedirect("/login?error=not_admin");
     }
+  }
+
+  if (isProtectedArea) {
+    if (!user) {
+      const next = buildNextParam(request);
+      return makeRedirect(`/login?next=${next}`);
+    }
+    if (!isVerified) {
+      return makeRedirect(verifyEmailUrl);
+    }
+    return makeNext();
   }
 
   return makeNext();

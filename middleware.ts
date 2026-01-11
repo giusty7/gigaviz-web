@@ -9,6 +9,20 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+
+  if (path === "/app") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
+
+  if (path.startsWith("/app/") && !path.startsWith("/app/api")) {
+    const url = req.nextUrl.clone();
+    url.pathname = path.replace(/^\/app/, "");
+    return NextResponse.redirect(url);
+  }
+
   if (PROD && req.nextUrl.pathname.startsWith("/admin")) {
     return new NextResponse("Not Found", { status: 404 });
   }

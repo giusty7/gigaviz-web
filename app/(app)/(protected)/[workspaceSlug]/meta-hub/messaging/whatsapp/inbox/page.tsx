@@ -5,6 +5,7 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
 import Link from "next/link";
+import { getWorkspacePlan } from "@/lib/plans";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -24,6 +25,8 @@ export default async function WhatsappInboxPage({ params }: Props) {
   const supabase = await supabaseServer();
   const workspaceId = ctx.currentWorkspace.id;
   const canEdit = ["owner", "admin", "member"].includes(ctx.currentRole ?? "");
+  const planInfo = await getWorkspacePlan(workspaceId);
+  const allowWrite = planInfo.planId !== "free_locked";
 
   const { data: rawThreads } = await supabase
     .from("wa_threads")
@@ -123,12 +126,14 @@ export default async function WhatsappInboxPage({ params }: Props) {
 
       <WhatsappInboxClient
         workspaceId={workspaceId}
-        workspaceSlug={workspaceSlug}
-        userId={ctx.user.id}
-        canEdit={canEdit}
-        threads={threads ?? []}
-        initialMessages={messages ?? []}
-        initialTags={tags?.map((t) => t.tag) ?? []}
+      workspaceSlug={workspaceSlug}
+      userId={ctx.user.id}
+      canEdit={canEdit}
+      allowWrite={allowWrite}
+      isPreview={!allowWrite}
+      threads={threads ?? []}
+      initialMessages={messages ?? []}
+      initialTags={tags?.map((t) => t.tag) ?? []}
         initialNotes={notes ?? []}
         templates={[]}
       />

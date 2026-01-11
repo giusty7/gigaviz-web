@@ -60,7 +60,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     whoFor: ["Owner dan admin", "Ops yang butuh kontrol akses"],
     related: ["meta_hub", "helper", "pay"],
     hrefMarketing: "/products/platform",
-    hrefApp: "/app/[workspaceSlug]/platform",
+    hrefApp: "/[workspaceSlug]/platform",
     topLevel: true,
   },
   {
@@ -83,7 +83,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["platform", "helper"],
     requiresEntitlement: "meta_hub",
     hrefMarketing: "/products/meta-hub",
-    hrefApp: "/app/[workspaceSlug]/meta-hub",
+    hrefApp: "/[workspaceSlug]/meta-hub",
     topLevel: true,
   },
   {
@@ -106,7 +106,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["office", "graph"],
     requiresEntitlement: "helper",
     hrefMarketing: "/products/helper",
-    hrefApp: "/app/[workspaceSlug]/modules/helper",
+    hrefApp: "/[workspaceSlug]/modules/helper",
     topLevel: true,
   },
   {
@@ -123,7 +123,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     whoFor: ["Tim kreatif", "Ops", "Marketing"],
     related: ["helper", "platform"],
     hrefMarketing: "/products/studio",
-    hrefApp: "/app/[workspaceSlug]/modules/studio",
+    hrefApp: "/[workspaceSlug]/modules/studio",
     topLevel: true,
   },
   {
@@ -145,7 +145,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["helper", "platform"],
     requiresEntitlement: "office",
     hrefMarketing: "/products/office",
-    hrefApp: "/app/[workspaceSlug]/modules/office",
+    hrefApp: "/[workspaceSlug]/modules/office",
     parentKey: "studio",
   },
   {
@@ -163,7 +163,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["helper", "tracks"],
     requiresEntitlement: "graph",
     hrefMarketing: "/products/platform",
-    hrefApp: "/app/[workspaceSlug]/modules/graph",
+    hrefApp: "/[workspaceSlug]/modules/graph",
     parentKey: "studio",
   },
   {
@@ -180,7 +180,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["helper", "graph"],
     requiresEntitlement: "tracks",
     hrefMarketing: "/products/platform",
-    hrefApp: "/app/[workspaceSlug]/modules/tracks",
+    hrefApp: "/[workspaceSlug]/modules/tracks",
     parentKey: "studio",
   },
   {
@@ -197,7 +197,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     whoFor: ["Ops", "CS", "Klien enterprise"],
     related: ["platform", "community"],
     hrefMarketing: "/products/apps",
-    hrefApp: "/app/[workspaceSlug]/modules/apps",
+    hrefApp: "/[workspaceSlug]/modules/apps",
     topLevel: true,
   },
   {
@@ -276,7 +276,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     categories: ["Analytics", "Trading"],
     related: ["graph", "tracks"],
     hrefMarketing: "/products/trade",
-    hrefApp: "/app/[workspaceSlug]/modules/trade",
+    hrefApp: "/[workspaceSlug]/modules/trade",
     topLevel: true,
   },
 ];
