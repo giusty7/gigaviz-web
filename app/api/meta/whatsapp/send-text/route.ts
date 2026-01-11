@@ -49,7 +49,10 @@ export async function POST(req: NextRequest) {
     return forbiddenResponse(withCookies);
   }
 
-  const limiter = rateLimit(`wa-send-text:${workspaceId}:${userData.user.id}`, { windowMs: 60_000, max: 10 });
+  const limiter = rateLimit(`wa-send-text:${workspaceId}:${userData.user.id}`, {
+    windowMs: 60_000,
+    max: 10,
+  });
   if (!limiter.ok) {
     return withCookies(
       NextResponse.json({ error: "rate_limited", resetAt: limiter.resetAt }, { status: 429 })
@@ -71,49 +74,142 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
+  const phoneNumberId = thread.phone_number_id || process.env.WA_PHONE_NUMBER_ID || "unknown";
+
+  const accessToken = process.env.WA_ACCESS_TOKEN;
+  if (!accessToken) {
+    return withCookies(
+      NextResponse.json({ error: "server_error", reason: "wa_token_missing" }, { status: 500 })
+    );
+  }
+
+  let waMessageId: string | null = null;
+  let waResponse: Record<string, unknown> | null = null;
+  const requestPayload = {
+    messaging_product: "whatsapp",
+    to: thread.contact_wa_id ?? thread.phone_number_id,
+    type: "text",
+    text: { body: text },
+  };
 
   try {
-    await db
-      .from("wa_messages")
-      .insert({
-        workspace_id: workspaceId,
-        thread_id: threadId,
-        phone_number_id: thread.phone_number_id ?? "unknown",
-        wa_message_id: null,
-        direction: "out",
-        msg_type: "text",
-        text_body: text,
-        content_json: { text },
-        status: "queued",
-        wa_timestamp: now,
-        created_at: now,
-        updated_at: now,
-        from_wa_id: null,
-        to_wa_id: thread.contact_wa_id ?? null,
-      });
+    const res = await fetch(
+      `https://graph.facebook.com/v20.0/${encodeURIComponent(phoneNumberId)}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(requestPayload),
+      }
+    );
+
+    const payload = await res.json().catch(() => ({}));
+    waResponse = payload as Record<string, unknown>;
+    if (!res.ok) {
+      return withCookies(
+        NextResponse.json(
+          {
+            error: "wa_send_failed",
+            reason: payload?.error?.message ?? "Graph API error",
+            details: payload?.error ?? null,
+          },
+          { status: 502 }
+        )
+      );
+    }
+    waMessageId = payload?.messages?.[0]?.id ?? null;
   } catch (err) {
     return withCookies(
       NextResponse.json(
-        { error: "db_error", reason: "insert_failed", message: err instanceof Error ? err.message : "unknown" },
-        { status: 500 }
+        {
+          error: "wa_send_failed",
+          reason: err instanceof Error ? err.message : "unknown_error",
+        },
+        { status: 502 }
       )
     );
   }
 
-  await db
-    .from("wa_threads")
-    .update({
-      last_message_at: now,
-      last_message_preview: text.slice(0, 160),
-      updated_at: now,
-    })
-    .eq("workspace_id", workspaceId)
-    .eq("id", threadId);
+  const insertPayload = {
+    workspace_id: workspaceId,
+    thread_id: threadId,
+    phone_number_id: phoneNumberId,
+    wa_message_id: waMessageId,
+    direction: "outbound",
+    type: "text",
+    msg_type: "text",
+    text_body: text,
+    payload_json: { request: requestPayload, response: waResponse ?? {} },
+    wa_timestamp: now,
+    created_at: now,
+    sent_at: now,
+    from_wa_id: phoneNumberId,
+    to_wa_id: thread.contact_wa_id ?? null,
+  };
 
-  return withCookies(
-    NextResponse.json({
-      ok: true,
-      status: "queued",
-    })
-  );
+  try {
+    const writeQuery = waMessageId
+      ? db
+          .from("wa_messages")
+          .upsert(insertPayload, {
+            onConflict: "workspace_id,phone_number_id,wa_message_id",
+          })
+          .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
+          .single()
+      : db
+          .from("wa_messages")
+          .insert(insertPayload)
+          .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
+          .single();
+
+    const { data: insertedMessage, error: insertErr } = await writeQuery;
+    if (insertErr) {
+      return withCookies(
+        NextResponse.json(
+          {
+            ok: false,
+            error: "db_error",
+            reason: "insert_failed",
+            message: insertErr.message,
+            details: insertErr.details,
+            hint: insertErr.hint,
+          },
+          { status: 500 }
+        )
+      );
+    }
+
+    await db
+      .from("wa_threads")
+      .update({
+        last_message_at: now,
+        last_message_preview: text.slice(0, 160),
+        updated_at: now,
+      })
+      .eq("workspace_id", workspaceId)
+      .eq("id", threadId);
+
+    return withCookies(
+      NextResponse.json({
+        ok: true,
+        status: "sent",
+        waMessageId,
+        insertedMessage,
+      })
+    );
+  } catch (err) {
+    return withCookies(
+      NextResponse.json(
+        {
+          ok: false,
+          error: "db_error",
+          reason: "insert_failed",
+          message: err instanceof Error ? err.message : "unknown",
+        },
+        { status: 500 }
+      )
+    );
+  }
 }

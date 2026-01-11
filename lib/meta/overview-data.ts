@@ -123,7 +123,7 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
       .from("wa_messages")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspaceId)
-      .eq("direction", "in")
+      .in("direction", ["in", "inbound"])
       .gte("created_at", dayAgo.toISOString());
     inboundCount24h = inbound ?? 0;
 
@@ -131,7 +131,7 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
       .from("wa_messages")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspaceId)
-      .eq("direction", "out")
+      .in("direction", ["out", "outbound"])
       .gte("created_at", dayAgo.toISOString());
     outboundCount24h = outbound ?? 0;
   } catch {

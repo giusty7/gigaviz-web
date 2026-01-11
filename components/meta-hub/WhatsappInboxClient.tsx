@@ -25,12 +25,12 @@ type Thread = {
 
 type Message = {
   id: string;
-  direction: "in" | "out";
-  content_json: Record<string, unknown>;
+  direction: "in" | "inbound" | "out" | "outbound" | "outgoing";
+  payload_json?: Record<string, unknown>;
+  content_json?: Record<string, unknown>; // backwards-compat mapping from API
   text_body?: string | null;
   status?: string | null;
   created_at?: string | null;
-  received_at?: string | null;
   external_message_id?: string | null;
   wa_message_id?: string | null;
   wa_timestamp?: string | null;
@@ -73,6 +73,7 @@ export function WhatsappInboxClient({
   const [threadsLoading, setThreadsLoading] = useState(false);
   const [threadsError, setThreadsError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [templateOptions, setTemplateOptions] = useState(templates);
@@ -208,11 +209,17 @@ export function WhatsappInboxClient({
     setSelectedId(threadId);
     startTransition(async () => {
       try {
+        setMessagesLoading(true);
         const res = await fetch(
-          `/api/meta/whatsapp/thread/messages?threadId=${threadId}&workspaceId=${workspaceId}`
+          `/api/meta/whatsapp/thread/messages?threadId=${encodeURIComponent(
+            threadId
+          )}&workspaceId=${encodeURIComponent(workspaceId)}`,
+          { cache: "no-store", credentials: "include" }
         );
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal memuat pesan");
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.reason || data?.error || "Gagal memuat pesan");
+        }
         setMessages(data.messages ?? []);
         setTags(data.tags ?? []);
         setNotes(data.notes ?? []);
@@ -228,6 +235,8 @@ export function WhatsappInboxClient({
           description: err instanceof Error ? err.message : "Tidak bisa memuat thread",
           variant: "destructive",
         });
+      } finally {
+        setMessagesLoading(false);
       }
     });
   }
@@ -300,8 +309,41 @@ export function WhatsappInboxClient({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal kirim pesan");
+      const inserted = data?.insertedMessage as Partial<Message> | undefined;
+      const nowIso = new Date().toISOString();
+      const insertedId = typeof inserted?.id === "string" ? inserted.id : null;
+      const insertedDirection =
+        (inserted?.direction as Message["direction"]) ?? "outbound";
+      const insertedText = inserted?.text_body ?? composerText.trim();
+      const insertedTimestamp = inserted?.wa_timestamp ?? nowIso;
+      const insertedWaMessageId = inserted?.wa_message_id ?? undefined;
+      if (insertedId) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: insertedId,
+            direction: insertedDirection,
+            text_body: insertedText,
+            wa_message_id: insertedWaMessageId,
+            wa_timestamp: insertedTimestamp,
+          },
+        ]);
+      }
+      setThreadList((prev) =>
+        prev.map((thread) =>
+          thread.id === selectedId
+            ? {
+                ...thread,
+                last_message_preview: insertedText,
+                last_message_at: insertedTimestamp,
+              }
+            : thread
+        )
+      );
       setComposerText("");
-      await loadThread(selectedId);
+      if (!insertedId) {
+        await loadThread(selectedId);
+      }
     } catch (err) {
       toast({
         title: "Kirim gagal",
@@ -331,7 +373,41 @@ export function WhatsappInboxClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal kirim template");
       toast({ title: "Pesan dikirim", description: data?.messageId ? `ID: ${data.messageId}` : "" });
-      loadThread(selectedId!);
+      const inserted = data?.insertedMessage as Partial<Message> | undefined;
+      const nowIso = new Date().toISOString();
+      const preview = `Template: ${replyTemplate.name}`;
+      const insertedId = typeof inserted?.id === "string" ? inserted.id : null;
+      const insertedDirection =
+        (inserted?.direction as Message["direction"]) ?? "outbound";
+      const insertedText = inserted?.text_body ?? preview;
+      const insertedTimestamp = inserted?.wa_timestamp ?? nowIso;
+      const insertedWaMessageId = inserted?.wa_message_id ?? undefined;
+      if (insertedId) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: insertedId,
+            direction: insertedDirection,
+            text_body: insertedText,
+            wa_message_id: insertedWaMessageId,
+            wa_timestamp: insertedTimestamp,
+          },
+        ]);
+      }
+      setThreadList((prev) =>
+        prev.map((thread) =>
+          thread.id === selectedId
+            ? {
+                ...thread,
+                last_message_preview: insertedText,
+                last_message_at: insertedTimestamp,
+              }
+            : thread
+        )
+      );
+      if (!insertedId) {
+        loadThread(selectedId!);
+      }
     } catch (err) {
       toast({
         title: "Kirim gagal",
@@ -344,18 +420,21 @@ export function WhatsappInboxClient({
   async function handleProcessEvents() {
     setRefreshing(true);
     try {
-      const res = await fetch("/api/meta/whatsapp/process-events", {
+      const res = await fetch("/api/meta/whatsapp/process-events?reconcile=1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId }),
+        body: JSON.stringify({ workspaceId, reconcile: true }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || data?.error || "Proses events gagal");
       toast({
         title: "Inbox diperbarui",
-        description: `Processed ${data.processed ?? 0}, messages ${data.messagesCreated ?? 0}, threads ${data.threadsCreated ?? 0}`,
+        description: `Processed ${data.processedEvents ?? data.processed ?? 0}, inserted ${data.insertedMessages ?? data.messagesCreated ?? 0}, reconciled ${data.reconciledMessages ?? 0}`,
       });
       await fetchThreads();
+      if (selectedId) {
+        await loadThread(selectedId);
+      }
     } catch (err) {
       toast({
         title: "Refresh gagal",
@@ -369,14 +448,17 @@ export function WhatsappInboxClient({
 
   const renderMessageBody = (msg: Message) => {
     if (msg.text_body) return msg.text_body;
-    const content = msg.content_json as {
+    const content = (msg.payload_json || msg.content_json || {}) as {
       text?: { body?: unknown };
       template?: { name?: unknown };
     };
     if (content.text?.body) return String(content.text.body);
     if (content.template?.name) return `Template: ${content.template.name}`;
-    return JSON.stringify(content);
+    return "[non-text message]";
   };
+
+  const isInbound = (direction?: string | null) =>
+    direction === "in" || direction === "inbound";
 
   const canSend = canEdit && allowWrite;
 
@@ -475,13 +557,14 @@ export function WhatsappInboxClient({
             ref={scrollRef}
             className="max-h-[460px] overflow-y-auto space-y-2 rounded-lg border border-border bg-background p-3"
           >
+            {messagesLoading ? (
+              <p className="text-sm text-muted-foreground">Memuat pesan...</p>
+            ) : null}
             {messages.map((msg) => {
-              const inbound = msg.direction === "in";
+              const inbound = isInbound(msg.direction);
               const time =
-                msg.wa_timestamp || msg.created_at || msg.received_at
-                  ? new Date(
-                      msg.wa_timestamp || msg.created_at || msg.received_at || ""
-                    ).toLocaleString()
+                msg.wa_timestamp || msg.created_at
+                  ? new Date(msg.wa_timestamp || msg.created_at || "").toLocaleString()
                   : "";
               return (
                 <div
@@ -513,7 +596,7 @@ export function WhatsappInboxClient({
                 </div>
               );
             })}
-            {messages.length === 0 ? (
+            {!messagesLoading && messages.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada pesan di thread ini.</p>
             ) : null}
           </div>

@@ -23,7 +23,10 @@ export async function POST(req: NextRequest) {
     return unauthorizedResponse(withCookies);
   }
 
+  const url = new URL(req.url);
   const body = await req.json().catch(() => ({}));
+  const reconcile =
+    url.searchParams.get("reconcile") === "1" || Boolean(body?.reconcile);
   const workspaceId = getWorkspaceId(req, undefined, body.workspaceId);
   if (!workspaceId) {
     return workspaceRequiredResponse(withCookies);
@@ -34,16 +37,26 @@ export async function POST(req: NextRequest) {
     return forbiddenResponse(withCookies);
   }
 
-  const result = await processWhatsappEvents(workspaceId, 20);
+  const result = await processWhatsappEvents(workspaceId, 20, {
+    reconcile,
+    reconcileLimit: 100,
+  });
 
   return withCookies(
     NextResponse.json({
       ok: true,
+      processedEvents: result.processed,
+      insertedMessages: result.messagesCreated,
+      updatedThreads: result.threadsTouched,
+      threadsTouched: result.threadsTouched,
+      statusEvents: result.statusEvents,
+      reconciledEvents: result.reconciledEvents,
+      reconciledMessages: result.reconciledMessages,
+      reconciledThreads: result.reconciledThreads,
+      errors: result.errors,
       processed: result.processed,
       messagesCreated: result.messagesCreated,
       threadsCreated: result.threadsTouched,
-      statusEvents: result.statusEvents,
-      errors: result.errors,
     })
   );
 }

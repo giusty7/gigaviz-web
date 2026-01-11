@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
@@ -45,6 +45,17 @@ function getVerifyToken() {
   );
 }
 
+function verifySignature(raw: string, header: string | null) {
+  const secret = process.env.META_APP_SECRET;
+  if (!secret) return true; // if not configured, skip strict verification
+  if (!header || !header.startsWith("sha256=")) return false;
+  const signature = header.slice("sha256=".length);
+  const hmac = createHmac("sha256", secret).update(raw, "utf-8").digest("hex");
+  const sigBuf = Buffer.from(signature, "hex");
+  const hmacBuf = Buffer.from(hmac, "hex");
+  return sigBuf.length === hmacBuf.length && timingSafeEqual(sigBuf, hmacBuf);
+}
+
 export function handleMetaWhatsAppVerify(req: NextRequest) {
   const url = new URL(req.url);
   const mode = url.searchParams.get("hub.mode");
@@ -71,6 +82,14 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
     return NextResponse.json(
       { ok: false, code: "invalid_payload", message: "Payload kosong" },
       { status: 400 }
+    );
+  }
+
+  const signatureHeader = req.headers.get("x-hub-signature-256");
+  if (!verifySignature(raw, signatureHeader)) {
+    return NextResponse.json(
+      { ok: false, code: "invalid_signature", message: "Signature mismatch" },
+      { status: 401 }
     );
   }
 
@@ -104,6 +123,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
       .from("wa_phone_numbers")
       .select("workspace_id")
       .eq("phone_number_id", phoneNumberId)
+      .eq("status", "active")
       .maybeSingle();
     if (error) {
       logger.error("[meta-webhook] lookup phone failed", { message: error.message });

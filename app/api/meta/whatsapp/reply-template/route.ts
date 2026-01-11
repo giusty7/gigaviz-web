@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
   let success = false;
   let messageId: string | null = null;
   let errorText: string | null = null;
+  let waResponse: Record<string, unknown> | null = null;
 
   try {
     const res = await fetch(
@@ -153,6 +154,7 @@ export async function POST(req: NextRequest) {
       }
     );
     const json = await res.json().catch(() => null);
+    waResponse = (json as Record<string, unknown>) ?? {};
     if (res.ok) {
       success = true;
       messageId = json?.messages?.[0]?.id ?? null;
@@ -180,28 +182,49 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
-  try {
-    await adminDb
-      .from("wa_messages")
-      .upsert(
+  const insertPayload = {
+    workspace_id: workspaceId,
+    thread_id: threadId,
+    wa_message_id: messageId ?? null,
+    direction: "outbound",
+    type: "template",
+    msg_type: "template",
+    text_body: `Template: ${template.name}`,
+    payload_json: { request: payload, response: waResponse ?? {} },
+    created_at: now,
+    sent_at: now,
+    wa_timestamp: now,
+    phone_number_id: phoneNumberId,
+    from_wa_id: phoneNumberId,
+    to_wa_id: thread.contact_wa_id ?? null,
+  };
+
+  const writeQuery = messageId
+    ? adminDb
+        .from("wa_messages")
+        .upsert(insertPayload, { onConflict: "workspace_id,phone_number_id,wa_message_id" })
+        .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
+        .single()
+    : adminDb
+        .from("wa_messages")
+        .insert(insertPayload)
+        .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
+        .single();
+
+  const { data: insertedMessage, error: insertErr } = await writeQuery;
+  if (insertErr) {
+    return withCookies(
+      NextResponse.json(
         {
-          workspace_id: workspaceId,
-          thread_id: threadId,
-          wa_message_id: messageId ?? null,
-          direction: "out",
-          message_type: "template",
-          body: null,
-          content_json: payload,
-          status: "sent",
-          sent_at: now,
-          created_at: now,
+          error: "db_error",
+          reason: "insert_failed",
+          message: insertErr.message,
+          details: insertErr.details,
+          hint: insertErr.hint,
         },
-        { onConflict: "workspace_id,wa_message_id" }
+        { status: 500 }
       )
-      .select("id")
-      .single();
-  } catch {
-    // swallow duplicate errors
+    );
   }
 
   await adminDb
@@ -214,6 +237,7 @@ export async function POST(req: NextRequest) {
     NextResponse.json({
       success: true,
       messageId,
+      insertedMessage,
     })
   );
 }

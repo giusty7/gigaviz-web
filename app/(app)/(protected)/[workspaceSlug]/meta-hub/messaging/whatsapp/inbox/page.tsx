@@ -72,9 +72,12 @@ export default async function WhatsappInboxPage({ params }: Props) {
   const { data: messages } = firstThread
     ? await supabase
         .from("wa_messages")
-        .select("id, direction, content_json, status, created_at, received_at, wa_message_id")
+        .select(
+          "id, direction, status, created_at, wa_message_id, msg_type, text_body, wa_timestamp, payload_json"
+        )
         .eq("workspace_id", workspaceId)
         .eq("thread_id", firstThread.id)
+        .order("wa_timestamp", { ascending: true })
         .order("created_at", { ascending: true })
     : { data: [] };
 
@@ -126,14 +129,20 @@ export default async function WhatsappInboxPage({ params }: Props) {
 
       <WhatsappInboxClient
         workspaceId={workspaceId}
-      workspaceSlug={workspaceSlug}
-      userId={ctx.user.id}
-      canEdit={canEdit}
-      allowWrite={allowWrite}
-      isPreview={!allowWrite}
-      threads={threads ?? []}
-      initialMessages={messages ?? []}
-      initialTags={tags?.map((t) => t.tag) ?? []}
+        workspaceSlug={workspaceSlug}
+        userId={ctx.user.id}
+        canEdit={canEdit}
+        allowWrite={allowWrite}
+        isPreview={!allowWrite}
+        threads={threads ?? []}
+        initialMessages={
+          messages?.map((m) => ({
+            ...m,
+            payload_json: m.payload_json ?? {},
+            content_json: m.payload_json ?? {},
+          })) ?? []
+        }
+        initialTags={tags?.map((t) => t.tag) ?? []}
         initialNotes={notes ?? []}
         templates={[]}
       />
