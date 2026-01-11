@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { supabaseServer } from "@/lib/supabase/server";
 import LoginForm from "./login-form";
+import { loginAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       title="Welcome back"
       description="Sign in to access your Gigaviz workspace."
     >
-      <LoginForm />
+      <LoginForm nextSafe={nextSafe} loginAction={loginAction} />
     </AuthLayout>
   );
 }

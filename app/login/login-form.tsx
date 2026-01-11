@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { supabaseClient } from "@/lib/supabase/client";
 import { loginSchema } from "@/lib/validation/auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -22,12 +21,21 @@ import { Input } from "@/components/ui/input";
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-export default function LoginForm() {
-  const supabase = useMemo(() => supabaseClient(), []);
+type LoginActionResult = {
+  ok: boolean;
+  message?: string;
+  needsVerify?: boolean;
+  next?: string;
+};
+
+type LoginFormProps = {
+  nextSafe: string;
+  loginAction: (formData: FormData) => Promise<LoginActionResult | void>;
+};
+
+export default function LoginForm({ nextSafe, loginAction }: LoginFormProps) {
   const router = useRouter();
   const sp = useSearchParams();
-  const nextParam = sp.get("next");
-  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
 
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -48,31 +56,27 @@ export default function LoginForm() {
     setInfo(null);
     setNeedsVerify(false);
 
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
+    const formData = new FormData();
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    formData.append("next", nextSafe);
 
-    if (signInError) {
-      const message = signInError.message || "Login failed.";
-      setError(message);
-      if (message.toLowerCase().includes("confirm")) {
+    const result = await loginAction(formData);
+    if (result && !result.ok) {
+      setError(result.message || "Login failed.");
+      if (result.needsVerify || result.message?.toLowerCase().includes("verify")) {
         setNeedsVerify(true);
       }
       return;
     }
 
-    const confirmed =
-      signInData?.user?.email_confirmed_at || signInData?.user?.confirmed_at;
-    if (!confirmed) {
-      await supabase.auth.signOut();
-      setError("Email not verified. Check your inbox to continue.");
-      setNeedsVerify(true);
-      return;
+    if (result?.ok && result.next) {
+      router.replace(result.next);
+      router.refresh();
+      window.setTimeout(() => {
+        window.location.assign(result.next!);
+      }, 300);
     }
-
-    router.replace(nextSafe);
   };
 
   useEffect(() => {
