@@ -24,16 +24,13 @@ export function ActionGate({ allowed = true, children, className }: ActionGatePr
     open();
   };
 
-  const element = children as ReactElement<any>;
+  const element = children as ReactElement<Record<string, unknown>>;
   const existingClassName = (element.props as { className?: string })?.className;
 
-  return cloneElement(
-    element,
-    {
-      onClick: handleClick,
-      "aria-disabled": true,
-      title: copy.tooltips.upgrade,
-      className: cn(existingClassName, "pointer-events-auto cursor-not-allowed opacity-70", className),
-    } as any
-  );
+  return cloneElement(element, {
+    onClick: handleClick,
+    "aria-disabled": true,
+    title: copy.tooltips.upgrade,
+    className: cn(existingClassName, "pointer-events-auto cursor-not-allowed opacity-70", className),
+  });
 }
