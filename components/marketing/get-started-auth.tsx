@@ -43,7 +43,7 @@ export default function GetStartedAuth() {
 
       <div className="mt-4 text-xs text-[color:var(--gv-muted)]">
         Sudah punya akun?{" "}
-        <Link href="/login" className="text-[color:var(--gv-text)] hover:underline">
+        <Link href="/dashboard" className="text-[color:var(--gv-text)] hover:underline">
           Masuk
         </Link>
       </div>

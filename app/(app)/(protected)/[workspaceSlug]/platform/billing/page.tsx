@@ -19,7 +19,7 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   const workspace = ctx.currentWorkspace;
 
   const planInfo = await getWorkspacePlan(workspace.id);
@@ -49,7 +49,7 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
           <div className="flex flex-wrap gap-2">
             <UpgradeButton label="Upgrade" />
             <Button asChild variant="outline" size="sm">
-              <Link href={`/app/${workspaceSlug}/billing`}>Buka halaman billing</Link>
+              <Link href={`/${workspaceSlug}/billing`}>Buka halaman billing</Link>
             </Button>
           </div>
         </CardContent>
@@ -57,3 +57,4 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
     </div>
   );
 }
+

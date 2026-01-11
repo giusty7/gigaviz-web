@@ -16,12 +16,12 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
 
   if (workspace.slug !== workspaceSlug) {
-    redirect(`/app/${workspace.slug}/modules`);
+    redirect(`/${workspace.slug}/modules`);
   }
 
   await ensureWorkspaceCookie(workspace.id);
@@ -35,7 +35,7 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const basePath = `/app/${workspace.slug}`;
+  const basePath = `/${workspace.slug}`;
 
   const moduleCards = topLevelModules.map((module) => {
     const comingSoon = module.status === "coming";
@@ -77,3 +77,4 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
     </div>
   );
 }
+

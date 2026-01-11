@@ -11,7 +11,7 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspaceId = ctx.currentWorkspace.id;
   const canEdit = ["owner", "admin"].includes(ctx.currentRole ?? "");
@@ -63,3 +63,4 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     </div>
   );
 }
+

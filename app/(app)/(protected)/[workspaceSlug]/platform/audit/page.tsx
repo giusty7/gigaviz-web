@@ -16,7 +16,7 @@ export default async function AuditPage({ params }: AuditPageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   const workspace = ctx.currentWorkspace;
 
   const planInfo = await getWorkspacePlan(workspace.id);
@@ -61,3 +61,4 @@ export default async function AuditPage({ params }: AuditPageProps) {
     </div>
   );
 }
+

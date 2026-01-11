@@ -10,7 +10,7 @@ type LayoutProps = {
 export default async function MetaHubLayout({ children, params }: LayoutProps) {
   const { workspaceSlug } = await params;
   const flags = getMetaHubFlags();
-  const basePath = `/app/${workspaceSlug}/meta-hub`;
+  const basePath = `/${workspaceSlug}/meta-hub`;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
@@ -25,3 +25,4 @@ export default async function MetaHubLayout({ children, params }: LayoutProps) {
     </div>
   );
 }
+

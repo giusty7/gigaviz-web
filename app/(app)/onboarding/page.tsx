@@ -51,7 +51,7 @@ async function createWorkspace(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/app/onboarding?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "invalid_workspace")}`);
+    redirect(`/onboarding?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "invalid_workspace")}`);
   }
 
   await ensureProfile(data.user);
@@ -64,7 +64,7 @@ async function createWorkspace(formData: FormData) {
     .maybeSingle();
 
   if (existing) {
-    redirect(`/app/onboarding?error=slug_taken&slug=${encodeURIComponent(parsed.data.slug)}`);
+    redirect(`/onboarding?error=slug_taken&slug=${encodeURIComponent(parsed.data.slug)}`);
   }
 
   const { data: workspace, error } = await db
@@ -79,7 +79,7 @@ async function createWorkspace(formData: FormData) {
     .single();
 
   if (error || !workspace) {
-    redirect(`/app/onboarding?error=${encodeURIComponent(error?.message ?? "create_failed")}`);
+    redirect(`/onboarding?error=${encodeURIComponent(error?.message ?? "create_failed")}`);
   }
 
   await db.from("workspace_members").insert({
@@ -98,10 +98,10 @@ async function createWorkspace(formData: FormData) {
   });
 
   if (workspace.workspace_type === "team") {
-    redirect(`/app/onboarding?step=invites&workspace=${workspace.slug}`);
+    redirect(`/onboarding?step=invites&workspace=${workspace.slug}`);
   }
 
-  redirect(`/app/${workspace.slug}/dashboard`);
+  redirect(`/${workspace.slug}/dashboard`);
 }
 
 async function createInvites(formData: FormData) {
@@ -115,7 +115,7 @@ async function createInvites(formData: FormData) {
 
   const workspaceSlug = String(formData.get("workspace_slug") || "").trim();
   if (!workspaceSlug) {
-    redirect("/app/onboarding");
+    redirect("/onboarding");
   }
 
   const rawEmails = String(formData.get("invite_emails") || "");
@@ -127,7 +127,7 @@ async function createInvites(formData: FormData) {
   const parsed = inviteListSchema.safeParse({ emails });
   if (!parsed.success) {
     redirect(
-      `/app/onboarding?step=invites&workspace=${encodeURIComponent(
+      `/onboarding?step=invites&workspace=${encodeURIComponent(
         workspaceSlug
       )}&error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "invalid_invites")}`
     );
@@ -141,11 +141,11 @@ async function createInvites(formData: FormData) {
     .maybeSingle();
 
   if (!workspace) {
-    redirect("/app/onboarding");
+    redirect("/onboarding");
   }
 
   if (workspace.workspace_type !== "team") {
-    redirect(`/app/${workspace.slug}/dashboard`);
+    redirect(`/${workspace.slug}/dashboard`);
   }
 
   const { data: membership } = await db
@@ -156,7 +156,7 @@ async function createInvites(formData: FormData) {
     .maybeSingle();
 
   if (!membership || !["owner", "admin"].includes(membership.role)) {
-    redirect(`/app/${workspace.slug}/dashboard`);
+    redirect(`/${workspace.slug}/dashboard`);
   }
 
   if (parsed.data.emails.length > 0) {
@@ -175,7 +175,7 @@ async function createInvites(formData: FormData) {
     await db.from("workspace_invites").insert(rows);
   }
 
-  redirect(`/app/${workspace.slug}/dashboard`);
+  redirect(`/${workspace.slug}/dashboard`);
 }
 
 type OnboardingPageProps = {
@@ -195,7 +195,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
   const workspaces = await getUserWorkspaces(data.user.id);
 
   if (workspaces.length > 0) {
-    redirect(`/app/${workspaces[0].slug}/dashboard`);
+    redirect(`/${workspaces[0].slug}/dashboard`);
   }
 
   const stepParam = typeof resolvedSearchParams?.step === "string" ? resolvedSearchParams.step : null;
@@ -230,3 +230,6 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
     </div>
   );
 }
+
+
+

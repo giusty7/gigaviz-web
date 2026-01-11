@@ -10,7 +10,7 @@ function buildNextParam(request: NextRequest) {
 export async function withSupabaseAuth(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const nextParam = request.nextUrl.searchParams.get("next");
-  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/";
+  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
 
   const firstSegment = pathname.split("/")[1] ?? "";
   const publicSegments = new Set([
@@ -104,7 +104,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     pathname === "/api/admin/attachments/sign" ||
     pathname.startsWith("/api/admin/crm/contacts/");
 
-  // Extract workspace slug from /app/:workspaceSlug/* paths
+  // Extract workspace slug from /:workspaceSlug/* paths
   const workspaceSlugMatch = pathname.match(/^\/([^\/]+)/);
   const workspaceSlug = workspaceSlugMatch ? workspaceSlugMatch[1] : null;
 
@@ -113,7 +113,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     cookiesToSet.forEach(({ name, value, options }) =>
       res.cookies.set(name, value, options)
     );
-    // Set workspace cookie if on /app/:workspaceSlug/* (but not /app/onboarding)
+    // Set workspace cookie if on /:workspaceSlug/* (but not onboarding or public segments)
     if (
       workspaceSlug &&
       workspaceSlug !== "onboarding" &&
@@ -122,6 +122,14 @@ export async function withSupabaseAuth(request: NextRequest) {
       workspaceSlug !== "api"
     ) {
       res.cookies.set("gv_workspace_slug", workspaceSlug, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+      // Store last workspace slug for dashboard entry
+      res.cookies.set("gv_last_ws", workspaceSlug, {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",

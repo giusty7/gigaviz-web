@@ -7,7 +7,7 @@ type TokenCardProps = {
 };
 
 export default function TokenCard({ balance, workspaceSlug }: TokenCardProps) {
-  const tokensHref = workspaceSlug ? `/app/${workspaceSlug}/tokens` : "/app/tokens";
+  const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">

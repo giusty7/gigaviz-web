@@ -13,7 +13,7 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
 
   const db = supabaseAdmin();
@@ -77,3 +77,4 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
     </div>
   );
 }
+

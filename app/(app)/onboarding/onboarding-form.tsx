@@ -178,7 +178,7 @@ export default function OnboardingForm({
           <SubmitButton label="Save invites" />
           {workspaceSlug ? (
             <Button type="button" variant="secondary" asChild>
-              <a href={`/app/${workspaceSlug}/dashboard`}>Skip for now</a>
+              <a href={`/${workspaceSlug}/dashboard`}>Skip for now</a>
             </Button>
           ) : null}
         </div>
@@ -252,3 +252,5 @@ export default function OnboardingForm({
     </form>
   );
 }
+
+

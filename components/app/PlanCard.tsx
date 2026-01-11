@@ -14,7 +14,7 @@ export default function PlanCard({
   seatLimit,
   workspaceSlug,
 }: PlanCardProps) {
-  const billingHref = workspaceSlug ? `/app/${workspaceSlug}/billing` : "/app/billing";
+  const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">

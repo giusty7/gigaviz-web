@@ -17,7 +17,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   // Process latest events best-effort on page load
   await processWhatsappEvents(ctx.currentWorkspace.id, 10);
@@ -111,13 +111,13 @@ export default async function WhatsappInboxPage({ params }: Props) {
 
       <div className="flex gap-2 rounded-xl border border-border bg-card p-2 text-sm">
         <Link
-          href={`/app/${workspaceSlug}/meta-hub/messaging/whatsapp`}
+          href={`/${workspaceSlug}/meta-hub/messaging/whatsapp`}
           className="rounded-lg px-3 py-2 font-semibold text-muted-foreground hover:bg-gigaviz-surface"
         >
           Templates
         </Link>
         <Link
-          href={`/app/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
+          href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
           className="rounded-lg px-3 py-2 font-semibold text-foreground hover:bg-gigaviz-surface"
         >
           Inbox
@@ -140,3 +140,4 @@ export default async function WhatsappInboxPage({ params }: Props) {
     </div>
   );
 }
+

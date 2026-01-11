@@ -23,12 +23,12 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
 
   if (workspace.slug !== workspaceSlug) {
-    redirect(`/app/${workspace.slug}/dashboard`);
+    redirect(`/${workspace.slug}/dashboard`);
   }
 
   await ensureWorkspaceCookie(workspace.id);
@@ -53,7 +53,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
 
   const workspaceTypeLabel = workspace.workspace_type === "individual" ? "Individual" : "Team";
   const createdAtLabel = new Date(workspace.created_at).toLocaleDateString();
-  const basePath = `/app/${workspace.slug}`;
+  const basePath = `/${workspace.slug}`;
 
   const moduleCards = topLevelModules.map((module) => {
     const comingSoon = module.status === "coming";
@@ -229,3 +229,4 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     </div>
   );
 }
+

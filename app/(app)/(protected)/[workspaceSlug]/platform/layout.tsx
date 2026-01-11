@@ -15,15 +15,15 @@ export default async function PlatformLayout({ children, params }: PlatformLayou
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/platform`);
+    redirect(`/${ctx.currentWorkspace.slug}/platform`);
   }
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
 
-  const baseHref = `/app/${ctx.currentWorkspace.slug}/platform`;
+  const baseHref = `/${ctx.currentWorkspace.slug}/platform`;
 
   return (
     <div className="space-y-4">
@@ -38,3 +38,4 @@ export default async function PlatformLayout({ children, params }: PlatformLayou
     </div>
   );
 }
+

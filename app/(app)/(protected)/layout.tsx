@@ -19,7 +19,7 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   }
 
   if (!ctx.currentWorkspace) {
-    redirect("/app/onboarding");
+    redirect("/onboarding");
   }
 
   return (
@@ -34,3 +34,5 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
     </AppShell>
   );
 }
+
+

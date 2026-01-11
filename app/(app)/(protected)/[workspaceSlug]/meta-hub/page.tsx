@@ -25,11 +25,11 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   const workspace = ctx.currentWorkspace;
 
   if (workspace.slug !== workspaceSlug) {
-    redirect(`/app/${workspace.slug}/meta-hub`);
+    redirect(`/${workspace.slug}/meta-hub`);
   }
 
   await ensureWorkspaceCookie(workspace.id);
@@ -45,7 +45,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
 
   const overview = await getMetaHubOverview(workspace.id);
   const flags = getMetaHubFlags();
-  const basePath = `/app/${workspace.slug}/meta-hub`;
+  const basePath = `/${workspace.slug}/meta-hub`;
 
   const connectors = [
     {
@@ -405,3 +405,4 @@ function formatCount(value: number | null): string {
   if (value === null || Number.isNaN(value)) return "—";
   return value.toString();
 }
+

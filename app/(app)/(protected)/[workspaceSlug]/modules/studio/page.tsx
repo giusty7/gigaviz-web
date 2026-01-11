@@ -16,9 +16,9 @@ export default async function StudioModulesPage({ params }: PageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/modules/studio`);
+    redirect(`/${ctx.currentWorkspace.slug}/modules/studio`);
   }
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
@@ -32,7 +32,7 @@ export default async function StudioModulesPage({ params }: PageProps) {
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const basePath = `/app/${ctx.currentWorkspace.slug}`;
+  const basePath = `/${ctx.currentWorkspace.slug}`;
 
   const moduleCards = studioChildren.map((module) => {
     const comingSoon = module.status === "coming";
@@ -67,3 +67,4 @@ export default async function StudioModulesPage({ params }: PageProps) {
     </div>
   );
 }
+

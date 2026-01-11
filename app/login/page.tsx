@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     typeof (resolvedSearch as { next?: string })?.next === "string"
       ? (resolvedSearch as { next?: string }).next
       : undefined;
-  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/app";
+  const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
 
   if (data.user) {
     const confirmed = data.user.email_confirmed_at || data.user.confirmed_at;
@@ -47,3 +47,5 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     </AuthLayout>
   );
 }
+
+

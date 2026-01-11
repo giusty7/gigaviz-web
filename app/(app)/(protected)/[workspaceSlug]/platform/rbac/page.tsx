@@ -19,7 +19,7 @@ export default async function RBACPage({ params }: RBACPageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const planInfo = await getWorkspacePlan(ctx.currentWorkspace.id);
   const isAdmin = Boolean(ctx.profile?.is_admin);
@@ -94,3 +94,4 @@ export default async function RBACPage({ params }: RBACPageProps) {
     </div>
   );
 }
+

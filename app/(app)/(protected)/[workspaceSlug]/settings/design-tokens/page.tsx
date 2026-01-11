@@ -27,7 +27,7 @@ export default async function DesignTokensPage({ params }: Props) {
   const { workspaceSlug } = (await params) as { workspaceSlug: string };
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   return (
     <SettingsLayout
@@ -97,3 +97,4 @@ export default async function DesignTokensPage({ params }: Props) {
     </SettingsLayout>
   );
 }
+

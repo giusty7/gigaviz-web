@@ -43,7 +43,7 @@ export default function WorkspaceSwitcher({
     const target = workspaces.find((ws) => ws.id === nextId);
     startTransition(() => {
       if (target) {
-        router.push(`/app/${target.slug}/dashboard`);
+        router.push(`/${target.slug}/dashboard`);
       }
       router.refresh();
     });

@@ -11,7 +11,7 @@ export default function LockedScreen({
   description,
   workspaceSlug,
 }: LockedScreenProps) {
-  const billingHref = workspaceSlug ? `/app/${workspaceSlug}/billing` : "/app/billing";
+  const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
 
   return (
     <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-6 text-amber-100">

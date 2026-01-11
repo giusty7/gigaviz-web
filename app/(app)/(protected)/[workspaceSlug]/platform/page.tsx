@@ -23,11 +23,11 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   const workspace = ctx.currentWorkspace;
 
   if (workspace.slug !== workspaceSlug) {
-    redirect(`/app/${workspace.slug}/platform`);
+    redirect(`/${workspace.slug}/platform`);
   }
 
   await ensureWorkspaceCookie(workspace.id);
@@ -68,22 +68,22 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
   const quickActions = [
     {
       label: "Buat Workspace",
-      href: "/app/onboarding",
+      href: "/onboarding",
       entitlement: null,
     },
     {
       label: "Undang Member",
-      href: `/app/${workspaceSlug}/settings#members`,
+      href: `/${workspaceSlug}/settings#members`,
       entitlement: "member_invites" as const,
     },
     {
       label: "Kelola Peran (RBAC)",
-      href: `/app/${workspaceSlug}/platform/rbac`,
+      href: `/${workspaceSlug}/platform/rbac`,
       entitlement: "roles_permissions" as const,
     },
     {
       label: "Lihat Audit Log",
-      href: `/app/${workspaceSlug}/platform/audit`,
+      href: `/${workspaceSlug}/platform/audit`,
       entitlement: "audit_log" as const,
     },
   ];
@@ -106,7 +106,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h2 className="text-2xl font-semibold">Gigaviz Platform — Core OS</h2>
+          <h2 className="text-2xl font-semibold">Gigaviz Platform - Core OS</h2>
           <p className="text-sm text-muted-foreground">
             Akun, workspace, peran, audit, dan billing dalam satu dashboard.
           </p>
@@ -152,7 +152,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
                   className="flex items-center justify-between rounded-xl border border-border bg-gigaviz-surface px-4 py-3 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
                 >
                   <span>{action.label}</span>
-                  <span aria-hidden className="text-lg leading-none">→</span>
+                  <span aria-hidden className="text-lg leading-none">{">"}</span>
                 </Link>
               </ActionGate>
             );
@@ -198,7 +198,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
                 </p>
               </div>
               <Button asChild size="sm" variant="outline">
-                <Link href={`/app/${workspaceSlug}/settings#members`}>Kelola</Link>
+                <Link href={`/${workspaceSlug}/settings#members`}>Kelola</Link>
               </Button>
             </div>
           </CardContent>
@@ -276,5 +276,3 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
     </div>
   );
 }
-
-

@@ -186,8 +186,8 @@ export default function AcceptInviteClient({ token }: { token: string }) {
 
     const slug = payload?.workspaceSlug;
     const redirectTo = slug
-      ? `/app/${slug}/dashboard?invite=accepted`
-      : "/app";
+      ? `/${slug}/dashboard?invite=accepted`
+      : "/dashboard";
     router.replace(redirectTo);
   };
 
@@ -240,7 +240,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       return;
     }
 
-    router.replace(`/app/${slug}/dashboard?invite=accepted`);
+    router.replace(`/${slug}/dashboard?invite=accepted`);
   };
 
   return (

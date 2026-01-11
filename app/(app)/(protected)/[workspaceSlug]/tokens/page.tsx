@@ -19,10 +19,10 @@ export default async function TokensPage({ params }: TokensPageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/tokens`);
+    redirect(`/${ctx.currentWorkspace.slug}/tokens`);
   }
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
@@ -130,3 +130,4 @@ export default async function TokensPage({ params }: TokensPageProps) {
     </div>
   );
 }
+

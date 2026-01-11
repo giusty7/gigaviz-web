@@ -5,7 +5,9 @@ export default async function SettingsRedirectPage() {
   const cookieStore = await cookies();
   const slug = cookieStore.get("gv_workspace_slug")?.value;
   if (slug) {
-    redirect(`/app/${slug}/settings`);
+    redirect(`/${slug}/settings`);
   }
-  redirect("/app/onboarding");
+  redirect("/onboarding");
 }
+
+

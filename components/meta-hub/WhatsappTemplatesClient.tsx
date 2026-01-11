@@ -366,7 +366,7 @@ export function WhatsappTemplatesClient({
                     <TableCell colSpan={4} className="text-center text-muted-foreground">
                       Tidak ada template. Hubungkan WhatsApp di{" "}
                       <a
-                        href={`/app/${workspaceSlug}/meta-hub/connections`}
+                        href={`/${workspaceSlug}/meta-hub/connections`}
                         className="text-gigaviz-gold underline"
                       >
                         Connections

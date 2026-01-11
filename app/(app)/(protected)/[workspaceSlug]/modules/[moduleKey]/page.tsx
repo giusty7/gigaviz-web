@@ -17,17 +17,17 @@ type ModuleDetailPageProps = {
 export default async function ModuleDetailPage({ params }: ModuleDetailPageProps) {
   const { workspaceSlug, moduleKey } = await params;
   if (moduleKey === "meta-hub") {
-    return nextRedirect(`/app/${workspaceSlug}/meta-hub`);
+    return nextRedirect(`/${workspaceSlug}/meta-hub`);
   }
   const moduleConfig = getAppModule(moduleKey);
   if (!moduleConfig) notFound();
 
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
   if (ctx.currentWorkspace.slug !== workspaceSlug) {
-    redirect(`/app/${ctx.currentWorkspace.slug}/modules/${moduleConfig.slug}`);
+    redirect(`/${ctx.currentWorkspace.slug}/modules/${moduleConfig.slug}`);
   }
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
@@ -47,7 +47,7 @@ export default async function ModuleDetailPage({ params }: ModuleDetailPageProps
           </p>
         </div>
         <Link
-          href={`/app/${ctx.currentWorkspace.slug}/modules`}
+          href={`/${ctx.currentWorkspace.slug}/modules`}
           className="text-sm text-gigaviz-gold hover:underline"
         >
           Kembali ke daftar modules
@@ -94,7 +94,7 @@ export default async function ModuleDetailPage({ params }: ModuleDetailPageProps
         {moduleConfig.note || "Module actions may consume tokens on execution."}
         <div className="mt-3">
           <Link
-            href={`/app/${ctx.currentWorkspace.slug}/tokens`}
+            href={`/${ctx.currentWorkspace.slug}/tokens`}
             className="text-xs font-semibold text-gigaviz-gold hover:underline"
           >
             Lihat token rates
@@ -102,7 +102,7 @@ export default async function ModuleDetailPage({ params }: ModuleDetailPageProps
         </div>
       </div>
       <Link
-        href={`/app/${ctx.currentWorkspace.slug}/modules`}
+        href={`/${ctx.currentWorkspace.slug}/modules`}
         className="text-sm text-gigaviz-gold hover:underline"
       >
         Kembali ke daftar modules
@@ -110,3 +110,4 @@ export default async function ModuleDetailPage({ params }: ModuleDetailPageProps
     </div>
   );
 }
+

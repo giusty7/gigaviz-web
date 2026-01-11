@@ -29,7 +29,7 @@ export default async function SettingsPage({ params }: Props) {
   const { workspaceSlug } = (await params) as { workspaceSlug: string };
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
   const currentWorkspace = ctx.currentWorkspace;
 
   const db = supabaseAdmin();
@@ -94,7 +94,7 @@ export default async function SettingsPage({ params }: Props) {
       .update({ full_name: fullName || null })
       .eq("id", data.user.id);
 
-    redirect(`/app/${workspaceSlug}/settings`);
+    redirect(`/${workspaceSlug}/settings`);
   }
 
   async function updateWorkspace(formData: FormData) {
@@ -107,7 +107,7 @@ export default async function SettingsPage({ params }: Props) {
     const workspaceId = String(formData.get("workspace_id") || "");
     const name = String(formData.get("workspace_name") || "").trim();
 
-    if (!workspaceId || !name) redirect(`/app/${workspaceSlug}/settings?error=invalid_workspace`);
+    if (!workspaceId || !name) redirect(`/${workspaceSlug}/settings?error=invalid_workspace`);
 
     const membership = await getWorkspaceMembership(data.user.id, workspaceId);
     const isOwnerOrAdmin =
@@ -121,12 +121,12 @@ export default async function SettingsPage({ params }: Props) {
       .maybeSingle();
 
     if (!isOwnerOrAdmin && !profileAdmin?.is_admin) {
-      redirect(`/app/${workspaceSlug}/settings?error=forbidden`);
+      redirect(`/${workspaceSlug}/settings?error=forbidden`);
     }
 
     await db.from("workspaces").update({ name }).eq("id", workspaceId);
 
-    redirect(`/app/${workspaceSlug}/settings`);
+    redirect(`/${workspaceSlug}/settings`);
   }
 
   async function removeMember(formData: FormData) {
@@ -140,11 +140,11 @@ export default async function SettingsPage({ params }: Props) {
     const targetUserId = String(formData.get("user_id") || "");
 
     if (!workspaceId || !targetUserId) {
-      redirect(`/app/${workspaceSlug}/settings?error=invalid_member`);
+      redirect(`/${workspaceSlug}/settings?error=invalid_member`);
     }
 
     if (targetUserId === data.user.id) {
-      redirect(`/app/${workspaceSlug}/settings?error=use_leave_action`);
+      redirect(`/${workspaceSlug}/settings?error=use_leave_action`);
     }
 
     const membership = await getWorkspaceMembership(data.user.id, workspaceId);
@@ -159,7 +159,7 @@ export default async function SettingsPage({ params }: Props) {
       .maybeSingle();
 
     if (!isOwnerOrAdmin && !profileAdmin2?.is_admin) {
-      redirect(`/app/${workspaceSlug}/settings?error=forbidden`);
+      redirect(`/${workspaceSlug}/settings?error=forbidden`);
     }
 
     const { data: targetMembership } = await db
@@ -170,7 +170,7 @@ export default async function SettingsPage({ params }: Props) {
       .maybeSingle();
 
     if (!targetMembership) {
-      redirect(`/app/${workspaceSlug}/settings?error=member_not_found`);
+      redirect(`/${workspaceSlug}/settings?error=member_not_found`);
     }
 
     const { data: owners } = await db
@@ -181,7 +181,7 @@ export default async function SettingsPage({ params }: Props) {
 
     const ownerCount = owners?.length ?? 0;
     if (targetMembership.role === "owner" && ownerCount <= 1) {
-      redirect(`/app/${workspaceSlug}/settings?error=last_owner`);
+      redirect(`/${workspaceSlug}/settings?error=last_owner`);
     }
 
     await db
@@ -190,7 +190,7 @@ export default async function SettingsPage({ params }: Props) {
       .eq("workspace_id", workspaceId)
       .eq("user_id", targetUserId);
 
-    redirect(`/app/${workspaceSlug}/settings`);
+    redirect(`/${workspaceSlug}/settings`);
   }
 
   async function leaveWorkspace(formData: FormData) {
@@ -202,16 +202,16 @@ export default async function SettingsPage({ params }: Props) {
 
     const workspaceId = String(formData.get("workspace_id") || "");
     if (!workspaceId) {
-      redirect(`/app/${workspaceSlug}/settings?error=invalid_workspace`);
+      redirect(`/${workspaceSlug}/settings?error=invalid_workspace`);
     }
 
     const membership = await getWorkspaceMembership(data.user.id, workspaceId);
     if (!membership) {
-      redirect(`/app/${workspaceSlug}/settings?error=member_not_found`);
+      redirect(`/${workspaceSlug}/settings?error=member_not_found`);
     }
 
     if (membership.role === "owner") {
-      redirect(`/app/${workspaceSlug}/settings?error=owner_cannot_leave`);
+      redirect(`/${workspaceSlug}/settings?error=owner_cannot_leave`);
     }
 
     const db2 = supabaseAdmin();
@@ -225,11 +225,11 @@ export default async function SettingsPage({ params }: Props) {
   }
 
   const navLinks = [
-    { href: `/app/${workspaceSlug}/settings`, label: "Overview" },
-    { href: `/app/${workspaceSlug}/settings#members`, label: "Members" },
-    { href: `/app/${workspaceSlug}/billing`, label: "Billing" },
+    { href: `/${workspaceSlug}/settings`, label: "Overview" },
+    { href: `/${workspaceSlug}/settings#members`, label: "Members" },
+    { href: `/${workspaceSlug}/billing`, label: "Billing" },
     {
-      href: `/app/${workspaceSlug}/settings/design-tokens`,
+      href: `/${workspaceSlug}/settings/design-tokens`,
       label: "Design Tokens",
       visible: canEditWorkspace || process.env.NODE_ENV !== "production",
     },
@@ -441,3 +441,4 @@ export default async function SettingsPage({ params }: Props) {
     </SettingsLayout>
   );
 }
+

@@ -220,9 +220,9 @@ export function Navbar({ variant = "default" }: NavbarProps) {
           {isMarketing ? (
             <>
               <Link
-                href="/login"
+                href="/dashboard"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
-                onClick={() => trackCta("Masuk", "navbar", "/login")}
+                onClick={() => trackCta("Masuk", "navbar", "/dashboard")}
               >
                 Masuk
               </Link>
@@ -373,10 +373,10 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               {isMarketing ? (
                 <>
                   <Link
-                    href="/login"
+                    href="/dashboard"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
                     onClick={() => {
-                      trackCta("Masuk", "navbar", "/login");
+                      trackCta("Masuk", "navbar", "/dashboard");
                       closeMenu();
                     }}
                   >

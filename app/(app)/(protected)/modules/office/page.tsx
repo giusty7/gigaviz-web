@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 export default async function OfficeModuleRedirectPage() {
   const ctx = await getAppContext();
   if (!ctx.user) redirect("/login");
-  if (!ctx.currentWorkspace) redirect("/app/onboarding");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
 
-  redirect(`/app/${ctx.currentWorkspace.slug}/modules/office`);
+  redirect(`/${ctx.currentWorkspace.slug}/modules/office`);
 }
+
+
