@@ -26,7 +26,7 @@ Kami tidak menjual data pribadi. Data hanya dibagikan dengan pihak ketiga yang d
 
 ## Hak Pengguna
 
-Anda berhak meminta akses, koreksi, atau penghapusan data sesuai kebijakan Data Deletion. Permintaan dapat diajukan melalui halaman Kontak.
+Anda berhak meminta akses, koreksi, atau penghapusan data sesuai kebijakan [Data Deletion Instructions](/policies/data-deletion). Permintaan dapat diajukan melalui halaman Kontak.
 
 ## Perubahan Kebijakan
 

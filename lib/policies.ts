@@ -21,6 +21,13 @@ export const policies: Policy[] = [
     file: "privacy-policy.md",
   },
   {
+    slug: "data-deletion",
+    title: "Data Deletion Instructions",
+    description:
+      "Panduan resmi untuk meminta penghapusan data dari Gigaviz.",
+    file: "data-deletion.md",
+  },
+  {
     slug: "acceptable-use-policy",
     title: "Acceptable Use Policy",
     description:
