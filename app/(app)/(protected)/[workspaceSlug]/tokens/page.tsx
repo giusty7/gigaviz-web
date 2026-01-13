@@ -1,13 +1,15 @@
 import { redirect } from "next/navigation";
 import TokenEstimator from "@/components/app/TokenEstimator";
 import { getAppContext } from "@/lib/app-context";
-import { getWallet, getLedger } from "@/lib/tokens";
-import { tokenRateList, tokenSafetyCopy } from "@/lib/tokenRates";
+import { getLedger } from "@/lib/tokens";
+import { tokenRateList } from "@/lib/tokenRates";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import LockedScreen from "@/components/app/LockedScreen";
 import UsageSummaryCard from "@/components/usage/UsageSummaryCard";
+import { TokenTopupClient } from "@/components/billing/TokenTopupClient";
+import { getBillingSummary } from "@/lib/billing/summary";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +29,8 @@ export default async function TokensPage({ params }: TokensPageProps) {
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
 
-  const wallet = await getWallet(ctx.currentWorkspace.id);
   const ledger = await getLedger(ctx.currentWorkspace.id, { page: 1, pageSize: 10 });
-  const balance = Number(wallet.balance_bigint ?? 0);
+  const summary = await getBillingSummary(ctx.currentWorkspace.id);
 
   const db = supabaseAdmin();
   const { data: subscription } = await db
@@ -57,17 +58,11 @@ export default async function TokensPage({ params }: TokensPageProps) {
         canEditCap={canEditCap}
       />
 
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold text-foreground">Token Wallet</h2>
-        <p className="text-3xl font-semibold mt-2 text-foreground">{balance.toLocaleString()}</p>
-        <p className="text-sm text-muted-foreground mt-2">{tokenSafetyCopy}</p>
-        <button
-          disabled
-          className="mt-4 rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground opacity-60"
-        >
-          Top up (coming soon)
-        </button>
-      </section>
+      <TokenTopupClient
+        workspaceSlug={ctx.currentWorkspace.slug}
+        initialSummary={summary}
+        canEdit={canEditCap}
+      />
 
       <section className="rounded-2xl border border-border bg-card p-6">
         <h2 className="text-lg font-semibold text-foreground">How tokens work</h2>

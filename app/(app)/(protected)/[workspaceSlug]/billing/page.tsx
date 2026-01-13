@@ -1,12 +1,12 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import ComparePlans from "@/components/app/ComparePlans";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { getAppContext } from "@/lib/app-context";
 import { getWorkspaceBilling, normalizePlanId } from "@/lib/billing";
-import { canAccess, getPlanFeatures, getPlanMeta, planMeta, type FeatureKey } from "@/lib/entitlements";
+import { canAccess, getPlanFeatures, planMeta, type FeatureKey } from "@/lib/entitlements";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { getBillingSummary } from "@/lib/billing/summary";
+import { BillingSummaryClient } from "@/components/billing/BillingSummaryClient";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +27,8 @@ export default async function BillingPage({
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
 
   const billing = await getWorkspaceBilling(ctx.currentWorkspace.id);
+  const summary = await getBillingSummary(ctx.currentWorkspace.id);
   const planIdNormalized = normalizePlanId(billing.plan?.code ?? billing.subscription?.plan_id);
-  const planMetaCurrent = getPlanMeta(planIdNormalized);
   const featureUnion = Array.from(
     new Set(planMeta.flatMap((p) => getPlanFeatures(p.plan_id)).concat(getPlanFeatures(planIdNormalized)))
   );
@@ -58,34 +58,7 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-white/50">Plan aktif</p>
-              <h1 className="text-2xl font-semibold text-white">
-                {billing.plan?.name ?? planMetaCurrent.name}
-              </h1>
-              <p className="text-sm text-white/60">
-                Kode: {billing.subscription?.plan_id ?? "free_locked"}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-white/60">Status</p>
-              <p className="text-sm font-semibold text-white">{billing.statusLabel}</p>
-            </div>
-          </div>
-          <div className="text-sm text-white/60">{billing.periodLabel}</div>
-          {billing.subscription?.seat_limit ? (
-            <div className="text-sm text-white/60">Seat limit: {billing.subscription.seat_limit}</div>
-          ) : null}
-          <div className="pt-3">
-            <Button asChild variant="secondary">
-              <Link href="mailto:sales@gigaviz.com">Upgrade (coming soon)</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <BillingSummaryClient workspaceSlug={workspaceSlug} initialSummary={summary} />
 
       {!billing.subscription ? (
         <Alert>
@@ -127,18 +100,6 @@ export default async function BillingPage({
               </span>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">Upgrade</h2>
-            <p className="text-sm text-white/60">Upgrade via sales. Pembayaran belum diaktifkan.</p>
-          </div>
-          <Button asChild variant="secondary">
-            <Link href="mailto:sales@gigaviz.com">Contact sales / Upgrade</Link>
-          </Button>
         </div>
       </section>
 

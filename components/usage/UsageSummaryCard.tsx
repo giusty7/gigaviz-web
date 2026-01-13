@@ -19,7 +19,7 @@ type Props = {
 const numberFormatter = new Intl.NumberFormat("id-ID");
 
 function formatNumber(value: number | null | undefined) {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "-";
   return numberFormatter.format(value);
 }
 
@@ -47,18 +47,16 @@ export default function UsageSummaryCard({
     setError(null);
     setSaveSuccess(null);
     try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/usage/summary`, {
+      const res = await fetch(`/api/billing/summary?workspaceSlug=${workspaceSlug}`, {
         cache: "no-store",
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || "failed_to_load");
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.message || data?.error || "failed_to_load");
       }
-      const data = (await res.json()) as UsageSummary;
-      setSummary(data);
-      setCapInput(
-        data.cap === null || data.cap === undefined ? "" : String(data.cap)
-      );
+      const usage = data.summary?.usage as UsageSummary | undefined;
+      setSummary(usage ?? null);
+      setCapInput(usage?.cap === null || usage?.cap === undefined ? "" : String(usage.cap));
     } catch {
       setError("Gagal memuat ringkasan penggunaan.");
     } finally {
@@ -89,10 +87,10 @@ export default function UsageSummaryCard({
 
     setSaving(true);
     try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/usage/cap`, {
+      const res = await fetch(`/api/billing/tokens/cap`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cap }),
+        body: JSON.stringify({ workspaceSlug, cap }),
         cache: "no-store",
       });
 
@@ -119,12 +117,10 @@ export default function UsageSummaryCard({
     <section className="rounded-2xl border border-border bg-card p-6 text-foreground shadow-lg shadow-gigaviz-navy/30">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-wide text-muted-foreground">
-            Usage
-          </p>
+          <p className="text-sm uppercase tracking-wide text-muted-foreground">Usage</p>
           <h2 className="text-xl font-semibold">Ringkasan Pemakaian</h2>
           <p className="text-sm text-muted-foreground">
-            Workspace: {workspaceSlug} • Bulan {summary?.yyyymm ?? "—"}
+            Workspace: {workspaceSlug} - Bulan {summary?.yyyymm ?? "-"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -166,9 +162,7 @@ export default function UsageSummaryCard({
         <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
           <p className="text-xs text-muted-foreground">Remaining</p>
           <p className="mt-1 text-lg font-semibold">
-            {summary?.cap === null
-              ? "Unlimited"
-              : formatNumber(summary?.remaining)}
+            {summary?.cap === null ? "Unlimited" : formatNumber(summary?.remaining)}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
@@ -176,7 +170,7 @@ export default function UsageSummaryCard({
           <p className="mt-1 text-lg font-semibold">
             {summary?.percentUsed !== null && summary?.percentUsed !== undefined
               ? `${Math.round(summary.percentUsed)}%`
-              : "—"}
+              : "-"}
           </p>
         </div>
       </div>
@@ -220,9 +214,7 @@ export default function UsageSummaryCard({
       )}
 
       {saveError && <p className="mt-3 text-sm text-red-300">{saveError}</p>}
-      {saveSuccess && (
-        <p className="mt-3 text-sm text-gigaviz-gold">{saveSuccess}</p>
-      )}
+      {saveSuccess && <p className="mt-3 text-sm text-gigaviz-gold">{saveSuccess}</p>}
     </section>
   );
 }
