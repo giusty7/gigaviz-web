@@ -1,10 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import PreviewBanner from "@/components/modules/preview-banner";
-import { UpgradeButton } from "@/components/billing/upgrade-button";
+import { AuditLogPanel } from "@/components/platform/audit-log-panel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { copy } from "@/lib/copy";
 import { getAppContext } from "@/lib/app-context";
-import { getWorkspacePlan } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -19,48 +17,35 @@ export default async function AuditPage({ params }: AuditPageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
   const workspace = ctx.currentWorkspace;
 
-  const planInfo = await getWorkspacePlan(workspace.id);
-  const isPreview = planInfo.planId === "free_locked" && !planInfo.devOverride;
-  const showUpgrade = !planInfo.devOverride;
-
-  const demoEvents = [
-    { action: "auth.login", actor: ctx.user.email ?? "user", time: "baru saja" },
-    { action: "workspace.update", actor: "ops@gigaviz.com", time: "2h lalu" },
-  ];
-
   return (
-    <div className="space-y-4">
-      {isPreview && <PreviewBanner />}
-
-      <Card className="bg-card/80">
+    <div className="space-y-6">
+      <Card className="bg-card/85 border-border/80">
         <CardHeader>
-          <CardTitle>Audit Log</CardTitle>
-          <CardDescription>Preview aktivitas penting yang akan tercatat.</CardDescription>
+          <CardTitle>Audit log</CardTitle>
+          <CardDescription>Every entry is scoped by workspace_id and membership.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          {demoEvents.map((evt) => (
-            <div
-              key={`${evt.action}-${evt.time}`}
-              className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3"
-            >
-              <div>
-                <p className="font-semibold">{evt.action}</p>
-                <p className="text-xs text-muted-foreground">{evt.actor}</p>
-              </div>
-              <span className="text-xs text-muted-foreground">{evt.time}</span>
-            </div>
-          ))}
-
-          <div className="rounded-xl border border-border bg-background px-4 py-3">
-            <p className="font-semibold">{copy.emptyStates.audit.title}</p>
-            <p className="text-muted-foreground">{copy.emptyStates.audit.helper}</p>
+          <p className="text-muted-foreground">
+            The feed below shows the latest 50 events. Actions like billing requests, feature interest,
+            workspace creation, and role updates are logged automatically.
+          </p>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Link href={`/${workspace.slug}/platform/roles`} className="underline hover:text-foreground">
+              Change a role
+            </Link>
+            <span aria-hidden>•</span>
+            <Link href={`/${workspace.slug}/platform/billing`} className="underline hover:text-foreground">
+              Submit an upgrade request
+            </Link>
+            <span aria-hidden>•</span>
+            <Link href={`/${workspace.slug}/platform/workspaces`} className="underline hover:text-foreground">
+              Create a workspace
+            </Link>
           </div>
-
-          {showUpgrade && (
-            <UpgradeButton label="Upgrade untuk audit penuh" variant="outline" size="sm" />
-          )}
         </CardContent>
       </Card>
+
+      <AuditLogPanel workspaceId={workspace.id} />
     </div>
   );
 }

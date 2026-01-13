@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
+import { recordAuditEvent } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -52,6 +53,14 @@ export async function POST(req: NextRequest) {
 
     return withCookies(NextResponse.json({ error: "db_error" }, { status: 500 }));
   }
+
+  recordAuditEvent({
+    workspaceId,
+    actorUserId: user.id,
+    actorEmail: user.email,
+    action: "feature.interest",
+    meta: { moduleKey },
+  }).catch(() => null);
 
   return withCookies(NextResponse.json({ ok: true }));
 }

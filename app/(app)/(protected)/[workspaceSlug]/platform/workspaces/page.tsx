@@ -1,13 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ActionGate } from "@/components/gates/action-gate";
-import PreviewBanner from "@/components/modules/preview-banner";
-import { UpgradeButton } from "@/components/billing/upgrade-button";
+import { ArrowUpRight, Building2, ShieldCheck, Users2 } from "lucide-react";
+import { WorkspaceCreateDialog } from "@/components/platform/workspace-create-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { copy } from "@/lib/copy";
 import { getAppContext } from "@/lib/app-context";
-import { canAccess } from "@/lib/entitlements";
-import { getWorkspacePlan } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -21,57 +19,80 @@ export default async function PlatformWorkspacesPage({ params }: WorkspacesPageP
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
   const workspace = ctx.currentWorkspace;
-
-  const planInfo = await getWorkspacePlan(workspace.id);
-  const isDevOverride = Boolean(planInfo.devOverride);
-  const isAdmin = Boolean(ctx.profile?.is_admin);
-  const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
-  const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
-
-  const allowInvite = canAccess(entitlementCtx, "member_invites");
-  const showUpgrade = !isDevOverride;
+  const workspaces = ctx.workspaces;
 
   return (
-    <div className="space-y-4">
-      {isPreview && <PreviewBanner />}
-
-      <Card className="bg-card/80">
-        <CardHeader>
-          <CardTitle>Daftar Workspace</CardTitle>
-          <CardDescription>Preview workspace yang Anda miliki.</CardDescription>
+    <div className="space-y-6">
+      <Card className="bg-card/85 border-border/80">
+        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Workspaces</CardTitle>
+            <CardDescription>Each workspace is isolated by data, roles, and billing.</CardDescription>
+          </div>
+          <WorkspaceCreateDialog />
         </CardHeader>
         <CardContent className="space-y-3">
-          {ctx.workspaces.length === 0 ? (
-            <div className="rounded-xl border border-border bg-background px-4 py-6 text-sm">
-              <p className="font-semibold">{copy.emptyStates.workspace.title}</p>
-              <p className="text-muted-foreground">{copy.emptyStates.workspace.helper}</p>
+          {workspaces.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-sm text-center">
+              <p className="font-semibold text-foreground">No workspaces yet</p>
+              <p className="text-xs text-muted-foreground">Create your first workspace to get started.</p>
             </div>
           ) : (
-            ctx.workspaces.map((ws) => (
+            workspaces.map((ws) => (
               <div
                 key={ws.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm"
+                className="flex items-center justify-between rounded-xl border border-border/80 bg-background px-4 py-3 text-sm shadow-sm"
               >
-                <div>
-                  <p className="font-semibold">{ws.name}</p>
-                  <p className="text-xs text-muted-foreground">{ws.slug}</p>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gigaviz-surface/70 text-gigaviz-gold">
+                    <Building2 size={16} />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-foreground">{ws.name}</p>
+                    <p className="text-xs text-muted-foreground">{ws.slug}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{ws.role}</span>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="border-border/80 text-xs capitalize">
+                    {ws.role || "member"}
+                  </Badge>
+                  {ws.id === workspace.id ? (
+                    <Badge className="bg-emerald-500/15 text-emerald-200">Active</Badge>
+                  ) : (
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/${ws.slug}/platform`} className="inline-flex items-center gap-1">
+                        Switch
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </div>
             ))
           )}
+        </CardContent>
+      </Card>
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm">
-              Tambah Workspace
-            </Button>
-            <ActionGate allowed={allowInvite}>
-              <Button size="sm">Undang Member</Button>
-            </ActionGate>
-            {showUpgrade && <UpgradeButton label="Upgrade" variant="ghost" size="sm" />}
-          </div>
+      <Card className="bg-card/85 border-border/80">
+        <CardHeader>
+          <CardTitle>Workspace guardrails</CardTitle>
+          <CardDescription>Multi-tenant isolation and role-aware controls stay on by default.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {["Workspace-scoped data", "Owner/Admin privileges", "Member least-privilege"].map((item) => (
+            <div
+              key={item}
+              className="flex items-center gap-3 rounded-xl border border-border/80 bg-background px-4 py-3 text-sm"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gigaviz-surface/70 text-gigaviz-gold">
+                {item.includes("Owner") ? <ShieldCheck className="h-4 w-4" /> : <Users2 className="h-4 w-4" />}
+              </span>
+              <div>
+                <p className="font-semibold text-foreground">{item}</p>
+                <p className="text-xs text-muted-foreground">Always filtered by workspace_id and membership.</p>
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

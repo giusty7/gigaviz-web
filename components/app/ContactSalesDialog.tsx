@@ -10,6 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,11 +25,14 @@ export type ContactSalesDialogProps = {
   userEmail: string;
   planOptions: PlanMeta[];
   defaultPlanId?: string | null;
+  /** Render-prop pattern for Client Components that need openDialog */
   children?: (openDialog: (planId?: string | null) => void) => ReactNode;
+  /** ReactNode trigger for Server Components - uses DialogTrigger */
+  trigger?: ReactNode;
 };
 
 export default function ContactSalesDialog(props: ContactSalesDialogProps) {
-  const { workspaceId, workspaceName, workspaceSlug, userEmail, planOptions, defaultPlanId, children } = props;
+  const { workspaceId, workspaceName, workspaceSlug, userEmail, planOptions, defaultPlanId, children, trigger } = props;
   const { toast } = useToast();
   const paidPlans = useMemo(() => planOptions.filter((plan) => plan.plan_id !== "free_locked"), [planOptions]);
   const currentPlan = useMemo(
@@ -120,6 +124,84 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
       setSubmitting(false);
     }
   }, [notes, planId, seats, toast, workspaceId]);
+
+  // If trigger prop is provided, use uncontrolled dialog with DialogTrigger
+  // If children render-prop is provided, use controlled dialog
+  const useUncontrolled = Boolean(trigger) && typeof children !== "function";
+
+  if (useUncontrolled) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade via Contact Sales</DialogTitle>
+            <DialogDescription>
+              Tell us the plan and seats you need. Use WhatsApp for a faster response or submit the request here.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan">Plan</Label>
+              {currentPlan ? (
+                <div className="text-xs text-muted-foreground">Current plan: {currentPlan.name}</div>
+              ) : null}
+              <select
+                id="plan"
+                value={planId}
+                onChange={(e) => setPlanId(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
+              >
+                {paidPlans.map((plan) => (
+                  <option key={plan.plan_id} value={plan.plan_id}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="seats">Seats</Label>
+              <Input
+                id="seats"
+                type="number"
+                min={1}
+                value={seats}
+                onChange={(e) => setSeats(e.target.value)}
+                inputMode="numeric"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Share requirements, timelines, or compliance needs."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              Workspace {workspaceName} · {workspaceSlug} · {userEmail}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button asChild variant="secondary" disabled={!waUrl}>
+              <a href={waUrl ?? "#"} target="_blank" rel="noreferrer">
+                Contact via WhatsApp
+              </a>
+            </Button>
+            <Button onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <>
