@@ -5,24 +5,24 @@ import { Footer } from "@/components/layout/footer";
 import { ContactForm } from "@/components/contact/contact-form";
 
 export const metadata: Metadata = {
-  title: "Hubungi Gigaviz",
+  title: "Contact Gigaviz",
   description:
-    "Hubungi Gigaviz untuk partnership, pertanyaan produk, atau kebutuhan dukungan.",
+    "Contact Gigaviz for partnerships, product questions, or support needs.",
   alternates: {
     canonical: "/contact",
   },
   openGraph: {
-    title: "Hubungi Gigaviz",
+    title: "Contact Gigaviz",
     description:
-      "Hubungi Gigaviz untuk partnership, pertanyaan produk, atau kebutuhan dukungan.",
+      "Contact Gigaviz for partnerships, product questions, or support needs.",
     url: "/contact",
   },
 };
 
 const contactNotes = [
-  "Sertakan tujuan utama dan konteks bisnis Anda.",
-  "Ceritakan skala tim dan target yang ingin dicapai.",
-  "Jika butuh press kit, gunakan Media Kit resmi.",
+  "Include your main goal and business context.",
+  "Share your team size and the targets you want to reach.",
+  "If you need press assets, use the official Media Kit.",
 ];
 
 export default function ContactPage() {
@@ -48,13 +48,13 @@ export default function ContactPage() {
           <div className="container relative z-10 py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Kontak
+                Contact
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Hubungi Gigaviz
+                Contact Gigaviz
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Kirim pertanyaan atau kebutuhan Anda, tim kami akan merespons secepat mungkin.
+                Send your questions or needs, and our team will respond as soon as possible.
               </p>
             </div>
           </div>
@@ -65,10 +65,10 @@ export default function ContactPage() {
             <div className="space-y-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Panduan singkat
+                  Quick guide
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Apa yang sebaiknya disertakan
+                  What to include
                 </h2>
                 <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                   {contactNotes.map((item) => (
@@ -82,16 +82,16 @@ export default function ContactPage() {
 
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <p className="font-semibold text-[color:var(--gv-text)]">
-                  Estimasi respon
+                  Response time
                 </p>
                 <p className="mt-2">
-                  1-2 hari kerja untuk pertanyaan umum, lebih cepat untuk kebutuhan prioritas.
+                  1-2 business days for general questions, faster for priority needs.
                 </p>
               </div>
 
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <p className="font-semibold text-[color:var(--gv-text)]">
-                  Sumber tambahan
+                  Additional resources
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3">
                   <Link
@@ -104,7 +104,7 @@ export default function ContactPage() {
                     href="/status"
                     className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                   >
-                    Status Produk
+                    Product Status
                   </Link>
                 </div>
               </div>

@@ -34,10 +34,10 @@ export default async function BillingPage({
   );
   const featureLabels: Record<FeatureKey, string> = {
     dashboard_home: "Dashboard",
-    account_settings: "Pengaturan akun",
-    plan_comparison_view: "Lihat perbandingan plan",
-    billing_manage: "Kelola billing",
-    tokens_view: "Lihat token",
+    account_settings: "Account settings",
+    plan_comparison_view: "View plan comparison",
+    billing_manage: "Manage billing",
+    tokens_view: "View tokens",
     helper: "Helper AI",
     office: "Office docs",
     graph: "Graph data",
@@ -45,13 +45,13 @@ export default async function BillingPage({
     meta_hub: "Meta Hub",
     mass_blast: "Mass blast",
     analytics: "Analytics",
-    member_invites: "Undang member",
-    roles_permissions: "Role & permission",
+    member_invites: "Invite members",
+    roles_permissions: "Roles & permissions",
     audit_log: "Audit log",
     meta_connect: "Meta connect",
-    meta_send: "Kirim pesan Meta",
-    meta_templates: "Template Meta",
-    meta_webhooks: "Webhook Meta",
+    meta_send: "Send Meta messages",
+    meta_templates: "Meta templates",
+    meta_webhooks: "Meta webhooks",
   };
   const available = (key: FeatureKey) =>
     canAccess({ plan_id: planIdNormalized, is_admin: ctx.profile?.is_admin }, key);
@@ -62,27 +62,27 @@ export default async function BillingPage({
 
       {!billing.subscription ? (
         <Alert>
-          <AlertTitle>Subscription belum terdaftar</AlertTitle>
+          <AlertTitle>No subscription found</AlertTitle>
           <AlertDescription>
-            Workspace ini belum punya baris subscription. Default: Free (Locked).
+            This workspace has no subscription record. Default: Free (Locked).
           </AlertDescription>
         </Alert>
       ) : null}
 
       {!billing.plan ? (
         <Alert variant="destructive">
-          <AlertTitle>Plan tidak ditemukan</AlertTitle>
+          <AlertTitle>Plan not found</AlertTitle>
           <AlertDescription>
-            Kode plan {billing.subscription?.plan_id ?? "unknown"} belum ada di tabel plans. Menggunakan
-            fallback Free.
+            Plan code {billing.subscription?.plan_id ?? "unknown"} is missing in the plans table. Falling back to
+            Free.
           </AlertDescription>
         </Alert>
       ) : null}
 
       <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Akses fitur</h2>
+        <h2 className="text-lg font-semibold">Feature access</h2>
         <p className="text-sm text-white/60 mt-1">
-          Fitur yang tersedia untuk plan saat ini. Upgrade untuk membuka fitur terkunci.
+          Features available on the current plan. Upgrade to unlock the rest.
         </p>
         <div className="mt-4 grid gap-2 md:grid-cols-2">
           {featureUnion.map((key) => (

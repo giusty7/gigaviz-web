@@ -67,8 +67,8 @@ export default async function TokensPage({ params }: TokensPageProps) {
       <section className="rounded-2xl border border-border bg-card p-6">
         <h2 className="text-lg font-semibold text-foreground">How tokens work</h2>
         <p className="text-sm text-muted-foreground mt-2">
-          Token dipakai untuk biaya pemakaian AI/API per aksi. Subscription
-          membuka akses modul dan seat, sementara token usage dihitung terpisah.
+          Tokens cover AI/API usage per action. Subscriptions unlock modules and seats, while token
+          usage is calculated separately.
         </p>
       </section>
 
@@ -95,7 +95,7 @@ export default async function TokensPage({ params }: TokensPageProps) {
         <h2 className="text-lg font-semibold text-foreground">Token Ledger</h2>
         <div className="mt-4 space-y-3">
           {ledger.length === 0 && (
-            <p className="text-sm text-muted-foreground">Belum ada transaksi token.</p>
+            <p className="text-sm text-muted-foreground">No token transactions yet.</p>
           )}
           {ledger.map((entry) => (
             <div

@@ -8,15 +8,15 @@ export default function MetaHubInsightsPage() {
         <div>
           <h2 className="text-xl font-semibold text-foreground">Insights</h2>
           <p className="text-sm text-muted-foreground">
-            Placeholder: performance dashboards dan alert akan tersedia.
+            Placeholder: performance dashboards and alerts will be available.
           </p>
         </div>
         <MetaHubBadge status="soon" />
       </div>
       <DisabledModuleState
         title="Insights"
-        description="Ringkasan performa, alert, dan monitoring kanal Meta akan hadir. Hubungi sales untuk info lebih lanjut."
-        ctaLabel="Hubungi Sales"
+        description="Performance summaries, alerts, and Meta channel monitoring are coming soon. Contact sales for more info."
+        ctaLabel="Contact Sales"
         ctaHref="/contact"
       />
     </div>

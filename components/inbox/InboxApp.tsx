@@ -366,7 +366,7 @@ export default function InboxApp({ selectedId }: Props) {
           });
           const js = (await res.json().catch(() => ({}))) as ThreadListResponse;
           if (!res.ok) {
-            const errMsg = typeof js.error === "string" ? js.error : "Gagal load threads";
+            const errMsg = typeof js.error === "string" ? js.error : "Failed to load threads";
             throw new Error(errMsg);
           }
           if (!dead) setConversations(js.items ?? []);
@@ -429,7 +429,7 @@ export default function InboxApp({ selectedId }: Props) {
           error?: string;
         };
         if (!res.ok) {
-          const errMsg = typeof js.error === "string" ? js.error : "Gagal load kategori";
+          const errMsg = typeof js.error === "string" ? js.error : "Failed to load categories";
           throw new Error(errMsg);
         }
         if (!dead) setCategories(js.categories ?? []);
@@ -557,7 +557,7 @@ export default function InboxApp({ selectedId }: Props) {
         const js = (await res.json().catch(() => ({}))) as CrmFieldsResponse;
         if (!res.ok) {
           const errMsg =
-            typeof js.error === "string" ? js.error : "Gagal load custom fields";
+            typeof js.error === "string" ? js.error : "Failed to load custom fields";
           throw new Error(errMsg);
         }
         if (dead) return;
@@ -638,7 +638,7 @@ export default function InboxApp({ selectedId }: Props) {
         });
         const js = (await res.json().catch(() => ({}))) as ThreadDetailResponse;
         if (!res.ok) {
-          const errMsg = typeof js.error === "string" ? js.error : "Gagal load thread";
+          const errMsg = typeof js.error === "string" ? js.error : "Failed to load thread";
           throw new Error(errMsg);
         }
         setMessages(js.messages ?? []);
@@ -758,7 +758,7 @@ export default function InboxApp({ selectedId }: Props) {
         error?: string;
       };
       if (!res.ok || !js.thread) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal auto-assign";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to auto-assign";
         const friendly =
           errMsg === "member_not_in_team"
             ? "You are not a member of this team."
@@ -793,7 +793,7 @@ export default function InboxApp({ selectedId }: Props) {
         error?: string;
       };
       if (!res.ok || !js.thread) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal transfer";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to transfer";
         const friendly =
           errMsg === "member_not_in_team"
             ? "You are not a member of this team."
@@ -830,7 +830,7 @@ export default function InboxApp({ selectedId }: Props) {
         error?: string;
       };
       if (!res.ok || !js.thread) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal takeover";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to take over";
         throw new Error(errMsg);
       }
       patchConv(activeConv.id, {
@@ -868,7 +868,7 @@ export default function InboxApp({ selectedId }: Props) {
         error?: string;
       };
       if (!res.ok || !js.thread) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal release takeover";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to release takeover";
         throw new Error(errMsg);
       }
       patchConv(activeConv.id, {
@@ -905,7 +905,7 @@ export default function InboxApp({ selectedId }: Props) {
         error?: string;
       };
       if (!res.ok || !js.thread) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal update kategori";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to update category";
         throw new Error(errMsg);
       }
       patchConv(activeConv.id, {
@@ -993,7 +993,7 @@ export default function InboxApp({ selectedId }: Props) {
       });
       const js = (await res.json().catch(() => ({}))) as CrmSaveResponse;
       if (!res.ok) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal simpan fields";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to save fields";
         throw new Error(errMsg);
       }
       const nextValues: Record<string, { valueText: string | null; valueJson: unknown | null }> =
@@ -1029,7 +1029,7 @@ export default function InboxApp({ selectedId }: Props) {
       );
       const js = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal update status";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to update status";
         throw new Error(errMsg);
       }
       setConversations((prev) =>
@@ -1069,7 +1069,7 @@ export default function InboxApp({ selectedId }: Props) {
         error?: string;
       };
       if (!res.ok || !js.contact) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal update opt-in";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to update opt-in";
         throw new Error(errMsg);
       }
 
@@ -1127,7 +1127,7 @@ export default function InboxApp({ selectedId }: Props) {
       const js = (await res.json().catch(() => ({}))) as SendResponse;
       const message = js.message;
       if (!res.ok || !message) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal kirim";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to send";
         throw new Error(errMsg);
       }
 
@@ -1154,7 +1154,7 @@ export default function InboxApp({ selectedId }: Props) {
       (t) => templateKey(t) === selectedTemplateKey
     );
     if (!selected) {
-      setError("Template belum dipilih.");
+      setError("Template is required.");
       return;
     }
 
@@ -1188,7 +1188,7 @@ export default function InboxApp({ selectedId }: Props) {
       const js = (await res.json().catch(() => ({}))) as SendResponse;
       const message = js.message;
       if (!res.ok || !message) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal kirim template";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to send template";
         throw new Error(errMsg);
       }
 
@@ -1212,7 +1212,7 @@ export default function InboxApp({ selectedId }: Props) {
   async function recordMetaEvent() {
     if (!activeId) return;
     if (!eventPhone.trim()) {
-      setError("Nomor telepon wajib diisi.");
+      setError("Phone number is required.");
       return;
     }
     setEventSending(true);
@@ -1231,7 +1231,7 @@ export default function InboxApp({ selectedId }: Props) {
       });
       const js = (await res.json().catch(() => ({}))) as { status?: string; error?: string };
       if (!res.ok) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal record event";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to record event";
         throw new Error(errMsg);
       }
       const statusLabel = js.status ? `Status: ${js.status}` : "Recorded";
@@ -1246,7 +1246,7 @@ export default function InboxApp({ selectedId }: Props) {
 
   async function addNote() {
     if (!activeId) return;
-    const t = prompt("Tulis catatan internal:");
+    const t = prompt("Add an internal note:");
     const text = String(t || "").trim();
     if (!text) return;
 
@@ -1259,7 +1259,7 @@ export default function InboxApp({ selectedId }: Props) {
       const js = (await res.json().catch(() => ({}))) as NoteResponse;
       const note = js.note;
       if (!res.ok || !note) {
-        const errMsg = typeof js.error === "string" ? js.error : "Gagal tambah note";
+        const errMsg = typeof js.error === "string" ? js.error : "Failed to add note";
         throw new Error(errMsg);
       }
       setNotes((prev) => [note, ...prev]);
@@ -1586,7 +1586,7 @@ export default function InboxApp({ selectedId }: Props) {
 
                 {!loading && filtered.length === 0 && (
                   <div className="p-6 text-sm text-slate-400">
-                    Tidak ada hasil. Coba ubah filter/kata kunci.
+                    No results. Adjust filters or keywords.
                   </div>
                 )}
               </div>
@@ -1721,7 +1721,7 @@ export default function InboxApp({ selectedId }: Props) {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-400">Pilih percakapan di kiri.</div>
+                  <div className="text-sm text-slate-400">Select a conversation on the left.</div>
                 )}
               </div>
 
@@ -1950,7 +1950,7 @@ export default function InboxApp({ selectedId }: Props) {
                   })}
 
                 {!loadingThread && activeMessages.length === 0 && (
-                  <div className="text-sm text-slate-400">Belum ada pesan.</div>
+                  <div className="text-sm text-slate-400">No messages yet.</div>
                 )}
               </div>
 
@@ -1959,7 +1959,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <input
                     value={composer}
                     onChange={(e) => setComposer(e.target.value)}
-                    placeholder="Ketik balasan…"
+                    placeholder="Type a reply…"
                     className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-700"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -1972,7 +1972,7 @@ export default function InboxApp({ selectedId }: Props) {
                     onClick={send}
                     className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm hover:bg-slate-800"
                   >
-                    Kirim
+                    Send
                   </button>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -2052,7 +2052,7 @@ export default function InboxApp({ selectedId }: Props) {
                   )}
                 </div>
                 <div className="mt-2 text-xs text-slate-500">
-                  *Default dry-run. Set ENABLE_WA_SEND=true untuk kirim WhatsApp asli.
+                  *Default is dry-run. Set ENABLE_WA_SEND=true to send real WhatsApp messages.
                 </div>
               </div>
             </div>
@@ -2063,7 +2063,7 @@ export default function InboxApp({ selectedId }: Props) {
             <div className="rounded-2xl border border-slate-800 bg-slate-950/40">
               <div className="border-b border-slate-800 p-3">
                 <div className="text-sm font-semibold">Info & Notes</div>
-                <div className="text-xs text-slate-400">Internal (tidak terlihat user)</div>
+                <div className="text-xs text-slate-400">Internal (not visible to customers)</div>
               </div>
 
               <div className="p-3 space-y-4">
@@ -2216,7 +2216,7 @@ export default function InboxApp({ selectedId }: Props) {
                   )}
 
                   {!crmLoading && crmFields.length === 0 && (
-                    <div className="text-sm text-slate-400">Belum ada custom fields.</div>
+                    <div className="text-sm text-slate-400">No custom fields yet.</div>
                   )}
 
                   {!crmLoading && crmFields.length > 0 && (
@@ -2271,7 +2271,7 @@ export default function InboxApp({ selectedId }: Props) {
                                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
                                 disabled={crmDisabled}
                               >
-                                <option value="">Pilih...</option>
+                                <option value="">Select...</option>
                                 {choices.map((choice) => (
                                   <option key={choice} value={choice}>
                                     {choice}
@@ -2349,7 +2349,7 @@ export default function InboxApp({ selectedId }: Props) {
                       onChange={(e) => setTransferTeamId(e.target.value)}
                       className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                     >
-                      <option value="">Pilih team</option>
+                      <option value="">Choose a team</option>
                       {teams.map((t) => (
                         <option key={t.id} value={t.id}>
                           {t.name}
@@ -2393,7 +2393,7 @@ export default function InboxApp({ selectedId }: Props) {
                     ))}
 
                     {activeNotes.length === 0 && (
-                      <div className="text-sm text-slate-400">Belum ada note.</div>
+                      <div className="text-sm text-slate-400">No notes yet.</div>
                     )}
                   </div>
                 </div>
@@ -2424,9 +2424,7 @@ export default function InboxApp({ selectedId }: Props) {
                     ))}
 
                     {activeEscalations.length === 0 && (
-                      <div className="text-sm text-slate-400">
-                        Belum ada escalations.
-                      </div>
+                      <div className="text-sm text-slate-400">No escalations yet.</div>
                     )}
                   </div>
                 </div>

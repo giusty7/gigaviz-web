@@ -19,9 +19,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
-  phoneNumberId: z.string().min(6, "Phone number ID wajib diisi"),
+  phoneNumberId: z.string().min(6, "Phone number ID is required"),
   wabaId: z.string().optional(),
-  accessToken: z.string().min(8, "Access token wajib diisi"),
+  accessToken: z.string().min(8, "Access token is required"),
   displayName: z.string().optional(),
 });
 
@@ -90,7 +90,7 @@ export function WhatsappConnectionForm({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.reason || data?.error || "Gagal menyimpan koneksi");
+        throw new Error(data?.reason || data?.error || "Failed to save connection");
       }
       setCurrentStatus(data?.status ?? "active");
       setHasToken(Boolean(data?.tokenSet ?? true));
@@ -103,13 +103,13 @@ export function WhatsappConnectionForm({
         accessToken: "",
       });
       toast({
-        title: "Koneksi tersimpan",
-        description: "Phone number ID dan token WhatsApp berhasil disimpan.",
+        title: "Connection saved",
+        description: "Phone number ID and WhatsApp token saved.",
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Gagal menyimpan koneksi";
+      const message = err instanceof Error ? err.message : "Failed to save connection";
       toast({
-        title: "Gagal menyimpan",
+        title: "Save failed",
         description: message,
         variant: "destructive",
       });
@@ -123,8 +123,8 @@ export function WhatsappConnectionForm({
     const phoneNumberId = form.getValues("phoneNumberId") || initialPhoneNumberId;
     if (!phoneNumberId) {
       toast({
-        title: "Lengkapi Phone Number ID",
-        description: "Isi Phone Number ID sebelum melakukan tes koneksi.",
+        title: "Phone Number ID required",
+        description: "Fill in the Phone Number ID before running a connection test.",
         variant: "destructive",
       });
       return;
@@ -138,22 +138,22 @@ export function WhatsappConnectionForm({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.result || data?.reason || "Tes koneksi gagal");
+        throw new Error(data?.result || data?.reason || "Connection test failed");
       }
       setCurrentStatus(data?.status ?? "active");
       setCurrentTestedAt(data?.lastTestedAt ?? null);
       setCurrentTestResult(data?.result ?? null);
       toast({
-        title: "Tes berhasil",
-        description: data?.result === "validated" ? "Token valid dan terhubung." : data?.result,
+        title: "Test succeeded",
+        description: data?.result === "validated" ? "Token is valid and connected." : data?.result,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Tes koneksi gagal";
+      const message = err instanceof Error ? err.message : "Connection test failed";
       setCurrentStatus("inactive");
       setCurrentTestResult(message);
       setCurrentTestedAt(new Date().toISOString());
       toast({
-        title: "Tes gagal",
+        title: "Test failed",
         description: message,
         variant: "destructive",
       });
@@ -168,8 +168,7 @@ export function WhatsappConnectionForm({
         <div>
           <p className="text-sm font-semibold text-foreground">WhatsApp Connection</p>
           <p className="text-sm text-muted-foreground">
-            Simpan phone number ID dan access token secara aman. Token tidak akan ditampilkan
-            kembali.
+            Store the phone number ID and access token securely. The token will not be shown again.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -189,7 +188,7 @@ export function WhatsappConnectionForm({
             </Badge>
           ) : (
             <Badge className="border border-border/80 bg-background px-3 py-1 text-xs text-muted-foreground">
-              Token belum diset
+              Token not set
             </Badge>
           )}
         </div>
@@ -205,7 +204,7 @@ export function WhatsappConnectionForm({
                 <FormLabel>Phone Number ID</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Masukkan phone number ID"
+                    placeholder="Enter phone number ID"
                     disabled={readOnly || saving}
                     {...field}
                   />
@@ -219,7 +218,7 @@ export function WhatsappConnectionForm({
             name="wabaId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>WABA ID (opsional)</FormLabel>
+                <FormLabel>WABA ID (optional)</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="WABA ID"
@@ -236,10 +235,10 @@ export function WhatsappConnectionForm({
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Display name (opsional)</FormLabel>
+                <FormLabel>Display name (optional)</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Nama tampil"
+                    placeholder="Display name"
                     disabled={readOnly || saving}
                     {...field}
                   />
@@ -257,7 +256,7 @@ export function WhatsappConnectionForm({
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="Token rahasia"
+                    placeholder="Secret token"
                     disabled={readOnly || saving}
                     {...field}
                   />
@@ -269,7 +268,7 @@ export function WhatsappConnectionForm({
 
           <div className="flex items-center gap-3 md:col-span-2">
             <Button type="submit" disabled={readOnly || saving}>
-              {saving ? "Menyimpan..." : "Simpan koneksi"}
+              {saving ? "Saving..." : "Save connection"}
             </Button>
             <Button
               type="button"
@@ -277,24 +276,24 @@ export function WhatsappConnectionForm({
               onClick={onTest}
               disabled={readOnly || testing}
             >
-              {testing ? "Menguji..." : "Tes koneksi"}
+              {testing ? "Testing..." : "Test connection"}
             </Button>
             <p className="text-xs text-muted-foreground">
-              Hanya owner/admin yang dapat menyimpan atau menguji token.
+              Only owners/admins can save or test the token.
             </p>
           </div>
         </form>
       </Form>
 
       <div className="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-        <p className="font-semibold text-foreground">Status terakhir</p>
+        <p className="font-semibold text-foreground">Latest status</p>
         <p className="mt-1">
           {currentTestedAt
-            ? `Terakhir dites: ${new Date(currentTestedAt).toLocaleString()}`
-            : "Belum pernah dites"}
+            ? `Last tested: ${new Date(currentTestedAt).toLocaleString()}`
+            : "Never tested"}
         </p>
         <p className="mt-1">
-          Hasil: {currentTestResult ? <span className="text-foreground">{currentTestResult}</span> : "—"}
+          Result: {currentTestResult ? <span className="text-foreground">{currentTestResult}</span> : "—"}
         </p>
       </div>
     </div>

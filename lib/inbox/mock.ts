@@ -21,22 +21,22 @@ export const mockConversations: Conversation[] = [
 ];
 
 export const mockMessages: Message[] = [
-  { id: "m1", conversationId: "t1", direction: "in", text: "Wak, ini promo masih ado dak?", ts: iso(5) },
-  { id: "m2", conversationId: "t1", direction: "out", text: "Masih, kak. Mau paket A atau B?", ts: iso(4), status: "read" },
-  { id: "m3", conversationId: "t1", direction: "in", text: "Paket A bedonyo apo?", ts: iso(2) },
+  { id: "m1", conversationId: "t1", direction: "in", text: "Hey, is this promo still available?", ts: iso(5) },
+  { id: "m2", conversationId: "t1", direction: "out", text: "Yes, which package do you want, A or B?", ts: iso(4), status: "read" },
+  { id: "m3", conversationId: "t1", direction: "in", text: "What's included in package A?", ts: iso(2) },
 
-  { id: "m4", conversationId: "t2", direction: "in", text: "Minta katalog dong", ts: iso(40) },
-  { id: "m5", conversationId: "t2", direction: "out", text: "Siap, ini katalog ya kak.", ts: iso(38), status: "delivered" },
+  { id: "m4", conversationId: "t2", direction: "in", text: "Can I get the catalog?", ts: iso(40) },
+  { id: "m5", conversationId: "t2", direction: "out", text: "Sure, here's the catalog.", ts: iso(38), status: "delivered" },
 
-  { id: "m6", conversationId: "t3", direction: "in", text: "Pesananku nyangkut, tolong cek", ts: iso(10) },
-  { id: "m7", conversationId: "t3", direction: "out", text: "Oke kak, kirim nomor ordernyo ya.", ts: iso(9), status: "sent" },
+  { id: "m6", conversationId: "t3", direction: "in", text: "My order is stuck, please check.", ts: iso(10) },
+  { id: "m7", conversationId: "t3", direction: "out", text: "Okay, please send the order number.", ts: iso(9), status: "sent" },
   { id: "m8", conversationId: "t3", direction: "in", text: "ORD-7781", ts: iso(8) },
 
-  { id: "m9", conversationId: "t4", direction: "in", text: "Sudah dibayar ya", ts: iso(120) },
-  { id: "m10", conversationId: "t4", direction: "out", text: "Siap kak, terimo kasih 🙏", ts: iso(110), status: "read" },
+  { id: "m9", conversationId: "t4", direction: "in", text: "It has been paid.", ts: iso(120) },
+  { id: "m10", conversationId: "t4", direction: "out", text: "Got it, thank you 🙏", ts: iso(110), status: "read" },
 ];
 
 export const mockNotes: Note[] = [
-  { id: "n1", conversationId: "t1", text: "Lead panas, follow up 2 jam lagi.", ts: iso(3), author: "Giusty" },
-  { id: "n2", conversationId: "t3", text: "Prioritas urgent, cek ke sistem order.", ts: iso(7), author: "Admin 2" },
+  { id: "n1", conversationId: "t1", text: "Hot lead, follow up in 2 hours.", ts: iso(3), author: "Giusty" },
+  { id: "n2", conversationId: "t3", text: "Urgent priority, check the order system.", ts: iso(7), author: "Admin 2" },
 ];

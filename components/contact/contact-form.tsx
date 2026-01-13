@@ -56,7 +56,7 @@ export function ContactForm() {
 
       if (!res.ok || !json?.ok) {
         setStatus("error");
-        setServerMessage(json?.message ?? "Gagal mengirim pesan.");
+        setServerMessage(json?.message ?? "Failed to send message.");
         return;
       }
 
@@ -69,35 +69,35 @@ export function ContactForm() {
       track("contact_submit_success", eventParams);
 
       setStatus("success");
-      setServerMessage(json?.message ?? "Pesan berhasil dikirim.");
+      setServerMessage(json?.message ?? "Message sent successfully.");
       reset();
     } catch (error) {
       console.error(error);
       setStatus("error");
-      setServerMessage("Terjadi kesalahan. Coba lagi nanti.");
+      setServerMessage("Something went wrong. Please try again later.");
     }
   };
 
   return (
     <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
       <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-        Form kontak
+        Contact form
       </h2>
       <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-        Isi detail singkat agar tim kami bisa memahami kebutuhan Anda.
+        Share a brief context so our team can understand your needs.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4 text-sm">
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="name">
-            Nama lengkap *
+            Full name *
           </label>
           <input
             id="name"
             type="text"
             {...register("name")}
             className={fieldClass}
-            placeholder="Nama Anda"
+            placeholder="Your name"
           />
           {errors.name && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -115,7 +115,7 @@ export function ContactForm() {
             type="email"
             {...register("email")}
             className={fieldClass}
-            placeholder="email@contoh.com"
+            placeholder="email@example.com"
           />
           {errors.email && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -126,14 +126,14 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="company">
-            Perusahaan (opsional)
+            Company (optional)
           </label>
           <input
             id="company"
             type="text"
             {...register("company")}
             className={fieldClass}
-            placeholder="Nama perusahaan"
+            placeholder="Company name"
           />
           {errors.company && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -144,10 +144,10 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="topic">
-            Topik *
+            Topic *
           </label>
           <select id="topic" {...register("topic")} className={fieldClass}>
-            <option value="">Pilih topik</option>
+            <option value="">Select a topic</option>
             {contactTopics.map((topic) => (
               <option key={topic} value={topic}>
                 {topic}
@@ -163,10 +163,10 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="budgetRange">
-            Range budget (opsional)
+            Budget range (optional)
           </label>
           <select id="budgetRange" {...register("budgetRange")} className={fieldClass}>
-            <option value="">Pilih range</option>
+            <option value="">Select a range</option>
             {budgetRanges.map((range) => (
               <option key={range} value={range}>
                 {range}
@@ -182,14 +182,14 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="message">
-            Pesan *
+            Message *
           </label>
           <textarea
             id="message"
             rows={5}
             {...register("message")}
             className={fieldClass}
-            placeholder="Ceritakan konteks, skala tim, dan target yang diharapkan."
+            placeholder="Share context, team size, and the outcomes you expect."
           />
           {errors.message && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -214,7 +214,7 @@ export function ContactForm() {
           disabled={status === "loading"}
           className="inline-flex w-full items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)] disabled:opacity-60"
         >
-          {status === "loading" ? "Mengirim..." : "Kirim pesan"}
+          {status === "loading" ? "Sending..." : "Send message"}
         </button>
 
         {serverMessage && (

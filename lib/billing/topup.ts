@@ -25,11 +25,11 @@ export async function settlePaymentIntentPaid(
     .maybeSingle();
 
   if (error || !intent) {
-    return { ok: false, code: "payment_intent_not_found", message: "Payment intent tidak ditemukan" };
+    return { ok: false, code: "payment_intent_not_found", message: "Payment intent not found" };
   }
 
   if (options.workspaceId && intent.workspace_id !== options.workspaceId) {
-    return { ok: false, code: "workspace_mismatch", message: "Workspace tidak cocok" };
+    return { ok: false, code: "workspace_mismatch", message: "Workspace does not match" };
   }
 
   const tokens = Number((intent.meta as Record<string, unknown>)?.tokens ?? intent.amount_idr);

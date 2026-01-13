@@ -12,14 +12,14 @@ type LeadPayload = {
 };
 
 const NEED_OPTIONS = [
-  "Broadcast & Notifikasi",
-  "Campaign & Segmentasi",
-  "Inbox CS Multi-Agent",
-  "Chatbot Otomatis",
-  "Template Pesan Resmi",
-  "Analitik & Laporan",
-  "Integrasi Website / CRM",
-  "Lainnya",
+  "Broadcast & Notifications",
+  "Campaigns & Segmentation",
+  "Support Inbox (Multi-agent)",
+  "Automated Chatbot",
+  "Official Message Templates",
+  "Analytics & Reporting",
+  "Website / CRM Integration",
+  "Other",
 ];
 
 function onlyDigits(input: string) {
@@ -45,7 +45,7 @@ export default function LeadForm() {
     business: "",
     need: NEED_OPTIONS[0],
     notes: "",
-    website: "", // honeypot (harus kosong)
+    website: "", // honeypot (should stay empty)
   });
 
   const phoneDigits = useMemo(() => onlyDigits(form.phone), [form.phone]);
@@ -56,17 +56,17 @@ export default function LeadForm() {
     setErr(null);
     setDeduped(false);
 
-    if (!form.name?.trim()) return setErr("Nama wajib diisi.");
+    if (!form.name?.trim()) return setErr("Name is required.");
     if (phoneDigits.length < 9 || phoneDigits.length > 15)
-      return setErr("Nomor WhatsApp tidak valid. Gunakan 62xxxx atau 08xxxx.");
-    if (!form.need) return setErr("Pilih kebutuhan.");
+      return setErr("Invalid WhatsApp number. Use 62xxxx or 08xxxx.");
+    if (!form.need) return setErr("Select a need.");
 
     setLoading(true);
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Server akan normalisasi (0 -> 62). Kita kirim digits saja biar rapi.
+        // Server normalizes (0 -> 62). Send digits only to stay clean.
         body: JSON.stringify({
           name: form.name,
           phone: phoneDigits,
@@ -84,7 +84,7 @@ export default function LeadForm() {
       };
 
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal mengirim. Coba lagi beberapa saat.");
+        throw new Error(data?.message || "Failed to send. Please try again shortly.");
       }
 
       const isDup = !!data?.deduped;
@@ -92,20 +92,20 @@ export default function LeadForm() {
 
       setOk(
         isDup
-          ? "Permintaan Anda sudah kami terima sebelumnya. Tim kami akan tetap menindaklanjuti."
-          : "Terima kasih! Permintaan demo Anda sudah kami terima. Tim kami akan menghubungi Anda."
+          ? "We already received this request. Our team will still follow up."
+          : "Thank you! Your demo request is in. Our team will reach out."
       );
 
       setForm({
         name: "",
         phone: "",
         business: "",
-        need: form.need, // biar pilihan kebutuhan tetap
+        need: form.need, // keep the selected need value
         notes: "",
         website: "",
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Terjadi error.";
+      const message = err instanceof Error ? err.message : "An error occurred.";
       setErr(message);
     } finally {
       setLoading(false);
@@ -116,16 +116,16 @@ export default function LeadForm() {
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs text-cyan-200">Form Demo</div>
+          <div className="text-xs text-cyan-200">Demo Form</div>
           <h3 className="mt-1 text-lg font-semibold text-slate-100">
-            Request Demo WA Platform
+            Request WhatsApp Platform Demo
           </h3>
           <p className="mt-2 text-sm text-slate-300">
-            Isi data singkat. Kami kirim alur demo dan rekomendasi implementasi sesuai kebutuhan.
+            Share a few details. We’ll send a demo flow and implementation recommendations for your needs.
           </p>
         </div>
         <span className="hidden rounded-full bg-cyan-400/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-200 ring-1 ring-cyan-400/20 md:inline-flex">
-          Cloud API (resmi)
+          Cloud API (official)
         </span>
       </div>
 
@@ -145,17 +145,17 @@ export default function LeadForm() {
 
         <div className="grid gap-3 md:grid-cols-2">
           <div>
-            <label className="text-xs text-slate-400">Nama *</label>
+            <label className="text-xs text-slate-400">Name *</label>
             <input
               className={fieldClass}
-              placeholder="Nama Anda"
+              placeholder="Your name"
               value={form.name}
               onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
             />
           </div>
 
           <div>
-            <label className="text-xs text-slate-400">Nomor WhatsApp *</label>
+            <label className="text-xs text-slate-400">WhatsApp number *</label>
             <input
               className={fieldClass}
               placeholder="62xxxxxxxxxx / 08xxxxxxxxxx"
@@ -164,24 +164,24 @@ export default function LeadForm() {
               inputMode="tel"
             />
             <p className="mt-1 text-[11px] text-slate-500">
-              Format bebas (+62/62/08…) — sistem menormalkan otomatis.
+              Any format (+62/62/08…) — the system normalizes automatically.
             </p>
           </div>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
           <div>
-            <label className="text-xs text-slate-400">Nama Bisnis (opsional)</label>
+            <label className="text-xs text-slate-400">Business name (optional)</label>
             <input
               className={fieldClass}
-              placeholder="Nama usaha / brand"
+              placeholder="Business or brand name"
               value={form.business || ""}
               onChange={(e) => setForm((s) => ({ ...s, business: e.target.value }))}
             />
           </div>
 
           <div>
-            <label className="text-xs text-slate-400">Kebutuhan *</label>
+            <label className="text-xs text-slate-400">Need *</label>
             <select
               className={fieldClass}
               value={form.need}
@@ -197,10 +197,10 @@ export default function LeadForm() {
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">Catatan (opsional)</label>
+          <label className="text-xs text-slate-400">Notes (optional)</label>
           <textarea
             className={fieldClass + " min-h-[110px] resize-y"}
-            placeholder="Contoh: ingin kirim 500/hari, data dari Google Sheets, butuh log sukses/gagal, dsb."
+            placeholder="Example: send 500/day, data from Google Sheets, need success/fail logs, etc."
             value={form.notes || ""}
             onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))}
           />
@@ -223,16 +223,16 @@ export default function LeadForm() {
           disabled={loading}
           className="w-full rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-cyan-300 disabled:opacity-60"
         >
-          {loading ? "Mengirim..." : "Request Demo"}
+          {loading ? "Sending..." : "Request Demo"}
         </button>
 
         <p className="text-xs text-slate-500">
-          Dengan mengirim form ini, Anda menyatakan bahwa daftar kontak berasal dari <b>opt-in</b> dan kampanye mengikuti prinsip <b>STOP/opt-out</b> serta <b>batas pengiriman aman</b>.
+          By submitting, you confirm your contact lists are <b>opt-in</b> and campaigns follow <b>STOP/opt-out</b> and <b>safe sending limits</b>.
         </p>
 
         {deduped ? (
           <p className="text-[11px] text-slate-500">
-            Info: sistem mendeteksi request serupa sebelumnya (anti-spam). Tim tetap akan menindaklanjuti.
+            Info: we detected a similar request earlier (anti-spam). The team will still follow up.
           </p>
         ) : null}
       </form>

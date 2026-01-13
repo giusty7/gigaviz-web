@@ -25,7 +25,7 @@ export function LeadActions({ phone, summary }: Props) {
       setMsg("Copied!");
       setTimeout(() => setMsg(null), 900);
     } catch {
-      setMsg("Gagal copy");
+      setMsg("Copy failed");
       setTimeout(() => setMsg(null), 900);
     }
   }
@@ -58,7 +58,7 @@ export function LeadActions({ phone, summary }: Props) {
           onClick={() => copy(summary)}
           className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] text-white/80 hover:bg-white/10"
         >
-          Copy Ringkas
+          Copy Summary
         </button>
       </div>
 

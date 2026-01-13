@@ -26,7 +26,7 @@ export default function ProductsPage() {
                 All modules for Create, Automate, Monetize, and Manage.
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Choose modules based on your team's needs, or combine several for a more integrated workflow.
+                Choose modules based on your team needs, or combine several for a more integrated workflow.
               </p>
             </div>
           </div>
@@ -46,7 +46,7 @@ export default function ProductsPage() {
                   Need module recommendations?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Tell us about your team's needs, and we'll help you find the perfect module combination.
+                  Tell us about your team needs, and we will help you find the perfect module combination.
                 </p>
               </div>
               <Link

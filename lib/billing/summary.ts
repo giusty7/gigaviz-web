@@ -62,15 +62,15 @@ function formatDateLabel(input: string | null | undefined) {
 function mapStatus(status: string | null | undefined) {
   switch ((status || "").toLowerCase()) {
     case "active":
-      return "Aktif";
+      return "Active";
     case "trialing":
       return "Trial";
     case "past_due":
-      return "Tertunggak";
+      return "Past due";
     case "canceled":
-      return "Dibatalkan";
+      return "Canceled";
     default:
-      return "Tidak diketahui";
+      return "Unknown";
   }
 }
 
@@ -132,7 +132,7 @@ export async function getBillingSummary(workspaceId: string): Promise<BillingSum
   const periodLabel =
     periodStart && periodEnd
       ? `Periode: ${periodStart} - ${periodEnd}`
-      : "Periode belum tersedia";
+      : "Period not available yet";
 
   const { data: plans } = await db
     .from("plans")

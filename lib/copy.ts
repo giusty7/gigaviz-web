@@ -1,50 +1,50 @@
 export const copy = {
   upgradeModal: {
-    title: "Upgrade untuk mengaktifkan fitur ini",
+    title: "Upgrade to enable this feature",
     description:
-      "Kamu bisa melihat tampilan di Mode Preview. Untuk menjalankan aksi dan menyimpan perubahan, upgrade diperlukan.",
+      "You can preview the UI. To run actions and save changes, please upgrade.",
     bullets: [
-      "Akses aksi penuh tanpa batasan",
-      "Workspace & kolaborasi tim",
-      "RBAC lanjutan (peran & izin)",
-      "Audit log untuk jejak aktivitas",
-      "Billing terpusat & kontrol langganan",
+      "Full action access without limits",
+      "Workspaces and team collaboration",
+      "Advanced RBAC (roles & permissions)",
+      "Audit log for activity trails",
+      "Centralized billing and subscription control",
     ],
-    ctaPrimary: "Lihat Paket",
-    ctaSecondary: "Nanti dulu",
-    footerNote: "Kamu tetap bisa eksplor tampilan tanpa risiko perubahan data.",
+    ctaPrimary: "View Plans",
+    ctaSecondary: "Not now",
+    footerNote: "You can still explore the UI without changing data.",
   },
   previewBanner: {
-    title: "Mode Preview",
-    text: "Kamu bisa melihat tampilan dan contoh data. Aksi dan penyimpanan perubahan terkunci.",
+    title: "Preview Mode",
+    text: "You can view the UI and sample data. Actions and saving are locked.",
     action: "Upgrade",
   },
   tooltips: {
-    upgrade: "Butuh upgrade untuk memakai fitur ini.",
+    upgrade: "Upgrade required to use this feature.",
   },
   messages: {
-    gated: "Fitur ini tersedia setelah upgrade.",
+    gated: "This feature is available after upgrading.",
   },
   emptyStates: {
     workspace: {
-      title: "Belum ada workspace.",
-      helper: "Buat workspace pertama untuk mulai mengatur tim dan akses.",
+      title: "No workspace yet.",
+      helper: "Create your first workspace to manage your team and access.",
     },
     members: {
-      title: "Belum ada anggota.",
-      helper: "Undang anggota agar kolaborasi lebih cepat.",
+      title: "No members yet.",
+      helper: "Invite members to collaborate faster.",
     },
     roles: {
-      title: "Belum ada pengaturan peran lanjutan.",
-      helper: "Aktifkan RBAC untuk mengatur izin per fitur.",
+      title: "No advanced role settings yet.",
+      helper: "Enable RBAC to manage permissions per feature.",
     },
     audit: {
-      title: "Belum ada aktivitas tercatat.",
-      helper: "Saat audit log aktif, semua aksi penting akan muncul di sini.",
+      title: "No activity recorded yet.",
+      helper: "When audit log is on, important actions appear here.",
     },
     billing: {
-      title: "Belum ada paket aktif.",
-      helper: "Pilih paket untuk membuka fitur premium dan batasan lebih tinggi.",
+      title: "No active plan yet.",
+      helper: "Choose a plan to unlock premium features and higher limits.",
     },
   },
 };

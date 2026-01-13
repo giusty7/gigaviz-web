@@ -32,7 +32,7 @@ export default async function DesignTokensPage({ params }: Props) {
   return (
     <SettingsLayout
       title="Design Tokens"
-      description="Palet warna, radius, dan tipografi Gigaviz. Gunakan kelas Tailwind yang sudah terhubung ke CSS variables."
+      description="Gigaviz color palette, radius, and typography. Use Tailwind classes already wired to CSS variables."
     >
       <Card>
         <CardHeader>
@@ -83,15 +83,15 @@ export default async function DesignTokensPage({ params }: Props) {
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
-            Spacing: var(--gv-space-1..6) di-map ke kelas tailwind <code>space-gv-*</code>.
+            Spacing: var(--gv-space-1..6) maps to Tailwind classes <code>space-gv-*</code>.
           </p>
           <p>
-            Radius: var(--gv-radius-sm..2xl) di-map ke kelas tailwind <code>rounded-sm..rounded-2xl</code>.
+            Radius: var(--gv-radius-sm..2xl) maps to Tailwind classes <code>rounded-sm..rounded-2xl</code>.
           </p>
           <p>
-            Font size: var(--gv-text-xs..4xl) sudah terhubung ke skala font Tailwind (xs..4xl).
+            Font size: var(--gv-text-xs..4xl) already connects to the Tailwind font scale (xs..4xl).
           </p>
-          <p>Contoh tombol utama: <code>bg-gigaviz-gold text-gigaviz-navy rounded-lg</code></p>
+          <p>Primary button example: <code>bg-gigaviz-gold text-gigaviz-navy rounded-lg</code></p>
         </CardContent>
       </Card>
     </SettingsLayout>

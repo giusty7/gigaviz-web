@@ -37,7 +37,7 @@ export default function TokenEstimator() {
     <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
       <h2 className="text-lg font-semibold">Token Estimator</h2>
       <p className="text-sm text-white/60 mt-1">
-        Estimasi sederhana untuk kebutuhan token bulanan.
+        Simple estimate for monthly token needs.
       </p>
       <div className="mt-4 grid gap-4 md:grid-cols-[2fr_1fr]">
         <div className="flex flex-col gap-2">
@@ -63,13 +63,13 @@ export default function TokenEstimator() {
             />
           </div>
           <p className="text-xs text-white/50">
-            Output estimasi, bukan angka final. Rate bisa berubah.
+            Estimated output, not final numbers. Rates can change.
           </p>
         </div>
         <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs text-white/50">Estimasi token / bulan</p>
+          <p className="text-xs text-white/50">Estimated tokens / month</p>
           <p className="text-lg font-semibold">{tokensPerMonth.toLocaleString()}</p>
-          <p className="text-xs text-white/50 mt-3">Estimasi biaya (placeholder)</p>
+          <p className="text-xs text-white/50 mt-3">Estimated cost (placeholder)</p>
           <p className="text-base font-semibold">{formattedCost}</p>
         </div>
       </div>

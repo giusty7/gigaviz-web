@@ -41,7 +41,7 @@ export default function MetaEventsPage() {
         sendingEnabled?: boolean;
       };
       if (!res.ok) {
-        throw new Error(js.error || "Gagal load events");
+        throw new Error(js.error || "Failed to load events");
       }
       setItems(js.items ?? []);
       setSendingEnabled(Boolean(js.sendingEnabled));
@@ -77,7 +77,7 @@ export default function MetaEventsPage() {
         error?: string;
       };
       if (!res.ok) {
-        throw new Error(js.error || "Gagal record event");
+        throw new Error(js.error || "Failed to record event");
       }
       const msg = js.status ? `Status: ${js.status}` : "Recorded";
       setResultMsg(msg);

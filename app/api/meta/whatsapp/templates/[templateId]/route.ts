@@ -107,7 +107,7 @@ export async function GET(
   if (resolved.error === "workspace_not_found") {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "workspace_not_found", message: "Workspace tidak ditemukan" },
+        { ok: false, code: "workspace_not_found", message: "Workspace not found" },
         { status: 404 }
       )
     );
@@ -115,7 +115,7 @@ export async function GET(
   if (resolved.error === "connection_not_found") {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "connection_not_found", message: "Connection tidak ditemukan" },
+        { ok: false, code: "connection_not_found", message: "Connection not found" },
         { status: 404 }
       )
     );
@@ -148,7 +148,7 @@ export async function GET(
   if (rowErr || !row) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "template_not_found", message: "Template tidak ditemukan" },
+        { ok: false, code: "template_not_found", message: "Template not found" },
         { status: 404 }
       )
     );

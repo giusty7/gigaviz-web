@@ -31,10 +31,10 @@ const buttonSchema = z
   })
   .superRefine((val, ctx) => {
     if (val.type === "URL" && !val.url) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "URL wajib diisi" });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "URL is required" });
     }
     if (val.type === "PHONE_NUMBER" && !val.phone_number) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nomor telepon wajib diisi" });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Phone number is required" });
     }
   });
 
@@ -42,7 +42,7 @@ const createSchema = z.object({
   workspaceId: z.string().uuid().optional(),
   workspaceSlug: z.string().optional(),
   connectionId: z.string().uuid().optional(),
-  name: z.string().trim().regex(nameRegex, "Gunakan huruf kecil + underscore"),
+  name: z.string().trim().regex(nameRegex, "Use lowercase letters with underscore"),
   language: z.string().min(2),
   category: z.enum(["MARKETING", "UTILITY", "AUTHENTICATION"]),
   components: z.object({
@@ -190,7 +190,7 @@ export async function GET(req: NextRequest) {
     if (error || !data) {
       return withCookies(
         NextResponse.json(
-          { ok: false, code: "connection_not_found", message: "Connection tidak ditemukan" },
+          { ok: false, code: "connection_not_found", message: "Connection not found" },
           { status: 404 }
         )
       );
@@ -202,7 +202,7 @@ export async function GET(req: NextRequest) {
     if (error || !data) {
       return withCookies(
         NextResponse.json(
-          { ok: false, code: "workspace_not_found", message: "Workspace tidak ditemukan" },
+          { ok: false, code: "workspace_not_found", message: "Workspace not found" },
           { status: 404 }
         )
       );
@@ -244,7 +244,7 @@ export async function GET(req: NextRequest) {
         {
           ok: false,
           code: "db_error",
-          message: "Gagal mengambil templates",
+          message: "Failed to fetch templates",
           details: error.message,
         },
         { status: 500 }
@@ -287,7 +287,7 @@ export async function POST(req: NextRequest) {
     if (error || !data) {
       return withCookies(
         NextResponse.json(
-          { ok: false, code: "connection_not_found", message: "Connection tidak ditemukan" },
+          { ok: false, code: "connection_not_found", message: "Connection not found" },
           { status: 404 }
         )
       );
@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
     if (error || !data) {
       return withCookies(
         NextResponse.json(
-          { ok: false, code: "workspace_not_found", message: "Workspace tidak ditemukan" },
+          { ok: false, code: "workspace_not_found", message: "Workspace not found" },
           { status: 404 }
         )
       );
@@ -334,7 +334,7 @@ export async function POST(req: NextRequest) {
   if (!connection) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "connection_missing", message: "Connection WhatsApp belum diset" },
+        { ok: false, code: "connection_missing", message: "WhatsApp connection is not set" },
         { status: 400 }
       )
     );
@@ -343,7 +343,7 @@ export async function POST(req: NextRequest) {
   if (!connection.phone_number_id || !connection.waba_id) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "connection_incomplete", message: "Phone number/WABA belum lengkap" },
+        { ok: false, code: "connection_incomplete", message: "Phone number/WABA is incomplete" },
         { status: 400 }
       )
     );
@@ -359,7 +359,7 @@ export async function POST(req: NextRequest) {
   if (!tokenRow?.token_encrypted) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "token_missing", message: "Token WhatsApp belum diset" },
+        { ok: false, code: "token_missing", message: "WhatsApp token is not set" },
         { status: 400 }
       )
     );

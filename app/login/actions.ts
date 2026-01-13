@@ -25,7 +25,7 @@ export async function loginAction(formData: FormData): Promise<LoginActionResult
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Email atau password tidak valid.",
+      message: parsed.error.issues[0]?.message ?? "Email or password is invalid.",
     };
   }
 
@@ -58,7 +58,7 @@ export async function loginAction(formData: FormData): Promise<LoginActionResult
   });
 
   if (error || !data.user) {
-    return { ok: false, message: error?.message || "Login gagal." };
+    return { ok: false, message: error?.message || "Login failed." };
   }
 
   const confirmed = data.user.email_confirmed_at || data.user.confirmed_at;
@@ -67,7 +67,7 @@ export async function loginAction(formData: FormData): Promise<LoginActionResult
     return {
       ok: false,
       needsVerify: true,
-      message: "Email belum terverifikasi. Cek inbox untuk melanjutkan.",
+      message: "Email is not verified yet. Check your inbox to continue.",
     };
   }
 

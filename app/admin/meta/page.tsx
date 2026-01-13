@@ -82,7 +82,7 @@ export default function MetaConnectPage() {
     try {
       const res = await fetch("/api/admin/meta/connect/verify", { method: "POST" });
       const js = (await res.json().catch(() => ({}))) as { business?: BusinessInfo; error?: string };
-      if (!res.ok) throw new Error(js.error || "Gagal verify config");
+      if (!res.ok) throw new Error(js.error || "Failed to verify config");
       setBusiness(js.business ?? null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";
@@ -99,7 +99,7 @@ export default function MetaConnectPage() {
     try {
       const res = await fetch("/api/admin/meta/connect/wabas", { cache: "no-store" });
       const js = (await res.json().catch(() => ({}))) as { items?: WabaRow[]; error?: string };
-      if (!res.ok) throw new Error(js.error || "Gagal load WABAs");
+      if (!res.ok) throw new Error(js.error || "Failed to load WABAs");
       setWabas(js.items ?? []);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";
@@ -118,7 +118,7 @@ export default function MetaConnectPage() {
         cache: "no-store",
       });
       const js = (await res.json().catch(() => ({}))) as { items?: PhoneRow[]; error?: string };
-      if (!res.ok) throw new Error(js.error || "Gagal load phone numbers");
+      if (!res.ok) throw new Error(js.error || "Failed to load phone numbers");
       setPhones(js.items ?? []);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";
@@ -155,7 +155,7 @@ export default function MetaConnectPage() {
 
   async function syncTemplates() {
     if (!selectedWaba) {
-      setError("Pilih WABA terlebih dahulu.");
+      setError("Select a WABA first.");
       return;
     }
     setBusy("sync");
@@ -174,7 +174,7 @@ export default function MetaConnectPage() {
         inserted?: number;
         error?: string;
       };
-      if (!res.ok) throw new Error(js.error || "Gagal sync templates");
+      if (!res.ok) throw new Error(js.error || "Failed to sync templates");
       setSyncInfo(
         `Total ${js.total ?? 0}, approved ${js.approved ?? 0}, updated ${js.updated ?? 0}, inserted ${js.inserted ?? 0}`
       );
@@ -190,7 +190,7 @@ export default function MetaConnectPage() {
 
   async function sendTestTemplate() {
     if (!selectedContact || !selectedTemplate) {
-      setError("Pilih contact dan template.");
+      setError("Select a contact and template.");
       return;
     }
     setBusy("send_test");
@@ -209,7 +209,7 @@ export default function MetaConnectPage() {
         }),
       });
       const js = (await res.json().catch(() => ({}))) as { error?: string; status?: string };
-      if (!res.ok) throw new Error(js.error || "Gagal kirim template");
+      if (!res.ok) throw new Error(js.error || "Failed to send template");
       setSyncInfo(js.status ? `Send test: ${js.status}` : "Send test ok");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error";

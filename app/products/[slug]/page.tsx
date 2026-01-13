@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!product) {
     return {
-      title: "Produk tidak ditemukan",
+      title: "Product not found",
     };
   }
 
@@ -101,20 +101,20 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai dengan modul ini
+                  Start with this module
                 </Link>
                 <Link
                   href="/products"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Kembali ke produk
+                  Back to products
                 </Link>
               </div>
             </div>
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
                 {product.short}
@@ -142,7 +142,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div className="container grid gap-6 py-12 md:grid-cols-2 md:py-16">
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Fitur utama
+                Key features
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {product.features.map((feature) => (
@@ -156,7 +156,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Cocok untuk
+                Best for
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {product.whoFor.map((item) => (
@@ -174,13 +174,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div className="container py-12 md:py-16">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Modul terkait
+                Related modules
               </h2>
               <Link
                 href="/products"
                 className="text-sm font-semibold text-[color:var(--gv-accent)] hover:underline"
               >
-                Semua produk
+                All products
               </Link>
             </div>
 

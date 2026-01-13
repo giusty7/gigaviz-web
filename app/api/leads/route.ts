@@ -137,7 +137,7 @@ export async function POST(req: Request) {
         ip: getIP(req),
         user_agent: req.headers.get("user-agent"),
       });
-      return NextResponse.json({ ok: false, message: "Payload tidak valid." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Invalid payload." }, { status: 400 });
     }
 
     const parsed = leadSchema.safeParse(body);
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
         ip: getIP(req),
         user_agent: req.headers.get("user-agent"),
       });
-      return NextResponse.json({ ok: false, message: "Data tidak valid." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Invalid data." }, { status: 400 });
     }
 
     const payload = parsed.data;
@@ -187,7 +187,7 @@ export async function POST(req: Request) {
         user_agent: ua,
         source,
       });
-      return NextResponse.json({ ok: false, message: "Nama wajib diisi." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Name is required." }, { status: 400 });
     }
     if (!isValidPhoneDigits(phone)) {
       await logAttempt({
@@ -203,7 +203,7 @@ export async function POST(req: Request) {
         source,
       });
       return NextResponse.json(
-        { ok: false, message: "Nomor WA tidak valid. Gunakan format 62xxxx atau 08xxxx." },
+        { ok: false, message: "Invalid WhatsApp number. Use 62xxxx or 08xxxx." },
         { status: 400 }
       );
     }
@@ -220,7 +220,7 @@ export async function POST(req: Request) {
         user_agent: ua,
         source,
       });
-      return NextResponse.json({ ok: false, message: "Kebutuhan wajib dipilih." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Need is required." }, { status: 400 });
     }
 
     const lead: Lead = {
@@ -236,7 +236,7 @@ export async function POST(req: Request) {
 
     if (isMemoryRateLimited(ip)) {
       await logAttempt({ status: "rate_limited", reason: "memory_limit", ...lead });
-      return NextResponse.json({ ok: false, message: "Terlalu cepat. Coba lagi." }, { status: 429 });
+      return NextResponse.json({ ok: false, message: "Too many attempts. Try again." }, { status: 429 });
     }
 
     const ipKey = lead.ip || "unknown";
@@ -252,7 +252,7 @@ export async function POST(req: Request) {
       if (!rlErr && (recentByIp?.length || 0) >= 6) {
         await logAttempt({ status: "rate_limited", reason: "ip_60s_limit", ...lead });
         return NextResponse.json(
-          { ok: false, message: "Terlalu cepat. Coba lagi sebentar lagi." },
+          { ok: false, message: "Too many attempts. Please try again shortly." },
           { status: 429 }
         );
       }
@@ -287,7 +287,7 @@ export async function POST(req: Request) {
       }
 
       await logAttempt({ status: "error", reason: insErr.message, ...lead });
-      return NextResponse.json({ ok: false, message: "Gagal menyimpan lead." }, { status: 500 });
+      return NextResponse.json({ ok: false, message: "Failed to save lead." }, { status: 500 });
     }
 
     const leadId = insData?.id || null;
@@ -297,14 +297,15 @@ export async function POST(req: Request) {
     const adminPhone = normalizePhone(adminPhoneRaw);
 
     if (adminPhone && isValidPhoneDigits(adminPhone)) {
-      const label = lead.source === "get-started" ? "Lead Baru - Get Started" : "Lead Baru - WA Platform";
+      const label =
+        lead.source === "get-started" ? "New Lead - Get Started" : "New Lead - WA Platform";
       const lines = [
         label,
-        `Nama: ${lead.name}`,
+        `Name: ${lead.name}`,
         `WA: ${lead.phone}`,
-        `Bisnis: ${lead.business ?? "-"}`,
-        `Kebutuhan: ${lead.need}`,
-        `Catatan: ${lead.notes ?? "-"}`,
+        `Business: ${lead.business ?? "-"}`,
+        `Need: ${lead.need}`,
+        `Notes: ${lead.notes ?? "-"}`,
       ];
 
       try {

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   if (connectionId && (!connection?.data || connection?.error)) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "connection_not_found", message: "Connection tidak ditemukan" },
+        { ok: false, code: "connection_not_found", message: "Connection not found" },
         { status: 404 }
       )
     );
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           code: "phone_not_found",
-          message: "Nomor WhatsApp belum dikonfigurasi untuk workspace ini.",
+          message: "WhatsApp number is not configured for this workspace.",
           details: phoneError?.message ?? null,
         },
         { status: 400 }
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           code: "phone_number_missing",
-          message: "Phone number ID belum diset.",
+          message: "Phone number ID is not set.",
         },
         { status: 400 }
       )
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
   if (!phone.waba_id) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "waba_id_missing", message: "WABA ID belum diset" },
+        { ok: false, code: "waba_id_missing", message: "WABA ID is not set" },
         { status: 400 }
       )
     );
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
   if (!tokenRow?.token_encrypted) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "token_missing", message: "Token WhatsApp belum diset" },
+        { ok: false, code: "token_missing", message: "WhatsApp token is not set" },
         { status: 400 }
       )
     );
@@ -247,8 +247,8 @@ export async function POST(req: NextRequest) {
             ok: false,
             code: missingUnique ? "missing_unique_index" : "db_upsert_failed",
             message: missingUnique
-              ? "Index unik (workspace_id, phone_number_id, name, language) belum tersedia."
-              : upsertError.message ?? "Gagal menyimpan template",
+              ? "Unique index (workspace_id, phone_number_id, name, language) is missing."
+              : upsertError.message ?? "Failed to save template",
             details: upsertError.details ?? upsertError.message,
             hint: (upsertError as { hint?: string }).hint ?? null,
           },

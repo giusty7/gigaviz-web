@@ -4,7 +4,7 @@
     "finalUrl": "/",
     "status": 200,
     "title": "Gigaviz Ecosystem Platform",
-    "metaDescription": "Satu akun, satu wallet, satu dashboard untuk Create, Automate, Monetize, dan Manage dalam satu ekosistem.",
+    "metaDescription": "One account, one wallet, one dashboard to Create, Automate, Monetize, and Manage in one ecosystem.",
     "canonical": null,
     "h1": "Gigaviz Ecosystem Platform",
     "contentHash": "e4979a99c9b6ef20"
@@ -14,9 +14,9 @@
     "finalUrl": "/roadmap",
     "status": 200,
     "title": "Roadmap Gigaviz | Gigaviz",
-    "metaDescription": "Rencana pengembangan modul Gigaviz dari sekarang hingga jangka panjang.",
+    "metaDescription": "Gigaviz module development plans for the near and long term.",
     "canonical": null,
-    "h1": "Arah pengembangan Gigaviz",
+    "h1": "Gigaviz development direction",
     "contentHash": "858580dd09b38ebe"
   },
   {
@@ -24,9 +24,9 @@
     "finalUrl": "/policies",
     "status": 200,
     "title": "Policies | Gigaviz",
-    "metaDescription": "Aturan dan kebijakan Gigaviz untuk menjaga layanan tetap aman dan terpercaya.",
+    "metaDescription": "Gigaviz rules and policies to keep services safe and trusted.",
     "canonical": null,
-    "h1": "Kebijakan untuk menjaga kepercayaan",
+    "h1": "Policies that keep trust",
     "contentHash": "68f743dbf7e59d85"
   },
   {
@@ -34,9 +34,9 @@
     "finalUrl": "/pricing",
     "status": 200,
     "title": "Pricing | Gigaviz",
-    "metaDescription": "Paket langganan Gigaviz dengan modul fleksibel, onboarding terarah, dan transparansi penggunaan token.",
+    "metaDescription": "Gigaviz subscription plans with flexible modules, guided onboarding, and transparent token usage.",
     "canonical": null,
-    "h1": "Paket langganan untuk seluruh ekosistem",
+    "h1": "Subscription plans for the ecosystem",
     "contentHash": "6201a8c31c4a8dd0"
   },
   {
@@ -44,9 +44,9 @@
     "finalUrl": "/products",
     "status": 200,
     "title": "Produk Gigaviz | Gigaviz",
-    "metaDescription": "Jelajahi seluruh modul Gigaviz dengan filter kategori dan status produk.",
+    "metaDescription": "Explore all Gigaviz modules with category and product status filters.",
     "canonical": null,
-    "h1": "Semua modul untuk Create, Automate, Monetize, dan Manage.",
+    "h1": "All modules to Create, Automate, Monetize, and Manage.",
     "contentHash": "8bf4f2c8e5c7a067"
   },
   {
@@ -54,7 +54,7 @@
     "finalUrl": "/products/platform",
     "status": 200,
     "title": "Gigaviz Platform | Gigaviz",
-    "metaDescription": "Core OS untuk akun, workspace, billing, peran, dan audit.",
+    "metaDescription": "Core OS for accounts, workspaces, billing, roles, and audit.",
     "canonical": null,
     "h1": "Gigaviz Platform",
     "contentHash": "30306c8edfbb2274"
@@ -64,7 +64,7 @@
     "finalUrl": "/products/meta-hub",
     "status": 200,
     "title": "Gigaviz Meta Hub | Gigaviz",
-    "metaDescription": "WhatsApp Cloud API hub: template, webhook, inbox, scheduler, dan analitik.",
+    "metaDescription": "WhatsApp Cloud API hub: templates, webhooks, inbox, scheduler, and analytics.",
     "canonical": null,
     "h1": "Gigaviz Meta Hub",
     "contentHash": "8cd00d25900f09f0"
@@ -74,7 +74,7 @@
     "finalUrl": "/products/helper",
     "status": 200,
     "title": "Gigaviz Helper | Gigaviz",
-    "metaDescription": "Asisten AI untuk chat, copy, rangkuman, dan riset ringan.",
+    "metaDescription": "AI assistant for chat, copy, summaries, and light research.",
     "canonical": null,
     "h1": "Gigaviz Helper",
     "contentHash": "53ad52b006f09251"
@@ -84,7 +84,7 @@
     "finalUrl": "/products/office",
     "status": 200,
     "title": "Gigaviz Office | Gigaviz",
-    "metaDescription": "Template kerja, formula assistant, automasi workflow, dan generator dokumen.",
+    "metaDescription": "Work templates, formula assistant, workflow automation, and document generator.",
     "canonical": null,
     "h1": "Gigaviz Office",
     "contentHash": "40751f09efa8c527"
@@ -94,7 +94,7 @@
     "finalUrl": "/products/studio",
     "status": 200,
     "title": "Gigaviz Studio | Gigaviz",
-    "metaDescription": "Studio kreatif generatif untuk image, video, musik, dan asset library.",
+    "metaDescription": "Generative creative studio for images, video, music, and asset library.",
     "canonical": null,
     "h1": "Gigaviz Studio",
     "contentHash": "27c73f2a353614ef"
@@ -104,7 +104,7 @@
     "finalUrl": "/products/graph",
     "status": 200,
     "title": "Gigaviz Graph | Gigaviz",
-    "metaDescription": "Galeri dan portfolio untuk karya visual dan studi kasus.",
+    "metaDescription": "Gallery and portfolio for visual work and case studies.",
     "canonical": null,
     "h1": "Gigaviz Graph",
     "contentHash": "4526507bd3d3efbb"
@@ -114,7 +114,7 @@
     "finalUrl": "/products/tracks",
     "status": 200,
     "title": "Gigaviz Tracks | Gigaviz",
-    "metaDescription": "Library musik, remix, dan lisensi untuk kebutuhan brand.",
+    "metaDescription": "Music library, remixes, and licensing for brand needs.",
     "canonical": null,
     "h1": "Gigaviz Tracks",
     "contentHash": "85f9d747ade2a326"
@@ -124,7 +124,7 @@
     "finalUrl": "/products/apps",
     "status": 200,
     "title": "Gigaviz Apps | Gigaviz",
-    "metaDescription": "Katalog app, request, ticketing, dan mini roadmap per klien.",
+    "metaDescription": "App catalog, requests, ticketing, and mini roadmaps per client.",
     "canonical": null,
     "h1": "Gigaviz Apps",
     "contentHash": "19431d58614e5a0c"
@@ -134,7 +134,7 @@
     "finalUrl": "/products/pay",
     "status": 200,
     "title": "Gigaviz Pay | Gigaviz",
-    "metaDescription": "Wallet dan billing: invoice, payment link, subscription billing.",
+    "metaDescription": "Wallet and billing: invoices, payment links, subscription billing.",
     "canonical": null,
     "h1": "Gigaviz Pay",
     "contentHash": "2b71773c16a479a7"
@@ -144,7 +144,7 @@
     "finalUrl": "/products/community",
     "status": 200,
     "title": "Gigaviz Community | Gigaviz",
-    "metaDescription": "Forum, feedback, showcase, leaderboard, dan event komunitas.",
+    "metaDescription": "Forum, feedback, showcase, leaderboard, and community events.",
     "canonical": null,
     "h1": "Gigaviz Community",
     "contentHash": "2872a3c2f36a94ad"
@@ -154,9 +154,9 @@
     "finalUrl": "/get-started",
     "status": 200,
     "title": "Get Started | Gigaviz",
-    "metaDescription": "Mulai onboarding Gigaviz dengan sesi kickoff, setup workspace, dan rekomendasi modul yang presisi.",
+    "metaDescription": "Start Gigaviz onboarding with kickoff sessions, workspace setup, and precise module recommendations.",
     "canonical": null,
-    "h1": "Mulai onboarding Gigaviz",
+    "h1": "Start Gigaviz onboarding",
     "contentHash": "3ad64a40a892c078"
   },
   {
@@ -164,7 +164,7 @@
     "finalUrl": "/policies/terms-of-service",
     "status": 200,
     "title": "Terms of Service | Gigaviz",
-    "metaDescription": "Ketentuan penggunaan platform Gigaviz dan ruang lingkup layanan.",
+    "metaDescription": "Terms for using the Gigaviz platform and service scope.",
     "canonical": null,
     "h1": "Terms of Service",
     "contentHash": "ad7d9e64ae95ce77"
@@ -174,7 +174,7 @@
     "finalUrl": "/policies/privacy-policy",
     "status": 200,
     "title": "Privacy Policy | Gigaviz",
-    "metaDescription": "Cara kami mengelola data pribadi dan menjaga keamanan informasi.",
+    "metaDescription": "How we manage personal data and keep information secure.",
     "canonical": null,
     "h1": "Privacy Policy",
     "contentHash": "1d2d53ca874f7225"
@@ -184,7 +184,7 @@
     "finalUrl": "/policies/acceptable-use-policy",
     "status": 200,
     "title": "Acceptable Use Policy | Gigaviz",
-    "metaDescription": "Aturan penggunaan layanan agar tetap aman, legal, dan bertanggung jawab.",
+    "metaDescription": "Usage rules to keep the service safe, legal, and responsible.",
     "canonical": null,
     "h1": "Acceptable Use Policy",
     "contentHash": "2a488628321b5e88"
@@ -194,7 +194,7 @@
     "finalUrl": "/policies/messaging-policy",
     "status": 200,
     "title": "Messaging Policy | Gigaviz",
-    "metaDescription": "Kebijakan anti-spam, opt-in, dan opt-out untuk pesan WhatsApp.",
+    "metaDescription": "Anti-spam, opt-in, and opt-out policy for WhatsApp messages.",
     "canonical": null,
     "h1": "Messaging Policy",
     "contentHash": "a57afb9e5a8fb61c"
@@ -204,7 +204,7 @@
     "finalUrl": "/policies/refund-cancellation",
     "status": 200,
     "title": "Refund and Cancellation Policy | Gigaviz",
-    "metaDescription": "Ketentuan pembatalan dan pengembalian dana untuk layanan berlangganan.",
+    "metaDescription": "Cancellation and refund terms for subscription services.",
     "canonical": null,
     "h1": "Refund and Cancellation Policy",
     "contentHash": "949a0281f6b53a05"
@@ -213,10 +213,10 @@
     "url": "/contact",
     "finalUrl": "/contact",
     "status": 200,
-    "title": "Kontak | Gigaviz",
-    "metaDescription": "Hubungi Gigaviz untuk diskusi kebutuhan WA Blast, dashboard, atau produk digital lainnya.",
+    "title": "Contact | Gigaviz",
+    "metaDescription": "Contact Gigaviz to discuss WA Blast, dashboards, or other digital products.",
     "canonical": null,
-    "h1": "Kontak &amp; Kolaborasi",
+    "h1": "Contact &amp; Collaboration",
     "contentHash": "4e65dbd0608ca008"
   }
 ]

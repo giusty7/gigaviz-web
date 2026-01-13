@@ -34,13 +34,13 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal memuat billing");
+        throw new Error(data?.message || "Failed to load billing");
       }
       setSummary(data.summary as BillingSummary);
     } catch (err) {
       toast({
-        title: "Gagal memuat billing",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: "Failed to load billing",
+        description: err instanceof Error ? err.message : "Try again later.",
         variant: "destructive",
       });
     } finally {
@@ -63,17 +63,17 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || data?.error || "Gagal update subscription");
+        throw new Error(data?.message || data?.error || "Failed to update subscription");
       }
       toast({
-        title: "Subscription aktif",
-        description: `Plan ${upgradePlanCode.toUpperCase()} berhasil diaktifkan.`,
+        title: "Subscription activated",
+        description: `Plan ${upgradePlanCode.toUpperCase()} is now active.`,
       });
       await fetchSummary();
     } catch (err) {
       toast({
-        title: "Upgrade gagal",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: "Upgrade failed",
+        description: err instanceof Error ? err.message : "Try again later.",
         variant: "destructive",
       });
     } finally {
@@ -87,12 +87,12 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-widest text-white/50">Plan aktif</p>
+              <p className="text-xs uppercase tracking-widest text-white/50">Active plan</p>
               <h1 className="text-2xl font-semibold text-white">
-                {loading ? "Memuat..." : activePlanName}
+                {loading ? "Loading..." : activePlanName}
               </h1>
               <p className="text-sm text-white/60">
-                Kode: {summary?.subscription?.plan_code ?? "free_locked"}
+                Code: {summary?.subscription?.plan_code ?? "free_locked"}
               </p>
             </div>
             <div className="text-right">
@@ -102,13 +102,13 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
               </p>
             </div>
           </div>
-          <div className="text-sm text-white/60">{summary?.periodLabel ?? "Periode belum tersedia"}</div>
+          <div className="text-sm text-white/60">{summary?.periodLabel ?? "Period not available"}</div>
           {summary?.plan?.seat_limit ? (
             <div className="text-sm text-white/60">Seat limit: {summary.plan.seat_limit}</div>
           ) : null}
           <div className="pt-3">
             <Button onClick={handleUpgrade} variant="secondary" disabled={upgrading}>
-              {upgrading ? "Memproses..." : "Upgrade (coming soon)"}
+              {upgrading ? "Processing..." : "Upgrade (coming soon)"}
             </Button>
           </div>
         </div>
@@ -118,11 +118,11 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold">Upgrade</h2>
-            <p className="text-sm text-white/60">Upgrade via sales. Pembayaran belum diaktifkan.</p>
+            <p className="text-sm text-white/60">Upgrade via sales. Payments are not enabled yet.</p>
           </div>
           <div className="flex items-center gap-3">
             <Button onClick={handleUpgrade} variant="secondary" disabled={upgrading}>
-              {upgrading ? "Memproses..." : "Contact sales / Upgrade"}
+              {upgrading ? "Processing..." : "Contact sales / Upgrade"}
             </Button>
             <Link href={`/${workspaceSlug}/billing`} className="text-sm text-white/60 underline">
               Refresh

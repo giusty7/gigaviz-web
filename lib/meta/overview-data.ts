@@ -46,8 +46,8 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
   const now = new Date();
   const dayAgo = new Date(now.getTime() - DAY_MS);
 
-  let wabaIdMasked = "Belum diatur";
-  let phoneIdMasked = "Belum diatur";
+  let wabaIdMasked = "Not configured yet";
+  let phoneIdMasked = "Not configured yet";
   let whatsappConnected = false;
 
   try {
@@ -193,7 +193,7 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
       data?.map((row) => ({
         id: row.id,
         contact: maskContact(row.contact_wa_id),
-        preview: row.last_message_preview || "Belum ada pesan",
+        preview: row.last_message_preview || "No messages yet",
         time: row.last_message_at ?? null,
       })) ?? [];
   } catch {
@@ -203,30 +203,30 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
   const alerts: MetaHubOverview["alerts"] = [];
   if (!whatsappConnected) {
     alerts.push({
-      title: "Connection belum diatur",
-      description: "Isi WABA ID dan Phone Number ID untuk mulai.",
-      actionLabel: "Atur sekarang",
+      title: "Connection not configured",
+      description: "Fill in WABA ID and Phone Number ID to get started.",
+      actionLabel: "Configure now",
       actionHref: "connections",
     });
   }
   if (!tokenConfigured) {
     alerts.push({
-      title: "Token server belum dikonfigurasi",
-      description: "Set akses token Meta WhatsApp di server.",
+      title: "Token server not configured",
+      description: "Set the Meta WhatsApp access token on the server.",
     });
   }
   if (webhookStatus === "stale") {
     alerts.push({
-      title: "Tidak ada event masuk > 24 jam",
-      description: "Periksa webhook verify token atau event subscription.",
-      actionLabel: "Lihat Webhook",
+      title: "No inbound events for >24h",
+      description: "Check the webhook verify token or event subscription.",
+      actionLabel: "View webhook",
       actionHref: "webhooks",
     });
   }
   if ((templatesApproved ?? 0) + (templatesPending ?? 0) + (templatesRejected ?? 0) === 0) {
     alerts.push({
-      title: "Belum ada template",
-      description: "Klik Sync untuk menarik template dari Meta.",
+      title: "No templates yet",
+      description: "Click Sync to pull templates from Meta.",
       actionLabel: "Sync templates",
       actionHref: "templates",
     });

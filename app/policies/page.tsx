@@ -65,7 +65,7 @@ export default function PoliciesPage() {
                   Need additional clarification?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Contact our team if there are any policy matters you'd like to discuss.
+                  Contact our team if there are any policy matters you want to discuss.
                 </p>
               </div>
               <Link

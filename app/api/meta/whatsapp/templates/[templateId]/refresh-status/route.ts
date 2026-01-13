@@ -137,7 +137,7 @@ export async function POST(
   if (resolved.error === "workspace_not_found") {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "workspace_not_found", message: "Workspace tidak ditemukan" },
+        { ok: false, code: "workspace_not_found", message: "Workspace not found" },
         { status: 404 }
       )
     );
@@ -145,7 +145,7 @@ export async function POST(
   if (resolved.error === "connection_not_found") {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "connection_not_found", message: "Connection tidak ditemukan" },
+        { ok: false, code: "connection_not_found", message: "Connection not found" },
         { status: 404 }
       )
     );
@@ -189,7 +189,7 @@ export async function POST(
   if (rowErr || !row) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "template_not_found", message: "Template tidak ditemukan" },
+        { ok: false, code: "template_not_found", message: "Template not found" },
         { status: 404 }
       )
     );
@@ -205,7 +205,7 @@ export async function POST(
   if (!tokenRow?.token_encrypted) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "token_missing", message: "Token WhatsApp belum diset" },
+        { ok: false, code: "token_missing", message: "WhatsApp token is not set" },
         { status: 400 }
       )
     );
@@ -215,7 +215,7 @@ export async function POST(
   if (!metaId) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "meta_id_missing", message: "Meta template ID belum tersedia" },
+        { ok: false, code: "meta_id_missing", message: "Meta template ID is not available yet" },
         { status: 400 }
       )
     );

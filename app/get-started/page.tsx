@@ -134,7 +134,7 @@ export default function GetStartedPage() {
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
                   href="/login?next=/onboarding"
-                  label="Buat Akun"
+                  label="Create Account"
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
@@ -142,7 +142,7 @@ export default function GetStartedPage() {
                 </TrackedLink>
                 <TrackedLink
                   href="/dashboard"
-                  label="Masuk"
+                  label="Sign In"
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
@@ -316,7 +316,7 @@ export default function GetStartedPage() {
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
                 <TrackedLink
                   href="/login?next=/onboarding"
-                  label="Buat Akun"
+                  label="Create Account"
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
@@ -324,7 +324,7 @@ export default function GetStartedPage() {
                 </TrackedLink>
                 <TrackedLink
                   href="/pricing"
-                  label="Lihat Pricing"
+                  label="View Pricing"
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >

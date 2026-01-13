@@ -77,7 +77,7 @@ export default function RoadmapPage() {
                   Have feedback for the roadmap?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Tell us about your team's needs so we can prioritize the most relevant features.
+                  Tell us about your team needs so we can prioritize the most relevant features.
                 </p>
               </div>
               <Link

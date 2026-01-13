@@ -6,25 +6,25 @@ import MediaKitCopyBlock from "@/components/marketing/media-kit-copy";
 import MediaKitLogos from "@/components/marketing/media-kit-logos";
 
 export const metadata: Metadata = {
-  title: "Media Kit Gigaviz",
+  title: "Gigaviz Media Kit",
   description:
-    "Aset resmi brand Gigaviz untuk press, partner, dan komunitas.",
+    "Official Gigaviz brand assets for press, partners, and community.",
   alternates: {
     canonical: "/media-kit",
   },
   openGraph: {
-    title: "Media Kit Gigaviz",
+    title: "Gigaviz Media Kit",
     description:
-      "Aset resmi brand Gigaviz untuk press, partner, dan komunitas.",
+      "Official Gigaviz brand assets for press, partners, and community.",
     url: "/media-kit",
   },
 };
 
 const brandSummary = [
-  "Gigaviz adalah ekosistem SaaS untuk Create -> Automate -> Monetize -> Manage.",
-  "Indonesia-first dan global-ready, dengan pendekatan modular.",
-  "Security-first: kontrol akses, audit, dan pemisahan workspace.",
-  "Dioperasikan oleh PT Gigaviz Digital Indonesia.",
+  "Gigaviz is a SaaS ecosystem for Create -> Automate -> Monetize -> Manage.",
+  "Indonesia-first and global-ready, with a modular approach.",
+  "Security-first: access control, audit, and workspace separation.",
+  "Operated by PT Gigaviz Digital Indonesia.",
 ];
 
 const logoAssets = [
@@ -81,30 +81,27 @@ const palette = [
 
 const copyBlocks = [
   {
-    title: "Deskripsi Singkat (50 kata)",
+    title: "Short Description (50 words)",
     text:
-      "Gigaviz adalah ekosistem SaaS yang menyatukan modul create, automate, monetize, dan manage dalam satu akun. " +
-      "Dirancang Indonesia-first dan siap skala global, Gigaviz membantu tim bekerja cepat tanpa kehilangan kontrol, keamanan, " +
-      "dan visibilitas, melalui workspace, billing, dan audit yang konsisten untuk operasional, kreatif, dan komunikasi pelanggan " +
-      "sehingga keputusan lebih terukur harian.",
+      "Gigaviz is a SaaS ecosystem that unifies create, automate, monetize, and manage modules in one account. " +
+      "Built Indonesia-first and ready to scale globally, Gigaviz helps teams work fast without losing control, security, " +
+      "and visibility through consistent workspaces, billing, and audits for operations, creative, and customer comms " +
+      "so daily decisions stay measurable.",
   },
   {
-    title: "Deskripsi Standar (150 kata)",
+    title: "Standard Description (150 words)",
     text:
-      "Gigaviz adalah ekosistem produk digital yang membantu bisnis, kreator, dan tim operasional menjalankan proses end-to-end: " +
-      "Create, Automate, Monetize, dan Manage. Dengan satu akun dan satu workspace, tim dapat mengaktifkan modul seperti Core OS " +
-      "untuk identitas dan billing, Meta Hub untuk WhatsApp Cloud API, Helper untuk AI, Office untuk dokumen, Studio untuk aset " +
-      "kreatif, serta Marketplace, Arena, Apps, Pay, dan Community sebagai lapisan pertumbuhan. Pendekatan Indonesia-first " +
-      "memastikan kebutuhan lokal terpenuhi, sementara arsitektur modular membuatnya siap berkembang ke level global. Keamanan " +
-      "menjadi fondasi: kontrol akses berbasis peran, audit log, dan pemisahan data per workspace. Gigaviz dioperasikan oleh " +
-      "PT Gigaviz Digital Indonesia dan fokus pada hasil yang terukur - membantu tim bergerak cepat tanpa kehilangan kontrol. " +
-      "Kami menyediakan status rilis yang transparan (Live, Beta, Segera) agar partner bisa merencanakan implementasi. Setiap " +
-      "modul dirancang untuk saling terhubung, sehingga data, hak akses, dan biaya dapat dipantau dari satu dashboard dengan " +
-      "laporan ringkas dan audit berkala.",
+      "Gigaviz is a digital product ecosystem that helps businesses, creators, and ops teams run end-to-end processes: " +
+      "Create, Automate, Monetize, and Manage. With one account and workspace, teams can activate modules like Core OS " +
+      "for identity and billing, Meta Hub for WhatsApp Cloud API, Helper for AI, Office for documents, Studio for creative assets, " +
+      "plus Marketplace, Arena, Apps, Pay, and Community as growth layers. The Indonesia-first approach covers local needs, while " +
+      "modular architecture keeps it ready for global scale. Security is foundational: role-based access control, audit logs, and " +
+      "workspace-level data separation. Gigaviz is operated by PT Gigaviz Digital Indonesia and focuses on measurable outcomes—helping teams move fast without losing control. " +
+      "We provide transparent release statuses (Live, Beta, Coming Soon) so partners can plan implementations. Each module is built to interconnect, enabling data, access, and costs to be monitored from a single dashboard with concise reports and periodic audits.",
   },
   {
     title: "Tagline",
-    text: "Ekosistem Digital Terpadu untuk Create -> Automate -> Monetize -> Manage.",
+    text: "Integrated digital ecosystem for Create -> Automate -> Monetize -> Manage.",
   },
 ];
 
@@ -134,23 +131,23 @@ export default function MediaKitPage() {
                 Media Kit
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Media Kit Gigaviz
+                Gigaviz Media Kit
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Aset resmi brand untuk press, partner, dan komunitas.
+                Official brand assets for press, partners, and community.
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <a
                   href="#logos"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Unduh Logo
+                  Download Logos
                 </a>
                 <a
                   href="#copy"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Copy Deskripsi
+                  Copy Descriptions
                 </a>
               </div>
             </div>
@@ -162,10 +159,10 @@ export default function MediaKitPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Ringkasan brand
+                  Brand summary
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Gigaviz secara singkat
+                  Gigaviz at a glance
                 </h2>
                 <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                   {brandSummary.map((item) => (
@@ -184,7 +181,7 @@ export default function MediaKitPage() {
                   Create -&gt; Automate -&gt; Monetize -&gt; Manage
                 </div>
                 <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                  Empat pilar yang mengarahkan desain modul dan pengalaman pengguna.
+                  Four pillars that guide module design and user experience.
                 </p>
               </div>
             </div>
@@ -199,11 +196,11 @@ export default function MediaKitPage() {
                   Logo assets
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Unduh logo resmi
+                  Download official logos
                 </h2>
               </div>
               <div className="text-xs text-[color:var(--gv-muted)]">
-                File tersedia dalam format PNG.
+                Files are available in PNG format.
               </div>
             </div>
 
@@ -212,30 +209,30 @@ export default function MediaKitPage() {
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Panduan penggunaan
+                  Usage guide
                 </div>
                 <ul className="mt-4 space-y-2">
                   <li className="flex gap-2">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                    <span>Jaga clear space minimal setara tinggi huruf G.</span>
+                    <span>Keep clear space at least the height of the letter G.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                    <span>Jangan diputar, direnggangkan, atau diberi efek tambahan.</span>
+                    <span>Do not rotate, stretch, or add effects.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                    <span>Gunakan mark untuk ukuran kecil, logo horizontal untuk header.</span>
+                    <span>Use the mark for small sizes, horizontal logo for headers.</span>
                   </li>
                 </ul>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Variasi latar
+                  Background variations
                 </div>
                 <p className="mt-4">
-                  Gunakan varian gold untuk latar gelap, dan varian dark untuk latar terang.
-                  Jika ragu, gunakan logo horizontal di latar navy dengan kontras tinggi.
+                  Use the gold variant on dark backgrounds and the dark variant on light backgrounds.
+                  If unsure, use the horizontal logo on a navy background with high contrast.
                 </p>
               </div>
             </div>
@@ -247,13 +244,13 @@ export default function MediaKitPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Warna resmi
+                  Official colors
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Palet warna Gigaviz
+                  Gigaviz color palette
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Warna di bawah ini mengikuti token desain Gigaviz di UI saat ini.
+                  The colors below follow the current Gigaviz design tokens in the UI.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -285,18 +282,18 @@ export default function MediaKitPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Tipografi
+                  Typography
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Font utama Gigaviz
+                  Gigaviz primary fonts
                 </h2>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <p>
-                  Primary font: Plus Jakarta Sans (teks dan UI).
+                  Primary font: Plus Jakarta Sans (text and UI).
                 </p>
                 <p className="mt-2">
-                  Display font: Playfair Display (judul utama).
+                  Display font: Playfair Display (headlines).
                 </p>
               </div>
             </div>
@@ -307,13 +304,13 @@ export default function MediaKitPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Copy resmi
+                Official copy
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Deskripsi dan tagline siap pakai
+                Ready-to-use descriptions and tagline
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Gunakan deskripsi berikut untuk press release, partner deck, atau katalog produk.
+                Use these descriptions for press releases, partner decks, or product catalogs.
               </p>
             </div>
             <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -332,7 +329,7 @@ export default function MediaKitPage() {
                   Founder & contact
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Kontak resmi Gigaviz
+                  Official Gigaviz contact
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
                   Founder: Giusty Adhyarachmat Eryan (Giusty).
@@ -343,13 +340,13 @@ export default function MediaKitPage() {
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <p>
-                  Untuk pertanyaan media, silakan hubungi kami melalui halaman Contact.
+                  For media questions, please reach us via the Contact page.
                 </p>
                 <Link
                   href="/contact"
                   className="mt-4 inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Buka Contact
+                  Open Contact
                 </Link>
               </div>
             </div>
@@ -361,10 +358,10 @@ export default function MediaKitPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap memperkenalkan Gigaviz?
+                  Ready to introduce Gigaviz?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Unduh aset, gunakan copy resmi, dan jelajahi modul kami.
+                  Download assets, use the official copy, and explore our modules.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -372,13 +369,13 @@ export default function MediaKitPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/products"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Produk
+                  View Products
                 </Link>
               </div>
             </div>

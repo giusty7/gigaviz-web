@@ -1,7 +1,7 @@
 export function formatRelativeTime(input?: string | Date | null): string {
-  if (!input) return "Belum ada";
+  if (!input) return "Not available yet";
   const date = typeof input === "string" ? new Date(input) : input;
-  if (Number.isNaN(date.getTime())) return "Belum ada";
+  if (Number.isNaN(date.getTime())) return "Not available yet";
   const now = new Date().getTime();
   const diffMs = now - date.getTime();
   if (diffMs < 0) return "Baru saja";
@@ -16,7 +16,7 @@ export function formatRelativeTime(input?: string | Date | null): string {
 }
 
 export function maskId(value?: string | null): string {
-  if (!value) return "Belum diatur";
+  if (!value) return "Not set yet";
   const trimmed = value.trim();
   if (trimmed.length <= 6) return trimmed;
   return `...${trimmed.slice(-6)}`;

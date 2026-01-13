@@ -131,11 +131,11 @@ export function WhatsappInboxClient({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.reason || data?.error || "Gagal memuat threads");
+        throw new Error(data?.reason || data?.error || "Failed to load threads");
       }
       setThreadList(data.threads ?? []);
     } catch (err) {
-      setThreadsError(err instanceof Error ? err.message : "Gagal memuat threads");
+      setThreadsError(err instanceof Error ? err.message : "Failed to load threads");
     } finally {
       setThreadsLoading(false);
     }
@@ -168,7 +168,7 @@ export function WhatsappInboxClient({
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || data?.ok === false) {
-          throw new Error(data?.message || data?.error || "Gagal memuat templates");
+          throw new Error(data?.message || data?.error || "Failed to load templates");
         }
         const items = Array.isArray(data.templates) ? data.templates : [];
         const normalized = items.map((tpl: Record<string, unknown>) => ({
@@ -179,7 +179,7 @@ export function WhatsappInboxClient({
         if (active) setTemplateOptions(normalized);
       } catch (err) {
         if (active) {
-          setTemplatesError(err instanceof Error ? err.message : "Gagal memuat templates");
+          setTemplatesError(err instanceof Error ? err.message : "Failed to load templates");
         }
       } finally {
         if (active) setTemplatesLoading(false);
@@ -218,7 +218,7 @@ export function WhatsappInboxClient({
         );
         const data = await res.json();
         if (!res.ok || data?.ok === false) {
-          throw new Error(data?.reason || data?.error || "Gagal memuat pesan");
+          throw new Error(data?.reason || data?.error || "Failed to load messages");
         }
         setMessages(data.messages ?? []);
         setTags(data.tags ?? []);
@@ -231,8 +231,8 @@ export function WhatsappInboxClient({
         await fetchThreads();
       } catch (err) {
         toast({
-          title: "Gagal memuat",
-          description: err instanceof Error ? err.message : "Tidak bisa memuat thread",
+          title: "Failed to load",
+          description: err instanceof Error ? err.message : "Cannot load thread",
           variant: "destructive",
         });
       } finally {
@@ -249,11 +249,11 @@ export function WhatsappInboxClient({
         body: JSON.stringify({ workspaceId, threadId: selectedId, tags }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal simpan tag");
-      toast({ title: "Tags disimpan" });
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to save tags");
+      toast({ title: "Tags saved" });
     } catch (err) {
       toast({
-        title: "Gagal simpan tags",
+        title: "Failed to save tags",
         description: err instanceof Error ? err.message : "Error",
         variant: "destructive",
       });
@@ -268,11 +268,11 @@ export function WhatsappInboxClient({
         body: JSON.stringify({ workspaceId, threadId: selectedId, body }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal tambah catatan");
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to add note");
       setNotes((prev) => [data.note, ...prev]);
     } catch (err) {
       toast({
-        title: "Gagal tambah catatan",
+        title: "Failed to add note",
         description: err instanceof Error ? err.message : "Error",
         variant: "destructive",
       });
@@ -287,12 +287,12 @@ export function WhatsappInboxClient({
         body: JSON.stringify({ workspaceId, threadId: selectedId, assignedTo, status }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal update thread");
-      toast({ title: "Thread diperbarui" });
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to update thread");
+      toast({ title: "Thread updated" });
       await fetchThreads();
     } catch (err) {
       toast({
-        title: "Gagal update",
+        title: "Update failed",
         description: err instanceof Error ? err.message : "Error",
         variant: "destructive",
       });
@@ -308,7 +308,7 @@ export function WhatsappInboxClient({
         body: JSON.stringify({ workspaceId, threadId: selectedId, text: composerText.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal kirim pesan");
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to send message");
       const inserted = data?.insertedMessage as Partial<Message> | undefined;
       const nowIso = new Date().toISOString();
       const insertedId = typeof inserted?.id === "string" ? inserted.id : null;
@@ -346,7 +346,7 @@ export function WhatsappInboxClient({
       }
     } catch (err) {
       toast({
-        title: "Kirim gagal",
+        title: "Send failed",
         description: err instanceof Error ? err.message : "Error",
         variant: "destructive",
       });
@@ -371,8 +371,8 @@ export function WhatsappInboxClient({
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.reason || data?.error || "Gagal kirim template");
-      toast({ title: "Pesan dikirim", description: data?.messageId ? `ID: ${data.messageId}` : "" });
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to send template");
+      toast({ title: "Message sent", description: data?.messageId ? `ID: ${data.messageId}` : "" });
       const inserted = data?.insertedMessage as Partial<Message> | undefined;
       const nowIso = new Date().toISOString();
       const preview = `Template: ${replyTemplate.name}`;
@@ -410,7 +410,7 @@ export function WhatsappInboxClient({
       }
     } catch (err) {
       toast({
-        title: "Kirim gagal",
+        title: "Send failed",
         description: err instanceof Error ? err.message : "Error",
         variant: "destructive",
       });
@@ -426,9 +426,9 @@ export function WhatsappInboxClient({
         body: JSON.stringify({ workspaceId, reconcile: true }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.message || data?.error || "Proses events gagal");
+      if (!res.ok) throw new Error(data?.message || data?.error || "Failed to process events");
       toast({
-        title: "Inbox diperbarui",
+        title: "Inbox updated",
         description: `Processed ${data.processedEvents ?? data.processed ?? 0}, inserted ${data.insertedMessages ?? data.messagesCreated ?? 0}, reconciled ${data.reconciledMessages ?? 0}`,
       });
       await fetchThreads();
@@ -437,8 +437,8 @@ export function WhatsappInboxClient({
       }
     } catch (err) {
       toast({
-        title: "Refresh gagal",
-        description: err instanceof Error ? err.message : "Tidak bisa memproses events",
+        title: "Refresh failed",
+        description: err instanceof Error ? err.message : "Cannot process events",
         variant: "destructive",
       });
     } finally {
@@ -475,7 +475,7 @@ export function WhatsappInboxClient({
           </div>
           <div className="mt-2 grid gap-2">
             <Input
-              placeholder="Cari nama/phone"
+              placeholder="Search name/phone"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-background"
@@ -486,7 +486,7 @@ export function WhatsappInboxClient({
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="all">Semua status</option>
+                <option value="all">All statuses</option>
                 <option value="open">Open</option>
                 <option value="pending">Pending</option>
                 <option value="closed">Closed</option>
@@ -496,7 +496,7 @@ export function WhatsappInboxClient({
                 value={assignFilter}
                 onChange={(e) => setAssignFilter(e.target.value)}
               >
-                <option value="all">Assign: semua</option>
+                <option value="all">Assign: all</option>
                 <option value="assigned">Assigned</option>
                 <option value="unassigned">Unassigned</option>
               </select>
@@ -537,12 +537,12 @@ export function WhatsappInboxClient({
             );
           })}
           {threadsLoading ? (
-            <p className="text-xs text-muted-foreground">Memuat threads...</p>
+            <p className="text-xs text-muted-foreground">Loading threads...</p>
           ) : null}
           {threadsError ? <p className="text-xs text-rose-300">{threadsError}</p> : null}
           {!threadsLoading && !threadsError && visibleThreads.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Belum ada percakapan. Klik Refresh Inbox setelah menerima webhook tes.
+              No conversations yet. Click Refresh Inbox after receiving the test webhook.
             </p>
           ) : null}
         </CardContent>
@@ -550,7 +550,7 @@ export function WhatsappInboxClient({
 
       <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="text-base font-semibold text-foreground">Percakapan</CardTitle>
+          <CardTitle className="text-base font-semibold text-foreground">Conversations</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div
@@ -558,7 +558,7 @@ export function WhatsappInboxClient({
             className="max-h-[460px] overflow-y-auto space-y-2 rounded-lg border border-border bg-background p-3"
           >
             {messagesLoading ? (
-              <p className="text-sm text-muted-foreground">Memuat pesan...</p>
+              <p className="text-sm text-muted-foreground">Loading messages...</p>
             ) : null}
             {messages.map((msg) => {
               const inbound = isInbound(msg.direction);
@@ -597,16 +597,16 @@ export function WhatsappInboxClient({
               );
             })}
             {!messagesLoading && messages.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada pesan di thread ini.</p>
+              <p className="text-sm text-muted-foreground">No messages in this thread.</p>
             ) : null}
           </div>
 
           <div className="rounded-lg border border-border bg-background p-3 space-y-3">
-            <p className="text-sm font-semibold text-foreground">Kirim pesan</p>
+            <p className="text-sm font-semibold text-foreground">Send message</p>
             <Textarea
               value={composerText}
               onChange={(e) => setComposerText(e.target.value)}
-              placeholder="Tulis pesan..."
+              placeholder="Type a message..."
               className="bg-card"
               rows={3}
               disabled={!canSend}
@@ -614,14 +614,14 @@ export function WhatsappInboxClient({
             <div className="flex items-center justify-between">
               <ActionGate allowed={canSend}>
                 <Button onClick={handleSendText} disabled={!canSend || !composerText.trim()}>
-                  Kirim teks
+                  Send text
                 </Button>
               </ActionGate>
             </div>
           </div>
 
           <div className="rounded-lg border border-border bg-background p-3 space-y-3">
-            <p className="text-sm font-semibold text-foreground">Balas dengan template</p>
+            <p className="text-sm font-semibold text-foreground">Reply with template</p>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="tpl-name">Template</Label>
@@ -634,7 +634,7 @@ export function WhatsappInboxClient({
                     setReplyTemplate({ ...replyTemplate, name, language: lang || "id" });
                   }}
                 >
-                  <option value="::">Pilih template</option>
+                  <option value="::">Select template</option>
                   {approvedTemplates.map((tpl) => (
                     <option
                       key={`${tpl.name}-${tpl.language ?? "id"}`}
@@ -645,7 +645,7 @@ export function WhatsappInboxClient({
                   ))}
                 </select>
                 {templatesLoading ? (
-                  <p className="text-xs text-muted-foreground">Memuat templates...</p>
+                  <p className="text-xs text-muted-foreground">Loading templates...</p>
                 ) : null}
                 {templatesError ? (
                   <p className="text-xs text-rose-300">{templatesError}</p>
@@ -668,12 +668,12 @@ export function WhatsappInboxClient({
                 value={replyTemplate.vars}
                 onChange={(e) => setReplyTemplate({ ...replyTemplate, vars: e.target.value })}
                 className="bg-card"
-                placeholder="contoh: John,12345"
+                placeholder="example: John,12345"
               />
             </div>
             <ActionGate allowed={canSend}>
               <Button onClick={handleReplyTemplate} disabled={!canSend}>
-                Kirim template
+                  Send template
               </Button>
             </ActionGate>
           </div>
@@ -682,7 +682,7 @@ export function WhatsappInboxClient({
 
       <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="text-base font-semibold text-foreground">Detail</CardTitle>
+          <CardTitle className="text-base font-semibold text-foreground">Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-1">
@@ -709,12 +709,12 @@ export function WhatsappInboxClient({
               disabled={!canSend}
             >
               <option value="">Unassigned</option>
-              <option value={userId}>Saya</option>
+              <option value={userId}>Me</option>
             </select>
           </div>
           <ActionGate allowed={canSend}>
             <Button onClick={handleUpdateThread} disabled={!canSend}>
-              Simpan status/assign
+              Save status/assignee
             </Button>
           </ActionGate>
 
@@ -736,13 +736,13 @@ export function WhatsappInboxClient({
             />
             <ActionGate allowed={canSend}>
               <Button onClick={handleTagsSave} disabled={!canSend}>
-                Simpan tags
+                Save tags
               </Button>
             </ActionGate>
           </div>
 
           <div className="space-y-2">
-            <Label>Catatan internal</Label>
+            <Label>Internal notes</Label>
             <NoteForm onSubmit={handleNoteAdd} disabled={!canSend} />
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {notes.map((note) => (
@@ -754,7 +754,7 @@ export function WhatsappInboxClient({
                 </div>
               ))}
               {notes.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Belum ada catatan.</p>
+                <p className="text-xs text-muted-foreground">No notes yet.</p>
               ) : null}
             </div>
           </div>
@@ -771,7 +771,7 @@ function NoteForm({ onSubmit, disabled }: { onSubmit: (body: string) => void; di
       <Textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Tambahkan catatan internal..."
+        placeholder="Add an internal note..."
         className="bg-background"
         disabled={disabled}
       />
@@ -784,7 +784,7 @@ function NoteForm({ onSubmit, disabled }: { onSubmit: (body: string) => void; di
         }}
         disabled={disabled}
       >
-        Simpan catatan
+        Save note
       </Button>
     </div>
   );

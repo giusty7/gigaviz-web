@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         {
           ok: false,
           message:
-            "Terlalu banyak percobaan. Silakan tunggu beberapa menit sebelum mengirim lagi.",
+            "Too many attempts. Please wait a few minutes before sending again.",
         },
         { status: 429 }
       );
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     // Validasi server-side
     const parsedResult = contactSchema.safeParse(body);
     if (!parsedResult.success) {
-      const firstError = parsedResult.error.issues[0]?.message ?? "Data tidak valid.";
+      const firstError = parsedResult.error.issues[0]?.message ?? "Data is invalid.";
       return NextResponse.json(
         { ok: false, message: firstError },
         { status: 400 }
@@ -65,27 +65,27 @@ export async function POST(req: Request) {
     }
     const parsed = parsedResult.data;
 
-    // Honeypot: kalau field "website" terisi, anggap bot, tapi balas sukses
+    // Honeypot: if "website" is filled, assume bot but still return success
     if (parsed.website && parsed.website.trim().length > 0) {
       console.warn("[CONTACT] Spam detected (honeypot).", parsed);
       return NextResponse.json(
-        { ok: true, message: "Terima kasih, pesan Anda sudah kami terima." },
+          { ok: true, message: "Thank you, we received your message." },
         { status: 200 }
       );
     }
 
-    // Kalau API key belum di-set → jangan pernah new Resend() saat build
+    // If API key is not set → never new Resend() during build
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       console.warn(
-        "[CONTACT] RESEND_API_KEY belum di-set. Pesan hanya dicatat di log.",
+          "[CONTACT] RESEND_API_KEY not set. Message logged only.",
         parsed
       );
       return NextResponse.json(
         {
           ok: true,
           message:
-            "Pesan masuk (mode development). Setelah email dikonfigurasi, pesan akan dikirim ke inbox.",
+            "Message received (development mode). Once email is configured, it will be delivered to the inbox.",
         },
         { status: 200 }
       );
@@ -99,44 +99,44 @@ export async function POST(req: Request) {
         ? parsed.budgetRange
         : "-";
 
-    const text = `Ada pesan baru dari form kontak Gigaviz.com:
+    const text = `New message from Gigaviz.com contact form:
 
-Nama   : ${parsed.name}
-Email  : ${parsed.email}
-Perusahaan: ${companyValue}
-Topik  : ${parsed.topic}
-Budget : ${budgetValue}
+  Name   : ${parsed.name}
+  Email  : ${parsed.email}
+  Company: ${companyValue}
+  Topic  : ${parsed.topic}
+  Budget : ${budgetValue}
 
-Pesan:
-${parsed.message}
-`;
+  Message:
+  ${parsed.message}
+  `;
 
     const { error } = await resend.emails.send({
       from: getResendFromContact(),
       to: [TO_EMAIL],
       replyTo: parsed.email,
-      subject: `[Gigaviz.com] Kontak baru: ${parsed.topic}`,
+      subject: `[Gigaviz.com] New contact: ${parsed.topic}`,
       text,
     });
 
     if (error) {
-      console.error("[CONTACT] Error kirim email:", error);
+      console.error("[CONTACT] Error sending email:", error);
       return NextResponse.json(
-        { ok: false, message: "Gagal mengirim email. Coba beberapa saat lagi." },
+        { ok: false, message: "Failed to send email. Please try again later." },
         { status: 500 }
       );
     }
 
-    console.log("[CONTACT] Form terkirim:", parsed);
+    console.log("[CONTACT] Form submitted:", parsed);
 
     return NextResponse.json(
-      { ok: true, message: "Terima kasih, pesan Anda sudah kami terima." },
+      { ok: true, message: "Thank you, we received your message." },
       { status: 200 }
     );
   } catch (err) {
     console.error("[CONTACT] Unexpected error:", err);
     return NextResponse.json(
-      { ok: false, message: "Terjadi kesalahan. Coba lagi nanti." },
+      { ok: false, message: "An error occurred. Please try again later." },
       { status: 500 }
     );
   }

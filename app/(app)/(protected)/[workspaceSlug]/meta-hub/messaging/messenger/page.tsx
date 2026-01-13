@@ -8,15 +8,15 @@ export default function MetaHubMessengerPage() {
         <div>
           <h2 className="text-xl font-semibold text-foreground">Messenger</h2>
           <p className="text-sm text-muted-foreground">
-            Placeholder: Messenger send/receive akan tersedia setelah pengujian.
+            Placeholder: Messenger send/receive will be available after testing.
           </p>
         </div>
         <MetaHubBadge status="soon" />
       </div>
       <DisabledModuleState
         title="Messenger"
-        description="Kirim/terima pesan, webhook event, dan template akan tersedia. Hubungi kami untuk akses awal."
-        ctaLabel="Hubungi Sales"
+        description="Send/receive messages, webhook events, and templates will be available. Contact us for early access."
+        ctaLabel="Contact Sales"
         ctaHref="/contact"
       />
     </div>

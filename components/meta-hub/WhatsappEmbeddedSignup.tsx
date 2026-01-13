@@ -82,16 +82,16 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
         });
         const data = await res.json().catch(() => null);
         if (!res.ok || data?.ok === false) {
-          throw new Error(data?.message || data?.reason || "Gagal menyimpan koneksi.");
+          throw new Error(data?.message || data?.reason || "Failed to save connection.");
         }
         setStatus("done");
-        toast({ title: "Embedded Signup sukses", description: "Koneksi WhatsApp tersimpan." });
+        toast({ title: "Embedded Signup succeeded", description: "WhatsApp connection saved." });
         router.refresh();
       } catch (err) {
         setStatus("error");
-        const msg = err instanceof Error ? err.message : "Gagal menyimpan koneksi.";
+        const msg = err instanceof Error ? err.message : "Failed to save connection.";
         setErrorText(msg);
-        toast({ title: "Signup gagal", description: msg, variant: "destructive" });
+        toast({ title: "Signup failed", description: msg, variant: "destructive" });
       }
     },
     [label, router, toast, workspaceSlug]
@@ -148,7 +148,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
       if (eventType === "CANCEL") {
         const step = String(info.current_step ?? "cancelled");
         setStatus("idle");
-        toast({ title: "Signup dibatalkan", description: `Langkah terakhir: ${step}` });
+        toast({ title: "Signup canceled", description: `Last step: ${step}` });
         return;
       }
 
@@ -158,7 +158,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
         const businessId = info.business_id ?? info.businessId ?? null;
         if (!wabaId || !phoneNumberId) {
           setStatus("error");
-          setErrorText("WABA ID atau Phone Number ID tidak ditemukan.");
+          setErrorText("WABA ID or Phone Number ID not found.");
           return;
         }
         const finishPayload = { wabaId, phoneNumberId, businessId: businessId ? String(businessId) : null };
@@ -186,16 +186,16 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
   async function launchSignup() {
     if (!window.FB || !sdkReady) {
       toast({
-        title: "SDK belum siap",
-        description: "Facebook SDK belum siap. Coba beberapa detik lagi.",
+        title: "SDK not ready",
+        description: "Facebook SDK is not ready. Try again in a few seconds.",
         variant: "destructive",
       });
       return;
     }
     if (!configId) {
       toast({
-        title: "Config ID kosong",
-        description: "Isi NEXT_PUBLIC_META_CONFIG_ID terlebih dahulu.",
+        title: "Config ID missing",
+        description: "Set NEXT_PUBLIC_META_CONFIG_ID before continuing.",
         variant: "destructive",
       });
       return;
@@ -214,7 +214,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
         const code = response?.authResponse?.code ?? null;
         if (!code) {
           setStatus("error");
-          setErrorText("Authorization code tidak diterima.");
+          setErrorText("Authorization code not received.");
           return;
         }
         setAuthCode(code);
@@ -256,27 +256,27 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
             Embedded Signup (WhatsApp)
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Hubungkan WhatsApp pelanggan langsung melalui Embedded Signup.
+            Connect customer WhatsApp numbers directly through Embedded Signup.
           </p>
         </div>
         <Badge variant="outline" className={cn("border-border bg-background text-xs", sdkReady ? "text-emerald-200" : "text-muted-foreground")}>
-          {sdkReady ? "SDK ready" : "SDK belum siap"}
+          {sdkReady ? "SDK ready" : "SDK not ready"}
         </Badge>
       </CardHeader>
       <CardContent className="space-y-3">
         {!isConfigured ? (
           <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground">
-            Lengkapi env: NEXT_PUBLIC_META_APP_ID & NEXT_PUBLIC_META_CONFIG_ID untuk memakai Embedded Signup.
+            Add NEXT_PUBLIC_META_APP_ID & NEXT_PUBLIC_META_CONFIG_ID env vars to use Embedded Signup.
           </div>
         ) : null}
         <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
           <div className="space-y-1">
-            <Label htmlFor="connectionLabel">Label koneksi (opsional)</Label>
+            <Label htmlFor="connectionLabel">Connection label (optional)</Label>
             <Input
               id="connectionLabel"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="Contoh: WA Support / WA Sales"
+              placeholder="Example: WA Support / WA Sales"
               className="bg-background"
               disabled={!canEdit}
             />
@@ -287,7 +287,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
         </div>
         {!canEdit ? (
           <p className="text-xs text-muted-foreground">
-            Hanya owner/admin yang dapat menambah koneksi baru.
+            Only owners/admins can add new connections.
           </p>
         ) : null}
       </CardContent>
@@ -297,7 +297,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Connect WhatsApp</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Ikuti langkah authorization sampai selesai di Facebook Embedded Signup.
+              Complete authorization via Facebook Embedded Signup until finished.
             </DialogDescription>
           </DialogHeader>
 
@@ -334,7 +334,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
               onClick={launchSignup}
               disabled={!sdkReady || status === "saving"}
             >
-              {status === "saving" ? "Menyimpan..." : "Launch Embedded Signup"}
+              {status === "saving" ? "Saving..." : "Launch Embedded Signup"}
             </Button>
           </DialogFooter>
         </DialogContent>

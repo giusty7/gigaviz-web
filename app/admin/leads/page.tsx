@@ -182,11 +182,11 @@ export default async function AdminLeadsPage({
           <div>
             <h1 className="text-2xl font-bold text-white">Leads</h1>
             <p className="text-white/70 text-sm">
-              Data terbaru dari form marketing (dan log attempt untuk badge status).
+              Latest data from marketing forms (and attempt logs for status badges).
             </p>
           </div>
           <Link href="/" className="text-sm text-cyan-300 hover:text-cyan-200 underline">
-            Kembali ke Home
+            Back to Home
           </Link>
         </div>
 
@@ -222,7 +222,7 @@ export default async function AdminLeadsPage({
           )}
 
           <div className="px-4 py-3 text-xs text-white/60">
-            Menampilkan {Math.min(pageSize, total)} dari total {total} data. (Halaman {page} / {totalPages})
+            Showing {Math.min(pageSize, total)} of {total} records. (Page {page} / {totalPages})
           </div>
 
           <div className="overflow-auto">
@@ -230,11 +230,11 @@ export default async function AdminLeadsPage({
               <table className="min-w-full text-sm">
                 <thead className="text-white/70 border-b border-white/10">
                   <tr>
-                    <th className="px-4 py-3 text-left">Waktu</th>
+                    <th className="px-4 py-3 text-left">Time</th>
                     <th className="px-4 py-3 text-left">Status</th>
-                    <th className="px-4 py-3 text-left">Nama</th>
+                    <th className="px-4 py-3 text-left">Name</th>
                     <th className="px-4 py-3 text-left">WA</th>
-                    <th className="px-4 py-3 text-left">Kebutuhan</th>
+                    <th className="px-4 py-3 text-left">Need</th>
                     <th className="px-4 py-3 text-left">Source</th>
                     <th className="px-4 py-3 text-left">Reason</th>
                   </tr>
@@ -243,7 +243,7 @@ export default async function AdminLeadsPage({
                   {attempts.map((r: AttemptRow) => (
                     <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
                       <td className="px-4 py-3 text-white/70 whitespace-nowrap">
-                        {r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "-"}
+                        {r.created_at ? new Date(r.created_at).toLocaleString("en-US") : "-"}
                       </td>
                       <td className="px-4 py-3">
                         <span className={badgeClass(r.status)}>{r.status}</span>
@@ -259,7 +259,7 @@ export default async function AdminLeadsPage({
                   {!errorMsg && attempts.length === 0 && (
                     <tr>
                       <td className="px-4 py-6 text-white/70" colSpan={7}>
-                        Belum ado attempt.
+                        No attempts yet.
                       </td>
                     </tr>
                   )}
@@ -269,14 +269,14 @@ export default async function AdminLeadsPage({
               <table className="min-w-full text-sm">
                 <thead className="text-white/70 border-b border-white/10">
                   <tr>
-                    <th className="px-4 py-3 text-left">Waktu</th>
-                    <th className="px-4 py-3 text-left">Nama</th>
+                    <th className="px-4 py-3 text-left">Time</th>
+                    <th className="px-4 py-3 text-left">Name</th>
                     <th className="px-4 py-3 text-left">WA</th>
-                    <th className="px-4 py-3 text-left">Bisnis</th>
-                    <th className="px-4 py-3 text-left">Kebutuhan</th>
-                    <th className="px-4 py-3 text-left">Catatan</th>
+                    <th className="px-4 py-3 text-left">Business</th>
+                    <th className="px-4 py-3 text-left">Need</th>
+                    <th className="px-4 py-3 text-left">Notes</th>
                     <th className="px-4 py-3 text-left">Source</th>
-                    <th className="px-4 py-3 text-left">Aksi</th>
+                    <th className="px-4 py-3 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-white">
@@ -285,7 +285,7 @@ export default async function AdminLeadsPage({
                     return (
                       <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="px-4 py-3 text-white/70 whitespace-nowrap">
-                          {r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "-"}
+                          {r.created_at ? new Date(r.created_at).toLocaleString("en-US") : "-"}
                         </td>
                         <td className="px-4 py-3">{r.name}</td>
                         <td className="px-4 py-3 whitespace-nowrap">{r.phone}</td>
@@ -303,7 +303,7 @@ export default async function AdminLeadsPage({
                   {!errorMsg && leads.length === 0 && (
                     <tr>
                       <td className="px-4 py-6 text-white/70" colSpan={8}>
-                        Belum ado lead.
+                        No leads yet.
                       </td>
                     </tr>
                   )}

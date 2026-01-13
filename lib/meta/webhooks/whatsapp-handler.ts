@@ -80,7 +80,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
   const raw = await req.text().catch(() => "");
   if (!raw) {
     return NextResponse.json(
-      { ok: false, code: "invalid_payload", message: "Payload kosong" },
+      { ok: false, code: "invalid_payload", message: "Payload is empty" },
       { status: 400 }
     );
   }
@@ -98,14 +98,14 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
     payload = JSON.parse(raw) as WaPayload;
   } catch {
     return NextResponse.json(
-      { ok: false, code: "invalid_payload", message: "Payload tidak valid" },
+      { ok: false, code: "invalid_payload", message: "Payload is invalid" },
       { status: 400 }
     );
   }
 
   if (!payload) {
     return NextResponse.json(
-      { ok: false, code: "invalid_payload", message: "Payload tidak valid" },
+      { ok: false, code: "invalid_payload", message: "Payload is invalid" },
       { status: 400 }
     );
   }
@@ -172,7 +172,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
       {
         ok: false,
         code: missingUnique ? "missing_unique_index" : "db_error",
-        message: "Gagal menyimpan webhook",
+        message: "Failed to store webhook",
         details: error.details ?? error.message,
         hint: (error as { hint?: string }).hint ?? null,
       },

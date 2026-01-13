@@ -94,9 +94,9 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Integrasi Meta</h2>
+          <h2 className="text-2xl font-semibold">Meta Integrations</h2>
           <p className="text-sm text-muted-foreground">
-            Ringkasan status integrasi Meta. WhatsApp live, konektor lain menyusul.
+            Integration status for Meta. WhatsApp is live; other connectors are coming soon.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -111,8 +111,8 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
 
       <Card className="bg-card/80">
         <CardHeader>
-          <CardTitle>Kesehatan Integrasi</CardTitle>
-          <CardDescription>Monitor koneksi WhatsApp dan webhook.</CardDescription>
+          <CardTitle>Integration Health</CardTitle>
+          <CardDescription>Monitor WhatsApp connections and webhooks.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-background p-4">
@@ -130,11 +130,11 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline">
-                <Link href={`${basePath}/connections`}>Buka Connections</Link>
+                <Link href={`${basePath}/connections`}>Open Connections</Link>
               </Button>
               <ActionGate allowed={allowSend}>
                 <Button asChild size="sm" variant="ghost">
-                  <Link href={`${basePath}/messaging/whatsapp`}>Buka WhatsApp Hub</Link>
+                  <Link href={`${basePath}/messaging/whatsapp`}>Open WhatsApp Hub</Link>
                 </Button>
               </ActionGate>
             </div>
@@ -159,11 +159,11 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
                 value={
                   overview.health.webhook.lastEventAt
                     ? formatRelativeTime(overview.health.webhook.lastEventAt)
-                    : "Belum ada"
+                    : "No events yet"
                 }
               />
               <Row
-                label="Events 24 jam"
+                label="Events (24h)"
                 value={
                   overview.health.webhook.events24h !== null
                     ? overview.health.webhook.events24h.toString()
@@ -173,10 +173,10 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline">
-                <Link href={`${basePath}/webhooks`}>Lihat Webhook Events</Link>
+                <Link href={`${basePath}/webhooks`}>View Webhook Events</Link>
               </Button>
               <Button size="sm" variant="ghost">
-                Cara Verifikasi
+                How to Verify
               </Button>
             </div>
           </div>
@@ -185,19 +185,19 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          title="Inbound (24 jam)"
+          title="Inbound (24h)"
           value={formatCount(overview.kpis.inboundCount24h)}
-          helper="Pesan masuk"
+          helper="Incoming messages"
         />
         <KpiCard
-          title="Outbound (24 jam)"
+          title="Outbound (24h)"
           value={formatCount(overview.kpis.outboundCount24h)}
-          helper="Pesan keluar"
+          helper="Outgoing messages"
         />
         <KpiCard
-          title="Webhook events (24 jam)"
+          title="Webhook events (24h)"
           value={formatCount(overview.kpis.totalEvents24h)}
-          helper="Event diterima"
+          helper="Events received"
         />
         <Card className="bg-card/80">
           <CardHeader>
@@ -224,7 +224,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
       <Card className="bg-card/80">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Jalan pintas umum.</CardDescription>
+          <CardDescription>Common shortcuts.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 md:grid-cols-2">
           <ActionGate allowed={allowTemplates}>
@@ -233,33 +233,33 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
             </Button>
           </ActionGate>
           <Button asChild variant="outline" className="justify-between">
-            <Link href={`${basePath}/messaging/whatsapp/inbox`}>Buka Inbox</Link>
+                <Link href={`${basePath}/messaging/whatsapp/inbox`}>Open Inbox</Link>
           </Button>
           <ActionGate allowed={allowSend}>
             <Button asChild variant="outline" className="justify-between">
-              <Link href={`${basePath}/messaging/whatsapp`}>Test Kirim Template</Link>
+                  <Link href={`${basePath}/messaging/whatsapp`}>Test Send Template</Link>
             </Button>
           </ActionGate>
           <Button asChild variant="outline" className="justify-between">
             <Link href={`${basePath}/connections`}>Edit Connection Settings</Link>
           </Button>
           <Button asChild variant="ghost" className="justify-start">
-            <Link href={`${basePath}/webhooks`}>Lihat Events</Link>
+                <Link href={`${basePath}/webhooks`}>View Events</Link>
           </Button>
         </CardContent>
       </Card>
 
       <Card className="bg-card/80">
         <CardHeader>
-          <CardTitle>Perlu Perhatian</CardTitle>
-          <CardDescription>Alert otomatis untuk langkah berikutnya.</CardDescription>
+          <CardTitle>Needs Attention</CardTitle>
+          <CardDescription>Automated alerts for next steps.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {alerts.length === 0 ? (
             <div className="rounded-xl border border-border bg-background px-4 py-3">
-              <p className="font-semibold">Semua terlihat normal.</p>
+              <p className="font-semibold">Everything looks normal.</p>
               <p className="text-muted-foreground text-xs">
-                Tidak ada isu yang terdeteksi saat ini.
+                No issues detected right now.
               </p>
             </div>
           ) : (
@@ -277,7 +277,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
                 {alert.actionHref && (
                   <Button asChild size="sm" variant="outline" className="ml-3 shrink-0">
                     <Link href={`${basePath}/${alert.actionHref}`}>
-                      {alert.actionLabel ?? "Buka"}
+                      {alert.actionLabel ?? "Open"}
                     </Link>
                   </Button>
                 )}
@@ -290,12 +290,12 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="bg-card/80">
           <CardHeader>
-            <CardTitle>Webhook Terbaru</CardTitle>
-            <CardDescription>Event terakhir yang diterima.</CardDescription>
+            <CardTitle>Latest Webhooks</CardTitle>
+            <CardDescription>Most recent events received.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {overview.recentEvents.length === 0 ? (
-              <EmptyState message="Belum ada data masuk. Pastikan webhook sudah terpasang lalu kirim pesan uji." />
+              <EmptyState message="No data yet. Make sure the webhook is installed, then send a test message." />
             ) : (
               overview.recentEvents.map((evt) => (
                 <div
@@ -317,12 +317,12 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
 
         <Card className="bg-card/80">
           <CardHeader>
-            <CardTitle>Percakapan Terbaru</CardTitle>
-            <CardDescription>Cuplikan inbox.</CardDescription>
+            <CardTitle>Latest Conversations</CardTitle>
+            <CardDescription>Inbox preview.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {overview.recentConversations.length === 0 ? (
-              <EmptyState message="Belum ada percakapan. Klik Refresh Inbox setelah menerima webhook." />
+              <EmptyState message="No conversations yet. Click Refresh Inbox after receiving webhooks." />
             ) : (
               overview.recentConversations.map((conv) => (
                 <Link
@@ -347,7 +347,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
       <Card className="bg-card/80">
         <CardHeader>
           <CardTitle>Channels</CardTitle>
-          <CardDescription>Semua kanal Meta Hub.</CardDescription>
+          <CardDescription>All Meta Hub channels.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {connectors.map((c) => (

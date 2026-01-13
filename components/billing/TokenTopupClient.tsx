@@ -37,13 +37,13 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal memuat wallet");
+        throw new Error(data?.message || "Failed to load wallet");
       }
       setSummary(data.summary as BillingSummary);
     } catch (err) {
       toast({
-        title: "Gagal memuat wallet",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: "Failed to load wallet",
+        description: err instanceof Error ? err.message : "Try again later.",
         variant: "destructive",
       });
     } finally {
@@ -59,7 +59,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal memuat top up pending");
+        throw new Error(data?.message || "Failed to load pending top ups");
       }
       setPending(
         Array.isArray(data?.intents)
@@ -73,8 +73,8 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       );
     } catch (err) {
       toast({
-        title: "Gagal memuat top up pending",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: "Failed to load pending top ups",
+        description: err instanceof Error ? err.message : "Try again later.",
         variant: "destructive",
       });
     }
@@ -100,23 +100,23 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal membuat top up");
+        throw new Error(data?.message || "Failed to create top up");
       }
       if (data?.checkoutUrl) {
         window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
       }
       toast({
-        title: "Top up dibuat",
+        title: "Top up created",
         description: data?.checkoutUrl
-          ? "Silakan lanjutkan pembayaran."
-          : "Menunggu aktivasi manual untuk top up ini.",
+          ? "Continue to payment to finish."
+          : "Waiting for manual activation for this top up.",
       });
       await fetchSummary();
       await fetchPending();
     } catch (err) {
       toast({
-        title: "Top up gagal",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: "Top up failed",
+        description: err instanceof Error ? err.message : "Try again later.",
         variant: "destructive",
       });
     } finally {
@@ -134,18 +134,18 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal menandai paid");
+        throw new Error(data?.message || "Failed to mark as paid");
       }
       toast({
-        title: "Top up dikonfirmasi",
-        description: `Saldo bertambah ${numberFormatter.format(data.tokens ?? 0)} tokens.`,
+        title: "Top up confirmed",
+        description: `Balance increased by ${numberFormatter.format(data.tokens ?? 0)} tokens.`,
       });
       await fetchSummary();
       await fetchPending();
     } catch (err) {
       toast({
-        title: "Konfirmasi gagal",
-        description: err instanceof Error ? err.message : "Coba lagi nanti.",
+        title: "Confirmation failed",
+        description: err instanceof Error ? err.message : "Try again later.",
         variant: "destructive",
       });
     } finally {
@@ -159,14 +159,14 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
         <div>
           <h2 className="text-lg font-semibold text-foreground">Token Wallet</h2>
           <p className="text-sm text-muted-foreground">
-            Saldo token digunakan untuk pemakaian AI/API. Top up menambah saldo segera setelah pembayaran
-            dikonfirmasi.
+            Token balance is used for AI/API usage. Top ups add balance immediately after payment is
+            confirmed.
           </p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Saldo</p>
           <p className="text-2xl font-semibold text-foreground">
-            {loading ? "Memuat..." : numberFormatter.format(summary?.wallet.balance ?? 0)}
+            {loading ? "Loading..." : numberFormatter.format(summary?.wallet.balance ?? 0)}
           </p>
         </div>
       </div>
@@ -187,7 +187,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
               onClick={() => handleTopup(pkg.id)}
               disabled={active === pkg.id}
             >
-              {active === pkg.id ? "Memproses..." : "Top up"}
+              {active === pkg.id ? "Processing..." : "Top up"}
             </Button>
           </div>
         ))}
@@ -199,7 +199,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
             <div>
               <p className="text-sm font-semibold text-foreground">Manual activation</p>
               <p className="text-xs text-muted-foreground">
-                Gunakan tombol ini untuk menandai top up pending sebagai paid (MVP manual).
+                Use this button to mark pending top ups as paid (manual MVP flow).
               </p>
             </div>
             <Button variant="outline" onClick={fetchPending}>
@@ -208,7 +208,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
           </div>
           <div className="mt-4 space-y-2">
             {pending.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Tidak ada top up pending.</p>
+              <p className="text-sm text-muted-foreground">No pending top ups.</p>
             ) : (
               pending.map((intent) => (
                 <div
@@ -228,7 +228,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
                     onClick={() => handleMarkPaid(intent.id)}
                     disabled={marking === intent.id}
                   >
-                    {marking === intent.id ? "Memproses..." : "Mark paid"}
+                    {marking === intent.id ? "Processing..." : "Mark paid"}
                   </Button>
                 </div>
               ))

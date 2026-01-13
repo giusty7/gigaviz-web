@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ActionGate } from "@/components/gates/action-gate";
 import PreviewBanner from "@/components/modules/preview-banner";
@@ -47,62 +47,62 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
 
   const overviewCards = [
     {
-      title: "Workspace aktif",
+      title: "Active workspace",
       value: workspace.name,
       helper: workspace.slug,
     },
     {
-      title: "Anggota",
+      title: "Members",
       value: memberCount ?? 0,
-      helper: memberCount ? `${memberCount} anggota terdaftar` : copy.emptyStates.members.helper,
+      helper: memberCount ? `${memberCount} members` : copy.emptyStates.members.helper,
     },
     {
-      title: "Peran Anda",
+      title: "Your role",
       value: ctx.currentRole ?? "Member",
-      helper: "Hak akses mengikuti role.",
+      helper: "Access follows your role.",
     },
     {
-      title: "Status billing",
+      title: "Billing status",
       value: planLabel,
-      helper: planInfo.status ?? "Plan aktif saat ini",
+      helper: planInfo.status ?? "Current active plan",
     },
   ];
 
   const quickActions = [
     {
-      label: "Buat Workspace",
+      label: "Create Workspace",
       href: "/onboarding",
       entitlement: null,
     },
     {
-      label: "Undang Member",
+      label: "Invite Members",
       href: `/${workspaceSlug}/settings#members`,
       entitlement: "member_invites" as const,
     },
     {
-      label: "Kelola Peran (RBAC)",
+      label: "Manage Roles (RBAC)",
       href: `/${workspaceSlug}/platform/rbac`,
       entitlement: "roles_permissions" as const,
     },
     {
-      label: "Lihat Audit Log",
+      label: "View Audit Log",
       href: `/${workspaceSlug}/platform/audit`,
       entitlement: "audit_log" as const,
     },
   ];
 
   const checklist = [
-    "Buat workspace pertama",
-    "Tambahkan anggota",
-    "Atur peran & izin",
-    "Aktifkan audit log",
-    "Atur billing & paket",
+    "Create the first workspace",
+    "Add members",
+    "Set roles & permissions",
+    "Enable audit log",
+    "Set billing & plan",
   ];
 
   const demoAuditEvents = [
-    { action: "workspace.created", actor: ctx.user.email ?? "user", at: "baru saja" },
-    { action: "member.invited", actor: "ops@gigaviz.com", at: "1h lalu" },
-    { action: "role.updated", actor: "admin@gigaviz.com", at: "3h lalu" },
+    { action: "workspace.created", actor: ctx.user.email ?? "user", at: "just now" },
+    { action: "member.invited", actor: "ops@gigaviz.com", at: "1h ago" },
+    { action: "role.updated", actor: "admin@gigaviz.com", at: "3h ago" },
   ];
 
   return (
@@ -111,7 +111,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         <div className="space-y-1">
           <h2 className="text-2xl font-semibold">Gigaviz Platform - Core OS</h2>
           <p className="text-sm text-muted-foreground">
-            Akun, workspace, peran, audit, dan billing dalam satu dashboard.
+            Accounts, workspaces, roles, audit, and billing in one dashboard.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
       <Card className="bg-card/80">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Aksi umum untuk memulai lebih cepat.</CardDescription>
+          <CardDescription>Common actions to get started faster.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           {quickActions.map((action) => {
@@ -165,7 +165,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
       <Card className="bg-card/80">
         <CardHeader>
           <CardTitle>Setup Checklist</CardTitle>
-          <CardDescription>Lengkapi langkah berikut untuk siap produksi.</CardDescription>
+          <CardDescription>Complete these steps to be production-ready.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
           {checklist.map((item) => (
@@ -175,7 +175,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
             >
               <div>
                 <p className="font-semibold">{item}</p>
-                <p className="text-xs text-muted-foreground">Mode preview tersedia</p>
+                <p className="text-xs text-muted-foreground">Preview mode available</p>
               </div>
               <span className="rounded-full bg-gigaviz-surface px-2 py-1 text-[11px] text-muted-foreground">
                 TODO
@@ -189,18 +189,18 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         <Card className="bg-card/80">
           <CardHeader>
             <CardTitle>Workspace &amp; Team</CardTitle>
-            <CardDescription>Ringkasan struktur tim.</CardDescription>
+            <CardDescription>Team structure overview.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3">
               <div>
                 <p className="font-semibold">{workspace.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {memberCount ? `${memberCount} anggota` : copy.emptyStates.members.helper}
+                  {memberCount ? `${memberCount} members` : copy.emptyStates.members.helper}
                 </p>
               </div>
               <Button asChild size="sm" variant="outline">
-                <Link href={`/${workspaceSlug}/settings#members`}>Kelola</Link>
+                <Link href={`/${workspaceSlug}/settings#members`}>Manage</Link>
               </Button>
             </div>
           </CardContent>
@@ -209,7 +209,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         <Card className="bg-card/80">
           <CardHeader>
             <CardTitle>Roles &amp; Access</CardTitle>
-            <CardDescription>Preview pengaturan peran.</CardDescription>
+            <CardDescription>Role settings preview.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {["Owner", "Admin", "Member"].map((role) => (
@@ -219,7 +219,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
               >
                 <div>
                   <p className="font-semibold">{role}</p>
-                  <p className="text-xs text-muted-foreground">Hak akses default role {role}</p>
+                  <p className="text-xs text-muted-foreground">Default access for role {role}</p>
                 </div>
                 <ActionGate
                   allowed={canAccess(entitlementCtx, "roles_permissions")}
@@ -238,7 +238,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         <Card className="bg-card/80">
           <CardHeader>
             <CardTitle>Audit Log</CardTitle>
-            <CardDescription>Sample event (akan real setelah audit aktif).</CardDescription>
+            <CardDescription>Sample events (live after audit is enabled).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {demoAuditEvents.map((evt) => (
@@ -253,13 +253,14 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
                 <span className="text-xs text-muted-foreground">{evt.at}</span>
               </div>
             ))}
+            <UpgradeButton label="View Plans" variant="outline" size="sm" className="w-full" />
           </CardContent>
         </Card>
 
         <Card className="bg-card/80">
           <CardHeader>
             <CardTitle>Billing</CardTitle>
-            <CardDescription>Status paket dan langkah upgrade.</CardDescription>
+            <CardDescription>Plan status and upgrade steps.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="rounded-xl border border-border bg-background px-4 py-3">
@@ -268,7 +269,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
                 {planInfo.status ?? copy.emptyStates.billing.helper}
               </p>
             </div>
-            <UpgradeButton label="Lihat Paket" variant="outline" size="sm" className="w-full" />
+            <UpgradeButton label="View Plans" variant="outline" size="sm" className="w-full" />
           </CardContent>
         </Card>
       </div>

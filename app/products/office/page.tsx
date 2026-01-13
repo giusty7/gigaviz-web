@@ -8,165 +8,165 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Office",
   description:
-    "Suite produktivitas untuk template kerja, asisten rumus, automasi workflow, dan generator dokumen/dasbor.",
+    "Productivity suite for work templates, formula assistant, workflow automation, and document/dashboard generator.",
   alternates: {
     canonical: "/products/office",
   },
   openGraph: {
     title: "Gigaviz Office",
     description:
-      "Suite produktivitas untuk template kerja, asisten rumus, automasi workflow, dan generator dokumen/dasbor.",
+      "Productivity suite for work templates, formula assistant, workflow automation, and document/dashboard generator.",
     url: "/products/office",
   },
 };
 
 const summaryPoints = [
-  "Template siap pakai untuk Excel, Google Sheets, dan Docs.",
-  "Formula Assistant membantu menyusun rumus dengan cepat dan konsisten.",
-  "Workflow automation untuk import/export data lintas modul.",
-  "Generator dokumen dan dashboard untuk laporan instan.",
+  "Ready-to-use templates for Excel, Google Sheets, and Docs.",
+  "Formula Assistant helps build formulas quickly and consistently.",
+  "Workflow automation for cross-module import/export data.",
+  "Document and dashboard generator for instant reports.",
 ];
 
 const problemPoints = [
-  "Mempercepat pelaporan bulanan tanpa mengulang format.",
-  "Mengurangi error formula dan konsistensi data tim.",
-  "Standarisasi output agar semua unit memakai format yang sama.",
-  "Automasi input/output agar data tidak perlu diinput ulang.",
-  "Memastikan laporan siap audit dengan jejak perubahan yang jelas.",
+  "Speed up monthly reporting without redoing formats.",
+  "Reduce formula errors and keep team data consistent.",
+  "Standardize outputs so every team uses the same format.",
+  "Automate input/output so data doesn't need to be re-entered.",
+  "Ensure reports are audit-ready with a clear change trail.",
 ];
 
 const featureCards = [
   {
     title: "Template Library",
-    desc: "Kumpulan template Excel, Sheets, dan Docs untuk laporan, invoice, dan operasional.",
+    desc: "Collection of Excel, Sheets, and Docs templates for reports, invoices, and operations.",
   },
   {
     title: "Formula Assistant",
-    desc: "Susun rumus dengan panduan AI agar formula lebih cepat dan minim error.",
+    desc: "Build formulas with AI guidance so they're faster and less error-prone.",
   },
   {
     title: "Import/Export Automation",
-    desc: "Sinkronisasi data CSV/XLSX. Konektor Google Sheets berada di roadmap.",
+    desc: "Synchronize CSV/XLSX data. Google Sheets connector is on the roadmap.",
   },
   {
     title: "Document Generator",
-    desc: "Buat laporan, invoice, atau surat dengan sekali klik dari data terstruktur.",
+    desc: "Generate reports, invoices, or letters with one click from structured data.",
   },
   {
     title: "Dashboard Builder",
-    desc: "Bangun dashboard KPI sederhana untuk monitoring performa.",
+    desc: "Build simple KPI dashboards for performance monitoring.",
   },
   {
     title: "Data Validation & Formatting",
-    desc: "Bantu menjaga format angka, tanggal, dan kategori agar konsisten.",
+    desc: "Help keep number, date, and category formats consistent.",
   },
 ];
 
 const workflowExamples = [
   {
-    title: "Monthly report dalam 10 menit",
+    title: "Monthly report in 10 minutes",
     steps: [
-      "Import data dari spreadsheet atau CSV",
-      "Validasi dan rapikan format",
-      "Generate dokumen laporan otomatis",
-      "Export ke PDF atau kirim ke stakeholder",
+      "Import data from spreadsheet or CSV",
+      "Validate and tidy the format",
+      "Generate the report document automatically",
+      "Export to PDF or share with stakeholders",
     ],
   },
   {
     title: "Commission tracker",
     steps: [
-      "Pilih template komisi",
-      "Masukkan data penjualan",
-      "Gunakan Formula Assistant untuk hitung komisi",
-      "Buat dashboard KPI komisi per tim",
+      "Select a commission template",
+      "Enter sales data",
+      "Use Formula Assistant to calculate commissions",
+      "Build a commission KPI dashboard per team",
     ],
   },
   {
     title: "Ops checklist + summary",
     steps: [
-      "Isi checklist operasional dari template",
-      "Rangkum status dan temuan utama",
-      "Generate dokumen ringkas untuk review",
-      "Bagikan ke tim terkait",
+      "Fill the operational checklist from a template",
+      "Summarize status and key findings",
+      "Generate a concise doc for review",
+      "Share with relevant teams",
     ],
   },
 ];
 
 const safetyPoints = [
   {
-    title: "Review manusia untuk output kritikal",
-    desc: "Pastikan laporan final diperiksa sebelum digunakan untuk keputusan penting.",
+    title: "Human review for critical output",
+    desc: "Ensure final reports are reviewed before important decisions.",
   },
   {
     title: "Versioning template",
-    desc: "Template dapat ditinjau ulang agar perubahan format tidak hilang jejak.",
+    desc: "Templates can be reviewed so format changes stay tracked.",
   },
   {
     title: "Auditability via Core OS",
-    desc: "Jika terhubung ke Core OS, aktivitas dapat dicatat untuk audit.",
+    desc: "When connected to Core OS, activities can be logged for audit.",
   },
   {
-    title: "Akurasi tetap terbatas",
-    desc: "Otomasi membantu, tetapi hasil akhir tetap perlu verifikasi.",
+    title: "Accuracy remains limited",
+    desc: "Automation helps, but final results still need verification.",
   },
 ];
 
 const faqs = [
   {
-    question: "Format apa saja yang didukung?",
+    question: "What formats are supported?",
     answer:
-      "Office mendukung template Excel, Google Sheets, dan Docs. Import CSV/XLSX tersedia.",
+      "Office supports Excel, Google Sheets, and Docs templates. CSV/XLSX import is available.",
   },
   {
-    question: "Apakah bisa dipakai di Google Sheets dan Excel?",
+    question: "Can it work with Google Sheets and Excel?",
     answer:
-      "Bisa, dengan template yang disesuaikan. Konektor langsung Google Sheets berada di roadmap.",
+      "Yes, with tailored templates. A direct Google Sheets connector is on the roadmap.",
   },
   {
-    question: "Bagaimana cara kerja automasi import/export?",
+    question: "How does import/export automation work?",
     answer:
-      "Data dapat diunggah dari file atau diekspor kembali ke format standar sesuai template.",
+      "Data can be uploaded from files or exported back to standard formats per template.",
   },
   {
-    question: "Apakah template bisa dikustom?",
+    question: "Can templates be customized?",
     answer:
-      "Bisa, template dapat diedit agar sesuai struktur data tim.",
+      "Yes, templates can be edited to match your team's data structure.",
   },
   {
-    question: "Bagaimana skema pricing?",
+    question: "How is pricing structured?",
     answer:
-      "Office mengikuti paket langganan dan kebutuhan modul, detail ada di halaman pricing.",
+      "Office follows subscription plans and module needs; see the pricing page for details.",
   },
   {
-    question: "Apa batasannya?",
+    question: "What are the limitations?",
     answer:
-      "Office membantu struktur dan automasi, namun hasil akhir tetap perlu review manusia.",
+      "Office helps structure and automate, but final results still need human review.",
   },
   {
-    question: "Apakah ada dashboard siap pakai?",
+    question: "Are there ready-made dashboards?",
     answer:
-      "Dashboard builder menyediakan KPI dasar dan dapat dikembangkan sesuai kebutuhan.",
+      "The dashboard builder provides basic KPIs and can be expanded as needed.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Platform (Core OS)",
-    desc: "Fondasi akun, workspace, dan billing untuk semua modul.",
+    desc: "Foundation for accounts, workspaces, and billing across all modules.",
     href: "/products/platform",
-    cta: "Lihat Core OS",
+    cta: "View Core OS",
   },
   {
     title: "Gigaviz Helper",
-    desc: "Asisten AI untuk drafting, rangkuman, dan riset ringan.",
+    desc: "AI assistant for drafting, summaries, and light research.",
     href: "/products/helper",
-    cta: "Lihat Helper",
+    cta: "View Helper",
   },
   {
     title: "Gigaviz Studio",
-    desc: "Studio kreatif untuk asset visual, video, dan audio.",
+    desc: "Creative studio for visual, video, and audio assets.",
     href: "/products/studio",
-    cta: "Lihat Studio",
+    cta: "View Studio",
   },
 ];
 
@@ -206,7 +206,7 @@ export default function OfficePage() {
                   Gigaviz Office
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Template kerja, asisten rumus, automasi workflow, dan generator dokumen/dasbor.
+                  Work templates, formula assistant, workflow automation, and document/dashboard generator.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -214,31 +214,31 @@ export default function OfficePage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Coba Office
+                  Try Office
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Pricing
+                  View Pricing
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Template kerja
+                  Work templates
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
                   Formula Assistant
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Automasi workflow
+                  Workflow automation
                 </span>
               </div>
             </div>
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -249,7 +249,7 @@ export default function OfficePage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Office menyederhanakan pekerjaan tim finance, ops, dan admin.
+                Office simplifies work for finance, ops, and admin teams.
               </div>
             </div>
           </div>
@@ -259,10 +259,10 @@ export default function OfficePage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Yang diselesaikan
+                What it solves
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Mengurangi beban kerja manual dan kesalahan data
+                Reduce manual workload and data errors
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {problemPoints.map((item) => (
@@ -280,13 +280,13 @@ export default function OfficePage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Fitur utama
+                Key features
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Semua alat produktivitas dalam satu workflow
+                All productivity tools in one workflow
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Dari template hingga automasi, Office dirancang agar laporan jadi lebih cepat.
+                From templates to automation, Office is designed to make reporting faster.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -311,10 +311,10 @@ export default function OfficePage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Contoh workflow
+                Workflow examples
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Alur kerja nyata yang bisa langsung dipakai
+                Real workflows you can use right away
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -346,13 +346,13 @@ export default function OfficePage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Keamanan & reliabilitas
+                Security & reliability
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Hasil yang bisa diaudit dan tetap aman
+                Results you can audit and keep safe
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Office membantu mempercepat, namun review manusia tetap disarankan.
+                Office speeds things up, but human review is still recommended.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -380,7 +380,7 @@ export default function OfficePage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan tentang Gigaviz Office
+                Questions about Gigaviz Office
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -406,10 +406,10 @@ export default function OfficePage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Lengkapi workflow Office dengan modul lain
+                  Complete the Office workflow with other modules
                 </h2>
               </div>
             </div>
@@ -442,10 +442,10 @@ export default function OfficePage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap merapikan workflow tim?
+                  Ready to streamline your team workflows?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dari template sederhana, lalu otomatisasi sesuai kebutuhan.
+                  Start with simple templates, then automate as you need.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -453,13 +453,13 @@ export default function OfficePage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

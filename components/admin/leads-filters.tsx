@@ -53,23 +53,23 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
     <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
       <div className="grid gap-3 md:grid-cols-12 md:items-end">
         <div className="md:col-span-5">
-          <label className="text-xs text-white/70">Cari (nama / WA / bisnis / catatan)</label>
+          <label className="text-xs text-white/70">Search (name / WA / business / notes)</label>
           <input
             defaultValue={q}
             onChange={(e) => setParam("q", e.target.value)}
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-cyan-500/30"
-            placeholder="contoh: 62812 / tokozinta / chatbot"
+            placeholder="e.g., 62812 / brandx / chatbot"
           />
         </div>
 
         <div className="md:col-span-3">
-          <label className="text-xs text-white/70">Filter kebutuhan</label>
+          <label className="text-xs text-white/70">Need filter</label>
           <select
             value={need}
             onChange={(e) => setParam("need", e.target.value)}
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
-            <option value="">Semua kebutuhan</option>
+            <option value="">All needs</option>
             {needs.map((n) => (
               <option key={n} value={n} className="text-black">
                 {n}
@@ -79,13 +79,13 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
         </div>
 
         <div className="md:col-span-2">
-          <label className="text-xs text-white/70">Sumber</label>
+          <label className="text-xs text-white/70">Source</label>
           <select
             value={source}
             onChange={(e) => setParam("source", e.target.value)}
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
-            <option value="">Semua sumber</option>
+            <option value="">All sources</option>
             {sources.map((s) => (
               <option key={s} value={s} className="text-black">
                 {s}
@@ -102,7 +102,7 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
               onChange={(e) => setParam("status", e.target.value)}
               className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
             >
-              <option value="">Semua status</option>
+              <option value="">All statuses</option>
               {["inserted", "deduped", "rate_limited", "invalid", "honeypot", "error"].map((s) => (
                 <option key={s} value={s} className="text-black">
                   {s}
@@ -117,7 +117,7 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
             onClick={apply}
             className="rounded-2xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-cyan-300"
           >
-            Terapkan
+            Apply
           </button>
           <button
             onClick={reset}

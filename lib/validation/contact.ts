@@ -8,35 +8,35 @@ export const contactTopics = [
 ] as const;
 
 export const budgetRanges = [
-  "Di bawah Rp 5 juta",
-  "Rp 5-25 juta",
-  "Rp 25-100 juta",
-  "Di atas Rp 100 juta",
-  "Belum ditentukan",
+  "Below Rp 5 million",
+  "Rp 5-25 million",
+  "Rp 25-100 million",
+  "Above Rp 100 million",
+  "Not decided yet",
 ] as const;
 
 export const contactSchema = z.object({
   name: z
     .string()
-    .min(3, "Nama minimal 3 karakter")
-    .max(100, "Nama terlalu panjang"),
+    .min(3, "Name must be at least 3 characters")
+    .max(100, "Name is too long"),
   email: z
     .string()
-    .email("Format email tidak valid")
-    .max(100, "Email terlalu panjang"),
-  company: z.string().max(120, "Nama perusahaan terlalu panjang").optional(),
-  topic: z.enum(contactTopics, { message: "Pilih topik terlebih dahulu" }),
+    .email("Email format is invalid")
+    .max(100, "Email is too long"),
+  company: z.string().max(120, "Company name is too long").optional(),
+  topic: z.enum(contactTopics, { message: "Please select a topic" }),
   message: z
     .string()
-    .min(10, "Pesan minimal 10 karakter")
-    .max(2000, "Pesan terlalu panjang"),
+    .min(10, "Message must be at least 10 characters")
+    .max(2000, "Message is too long"),
   budgetRange: z
     .string()
     .optional()
     .refine((value) => !value || budgetRanges.includes(value as typeof budgetRanges[number]), {
-      message: "Range budget tidak valid",
+      message: "Budget range is invalid",
     }),
-  // Honeypot anti-spam (harus selalu kosong)
+  // Honeypot anti-spam (should stay empty)
   website: z.string().optional(),
 });
 

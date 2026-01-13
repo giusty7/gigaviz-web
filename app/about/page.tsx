@@ -145,7 +145,7 @@ export default function AboutPage() {
                   </div>
                   <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
                     Giusty built Gigaviz so teams can focus on results without being distracted by disconnected tools.
-                    His mission is to deliver an ecosystem that's practical, secure, and measurable.
+                    His mission is to deliver an ecosystem that is practical, secure, and measurable.
                   </p>
                 </div>
 
@@ -269,7 +269,7 @@ export default function AboutPage() {
                   Ready to move forward with Gigaviz?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Get Started now to streamline your team's workflow.
+                  Get Started now to streamline your team workflow.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">

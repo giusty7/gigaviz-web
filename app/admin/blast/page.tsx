@@ -38,7 +38,7 @@ type TemplateRow = {
 function fmtTime(iso?: string | null) {
   if (!iso) return "-";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("id-ID");
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("en-US");
 }
 
 function sleep(ms: number) {
@@ -218,7 +218,7 @@ export default function BlastPage() {
       <div className="mb-4">
         <div className="text-xl font-semibold">Blast / Campaigns</div>
         <div className="text-sm text-slate-400">
-          Kirim template WhatsApp hanya untuk kontak yang sudah opt-in.
+          Send WhatsApp templates only to contacts that have opted in.
         </div>
       </div>
 
@@ -287,8 +287,8 @@ export default function BlastPage() {
           </form>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-xs text-slate-400">
-            Note: kontak dengan <span className="text-slate-200">opted_out=true</span> akan
-            diblokir dari semua campaign berikutnya.
+            Note: contacts with <span className="text-slate-200">opted_out=true</span> will
+            be blocked from all future campaigns.
           </div>
         </div>
 
@@ -358,7 +358,7 @@ export default function BlastPage() {
                   {!campaignsLoading && campaigns.length === 0 && (
                     <tr>
                       <td className="p-4 text-slate-400" colSpan={5}>
-                        Belum ada campaign.
+                        No campaigns yet.
                       </td>
                     </tr>
                   )}
@@ -370,7 +370,7 @@ export default function BlastPage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
             <div className="mb-2 text-sm font-semibold">Progress</div>
             <div className="text-xs text-slate-400">
-              {details?.campaign.name || "Pilih campaign dari daftar."}
+              {details?.campaign.name || "Select a campaign from the list."}
             </div>
             <div className="mt-3 h-2 rounded-full bg-slate-900">
               <div

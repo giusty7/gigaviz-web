@@ -68,7 +68,7 @@ const safetyPoints = [
   },
   {
     title: "Avoid sensitive data",
-    desc: "Don't input confidential or personal information without approval.",
+    desc: "Do not input confidential or personal information without approval.",
   },
   {
     title: "Accuracy is limited",
@@ -97,12 +97,12 @@ const faqs = [
       "Helper follows subscription plans and token quotas. Pricing details are available on the pricing page.",
   },
   {
-    question: "What is Helper's pricing scheme?",
+    question: "What is the Helper pricing scheme?",
     answer:
       "Cost is typically plan-based and token-usage-based for AI generation.",
   },
   {
-    question: "What are Helper's main limitations?",
+    question: "What are the main limitations of Helper?",
     answer:
       "Helper is an assistant. Output needs review and does not replace human judgment.",
   },
@@ -271,7 +271,7 @@ export default function HelperPage() {
                 Flexible AI assistant for daily needs
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Choose features that fit your team's workflow, from copy to summaries.
+                Choose features that fit your team workflow, from copy to summaries.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -420,7 +420,7 @@ export default function HelperPage() {
                   Ready to try Helper?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Start small and scale with your team's usage.
+                  Start small and scale with your team usage.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">

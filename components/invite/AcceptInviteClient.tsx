@@ -55,7 +55,7 @@ function getErrorMessage(code?: string, status?: number) {
     case "invite_used":
       return "This invite has already been used.";
     case "account_exists":
-      return "Akun sudah ada, silakan login untuk menerima undangan.";
+      return "Account already exists. Please sign in to accept the invitation.";
     case "email_mismatch":
       return "This invite was sent to a different email address.";
     case "email_not_verified":
@@ -247,7 +247,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
     <div className="space-y-4">
       {invitedEmailMasked ? (
         <div className="rounded-xl border border-gigaviz-border bg-gigaviz-card/60 px-3 py-2 text-sm text-gigaviz-cream">
-          Undangan untuk: <span className="font-semibold">{invitedEmailMasked}</span>
+          Invitation for: <span className="font-semibold">{invitedEmailMasked}</span>
         </div>
       ) : null}
 
@@ -282,7 +282,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       {status === "claim" ? (
         <div className="space-y-4">
           <p className="text-sm text-gigaviz-muted">
-            Buat kata sandi untuk menerima undangan ini. Email sudah dikunci dari undangan.
+            Create a password to accept this invite. The email is fixed from the invitation.
           </p>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(claimInvite)} className="space-y-3">
@@ -291,7 +291,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Buat kata sandi</FormLabel>
+                    <FormLabel>Create password</FormLabel>
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
@@ -304,7 +304,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ulangi kata sandi</FormLabel>
+                    <FormLabel>Confirm password</FormLabel>
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
@@ -313,12 +313,12 @@ export default function AcceptInviteClient({ token }: { token: string }) {
                 )}
               />
               <Button type="submit" disabled={claiming} className="w-full">
-                {claiming ? "Memproses..." : "Masuk ke dashboard"}
+                {claiming ? "Processing..." : "Go to dashboard"}
               </Button>
             </form>
           </Form>
           <div className="text-xs text-gigaviz-muted">
-            Sudah punya akun? <Link href={loginUrl} className="underline">Login</Link>
+            Already have an account? <Link href={loginUrl} className="underline">Login</Link>
           </div>
         </div>
       ) : null}
@@ -326,14 +326,14 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       {status === "account_exists" ? (
         <div className="space-y-4">
           <Alert>
-            <AlertTitle>Akun sudah ada</AlertTitle>
+            <AlertTitle>Account exists</AlertTitle>
             <AlertDescription>
-              Akun untuk email undangan sudah terdaftar. Silakan login untuk menerima undangan.
+              An account for this invite email already exists. Please sign in to accept the invite.
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">
             <Button asChild>
-              <Link href={loginUrl}>Lanjutkan login</Link>
+              <Link href={loginUrl}>Continue to login</Link>
             </Button>
             <Button asChild variant="secondary">
               <a href={oauthUrl}>Continue with Google</a>
@@ -347,7 +347,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
           <Alert>
             <AlertTitle>Sign in required</AlertTitle>
             <AlertDescription>
-              Sign in untuk menerima undangan ini.
+              Sign in to accept this invitation.
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">

@@ -36,7 +36,7 @@ export default function AdminPanel({
     setLoading(false);
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}));
-      setMessage(payload?.error || "Gagal credit token.");
+      setMessage(payload?.error || "Failed to credit tokens.");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function AdminPanel({
     setLoading(false);
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}));
-      setMessage(payload?.error || "Gagal update plan.");
+      setMessage(payload?.error || "Failed to update plan.");
       return;
     }
 
@@ -73,7 +73,7 @@ export default function AdminPanel({
     <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-6">
       <h2 className="text-lg font-semibold text-amber-50">Admin Panel</h2>
       <p className="text-sm text-amber-100/70 mt-2">
-        Admin override: credit tokens dan simulasi plan.
+        Admin override: credit tokens and simulate plan changes.
       </p>
 
       <form onSubmit={submitCredit} className="mt-4 grid gap-3 md:grid-cols-3">

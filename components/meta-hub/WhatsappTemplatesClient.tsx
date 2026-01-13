@@ -104,60 +104,60 @@ const TEMPLATE_LIBRARY: WizardPreset[] = [
   {
     key: "order_update",
     name: "order_update",
-    description: "Update status pesanan dengan ringkas.",
+    description: "Concise order status update.",
     data: {
       category: "UTILITY",
       language: "id",
       bodyText:
-        "Halo {{1}}, status pesanan {{2}} kamu sekarang {{3}}. Cek detail di dashboard kamu.",
-      footerText: "Butuh bantuan? Balas pesan ini.",
+        "Hello {{1}}, order {{2}} is now {{3}}. Check details in your dashboard.",
+      footerText: "Need help? Reply to this message.",
     },
   },
   {
     key: "payment_confirmed",
     name: "payment_confirmed",
-    description: "Konfirmasi pembayaran sukses.",
+    description: "Payment confirmation.",
     data: {
       category: "UTILITY",
       language: "id",
       headerEnabled: true,
-      headerText: "Pembayaran Berhasil",
-      bodyText: "Hi {{1}}, pembayaran untuk invoice {{2}} sudah diterima. Total {{3}}.",
-      footerText: "Terima kasih telah menggunakan Gigaviz.",
+      headerText: "Payment Successful",
+      bodyText: "Hi {{1}}, payment for invoice {{2}} is received. Total {{3}}.",
+      footerText: "Thank you for using Gigaviz.",
     },
   },
   {
     key: "appointment_reminder",
     name: "appointment_reminder",
-    description: "Pengingat jadwal atau meeting.",
+    description: "Schedule or meeting reminder.",
     data: {
       category: "UTILITY",
       language: "id",
       bodyText:
-        "Halo {{1}}, ini pengingat jadwal {{2}} pada {{3}}. Mohon konfirmasi kehadiran.",
+        "Hello {{1}}, reminder for {{2}} on {{3}}. Please confirm attendance.",
     },
   },
   {
     key: "otp_reset",
     name: "otp_reset",
-    description: "Kode OTP untuk verifikasi.",
+    description: "OTP code for verification.",
     data: {
       category: "AUTHENTICATION",
       language: "id",
-      bodyText: "Kode verifikasi kamu adalah {{1}}. Jangan bagikan ke siapa pun.",
+      bodyText: "Your verification code is {{1}}. Do not share it with anyone.",
     },
   },
   {
     key: "promo_update",
     name: "promo_update",
-    description: "Info promo singkat untuk pelanggan.",
+    description: "Short promo info for customers.",
     data: {
       category: "MARKETING",
       language: "id",
       headerEnabled: true,
       headerText: "Promo Baru",
-      bodyText: "Hai {{1}}, dapatkan promo {{2}} berlaku sampai {{3}}.",
-      footerText: "Ketik STOP untuk berhenti.",
+      bodyText: "Hi {{1}}, enjoy promo {{2}} valid until {{3}}.",
+      footerText: "Type STOP to unsubscribe.",
     },
   },
 ];
@@ -267,7 +267,7 @@ function extractVariables(tpl: TemplateRow): number {
 function renderTemplatePreview(tpl: TemplateRow, vars: string[]) {
   const pieces = pickComponents(tpl);
   const base = pieces.body ?? "";
-  if (!base) return "Tidak ada konten body.";
+  if (!base) return "No body content.";
   let rendered = base;
   vars.forEach((value, idx) => {
     const placeholder = new RegExp(`{{${idx + 1}}}`, "g");
@@ -280,7 +280,7 @@ function renderTemplatePreview(tpl: TemplateRow, vars: string[]) {
 
 function renderWizardPreview(state: WizardState, variables: string[]) {
   const base = state.bodyText || "";
-  if (!base) return "Belum ada body template.";
+  if (!base) return "No body template yet.";
   let rendered = base;
   variables.forEach((value, idx) => {
     const placeholder = new RegExp(`{{${idx + 1}}}`, "g");
@@ -414,16 +414,16 @@ export function WhatsappTemplatesClient({
       });
       const data = await res.json();
       if (!res.ok || data?.ok === false) {
-        throw new Error(data?.message || data?.code || "Gagal memuat template");
+        throw new Error(data?.message || data?.code || "Failed to load templates");
       }
       const list = (data.templates ?? []) as TemplateRow[];
       setTemplateList(list);
       return list;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Gagal memuat template";
+      const msg = err instanceof Error ? err.message : "Failed to load templates";
       setErrorText(msg);
       toast({
-        title: "Gagal memuat templates",
+        title: "Failed to load templates",
         description: msg,
         variant: "destructive",
       });
@@ -450,18 +450,18 @@ export function WhatsappTemplatesClient({
       const data = await res.json().catch(() => null);
       if (!res.ok || data?.ok === false) {
         const code = data?.code ? `(${data.code}) ` : "";
-        const msg = data?.message || data?.reason || "Sync gagal";
+        const msg = data?.message || data?.reason || "Sync failed";
         throw new Error(`${code}${msg}`);
       }
       toast({
-        title: "Sync selesai",
+        title: "Sync completed",
         description: `Inserted ${data?.inserted ?? 0}, updated ${data?.updated ?? 0}`,
       });
       await fetchTemplates();
     } catch (err) {
       toast({
-        title: "Sync gagal",
-        description: err instanceof Error ? err.message : "Gagal sync template",
+        title: "Sync failed",
+        description: err instanceof Error ? err.message : "Failed to sync templates",
         variant: "destructive",
       });
     } finally {
@@ -484,7 +484,7 @@ export function WhatsappTemplatesClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || data?.ok === false) {
-        throw new Error(data?.message || data?.code || "Refresh gagal");
+        throw new Error(data?.message || data?.code || "Refresh failed");
       }
       const updated = data?.template as TemplateRow | undefined;
       if (updated) {
@@ -493,11 +493,11 @@ export function WhatsappTemplatesClient({
         );
         setSelected((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev));
       }
-      toast({ title: "Status diperbarui", description: `Template ${tpl.name} refreshed.` });
+      toast({ title: "Status updated", description: `Template ${tpl.name} refreshed.` });
     } catch (err) {
       toast({
-        title: "Refresh gagal",
-        description: err instanceof Error ? err.message : "Tidak dapat refresh status",
+        title: "Refresh failed",
+        description: err instanceof Error ? err.message : "Unable to refresh status",
         variant: "destructive",
       });
     } finally {
@@ -523,16 +523,16 @@ export function WhatsappTemplatesClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.reason || data?.error || "Gagal kirim pesan");
+        throw new Error(data?.reason || data?.error || "Failed to send message");
       }
       toast({
-        title: "Pesan terkirim",
-        description: data?.messageId ? `Message ID: ${data.messageId}` : "Berhasil mengirim tes.",
+        title: "Message sent",
+        description: data?.messageId ? `Message ID: ${data.messageId}` : "Test message sent.",
       });
     } catch (err) {
       toast({
-        title: "Kirim tes gagal",
-        description: err instanceof Error ? err.message : "Tidak dapat mengirim pesan",
+        title: "Test send failed",
+        description: err instanceof Error ? err.message : "Unable to send message",
         variant: "destructive",
       });
     } finally {
@@ -559,16 +559,16 @@ export function WhatsappTemplatesClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.reason || data?.error || "Gagal simpan whitelist");
+        throw new Error(data?.reason || data?.error || "Failed to save whitelist");
       }
       toast({
-        title: "Pengaturan tersimpan",
-        description: "Whitelist dan sandbox diperbarui.",
+        title: "Settings saved",
+        description: "Whitelist and sandbox updated.",
       });
     } catch (err) {
       toast({
-        title: "Gagal simpan",
-        description: err instanceof Error ? err.message : "Tidak dapat menyimpan pengaturan",
+        title: "Save failed",
+        description: err instanceof Error ? err.message : "Unable to save settings",
         variant: "destructive",
       });
     } finally {
@@ -628,7 +628,7 @@ export function WhatsappTemplatesClient({
   function validateWizardStep(step: number) {
     if (step === 1) {
       if (!wizardState.name.trim()) {
-        setWizardError("Nama template wajib diisi.");
+        setWizardError("Template name is required.");
         return false;
       }
       if (!NAME_REGEX.test(wizardState.name.trim())) {
@@ -636,7 +636,7 @@ export function WhatsappTemplatesClient({
         return false;
       }
       if (!wizardState.language.trim()) {
-        setWizardError("Language wajib diisi.");
+        setWizardError("Language is required.");
         return false;
       }
       setWizardError(null);
@@ -645,24 +645,24 @@ export function WhatsappTemplatesClient({
 
     if (step === 2) {
       if (!wizardState.bodyText.trim()) {
-        setWizardError("Body template wajib diisi.");
+        setWizardError("Template body is required.");
         return false;
       }
       if (wizardState.headerEnabled && !wizardState.headerText.trim()) {
-        setWizardError("Header text wajib diisi jika header aktif.");
+        setWizardError("Header text is required when header is enabled.");
         return false;
       }
       for (const btn of wizardState.buttons) {
         if (!btn.text.trim()) {
-          setWizardError("Semua tombol wajib memiliki label.");
+          setWizardError("All buttons must have a label.");
           return false;
         }
         if (btn.type === "URL" && !btn.url?.trim()) {
-          setWizardError("URL wajib diisi untuk tombol URL.");
+          setWizardError("URL is required for URL buttons.");
           return false;
         }
         if (btn.type === "PHONE_NUMBER" && !btn.phone_number?.trim()) {
-          setWizardError("Nomor telepon wajib diisi untuk tombol phone.");
+          setWizardError("Phone number is required for phone buttons.");
           return false;
         }
       }
@@ -674,7 +674,7 @@ export function WhatsappTemplatesClient({
       if (bodyVariableCount > 0) {
         const hasEmpty = wizardState.bodyExamples.some((value) => !value.trim());
         if (hasEmpty) {
-          setWizardError("Isi contoh untuk semua variabel yang terdeteksi.");
+          setWizardError("Provide examples for every detected variable.");
           return false;
         }
       }
@@ -738,8 +738,8 @@ export function WhatsappTemplatesClient({
   async function handleCreateTemplate() {
     if (!activeConnection) {
       toast({
-        title: "Connection belum ada",
-        description: "Hubungkan WhatsApp terlebih dahulu di halaman Connections.",
+        title: "Connection not available",
+        description: "Connect WhatsApp first in the Connections page.",
         variant: "destructive",
       });
       return;
@@ -755,11 +755,11 @@ export function WhatsappTemplatesClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || data?.ok === false) {
-        throw new Error(data?.message || data?.reason || "Gagal membuat template");
+        throw new Error(data?.message || data?.reason || "Failed to create template");
       }
       toast({
         title: "Template dibuat",
-        description: data?.status ? `Status: ${data.status}` : "Berhasil mengirim ke Meta.",
+        description: data?.status ? `Status: ${data.status}` : "Sent to Meta.",
       });
       setWizardOpen(false);
       setWizardStep(1);
@@ -772,9 +772,9 @@ export function WhatsappTemplatesClient({
         setSelected(target);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Tidak dapat membuat template";
+      const msg = err instanceof Error ? err.message : "Cannot create template";
       toast({
-        title: "Gagal membuat template",
+        title: "Failed to create template",
         description: msg,
         variant: "destructive",
       });
@@ -799,7 +799,7 @@ export function WhatsappTemplatesClient({
                 Sinkronkan template WA dari Meta.{" "}
                 {selected?.last_synced_at
                   ? `Last sync: ${new Date(selected.last_synced_at).toLocaleString()}`
-                  : "Belum pernah sync"}
+                  : "Never synced"}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -820,7 +820,7 @@ export function WhatsappTemplatesClient({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Belum ada connection. Hubungkan WhatsApp di Connections.
+                  No connection yet. Connect WhatsApp in Connections.
                 </p>
               )}
               <Input
@@ -846,9 +846,9 @@ export function WhatsappTemplatesClient({
         <CardContent className="p-0">
           {!activeConnection ? (
             <div className="border-b border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-              Connection WhatsApp belum dipilih.{" "}
+              WhatsApp connection not selected.{" "}
               <a href={`/${workspaceSlug}/meta-hub/connections`} className="text-gigaviz-gold underline">
-                Buka Connections
+                Open Connections
               </a>
               .
             </div>
@@ -932,7 +932,7 @@ export function WhatsappTemplatesClient({
                   {filtered.length === 0 && !loading ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Belum ada template. Buat template pertama atau sync dari Meta.
+                        No templates yet. Create the first template or sync from Meta.
                       </TableCell>
                     </TableRow>
                   ) : null}
@@ -948,12 +948,12 @@ export function WhatsappTemplatesClient({
               <div>
                 <CardTitle className="text-base font-semibold text-foreground">Preview & Test</CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  Connection: {activeConnection ? getConnectionLabel(activeConnection) : "Belum ada"}
+                  Connection: {activeConnection ? getConnectionLabel(activeConnection) : "None yet"}
                 </p>
               </div>
               {selected ? (
                 <Button size="sm" variant="outline" onClick={() => setDetailsOpen((prev) => !prev)}>
-                  {detailsOpen ? "Tutup detail" : "Lihat detail"}
+                  {detailsOpen ? "Hide details" : "View details"}
                 </Button>
               ) : null}
             </CardHeader>
@@ -976,7 +976,7 @@ export function WhatsappTemplatesClient({
                       Last sync:{" "}
                       {selected.last_synced_at
                         ? new Date(selected.last_synced_at).toLocaleString()
-                        : "Belum pernah"}
+                        : "Never"}
                     </p>
                   </div>
 
@@ -994,7 +994,7 @@ export function WhatsappTemplatesClient({
                               next[idx] = e.target.value;
                               setVariables(next);
                             }}
-                            placeholder={`Nilai untuk {{${idx + 1}}}`}
+                            placeholder={`Value for {{${idx + 1}}}`}
                             className="bg-background"
                           />
                         </div>
@@ -1034,7 +1034,7 @@ export function WhatsappTemplatesClient({
                       {selected.meta_response || selected.meta_payload ? (
                         <details className="rounded-lg border border-border bg-card p-2">
                           <summary className="cursor-pointer text-xs text-muted-foreground">
-                            Lihat payload Meta
+                            View Meta payload
                           </summary>
                           <pre className="mt-2 whitespace-pre-wrap text-[11px] text-foreground">
                             {JSON.stringify(selected.meta_response ?? selected.meta_payload, null, 2)}
@@ -1045,9 +1045,9 @@ export function WhatsappTemplatesClient({
                   ) : null}
 
                   <div className="space-y-3">
-                    <p className="text-sm font-semibold text-foreground">Kirim pesan tes</p>
+                    <p className="text-sm font-semibold text-foreground">Send test message</p>
                     <div className="space-y-1">
-                      <Label htmlFor="toPhone">Tujuan (whitelist)</Label>
+                      <Label htmlFor="toPhone">Recipient (whitelist)</Label>
                       <Input
                         id="toPhone"
                         value={toPhone}
@@ -1057,17 +1057,17 @@ export function WhatsappTemplatesClient({
                       />
                     </div>
                     <Button onClick={handleSendTest} disabled={sending || !canEdit}>
-                      {sending ? "Mengirim..." : "Kirim tes"}
+                      {sending ? "Sending..." : "Send test"}
                     </Button>
                     {!canEdit ? (
                       <p className="text-xs text-muted-foreground">
-                        Hanya owner/admin yang dapat mengirim pesan tes.
+                        Only owners/admins can send test messages.
                       </p>
                     ) : null}
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Pilih template untuk melihat preview.</p>
+                <p className="text-sm text-muted-foreground">Select a template to view the preview.</p>
               )}
             </CardContent>
           </Card>
@@ -1078,7 +1078,7 @@ export function WhatsappTemplatesClient({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
-                <Label htmlFor="sandbox">Sandbox aktif</Label>
+                <Label htmlFor="sandbox">Sandbox enabled</Label>
                 <input
                   id="sandbox"
                   type="checkbox"
@@ -1087,7 +1087,7 @@ export function WhatsappTemplatesClient({
                   disabled={!canEdit}
                   onChange={(e) => setSandboxEnabled(e.target.checked)}
                 />
-                <p className="text-xs text-muted-foreground">Jika aktif, kirim tes hanya ke nomor whitelist.</p>
+                <p className="text-xs text-muted-foreground">When enabled, send tests only to whitelisted numbers.</p>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="whitelist">Whitelist (comma-separated)</Label>
@@ -1101,11 +1101,11 @@ export function WhatsappTemplatesClient({
                 />
               </div>
               <Button onClick={handleSaveSettings} disabled={!canEdit || savingSettings}>
-                {savingSettings ? "Menyimpan..." : "Simpan pengaturan"}
+                {savingSettings ? "Saving..." : "Save settings"}
               </Button>
               {!canEdit ? (
                 <p className="text-xs text-muted-foreground">
-                  Hanya owner/admin yang dapat mengubah pengaturan sandbox.
+                  Only owners/admins can change sandbox settings.
                 </p>
               ) : null}
             </CardContent>
@@ -1124,13 +1124,13 @@ export function WhatsappTemplatesClient({
                 : "Create from library"}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Bangun template baru tanpa meninggalkan halaman ini.
+              Build a new template without leaving this page.
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground">
             <span>Step {wizardStep} / 4</span>
-            <span>Connection: {activeConnection ? getConnectionLabel(activeConnection) : "Belum ada"}</span>
+            <span>Connection: {activeConnection ? getConnectionLabel(activeConnection) : "None yet"}</span>
           </div>
 
           {wizardError ? <p className="text-sm text-rose-200">{wizardError}</p> : null}
@@ -1138,18 +1138,18 @@ export function WhatsappTemplatesClient({
           {wizardStep === 1 ? (
             <div className="space-y-4">
               <div className="space-y-1">
-                <Label htmlFor="tpl-name">Nama template</Label>
+                <Label htmlFor="tpl-name">Template name</Label>
                 <Input
                   id="tpl-name"
                   value={wizardState.name}
                   onChange={(e) =>
                     setWizardState({ ...wizardState, name: normalizeTemplateName(e.target.value) })
                   }
-                  placeholder="contoh: order_update"
+                  placeholder="example: order_update"
                   className="bg-background"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Gunakan huruf kecil + underscore. Minimal 3 karakter.
+                  Use lowercase + underscore. Minimum 3 characters.
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-3">
@@ -1216,7 +1216,7 @@ export function WhatsappTemplatesClient({
                 <div className="flex items-center justify-between">
                   <Label htmlFor="tpl-body">Body</Label>
                   <Button type="button" size="sm" variant="outline" onClick={appendVariable}>
-                    Tambah {"{{n}}"}
+                    Add {"{{n}}"}
                   </Button>
                 </div>
                 <Textarea
@@ -1224,11 +1224,11 @@ export function WhatsappTemplatesClient({
                   value={wizardState.bodyText}
                   onChange={(e) => setWizardState({ ...wizardState, bodyText: e.target.value })}
                   className="min-h-[120px] bg-background"
-                  placeholder="Isi pesan utama template..."
+                  placeholder="Main template message..."
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="tpl-footer">Footer (opsional)</Label>
+                <Label htmlFor="tpl-footer">Footer (optional)</Label>
                 <Input
                   id="tpl-footer"
                   value={wizardState.footerText}
@@ -1237,25 +1237,25 @@ export function WhatsappTemplatesClient({
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Buttons</Label>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      setWizardState((prev) => ({
-                        ...prev,
-                        buttons: [...prev.buttons, { id: makeId(), type: "QUICK_REPLY", text: "" }],
-                      }))
-                    }
-                  >
-                    Tambah tombol
-                  </Button>
-                </div>
-                {wizardState.buttons.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Tidak ada tombol.</p>
-                ) : null}
+                  <div className="flex items-center justify-between">
+                    <Label>Buttons</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        setWizardState((prev) => ({
+                          ...prev,
+                          buttons: [...prev.buttons, { id: makeId(), type: "QUICK_REPLY", text: "" }],
+                        }))
+                      }
+                    >
+                      Add button
+                    </Button>
+                  </div>
+                  {wizardState.buttons.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No buttons.</p>
+                  ) : null}
                 <div className="space-y-2">
                   {wizardState.buttons.map((btn, idx) => (
                     <div key={btn.id} className="rounded-lg border border-border bg-background p-3">
@@ -1360,16 +1360,16 @@ export function WhatsappTemplatesClient({
           {wizardStep === 3 ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">Contoh variabel</p>
+                <p className="text-sm font-semibold text-foreground">Variable examples</p>
                 {bodyVariableCount === 0 ? (
                   <p className="text-xs text-muted-foreground">
-                    Tidak ada variabel terdeteksi pada body template.
+                    No variables detected in the template body.
                   </p>
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2">
                     {wizardState.bodyExamples.map((value, idx) => (
                       <div key={idx} className="space-y-1">
-                        <Label>{`Contoh {{${idx + 1}}}`}</Label>
+                        <Label>{`Example {{${idx + 1}}}`}</Label>
                         <Input
                           value={value}
                           onChange={(e) => {
@@ -1378,7 +1378,7 @@ export function WhatsappTemplatesClient({
                             setWizardState({ ...wizardState, bodyExamples: next });
                           }}
                           className="bg-background"
-                          placeholder={`Nilai untuk {{${idx + 1}}}`}
+                          placeholder={`Value for {{${idx + 1}}}`}
                         />
                       </div>
                     ))}
@@ -1387,17 +1387,17 @@ export function WhatsappTemplatesClient({
               </div>
               {wizardState.headerEnabled ? (
                 <div className="space-y-1">
-                  <Label>Contoh header (opsional)</Label>
+                  <Label>Header example (optional)</Label>
                   <Input
                     value={wizardState.headerExample}
                     onChange={(e) => setWizardState({ ...wizardState, headerExample: e.target.value })}
                     className="bg-background"
-                    placeholder="Isi contoh header"
+                    placeholder="Header example value"
                   />
                 </div>
               ) : null}
               <details className="rounded-xl border border-border bg-background p-3 text-xs">
-                <summary className="cursor-pointer text-muted-foreground">Lihat payload (preview)</summary>
+                <summary className="cursor-pointer text-muted-foreground">View payload (preview)</summary>
                 <pre className="mt-2 whitespace-pre-wrap text-foreground">
                   {JSON.stringify(buildCreatePayload(), null, 2)}
                 </pre>
@@ -1408,14 +1408,14 @@ export function WhatsappTemplatesClient({
           {wizardStep === 4 ? (
             <div className="space-y-3">
               <div className="rounded-xl border border-border bg-background p-3 text-sm">
-                <p className="font-semibold text-foreground">Ringkasan</p>
-                <p className="text-xs text-muted-foreground">Nama: {wizardState.name}</p>
+                <p className="font-semibold text-foreground">Summary</p>
+                <p className="text-xs text-muted-foreground">Name: {wizardState.name}</p>
                 <p className="text-xs text-muted-foreground">Category: {wizardState.category}</p>
                 <p className="text-xs text-muted-foreground">Language: {wizardState.language}</p>
                 <p className="text-xs text-muted-foreground">Buttons: {wizardState.buttons.length}</p>
               </div>
               <p className="text-xs text-muted-foreground">
-                Setelah dikirim, status template akan mengikuti review Meta.
+                After submission, the template status follows Meta review.
               </p>
             </div>
           ) : null}
@@ -1423,10 +1423,10 @@ export function WhatsappTemplatesClient({
           <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={prevStep} disabled={wizardStep === 1}>
-                Kembali
+                Back
               </Button>
               <Button type="button" variant="outline" onClick={nextStep} disabled={wizardStep >= 4}>
-                Lanjut
+                Next
               </Button>
             </div>
             <Button
@@ -1434,7 +1434,7 @@ export function WhatsappTemplatesClient({
               onClick={handleCreateTemplate}
               disabled={!canManage || wizardStep !== 4 || creating}
             >
-              {creating ? "Mengirim..." : "Submit ke Meta"}
+              {creating ? "Submitting..." : "Submit to Meta"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1445,7 +1445,7 @@ export function WhatsappTemplatesClient({
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Clone from library</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Pilih template siap pakai lalu sesuaikan sebelum submit.
+              Pick a ready-to-use template and adjust it before submitting.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3">
@@ -1457,7 +1457,7 @@ export function WhatsappTemplatesClient({
                     <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                   <Button size="sm" onClick={() => openWizardFromPreset(item)}>
-                    Gunakan
+                    Use template
                   </Button>
                 </div>
               </div>

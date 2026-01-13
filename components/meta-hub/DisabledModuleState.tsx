@@ -13,7 +13,7 @@ type Props = {
 export function DisabledModuleState({
   title,
   description,
-  ctaLabel = "Hubungi Sales",
+  ctaLabel = "Contact Sales",
   ctaHref = "/contact",
 }: Props) {
   return (
