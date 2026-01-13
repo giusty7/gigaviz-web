@@ -28,6 +28,7 @@ export default async function BillingPage({
 
   const billing = await getWorkspaceBilling(ctx.currentWorkspace.id);
   const summary = await getBillingSummary(ctx.currentWorkspace.id);
+  const userEmail = ctx.user.email ?? "";
   const planIdNormalized = normalizePlanId(billing.plan?.code ?? billing.subscription?.plan_id);
   const featureUnion = Array.from(
     new Set(planMeta.flatMap((p) => getPlanFeatures(p.plan_id)).concat(getPlanFeatures(planIdNormalized)))
@@ -103,7 +104,14 @@ export default async function BillingPage({
         </div>
       </section>
 
-      <ComparePlans plans={planMeta} activePlanId={planIdNormalized} />
+      <ComparePlans
+        plans={planMeta}
+        activePlanId={planIdNormalized}
+        workspaceId={ctx.currentWorkspace.id}
+        workspaceSlug={ctx.currentWorkspace.slug}
+        workspaceName={ctx.currentWorkspace.name}
+        userEmail={userEmail}
+      />
     </div>
   );
 }

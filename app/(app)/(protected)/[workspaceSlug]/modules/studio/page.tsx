@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
-import ModuleGrid, { type ModuleStatus } from "@/components/app/ModuleGrid";
+import { type ModuleStatus } from "@/components/app/ModuleGrid";
+import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import { canAccess, getPlanMeta, planMeta } from "@/lib/entitlements";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { studioChildren } from "@/lib/modules/catalog";
 
@@ -32,6 +33,7 @@ export default async function StudioModulesPage({ params }: PageProps) {
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
+  const userEmail = ctx.user.email ?? "";
   const basePath = `/${ctx.currentWorkspace.slug}`;
 
   const moduleCards = studioChildren.map((module) => {
@@ -44,7 +46,7 @@ export default async function StudioModulesPage({ params }: PageProps) {
       ? "coming_soon"
       : canUse
         ? "available"
-        : "preview";
+        : "locked";
 
     return {
       key: module.key,
@@ -60,10 +62,19 @@ export default async function StudioModulesPage({ params }: PageProps) {
       <div>
         <h1 className="text-xl font-semibold">Studio Suite</h1>
         <p className="text-sm text-muted-foreground">
-          Office, Graph, dan Tracks dalam satu suite. Modul dengan status Preview tetap bisa dibuka.
+          Office, Graph, and Tracks in one suite. Locked modules require an upgrade; coming soon
+          items show their status.
         </p>
       </div>
-      <ModuleGrid modules={moduleCards} />
+      <ModuleGridWithSalesDialog
+        modules={moduleCards}
+        workspaceId={ctx.currentWorkspace.id}
+        workspaceName={ctx.currentWorkspace.name}
+        workspaceSlug={ctx.currentWorkspace.slug}
+        userEmail={userEmail}
+        planOptions={planMeta}
+        defaultPlanId={plan.plan_id}
+      />
     </div>
   );
 }

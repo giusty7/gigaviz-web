@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
-import ModuleGrid, { type ModuleStatus } from "@/components/app/ModuleGrid";
+import { type ModuleStatus } from "@/components/app/ModuleGrid";
+import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import { canAccess, getPlanMeta, planMeta } from "@/lib/entitlements";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { topLevelModules } from "@/lib/modules/catalog";
 
@@ -35,6 +36,7 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
+  const userEmail = ctx.user.email ?? "";
   const basePath = `/${workspace.slug}`;
 
   const moduleCards = topLevelModules.map((module) => {
@@ -47,7 +49,7 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
       ? "coming_soon"
       : canUse
         ? "available"
-        : "preview";
+        : "locked";
 
     const href = !comingSoon
       ? (module.hrefApp
@@ -69,11 +71,19 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
       <div>
         <h1 className="text-xl font-semibold">Modules</h1>
         <p className="text-sm text-muted-foreground">
-          Jelajahi modul yang tersedia. Modul dengan status Preview bisa dibuka untuk melihat
-          tampilan.
+          Explore available modules. Locked items require an upgrade; coming soon modules show a
+          status badge.
         </p>
       </div>
-      <ModuleGrid modules={moduleCards} />
+      <ModuleGridWithSalesDialog
+        modules={moduleCards}
+        workspaceId={workspace.id}
+        workspaceName={workspace.name}
+        workspaceSlug={workspace.slug}
+        userEmail={userEmail}
+        planOptions={planMeta}
+        defaultPlanId={plan.plan_id}
+      />
     </div>
   );
 }

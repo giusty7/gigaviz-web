@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests configured yet\"",
     "worker": "tsx scripts/worker.ts",
     "test:smoke": "tsx lib/worker/backoff.test.ts"
   },

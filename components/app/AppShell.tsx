@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import AppNavLinks from "@/components/app/AppNavLinks";
 import WorkspaceSwitcher from "@/components/app/WorkspaceSwitcher";
 import { AppShell as Shell } from "@/components/layout/app-shell";
 import { UpgradeModalProvider } from "@/components/billing/upgrade-modal-provider";
@@ -36,6 +37,13 @@ export default function AppShell({
   const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
   const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
   const settingsHref = workspaceSlug ? `/${workspaceSlug}/settings` : "/settings";
+  const navLinks = [
+    { href: dashboardHref, label: "Dashboard" },
+    { href: modulesHref, label: "Modules" },
+    { href: tokensHref, label: "Tokens" },
+    { href: billingHref, label: "Billing" },
+    { href: settingsHref, label: "Settings" },
+  ];
 
   return (
     <UpgradeModalProvider billingHref={billingHref}>
@@ -49,36 +57,7 @@ export default function AppShell({
               </Link>
               <p className="mt-1 text-xs text-gigaviz-muted">App Area</p>
             </div>
-
-            <nav className="flex flex-col gap-2 text-sm">
-              <Link href={dashboardHref} className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface">
-                Dashboard
-              </Link>
-              <Link
-                href={modulesHref}
-                className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
-              >
-                Modules
-              </Link>
-              <Link
-                href={tokensHref}
-                className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
-              >
-                Tokens
-              </Link>
-              <Link
-                href={billingHref}
-                className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
-              >
-                Billing
-              </Link>
-              <Link
-                href={settingsHref}
-                className="rounded-xl px-3 py-2 hover:bg-gigaviz-surface"
-              >
-                Settings
-              </Link>
-            </nav>
+            <AppNavLinks links={navLinks} />
 
             {isAdmin && (
               <div className="mt-auto rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">

@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import SetPasswordModal from "@/components/auth/SetPasswordModal";
 import PlanCard from "@/components/app/PlanCard";
 import TokenCard from "@/components/app/TokenCard";
-import ModuleGrid, { type ModuleStatus } from "@/components/app/ModuleGrid";
+import { type ModuleStatus } from "@/components/app/ModuleGrid";
 import ComparePlans from "@/components/app/ComparePlans";
 import AdminPanel from "@/components/app/AdminPanel";
+import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
+import QuickAccessSection from "@/components/app/QuickAccessSection";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { topLevelModules } from "@/lib/modules/catalog";
@@ -42,6 +44,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
   const isAdmin = Boolean(ctx.profile?.is_admin);
+  const userEmail = ctx.user.email ?? "";
 
   const wallet = await getWallet(ctx.currentWorkspace.id);
   const balance = Number(wallet.balance_bigint ?? 0);
@@ -65,7 +68,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
       ? "coming_soon"
       : canUse
         ? "available"
-        : "preview";
+        : "locked";
 
     const href = !comingSoon
       ? (module.hrefApp
@@ -85,37 +88,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   return (
     <div className="space-y-8">
       <SetPasswordModal />
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold">Quick Access</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Buka modul utama lebih cepat. Modul yang belum aktif ditandai.
-        </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {moduleCards.map((m) => (
-            <div
-              key={m.key}
-              className="flex items-center justify-between rounded-xl border border-border bg-background p-4"
-            >
-              <div>
-                <p className="text-base font-semibold text-foreground">{m.name}</p>
-                <p className="text-sm text-muted-foreground">{m.description}</p>
-              </div>
-              {m.href ? (
-                <Link
-                  href={m.href}
-                  className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
-                >
-                  {m.status === "preview" ? "Open preview" : "Open"}
-                </Link>
-              ) : (
-                <span className="rounded-lg border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-muted-foreground">
-                  Coming soon
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+      <QuickAccessSection workspaceId={workspace.id} modules={moduleCards} />
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold">Workspace Overview</h2>
@@ -177,11 +150,11 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold">Status & Coming Next</h2>
+        <h2 className="text-lg font-semibold">Product Updates</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-          <li>Member invites dan approvals sedang disiapkan.</li>
-          <li>Token top up akan tersedia setelah billing live.</li>
-          <li>Dashboard insights akan menampilkan usage detail per modul.</li>
+          <li>Member invites and approvals are being finalized.</li>
+          <li>Token top-up goes live right after billing launch.</li>
+          <li>Dashboard insights will show per-module usage details.</li>
         </ul>
       </section>
 
@@ -199,8 +172,8 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
         <section className="rounded-2xl border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">Free Locked (Beta)</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            Free tier sementara dikunci untuk mencegah abuse dan menjaga
-            reliability/compliance. Upgrade untuk membuka semua modul.
+            Free tier is temporarily locked to prevent abuse and keep reliability/compliance high.
+            Upgrade to unlock all modules.
           </p>
         </section>
       )}
@@ -212,13 +185,28 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
             href={`${basePath}/modules`}
             className="text-sm font-semibold text-gigaviz-gold hover:underline"
           >
-            Lihat semua modul
+            View all modules
           </Link>
         </div>
-        <ModuleGrid modules={moduleCards} />
+        <ModuleGridWithSalesDialog
+          modules={moduleCards}
+          workspaceId={workspace.id}
+          workspaceName={workspace.name}
+          workspaceSlug={workspace.slug}
+          userEmail={userEmail}
+          planOptions={planMeta}
+          defaultPlanId={plan.plan_id}
+        />
       </section>
 
-      <ComparePlans plans={planMeta} activePlanId={plan.plan_id} />
+      <ComparePlans
+        plans={planMeta}
+        activePlanId={plan.plan_id}
+        workspaceId={workspace.id}
+        workspaceSlug={workspace.slug}
+        workspaceName={workspace.name}
+        userEmail={userEmail}
+      />
 
       {isAdmin && (
         <AdminPanel

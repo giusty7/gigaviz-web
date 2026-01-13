@@ -8,14 +8,15 @@ type TokenCardProps = {
 
 export default function TokenCard({ balance, workspaceSlug }: TokenCardProps) {
   const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
+  const formattedBalance = new Intl.NumberFormat("en-US").format(balance);
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-white/60">Token Wallet</p>
-          <h2 className="text-2xl font-semibold">{balance.toLocaleString()}</h2>
-          <p className="text-xs text-white/50 mt-1">Tokens available</p>
+          <h2 className="text-2xl font-semibold">{formattedBalance}</h2>
+          <p className="text-xs text-white/50 mt-1">tokens available</p>
         </div>
         <Link
           href={tokensHref}
