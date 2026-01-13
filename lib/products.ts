@@ -63,7 +63,7 @@ export function getProductBySlug(slug: string) {
 }
 
 export const productsMetadata: Metadata = {
-  title: "Produk Gigaviz",
+  title: "Gigaviz Products",
   description:
-    "Jelajahi seluruh modul ekosistem Gigaviz untuk kebutuhan create, automate, monetize, dan manage.",
+    "Explore every module in the Gigaviz ecosystem for create, automate, monetize, and manage.",
 };

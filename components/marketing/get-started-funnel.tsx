@@ -8,28 +8,28 @@ type PlanKey = "individu" | "tim";
 const plans = [
   {
     key: "individu",
-    title: "Individu",
-    desc: "Untuk kreator solo atau operator yang butuh workflow rapi.",
-    highlights: ["1 workspace", "1 user", "Akses dasar untuk modul inti"],
-    cta: "Pilih Individu",
-    note: "Cocok untuk memulai dengan kebutuhan sederhana.",
+    title: "Individual",
+    desc: "For solo creators or operators who need a clean workflow.",
+    highlights: ["1 workspace", "1 user", "Core module access"],
+    cta: "Choose Individual",
+    note: "Best for getting started with simple needs.",
   },
   {
     key: "tim",
-    title: "Tim (Workspace)",
-    desc: "Untuk tim yang butuh kolaborasi, role, dan kontrol.",
-    highlights: ["Multi member", "Roles & permissions (RBAC)", "Audit log"],
-    cta: "Pilih Tim",
-    note: "Dirancang untuk kolaborasi dan kontrol akses.",
+    title: "Team (Workspace)",
+    desc: "For teams that need collaboration, roles, and control.",
+    highlights: ["Multiple members", "Roles and permissions (RBAC)", "Audit Logs"],
+    cta: "Choose Team",
+    note: "Designed for collaboration and access control.",
   },
 ] as const;
 
 const steps = [
-  "Buat akun",
-  "Verifikasi email",
-  "Masuk beranda",
-  "Buat workspace (opsional untuk Tim)",
-  "Aktifkan modul sesuai paket",
+  "Create account",
+  "Verify email",
+  "Sign in to your dashboard",
+  "Create a workspace (optional for Team)",
+  "Activate modules based on your plan",
 ];
 
 export default function GetStartedFunnel() {
@@ -48,17 +48,17 @@ export default function GetStartedFunnel() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Pilih paket awal
+                Choose your starting plan
               </p>
               <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Mulai sebagai individu atau tim
+                Start as an individual or a team
               </h2>
               <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                Paket menentukan akses modul, jumlah anggota, dan kontrol workspace.
+                Your plan sets module access, member limits, and workspace controls.
               </p>
             </div>
             <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-4 py-2 text-xs text-[color:var(--gv-muted)]">
-              Bisa upgrade atau downgrade kapan saja.
+              Upgrade or downgrade anytime.
             </div>
           </div>
 
@@ -78,7 +78,7 @@ export default function GetStartedFunnel() {
                     <h3 className="text-lg font-semibold">{plan.title}</h3>
                     {isActive ? (
                       <span className="rounded-full border border-[color:var(--gv-accent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-accent)]">
-                        Terpilih
+                        Selected
                       </span>
                     ) : null}
                   </div>
@@ -116,26 +116,26 @@ export default function GetStartedFunnel() {
           <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-start">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Apa yang Anda lakukan selanjutnya
+                What to do next
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                Langkah singkat, hasil yang jelas
+                Short steps, clear outcomes
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Fokus pada langkah inti agar akses modul aktif lebih cepat.
+                Focus on the core steps to activate modules faster.
               </p>
               <div className="mt-4 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-4 py-3 text-xs text-[color:var(--gv-muted)]">
                 <span className="rounded-full border border-[color:var(--gv-accent)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-accent)]">
-                  Akses terbatas
+                  Limited access
                 </span>
                 <span className="ml-2">
-                  Akun gratis: akses modul dibatasi (view-only/locked) sampai paket aktif.
+                  Free accounts: module access is limited (view-only/locked) until a plan is active.
                 </span>
               </div>
             </div>
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
               <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Pilihan Anda
+                Your selection
               </div>
               <div className="mt-2 text-lg font-semibold text-[color:var(--gv-text)]">
                 {activePlan.title}

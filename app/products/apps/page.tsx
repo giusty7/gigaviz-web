@@ -8,152 +8,152 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Apps",
   description:
-    "Katalog app internal, request build, ticketing, dan mini roadmap per workspace untuk kebutuhan operasional.",
+    "Internal app catalog, request build, ticketing, and mini roadmap per workspace for operations.",
   alternates: {
     canonical: "/products/apps",
   },
   openGraph: {
     title: "Gigaviz Apps",
     description:
-      "Katalog app internal, request build, ticketing, dan mini roadmap per workspace untuk kebutuhan operasional.",
+      "Internal app catalog, request build, ticketing, and mini roadmap per workspace for operations.",
     url: "/products/apps",
   },
 };
 
 const summaryPoints = [
-  "Katalog aplikasi internal untuk melihat modul yang sudah tersedia.",
-  "Request build aplikasi baru dengan scope yang jelas.",
-  "Ticketing dan status tracking untuk perubahan berkelanjutan.",
-  "Mini roadmap per workspace agar prioritas transparan.",
+  "Internal app catalog to view available or activated modules.",
+  "Request new applications with clear scope and business goals.",
+  "Ticketing and status tracking for ongoing changes.",
+  "Mini roadmap per workspace for transparent prioritization.",
 ];
 
 const featureCards = [
   {
     title: "App Catalog",
-    desc: "Daftar aplikasi internal yang siap dipakai atau diaktifkan.",
+    desc: "List of internal applications ready to use or activate.",
   },
   {
     title: "Request an App",
-    desc: "Ajukan kebutuhan aplikasi baru dengan brief dan tujuan bisnis.",
+    desc: "Submit new application needs with brief and business objectives.",
   },
   {
     title: "Ticketing & status tracking",
-    desc: "Pantau progres build, perubahan, dan perbaikan secara terstruktur.",
+    desc: "Monitor build progress, changes, and fixes in a structured way.",
   },
   {
     title: "Mini roadmap per workspace",
-    desc: "Prioritas fitur dan timeline disusun sesuai kebutuhan setiap tim.",
+    desc: "Feature priorities and timelines tailored to each team's needs.",
   },
   {
     title: "Collaboration notes (planned)",
-    desc: "Catatan kolaborasi dan attachment untuk briefing yang rapi.",
+    desc: "Collaboration notes and attachments for organized briefing.",
   },
   {
     title: "SLA & support tiers (planned)",
-    desc: "Level dukungan dan SLA disiapkan untuk kebutuhan enterprise.",
+    desc: "Support levels and SLA prepared for enterprise needs.",
   },
 ];
 
 const steps = [
-  "Ajukan kebutuhan aplikasi atau fitur baru.",
-  "Tim menyusun scope dan estimasi.",
-  "Build dikerjakan sesuai prioritas.",
-  "Deliver dan handoff ke tim pengguna.",
-  "Iterasi lanjut lewat ticketing.",
+  "Submit new application or feature request.",
+  "Team defines scope and estimation.",
+  "Build executed per priority.",
+  "Delivery and handoff to user team.",
+  "Ongoing iteration via ticketing.",
 ];
 
 const useCases = [
-  "Aplikasi internal untuk approval dan administrasi.",
-  "Portal klien untuk melihat status proyek.",
-  "Ops app untuk inventory atau monitoring.",
-  "Integrasi data lintas sistem bisnis.",
-  "Form request khusus untuk tim sales.",
-  "Dashboard status project per tim.",
-  "Automation kecil untuk operasional harian.",
-  "Workflow custom untuk compliance.",
+  "Internal applications for approval and administration.",
+  "Client portal to view project status.",
+  "Ops app for inventory or monitoring.",
+  "Cross-system data integration.",
+  "Custom request forms for sales teams.",
+  "Project status dashboard per team.",
+  "Small automation for daily operations.",
+  "Custom workflows for compliance.",
 ];
 
 const safetyPoints = [
   {
-    title: "Milestone terukur",
-    desc: "Setiap proyek memiliki milestone agar progres jelas dan terukur.",
+    title: "Measurable milestones",
+    desc: "Each project has milestones for clear and measurable progress.",
   },
   {
-    title: "Change request terkontrol",
-    desc: "Perubahan scope dicatat agar tidak mengganggu timeline utama.",
+    title: "Controlled change requests",
+    desc: "Scope changes are logged to avoid impacting main timeline.",
   },
   {
     title: "Access control via Core OS",
-    desc: "Akses mengikuti role dan workspace saat terhubung ke Core OS.",
+    desc: "Access follows roles and workspace when connected to Core OS.",
   },
   {
-    title: "Dokumentasi rapi",
-    desc: "Brief, keputusan, dan update tersimpan agar mudah diaudit.",
+    title: "Clean documentation",
+    desc: "Brief, decisions, and updates are stored for easy audit.",
   },
 ];
 
 const faqs = [
   {
-    question: "Apa perbedaan Apps dengan modul lainnya?",
+    question: "What's the difference between Apps and other modules?",
     answer:
-      "Apps fokus pada request aplikasi custom dan ticketing, bukan modul standar.",
+      "Apps focus on custom app requests and ticketing, not standard modules.",
   },
   {
-    question: "Bagaimana proses request aplikasi?",
+    question: "What is the app request process?",
     answer:
-      "Tim mengajukan brief, lalu scope dan estimasi disepakati sebelum build.",
+      "Team submits a brief, then scope and estimation are agreed before build.",
   },
   {
-    question: "Apakah ada batasan jumlah request?",
+    question: "Is there a limit to requests?",
     answer:
-      "Batasan mengikuti paket langganan dan prioritas workspace.",
+      "Limits follow subscription plan and workspace priority.",
   },
   {
-    question: "Apakah perubahan bisa diajukan setelah rilis?",
+    question: "Can changes be requested after release?",
     answer:
-      "Bisa, perubahan masuk sebagai ticket untuk iterasi berikutnya.",
+      "Yes, changes become tickets for the next iteration.",
   },
   {
-    question: "Apakah ada SLA?",
+    question: "Is there an SLA?",
     answer:
-      "SLA dan tier support disiapkan bertahap untuk paket tertentu.",
+      "SLA and support tiers are prepared incrementally for certain plans.",
   },
   {
-    question: "Bagaimana keamanan akses aplikasi?",
+    question: "How is app access secured?",
     answer:
-      "Akses mengikuti role dan workspace melalui Core OS.",
+      "Access follows roles and workspace through Core OS.",
   },
   {
-    question: "Apakah Apps terhubung dengan Arena Commission?",
+    question: "Does Apps integrate with Arena Commission?",
     answer:
-      "Ya, Arena Commission dapat menggunakan Apps sebagai jalur request.",
+      "Yes, Arena Commission can use Apps as a request channel.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Platform (Core OS)",
-    desc: "Fondasi akun, workspace, dan billing untuk semua modul.",
+    desc: "Foundation for accounts, workspace, and billing across all modules.",
     href: "/products/platform",
-    cta: "Lihat Core OS",
+    cta: "View Core OS",
   },
   {
     title: "Gigaviz Pay",
-    desc: "Wallet dan billing untuk subscription dan invoice.",
+    desc: "Wallet and billing for subscriptions and invoices.",
     href: "/products/pay",
-    cta: "Lihat Pay",
+    cta: "View Pay",
   },
   {
     title: "Gigaviz Arena",
-    desc: "Commission mini-game dan request custom.",
+    desc: "Commission mini-game and custom requests.",
     href: "/products/arena",
-    cta: "Lihat Arena",
+    cta: "View Arena",
   },
   {
     title: "Gigaviz Office",
-    desc: "Template kerja dan automasi dokumen untuk operasional.",
+    desc: "Work templates and document automation for operations.",
     href: "/products/office",
-    cta: "Lihat Office",
+    cta: "View Office",
   },
 ];
 
@@ -193,7 +193,7 @@ export default function AppsPage() {
                   Gigaviz Apps
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Katalog app internal, request build, ticketing, dan mini roadmap per workspace.
+                  Internal app catalog, request build, ticketing, and mini roadmap per workspace.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -201,13 +201,13 @@ export default function AppsPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Ajukan App
+                  Request App
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Pricing
+                  View Pricing
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
@@ -225,7 +225,7 @@ export default function AppsPage() {
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -236,7 +236,7 @@ export default function AppsPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Apps membantu tim mengelola kebutuhan custom secara terstruktur.
+                Apps helps teams manage custom needs in a structured way.
               </div>
             </div>
           </div>
@@ -246,13 +246,13 @@ export default function AppsPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Fitur utama
+                Core features
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Semua request app dalam satu workflow
+                All app requests in one workflow
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Dari katalog hingga ticketing, Apps menjaga kebutuhan custom tetap rapi.
+                From catalog to ticketing, Apps keeps custom needs organized.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -277,10 +277,10 @@ export default function AppsPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Cara kerja
+                How it works
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Alur singkat dari request sampai delivery
+                Quick workflow from request to delivery
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -307,7 +307,7 @@ export default function AppsPage() {
                   Use cases
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Contoh kebutuhan aplikasi yang umum
+                  Common app requirements
                 </h2>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
@@ -328,13 +328,13 @@ export default function AppsPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Proses & keamanan
+                Process & security
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Proyek yang terukur dan aman
+                Measurable and secure projects
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Apps memastikan milestone jelas, perubahan tercatat, dan akses tetap terkontrol.
+                Apps ensures clear milestones, tracked changes, and controlled access.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -362,7 +362,7 @@ export default function AppsPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan tentang Gigaviz Apps
+                Questions about Gigaviz Apps
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -388,10 +388,10 @@ export default function AppsPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Ekosistem pendukung Apps
+                  Apps ecosystem support
                 </h2>
               </div>
             </div>
@@ -424,10 +424,10 @@ export default function AppsPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap ajukan aplikasi?
+                  Ready to request an app?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dari kebutuhan kecil dan lanjutkan iterasi lewat ticketing.
+                  Start small and continue iteration via ticketing.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -435,13 +435,13 @@ export default function AppsPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

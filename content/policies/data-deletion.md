@@ -1,36 +1,36 @@
 # Data Deletion Instructions
 
-Dokumen ini menjelaskan cara mengajukan permintaan penghapusan data dari Gigaviz.
+This document explains how to submit a data deletion request from Gigaviz.
 
-## Cara Mengajukan Permintaan
+## How to Submit a Request
 
-Silakan ajukan permintaan penghapusan data melalui salah satu kanal berikut:
+Please submit your data deletion request through one of the following channels:
 
-- Formulir kontak: https://gigaviz.com/contact
-- Email dukungan: support@gigaviz.com (alamat ini dapat berubah sesuai kebijakan dukungan)
+- Contact form: https://gigaviz.com/contact
+- Support email: support@gigaviz.com (this address may change per support policy)
 
-## Informasi yang Harus Disertakan
+## Information to Include
 
-Mohon sertakan informasi berikut agar kami dapat memverifikasi permintaan Anda:
+Please provide the following information so we can verify your request:
 
-- Nama lengkap
-- Email yang digunakan di Gigaviz
-- Nama/ID workspace atau organisasi (jika ada)
-- Nomor WhatsApp yang terhubung (jika ada)
-- Data yang ingin dihapus (akun, data workspace, pesan, lampiran)
+- Full name
+- Email address used in Gigaviz
+- Workspace or organization name/ID (if applicable)
+- WhatsApp number connected (if applicable)
+- Data to delete (account, workspace data, messages, attachments)
 
-## Verifikasi Kepemilikan
+## Ownership Verification
 
-Kami akan melakukan verifikasi kepemilikan melalui email atau konfirmasi di dalam aplikasi sebelum memproses permintaan.
+We will verify ownership via email or in-app confirmation before processing your request.
 
-## Waktu Pemrosesan
+## Processing Timeline
 
-Permintaan penghapusan data diproses hingga 30 hari kalender sejak verifikasi selesai.
+Data deletion requests are processed within 30 calendar days of verification completion.
 
-## Pengecualian Retensi
+## Retention Exceptions
 
-Sebagian data dapat disimpan lebih lama jika diwajibkan oleh hukum, kebutuhan keamanan, atau pencatatan penagihan.
+Some data may be retained longer if required by law, security needs, or billing records.
 
-## Konfirmasi
+## Confirmation
 
-Anda akan menerima konfirmasi setelah proses penghapusan selesai.
+You will receive confirmation once the deletion process is complete.

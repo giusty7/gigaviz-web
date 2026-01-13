@@ -7,95 +7,95 @@ import { MarketingIcon } from "@/components/marketing/icons";
 export const metadata: Metadata = {
   title: "Gigaviz Platform (Core OS)",
   description:
-    "Fondasi ekosistem Gigaviz untuk akun, workspace, billing, role, dan audit. Indonesia-first, siap untuk scale global.",
+    "Foundation of the Gigaviz ecosystem for accounts, workspaces, billing, roles, and audit. Indonesia-first, ready for global scale.",
   openGraph: {
     title: "Gigaviz Platform (Core OS)",
     description:
-      "Fondasi ekosistem Gigaviz untuk akun, workspace, billing, role, dan audit. Indonesia-first, siap untuk scale global.",
+      "Foundation of the Gigaviz ecosystem for accounts, workspaces, billing, roles, and audit. Indonesia-first, ready for global scale.",
     url: "/products/platform",
   },
 };
 
 const coreHighlights = [
   {
-    title: "Identitas tunggal",
-    desc: "Satu akun untuk mengakses semua modul tanpa pindah-pindah login.",
+    title: "Single identity",
+    desc: "One account to access all modules without switching logins.",
   },
   {
-    title: "Workspace bersama",
-    desc: "Struktur organisasi, project, dan tim yang konsisten di seluruh modul.",
+    title: "Shared workspace",
+    desc: "Consistent organizational structure, projects, and teams across all modules.",
   },
   {
-    title: "Satu dashboard",
-    desc: "Kontrol billing, keamanan, dan aktivitas tim dalam satu tampilan.",
+    title: "One dashboard",
+    desc: "Control billing, security, and team activity in a single view.",
   },
 ];
 
 const featureCards = [
   {
     title: "Account & SSO",
-    desc: "Registrasi pengguna, manajemen identitas, dan single sign-on untuk alur login yang aman.",
+    desc: "User registration, identity management, and single sign-on for secure login flows.",
   },
   {
     title: "Workspace",
-    desc: "Kelola organisasi, project, dan struktur tim lintas unit agar kolaborasi terarah.",
+    desc: "Manage organizations, projects, and team structures across units for focused collaboration.",
   },
   {
     title: "Billing",
-    desc: "Paket langganan, invoice, dan kontrol biaya per workspace agar pengeluaran jelas.",
+    desc: "Subscription plans, invoices, and cost control per workspace for clear spending.",
   },
   {
     title: "Roles & Permissions",
-    desc: "RBAC untuk Owner, Admin, Member, dan Viewer dengan kontrol akses granular.",
+    desc: "RBAC for Owner, Admin, Member, and Viewer with granular access control.",
   },
   {
     title: "Settings & Audit Log",
-    desc: "Preferensi, limit penggunaan, dan jejak aktivitas untuk kebutuhan keamanan.",
+    desc: "Preferences, usage limits, and activity trails for security needs.",
   },
 ];
 
 const rbacRoles = [
   {
     role: "Owner",
-    access: "Mengelola organisasi, billing, dan kebijakan keamanan.",
+    access: "Manage organization, billing, and security policies.",
   },
   {
     role: "Admin",
-    access: "Mengatur workspace, user, dan integrasi operasional.",
+    access: "Set up workspace, users, and operational integrations.",
   },
   {
     role: "Member",
-    access: "Menjalankan modul sesuai tugas dan membuat data proyek.",
+    access: "Run modules according to tasks and create project data.",
   },
   {
     role: "Viewer",
-    access: "Membaca laporan dan audit tanpa akses perubahan.",
+    access: "Read reports and audit logs without change access.",
   },
 ];
 
 const auditEvents = [
-  "Login berhasil atau gagal",
-  "Workspace dibuat, diarsipkan, atau dipulihkan",
-  "Undangan user baru dikirim",
-  "Perubahan role dan permission",
-  "Paket langganan diubah",
-  "Invoice dibuat atau dibayar",
-  "Perubahan limit token per workspace",
-  "API key dibuat atau dicabut",
+  "Successful or failed login",
+  "Workspace created, archived, or restored",
+  "New user invitations sent",
+  "Role and permission changes",
+  "Subscription plan updated",
+  "Invoice created or paid",
+  "Token limit per workspace changed",
+  "API key created or revoked",
 ];
 
 const securityPosture = [
   {
     title: "Least privilege + RLS",
-    desc: "Akses data mengikuti role dan workspace, default paling rendah.",
+    desc: "Data access follows roles and workspaces, defaulting to the lowest level.",
   },
   {
-    title: "Kemudahan audit",
-    desc: "Setiap aktivitas penting terekam untuk review dan kepatuhan.",
+    title: "Audit-ready",
+    desc: "Every important activity is logged for review and compliance.",
   },
   {
-    title: "Pemisahan data",
-    desc: "Data terpisah per workspace untuk mencegah lintas akses.",
+    title: "Data separation",
+    desc: "Data is isolated per workspace to prevent cross-access.",
   },
 ];
 
@@ -141,8 +141,7 @@ export default function PlatformProductPage() {
                   Gigaviz Platform (Core OS)
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Fondasi identitas, workspace, dan billing untuk seluruh ekosistem. Indonesia-first, siap untuk
-                  skala global.
+                  The foundation of identity, workspace, and billing for the entire ecosystem. Indonesia-first, ready for global scale.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -167,7 +166,7 @@ export default function PlatformProductPage() {
                   Multi-workspace
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Billing terpusat
+                  Centralized billing
                 </span>
               </div>
             </div>
@@ -176,13 +175,13 @@ export default function PlatformProductPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                    Ringkasan Core OS
+                    Core OS Overview
                   </div>
                   <h2 className="mt-2 text-xl font-semibold text-[color:var(--gv-text)]">
-                    Semua pondasi dalam satu modul
+                    All foundations in one module
                   </h2>
                   <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                    Gigaviz Platform menjadi sumber identitas, workspace, dan billing untuk seluruh modul.
+                    Gigaviz Platform is the source of identity, workspace, and billing for all modules.
                   </p>
                 </div>
                 <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]">
@@ -201,7 +200,7 @@ export default function PlatformProductPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Core OS berjalan sebelum modul lain aktif, sehingga onboarding tim lebih konsisten.
+                Core OS runs before other modules activate, ensuring consistent team onboarding.
               </div>
             </div>
           </div>
@@ -211,14 +210,13 @@ export default function PlatformProductPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Apa yang dilakukan Core OS
+                What Core OS does
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Identitas tunggal, workspace bersama, satu dashboard.
+                Single identity, shared workspace, one dashboard.
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Core OS menyatukan data tim, struktur organisasi, dan kontrol akses agar setiap modul berjalan di
-                fondasi yang sama.
+                Core OS unifies team data, organizational structure, and access control so every module runs on the same foundation.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -243,10 +241,10 @@ export default function PlatformProductPage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
                   Fitur utama
+                </Core features
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Modul inti yang menjaga ekosistem tetap rapi
-                </h2>
+                  Core modules that keep the ecosystem organized
               </div>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -272,13 +270,13 @@ export default function PlatformProductPage() {
             <div className="grid gap-6 md:grid-cols-[0.9fr_1.1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Tabel RBAC
+                  RBAC table
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Peran yang jelas, akses yang aman
+                  Clear roles, secure access
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Role-based access control memastikan setiap anggota tim hanya mengakses fitur yang dibutuhkan.
+                  Role-based access control ensures each team member only accesses the features they need.
                 </p>
               </div>
               <div className="overflow-hidden rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)]">
@@ -290,7 +288,7 @@ export default function PlatformProductPage() {
                           Role
                         </th>
                         <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                          Contoh permission
+                          Example permissions
                         </th>
                       </tr>
                     </thead>
@@ -316,13 +314,13 @@ export default function PlatformProductPage() {
             <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Contoh audit log
+                  Audit log example
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Aktivitas penting selalu tercatat
+                  Important activities are always recorded
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Audit log membantu tim memantau perubahan penting dan menjaga akuntabilitas.
+                  Audit logs help teams monitor important changes and maintain accountability.
                 </p>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
@@ -344,10 +342,10 @@ export default function PlatformProductPage() {
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Postur keamanan
+                  Security posture
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Keamanan yang siap diaudit
+                  Audit-ready security
                 </h2>
               </div>
             </div>
@@ -372,13 +370,13 @@ export default function PlatformProductPage() {
             <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-center">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Terhubung dengan modul lain
+                  Connected with other modules
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Pondasi untuk seluruh modul Gigaviz
+                  Foundation for all Gigaviz modules
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Core OS menjadi penghubung akun, workspace, dan billing untuk modul lain di ekosistem.
+                  Core OS is the connector for account, workspace, and billing across the ecosystem.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -400,10 +398,10 @@ export default function PlatformProductPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap menyatukan ekosistem Anda?
+                  Ready to unify your ecosystem?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dengan Core OS untuk memastikan semua modul berjalan di fondasi yang sama.
+                  Start with Core OS to ensure all modules run on the same foundation.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">

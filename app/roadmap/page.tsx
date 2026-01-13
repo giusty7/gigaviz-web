@@ -5,8 +5,8 @@ import { Footer } from "@/components/layout/footer";
 import { roadmap } from "@/lib/roadmap";
 
 export const metadata: Metadata = {
-  title: "Roadmap Gigaviz",
-  description: "Rencana pengembangan modul Gigaviz dari sekarang hingga jangka panjang.",
+  title: "Gigaviz Roadmap",
+  description: "Gigaviz module development plan from now through the long term.",
 };
 
 export default function RoadmapPage() {
@@ -22,10 +22,10 @@ export default function RoadmapPage() {
                 Roadmap
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Arah pengembangan Gigaviz
+                Gigaviz Development Direction
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Roadmap ini memberi gambaran fokus utama kami. Urutan dapat berubah sesuai masukan pengguna dan prioritas bisnis.
+                This roadmap provides an overview of our main focus areas. The order may change based on user feedback and business priorities.
               </p>
             </div>
           </div>
@@ -74,17 +74,17 @@ export default function RoadmapPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Punya masukan untuk roadmap?
+                  Have feedback for the roadmap?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Ceritakan kebutuhan tim Anda agar kami bisa memprioritaskan fitur yang paling relevan.
+                  Tell us about your team's needs so we can prioritize the most relevant features.
                 </p>
               </div>
               <Link
                 href="/get-started"
                 className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)] md:mt-0"
               >
-                Kirim masukan
+                Send Feedback
               </Link>
             </div>
           </div>

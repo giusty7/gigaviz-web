@@ -5,16 +5,16 @@ import GetStartedFunnel from "@/components/marketing/get-started-funnel";
 import TrackedLink from "@/components/analytics/tracked-link";
 
 export const metadata: Metadata = {
-  title: "Mulai dengan Gigaviz",
+  title: "Get Started with Gigaviz",
   description:
-    "Pilih cara paling cepat untuk masuk ke ekosistem Gigaviz: Individu atau Tim (Workspace).",
+    "Choose the fastest way to enter the Gigaviz ecosystem: Individual or Team (Workspace).",
   alternates: {
     canonical: "/get-started",
   },
   openGraph: {
-    title: "Mulai dengan Gigaviz",
+    title: "Get Started with Gigaviz",
     description:
-      "Pilih cara paling cepat untuk masuk ke ekosistem Gigaviz: Individu atau Tim (Workspace).",
+      "Choose the fastest way to enter the Gigaviz ecosystem: Individual or Team (Workspace).",
     url: "/get-started",
   },
 };
@@ -34,69 +34,69 @@ const comparisonRows: ComparisonRow[] = [
   },
   {
     label: "Roles & permissions",
-    individu: "Akses owner dasar",
+    individu: "Basic owner access",
     tim: "Owner, Admin, Member, Viewer",
   },
   {
     label: "Billing & invoice",
-    individu: "Segera",
-    tim: "Segera",
+    individu: "Coming soon",
+    tim: "Coming soon",
     planned: true,
   },
   {
     label: "Audit log",
-    individu: "Segera",
-    tim: "Segera",
+    individu: "Coming soon",
+    tim: "Coming soon",
     planned: true,
   },
   {
-    label: "Akses modul",
-    individu: "Terbatas sesuai paket",
-    tim: "Lebih luas sesuai paket",
+    label: "Module access",
+    individu: "Limited by plan",
+    tim: "Broader based on plan",
   },
   {
     label: "Support",
-    individu: "Dokumentasi + komunitas",
-    tim: "Prioritas sesuai paket",
+    individu: "Documentation + community",
+    tim: "Priority based on plan",
   },
 ];
 
 const trustPoints = [
-  "Security-first dengan validasi input dan kontrol akses.",
-  "Auditability untuk aktivitas penting di workspace.",
-  "Fair use dan anti-abuse untuk menjaga kualitas layanan.",
+  "Security-first with input validation and access control.",
+  "Auditability for critical workspace activities.",
+  "Fair use and anti-abuse to maintain service quality.",
 ];
 
 const faqItems = [
   {
-    question: "Apakah bisa daftar gratis?",
+    question: "Can I sign up for free?",
     answer:
-      "Bisa. Akun gratis memiliki akses terbatas (view-only/locked) hingga paket aktif.",
+      "Yes. Free accounts have limited access (view-only/locked) until you activate a plan.",
   },
   {
-    question: "Apa bedanya Individu vs Tim?",
+    question: "What's the difference between Individual and Team?",
     answer:
-      "Individu untuk solo creator dengan 1 workspace. Tim memberikan multi member, RBAC, dan kontrol lebih lengkap.",
+      "Individual is for solo creators with 1 workspace. Team provides multi-member access, RBAC, and more comprehensive controls.",
   },
   {
-    question: "Biaya token itu apa?",
+    question: "What are token costs?",
     answer:
-      "Token adalah biaya pemakaian AI/WhatsApp API yang dihitung terpisah dari langganan, berdasarkan penggunaan.",
+      "Tokens are AI and WhatsApp API usage charges calculated separately from subscriptions, based on actual usage.",
   },
   {
-    question: "Apakah bisa upgrade atau downgrade?",
+    question: "Can I upgrade or downgrade?",
     answer:
-      "Ya, paket dapat disesuaikan kapan saja sesuai kebutuhan tim dan modul yang diaktifkan.",
+      "Yes, your plan can be adjusted anytime based on your team's needs and activated modules.",
   },
   {
-    question: "Apakah butuh kartu kredit?",
+    question: "Do I need a credit card?",
     answer:
-      "Tidak selalu. Detail metode pembayaran mengikuti paket dan kebijakan billing yang berlaku.",
+      "Not always. Payment methods depend on your plan and applicable billing policies.",
   },
   {
-    question: "Bagaimana kebijakan penggunaan & keamanan?",
+    question: "What about usage policies and security?",
     answer:
-      "Gigaviz menerapkan aturan penggunaan, kontrol akses, dan audit untuk menjaga keamanan serta mencegah penyalahgunaan.",
+      "Gigaviz enforces usage policies, access controls, and auditing to maintain security and prevent abuse.",
   },
 ];
 
@@ -126,10 +126,10 @@ export default function GetStartedPage() {
                 Get Started
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Mulai dengan Gigaviz
+                Get Started with Gigaviz
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Pilih cara paling cepat untuk masuk ke ekosistem: Individu atau Tim (Workspace).
+                Choose the fastest way to join the ecosystem: Individual or Team (Workspace).
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
@@ -138,7 +138,7 @@ export default function GetStartedPage() {
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Buat Akun
+                  Create an Account
                 </TrackedLink>
                 <TrackedLink
                   href="/dashboard"
@@ -146,36 +146,36 @@ export default function GetStartedPage() {
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Masuk
+                  Sign In
                 </TrackedLink>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-sm text-[color:var(--gv-muted)]">
-                Fitur tertentu dibuka sesuai paket langganan. Biaya token (AI/WhatsApp API) dihitung terpisah sesuai pemakaian.
+                Specific features unlock based on your subscription plan. Token costs (AI/WhatsApp API) are calculated separately based on usage.
               </div>
             </div>
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Ringkasan funnel
+                Onboarding Summary
               </div>
               <h2 className="mt-2 text-xl font-semibold text-[color:var(--gv-text)]">
-                Masuk ekosistem dalam beberapa langkah
+                Join the ecosystem in a few steps
               </h2>
               <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                Pilih paket, selesaikan akun, lalu aktifkan modul sesuai kebutuhan.
+                Choose your plan, complete your account, then activate modules based on your needs.
               </p>
               <ul className="mt-5 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Pilih Individu atau Tim (Workspace).</span>
+                  <span>Choose Individual or Team (Workspace).</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Lengkapi akun dan verifikasi email.</span>
+                  <span>Complete your account and verify your email.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Aktifkan modul, billing, dan token sesuai paket.</span>
+                  <span>Activate modules, billing, and tokens based on your plan.</span>
                 </li>
               </ul>
             </div>
@@ -188,13 +188,13 @@ export default function GetStartedPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Apa yang Anda dapatkan
+                What You Get
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Perbandingan fitur inti
+                Core features comparison
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Modul dan akses disesuaikan dengan paket yang Anda pilih.
+                Modules and access are customized based on your chosen plan.
               </p>
             </div>
             <div className="mt-8 overflow-hidden rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)]">
@@ -203,13 +203,13 @@ export default function GetStartedPage() {
                   <thead className="bg-[color:var(--gv-surface)] text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
                     <tr>
                       <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                        Fitur
+                        Feature
                       </th>
                       <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                        Individu
+                        Individual
                       </th>
                       <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                        Tim (Workspace)
+                        Team (Workspace)
                       </th>
                     </tr>
                   </thead>
@@ -222,7 +222,7 @@ export default function GetStartedPage() {
                         <td className="px-5 py-4">
                           {row.planned ? (
                             <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                              Segera
+                              Coming Soon
                             </span>
                           ) : (
                             row.individu
@@ -231,7 +231,7 @@ export default function GetStartedPage() {
                         <td className="px-5 py-4">
                           {row.planned ? (
                             <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                              Segera
+                              Coming Soon
                             </span>
                           ) : (
                             row.tim
@@ -254,10 +254,10 @@ export default function GetStartedPage() {
                   Trust & safety
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Keamanan tetap jadi prioritas
+                  Security remains our priority
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Kami menyiapkan fondasi keamanan sejak awal onboarding agar ekosistem tetap aman saat tumbuh.
+                  We establish security foundations from the start of onboarding to keep the ecosystem safe as it grows.
                 </p>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
@@ -281,7 +281,7 @@ export default function GetStartedPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan yang sering muncul
+                Frequently asked questions
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -307,10 +307,10 @@ export default function GetStartedPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap mulai sekarang?
+                  Ready to get started?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Buat akun untuk memilih paket, lalu lihat detail pricing jika dibutuhkan.
+                  Create an account to choose your plan, then review pricing details if needed.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -320,7 +320,7 @@ export default function GetStartedPage() {
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Buat Akun
+                  Create an Account
                 </TrackedLink>
                 <TrackedLink
                   href="/pricing"
@@ -328,7 +328,7 @@ export default function GetStartedPage() {
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Pricing
+                  View Pricing
                 </TrackedLink>
               </div>
             </div>

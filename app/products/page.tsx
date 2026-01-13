@@ -5,9 +5,9 @@ import { Footer } from "@/components/layout/footer";
 import ProductsOverview from "@/components/marketing/products-overview";
 
 export const metadata: Metadata = {
-  title: "Produk Gigaviz",
+  title: "Gigaviz Products",
   description:
-    "Jelajahi seluruh modul Gigaviz dengan filter kategori dan status produk.",
+    "Explore all Gigaviz modules with category filtering and product status.",
 };
 
 export default function ProductsPage() {
@@ -20,13 +20,13 @@ export default function ProductsPage() {
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Produk Gigaviz
+                Gigaviz Products
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Semua modul untuk Create, Automate, Monetize, dan Manage.
+                All modules for Create, Automate, Monetize, and Manage.
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Pilih modul sesuai kebutuhan tim Anda, atau kombinasikan beberapa untuk alur kerja yang lebih terintegrasi.
+                Choose modules based on your team's needs, or combine several for a more integrated workflow.
               </p>
             </div>
           </div>
@@ -43,17 +43,17 @@ export default function ProductsPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Butuh rekomendasi modul?
+                  Need module recommendations?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Ceritakan kebutuhan tim Anda, kami bantu menyusun kombinasi modul yang paling tepat.
+                  Tell us about your team's needs, and we'll help you find the perfect module combination.
                 </p>
               </div>
               <Link
                 href="/get-started"
                 className="mt-4 inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)] md:mt-0"
               >
-                Mulai konsultasi
+                Get Started
               </Link>
             </div>
           </div>

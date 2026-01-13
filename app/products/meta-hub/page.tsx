@@ -8,159 +8,159 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Meta Hub",
   description:
-    "Hub WhatsApp Cloud API untuk template, webhook, inbox, scheduler, dan analytics dengan fokus kepatuhan dan skalabilitas.",
+    "WhatsApp Cloud API hub for templates, webhooks, inbox, scheduler, and analytics with a focus on compliance and scalability.",
   alternates: {
     canonical: "/products/meta-hub",
   },
   openGraph: {
     title: "Gigaviz Meta Hub",
     description:
-      "Hub WhatsApp Cloud API untuk template, webhook, inbox, scheduler, dan analytics dengan fokus kepatuhan dan skalabilitas.",
+      "WhatsApp Cloud API hub for templates, webhooks, inbox, scheduler, and analytics with a focus on compliance and scalability.",
     url: "/products/meta-hub",
   },
 };
 
 const summaryPoints = [
-  "Integrasi WhatsApp Cloud API untuk WABA dan Phone Number ID (independent provider, BSP sebagai jalur upgrade).",
-  "Template Manager dan Webhook Receiver untuk approval, pesan masuk, serta status callback.",
-  "Inbox bersama dan Campaign Scheduler untuk broadcast terjadwal dengan opt-in/opt-out.",
-  "Analytics delivery/read/fail dan ringkasan performa kampanye.",
+  "WhatsApp Cloud API integration for WABA and Phone Number ID (independent provider, BSP as upgrade path).",
+  "Template Manager and Webhook Receiver for approval, incoming messages, and delivery status callbacks.",
+  "Shared Inbox and Campaign Scheduler for scheduled broadcasts with opt-in/opt-out.",
+  "Delivery/read/fail analytics and campaign performance summaries.",
 ];
 
 const featureCards = [
   {
     title: "WhatsApp Cloud API Integration",
-    desc: "Hubungkan WABA/Phone Number ID langsung ke Gigaviz. Saat ini independent provider, BSP tersedia sebagai upgrade roadmap.",
+    desc: "Connect WABA/Phone Number ID directly to Gigaviz. Currently independent provider; BSP available as upgrade roadmap.",
   },
   {
     title: "Template Manager",
-    desc: "Kelola template yang disetujui, kategori, bahasa, dan variable dinamis untuk pesan yang konsisten.",
+    desc: "Manage approved templates, categories, languages, and dynamic variables for consistent messaging.",
   },
   {
     title: "Webhook Receiver",
-    desc: "Terima pesan masuk dan status callback untuk sinkronisasi ke sistem internal.",
+    desc: "Receive incoming messages and delivery status callbacks for internal system synchronization.",
   },
   {
     title: "Shared Inbox",
-    desc: "Inbox terpusat untuk balasan tim. Assignment dan notes berada di roadmap.",
+    desc: "Centralized inbox for team replies. Assignment and notes are on the roadmap.",
   },
   {
     title: "Campaign Scheduler",
-    desc: "Broadcast terjadwal dengan kontrol waktu. Segmentasi lanjutan direncanakan.",
+    desc: "Scheduled broadcasts with timing control. Advanced segmentation is planned.",
   },
   {
     title: "Opt-in / Opt-out",
-    desc: "Kelola persetujuan pengguna dan hormati permintaan berhenti berlangganan.",
+    desc: "Manage user consent and respect unsubscribe requests.",
   },
   {
     title: "Analytics",
-    desc: "Laporan delivery/read/fail serta ringkasan performa per kampanye.",
+    desc: "Delivery/read/fail reports and performance summaries per campaign.",
   },
 ];
 
 const compliancePoints = [
   {
-    title: "Persetujuan wajib",
-    desc: "Pengiriman pesan dirancang untuk mendukung persetujuan yang valid, dan opt-out harus dihormati.",
+    title: "Required consent",
+    desc: "Message delivery is designed to support valid consent, and opt-out requests must be honored.",
   },
   {
-    title: "Aturan template WhatsApp",
-    desc: "Template mengikuti aturan Meta dan melalui proses approval resmi sebelum digunakan.",
+    title: "WhatsApp template rules",
+    desc: "Templates follow Meta guidelines and go through official approval before use.",
   },
   {
     title: "Rate limiting / throttling",
-    desc: "Dirancang untuk mendukung pembatasan laju agar menghindari ban dan lonjakan biaya.",
+    desc: "Designed to support rate limiting to avoid bans and unexpected cost spikes.",
   },
   {
-    title: "Anti-abuse & privasi data",
-    desc: "Prinsip perlindungan data dan pencegahan penyalahgunaan diterapkan secara bertahap sesuai kebutuhan tim.",
+    title: "Anti-abuse & data privacy",
+    desc: "Data protection principles and abuse prevention are applied incrementally based on team needs.",
   },
 ];
 
 const howItWorks = [
   {
     title: "Connect WABA/Phone Number ID",
-    desc: "Hubungkan akun Meta dan nomor yang disetujui untuk pengiriman pesan.",
+    desc: "Link your Meta account and approved number to enable message delivery.",
   },
   {
     title: "Configure Webhook",
-    desc: "Pasang endpoint webhook untuk pesan masuk dan status pengiriman.",
+    desc: "Set up webhook endpoints for incoming messages and delivery status.",
   },
   {
     title: "Create/Manage Templates",
-    desc: "Siapkan template, kategori, dan bahasa lalu ajukan approval.",
+    desc: "Prepare templates, categories, and languages, then submit for approval.",
   },
   {
     title: "Launch Campaign / Manage Inbox",
-    desc: "Jadwalkan broadcast dan kelola percakapan tim dari inbox bersama.",
+    desc: "Schedule broadcasts and manage team conversations from the shared inbox.",
   },
   {
     title: "Review Analytics & Logs",
-    desc: "Pantau delivery, read, fail, serta log aktivitas untuk evaluasi.",
+    desc: "Monitor delivery, read, fail metrics and activity logs for evaluation.",
   },
 ];
 
 const faqs = [
   {
-    question: "Apa itu WhatsApp Cloud API?",
+    question: "What is WhatsApp Cloud API?",
     answer:
-      "WhatsApp Cloud API adalah API resmi dari Meta untuk mengirim dan menerima pesan WhatsApp secara terprogram dari server Anda.",
+      "WhatsApp Cloud API is Meta's official API for sending and receiving WhatsApp messages programmatically from your server.",
   },
   {
-    question: "Apakah saya perlu bisnis terverifikasi?",
+    question: "Do I need a verified business account?",
     answer:
-      "Tidak selalu untuk memulai. Namun verifikasi bisnis sering diperlukan untuk template dan volume pengiriman yang lebih tinggi.",
+      "Not always to get started. However, business verification is often required for templates and higher sending volumes.",
   },
   {
-    question: "Apa arti status Beta?",
+    question: "What does Beta status mean?",
     answer:
-      "Fitur inti tersedia, tetapi beberapa kemampuan masih berkembang. Perubahan dan penyesuaian dapat terjadi.",
+      "Core features are available, but some capabilities are still developing. Changes and adjustments may occur.",
   },
   {
-    question: "Bagaimana opt-in dan opt-out bekerja?",
+    question: "How do opt-in and opt-out work?",
     answer:
-      "Pengiriman dilakukan setelah ada persetujuan pengguna. Permintaan opt-out harus dihormati dan disimpan sebagai preferensi.",
+      "Messages are sent only after user consent. Opt-out requests must be honored and stored as preferences.",
   },
   {
-    question: "Apa yang mempengaruhi biaya pesan?",
+    question: "What affects message cost?",
     answer:
-      "Biaya ditentukan oleh Meta berdasarkan kategori template, negara tujuan, dan jenis percakapan.",
+      "Cost is determined by Meta based on template category, destination country, and conversation type.",
   },
   {
-    question: "Apa perbedaan provider mandiri vs BSP?",
+    question: "What's the difference between independent provider and BSP?",
     answer:
-      "Provider mandiri memakai Cloud API langsung dari Meta. BSP adalah jalur upgrade untuk dukungan enterprise dan layanan tambahan.",
+      "Independent provider uses Cloud API directly from Meta. BSP is an upgrade path for enterprise support and additional services.",
   },
   {
-    question: "Apakah ada pembatasan laju?",
+    question: "Is there rate limiting?",
     answer:
-      "Platform dirancang untuk mendukung throttling dan kontrol jadwal agar menjaga kualitas pengiriman dan biaya.",
+      "The platform is designed to support throttling and schedule control to maintain delivery quality and cost efficiency.",
   },
   {
-    question: "Bagaimana dengan keamanan data?",
+    question: "What about data security?",
     answer:
-      "Dirancang untuk memisahkan data per workspace dan mencatat aktivitas penting agar dapat diaudit.",
+      "Designed to isolate data per workspace and log important activities for audit compliance.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Platform (Core OS)",
-    desc: "Fondasi akun, workspace, billing, dan RBAC untuk semua modul.",
+    desc: "Foundation for accounts, workspaces, billing, and RBAC across all modules.",
     href: "/products/platform",
-    cta: "Lihat Core OS",
+    cta: "View Core OS",
   },
   {
-    title: "Kebijakan & Compliance",
-    desc: "Pelajari aturan penggunaan dan kebijakan privasi Gigaviz.",
+    title: "Policies & Compliance",
+    desc: "Learn Gigaviz usage rules and privacy policy.",
     href: "/policies",
-    cta: "Lihat Kebijakan",
+    cta: "View Policies",
   },
   {
     title: "Pricing",
-    desc: "Paket langganan untuk modul messaging dan kebutuhan tim.",
+    desc: "Subscription plans for messaging modules and team needs.",
     href: "/pricing",
-    cta: "Lihat Pricing",
+    cta: "View Pricing",
   },
 ];
 
@@ -200,7 +200,7 @@ export default function MetaHubPage() {
                   Gigaviz Meta Hub
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Hub WhatsApp Cloud API untuk template, webhook, inbox, scheduler, dan analytics.
+                  WhatsApp Cloud API hub for templates, webhooks, inbox, scheduler, and analytics.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -208,19 +208,19 @@ export default function MetaHubPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai Integrasi
+                  Get Started
                 </Link>
                 <Link
                   href="/policies"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] bg-transparent px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Kebijakan
+                  View Policies
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Pricing
+                  View Pricing
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
@@ -231,14 +231,14 @@ export default function MetaHubPage() {
                   Template Manager
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Inbox Terpusat
+                  Shared Inbox
                 </span>
               </div>
             </div>
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -249,7 +249,7 @@ export default function MetaHubPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Meta Hub berjalan di atas Core OS untuk autentikasi, workspace, dan billing.
+                Meta Hub runs on top of Core OS for authentication, workspace, and billing.
               </div>
             </div>
           </div>
@@ -259,13 +259,13 @@ export default function MetaHubPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Fitur utama
+                Core features
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Semua komponen penting untuk messaging tim modern
+                All essential components for modern team messaging
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Meta Hub menggabungkan integrasi, pengelolaan template, inbox, scheduler, dan analytics dalam satu tempat.
+                Meta Hub combines integration, template management, inbox, scheduler, and analytics in one place.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -291,13 +291,13 @@ export default function MetaHubPage() {
             <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Kepatuhan & keamanan
+                  Compliance & security
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Kepatuhan dan keamanan sebagai prioritas
+                  Compliance and security as priority
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Dirancang untuk mendukung kepatuhan terhadap aturan WhatsApp dan menjaga reputasi pengiriman.
+                  Designed to support WhatsApp rule compliance and maintain delivery reputation.
                 </p>
               </div>
               <div className="space-y-3">
@@ -323,10 +323,10 @@ export default function MetaHubPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Cara kerja
+                  How it works
                 </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Alur sederhana dari integrasi hingga analytics
+                Simple workflow from integration to analytics
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -359,7 +359,7 @@ export default function MetaHubPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan yang sering diajukan
+                Frequently asked questions
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -385,10 +385,10 @@ export default function MetaHubPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Fondasi dan kebijakan pendukung Meta Hub
+                  Foundations and policies supporting Meta Hub
                 </h2>
               </div>
             </div>
@@ -421,10 +421,10 @@ export default function MetaHubPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap menjalankan Meta Hub?
+                  Ready to run Meta Hub?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai integrasi WhatsApp Cloud API dan kelola campaign dengan tim Anda.
+                  Start WhatsApp Cloud API integration and manage campaigns with your team.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -432,13 +432,13 @@ export default function MetaHubPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai Integrasi
+                  Get Started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

@@ -8,7 +8,7 @@ import { studioChildren, moduleStatusLabel } from "@/lib/modules/catalog";
 
 export const metadata: Metadata = {
   title: "Gigaviz Studio - Office, Graph, Tracks",
-  description: "Suite Studio mencakup Office, Graph, dan Tracks untuk tim kreatif & produktif.",
+  description: "Studio suite includes Office, Graph, and Tracks for creative and productive teams.",
 };
 
 export default function StudioPage() {
@@ -23,10 +23,10 @@ export default function StudioPage() {
                 Gigaviz Studio
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold md:text-4xl">
-                Office, Graph, dan Tracks dalam satu suite
+                Office, Graph, and Tracks in one suite
               </h1>
               <p className="text-sm text-muted-foreground md:text-base">
-                Studio menggabungkan otomasi dokumen (Office), generasi visual (Graph), dan orkestrasi workflow (Tracks).
+                Studio combines document automation (Office), visual generation (Graph), and workflow orchestration (Tracks).
               </p>
             </div>
           </div>
@@ -58,7 +58,7 @@ export default function StudioPage() {
                       href={module.hrefMarketing ?? `/products/${module.slug}`}
                       className="text-xs font-semibold text-gigaviz-gold hover:underline"
                     >
-                      Lihat detail
+                      View details
                     </Link>
                   </div>
                 </div>

@@ -8,113 +8,113 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Arena",
   description:
-    "Play, create, dan commission mini-game untuk engagement brand dengan template aman dan workflow terarah.",
+    "Play, create, and commission mini-games for brand engagement with safe templates and guided workflow.",
   alternates: {
     canonical: "/products/arena",
   },
   openGraph: {
     title: "Gigaviz Arena",
     description:
-      "Play, create, dan commission mini-game untuk engagement brand dengan template aman dan workflow terarah.",
+      "Play, create, and commission mini-games for brand engagement with safe templates and guided workflow.",
     url: "/products/arena",
   },
 };
 
 const playItems = [
-  "Game kurasi orisinal dari Gigaviz",
-  "Format ringan untuk campaign singkat",
-  "Disiapkan untuk update konten berkala",
+  "Curated original games from Gigaviz",
+  "Lightweight format for short campaigns",
+  "Prepared for regular content updates",
 ];
 
 const createItems = [
-  "Mini-game builder berbasis template (planned)",
-  "Variasi theme dan branding sederhana",
-  "Kontrol durasi dan flow permainan",
+  "Template-based mini-game builder (planned)",
+  "Theme variations and simple branding",
+  "Control game duration and flow",
 ];
 
 const commissionItems = [
-  "Request game custom sesuai campaign",
-  "Terhubung ke Apps untuk ticketing dan roadmap",
-  "Review scope dan timeline per proyek",
+  "Request custom games per campaign",
+  "Connected to Apps for ticketing and roadmap",
+  "Scope and timeline review per project",
 ];
 
 const gamificationItems = [
-  "Challenges musiman untuk engagement",
-  "Badges dan progress ringan",
-  "Leaderboard sederhana (opsional)",
+  "Seasonal challenges for engagement",
+  "Lightweight badges and progress",
+  "Simple leaderboard (optional)",
 ];
 
 const safetyPoints = [
   {
-    title: "Sandbox berbasis template",
-    desc: "Pembuatan game dibatasi pada template agar tetap aman dan terkontrol.",
+    title: "Template-based sandbox",
+    desc: "Game creation is limited to templates to stay safe and controlled.",
   },
   {
-    title: "Tanpa eksekusi kode bebas",
-    desc: "Arena tidak mengizinkan arbitrary code execution untuk menjaga keamanan.",
+    title: "No arbitrary code execution",
+    desc: "Arena doesn't allow arbitrary code execution to maintain security.",
   },
   {
-    title: "Moderasi konten",
-    desc: "Konten game dievaluasi agar sesuai dengan kebijakan brand.",
+    title: "Content moderation",
+    desc: "Game content is evaluated to align with brand policies.",
   },
 ];
 
 const faqs = [
   {
-    question: "Apa itu Gigaviz Arena?",
+    question: "What is Gigaviz Arena?",
     answer:
-      "Arena adalah modul untuk play, create, dan commission mini-game guna meningkatkan engagement.",
+      "Arena is a module to play, create, and commission mini-games to boost engagement.",
   },
   {
-    question: "Apakah saya bisa membuat game sendiri?",
+    question: "Can I create games myself?",
     answer:
-      "Builder berbasis template disiapkan bertahap. Saat ini fokus pada kurasi dan request.",
+      "Template-based builder is prepared incrementally. Currently focused on curation and requests.",
   },
   {
-    question: "Bagaimana cara memesan game custom?",
+    question: "How do I request a custom game?",
     answer:
-      "Request dilakukan melalui Apps dengan brief, scope, dan timeline yang disepakati.",
+      "Request is done through Apps with agreed brief, scope, and timeline.",
   },
   {
-    question: "Apakah ada fitur gamification?",
+    question: "Are there gamification features?",
     answer:
-      "Gamification seperti badges dan leaderboard tersedia secara opsional.",
+      "Gamification like badges and leaderboard are available optionally.",
   },
   {
-    question: "Apakah aman untuk kampanye brand?",
+    question: "Is it safe for brand campaigns?",
     answer:
-      "Arena dirancang dengan template dan kontrol konten untuk menjaga brand safety.",
+      "Arena is designed with templates and content controls for brand safety.",
   },
   {
-    question: "Bagaimana pricing Arena?",
+    question: "How is Arena priced?",
     answer:
-      "Pricing mengikuti paket langganan dan kebutuhan produksi game custom.",
+      "Pricing follows subscription plans and custom game production needs.",
   },
   {
-    question: "Apa batasan utama Arena?",
+    question: "What are Arena's main limitations?",
     answer:
-      "Fokus pada game ringan dan template. Fitur lanjutan hadir bertahap.",
+      "Focus on lightweight games and templates. Advanced features arrive incrementally.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Platform (Core OS)",
-    desc: "Fondasi akun, workspace, dan billing untuk semua modul.",
+    desc: "Foundation for accounts, workspace, and billing across all modules.",
     href: "/products/platform",
-    cta: "Lihat Core OS",
+    cta: "View Core OS",
   },
   {
     title: "Gigaviz Studio",
-    desc: "Studio kreatif untuk asset visual dan audio.",
+    desc: "Creative studio for visual and audio assets.",
     href: "/products/studio",
-    cta: "Lihat Studio",
+    cta: "View Studio",
   },
   {
     title: "Gigaviz Apps",
-    desc: "Ticketing dan request untuk kebutuhan custom.",
+    desc: "Ticketing and requests for custom needs.",
     href: "/products/apps",
-    cta: "Lihat Apps",
+    cta: "View Apps",
   },
 ];
 
@@ -154,7 +154,7 @@ export default function ArenaPage() {
                   Gigaviz Arena
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Play - Create - Commission untuk mini-game campaign yang ringan dan aman.
+                  Play - Create - Commission for lightweight and safe mini-game campaigns.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -162,19 +162,19 @@ export default function ArenaPage() {
                   href="/products/arena#play"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mainkan Demo
+                  Play Demo
                 </Link>
                 <Link
                   href="/products/arena#create"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Buat Mini-Game
+                  Create Mini-Game
                 </Link>
                 <Link
                   href="/products/arena#commission"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Pesan Game
+                  Request Game
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
@@ -192,20 +192,20 @@ export default function ArenaPage() {
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan Arena
+                Arena overview
               </h2>
               <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                Arena menggabungkan katalog game, builder template, dan request game custom dalam satu alur.
+                Arena combines game catalog, template builder, and custom game requests in one workflow.
               </p>
               <div className="mt-4 grid gap-3 text-sm text-[color:var(--gv-muted)]">
                 <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4">
-                  Play - koleksi game kurasi untuk engagement cepat.
+                  Play - curated game collection for quick engagement.
                 </div>
                 <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4">
-                  Create - builder template untuk mini-game yang ringan.
+                  Create - template builder for lightweight mini-games.
                 </div>
                 <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4">
-                  Commission - request game custom via Apps.
+                  Commission - request custom games via Apps.
                 </div>
               </div>
             </div>
@@ -220,10 +220,10 @@ export default function ArenaPage() {
                   Arena Play
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Game kurasi untuk campaign yang cepat
+                  Curated games for quick campaigns
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Koleksi game ringan yang siap dipakai untuk aktivasi brand.
+                  Collection of lightweight games ready for brand activation.
                 </p>
               </div>
               <ul className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
@@ -246,10 +246,10 @@ export default function ArenaPage() {
                   Arena Create
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Builder mini-game berbasis template
+                  Template-based mini-game builder
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Template builder disiapkan agar tim bisa membuat game tanpa kompleksitas teknis.
+                  Template builder allows teams to create games without technical complexity.
                 </p>
               </div>
               <ul className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
@@ -272,10 +272,10 @@ export default function ArenaPage() {
                   Arena Commission
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Request game custom untuk brand
+                  Request custom games for brand
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Tim dapat memesan game khusus dengan brief dan scope yang jelas.
+                  Teams can order exclusive games with clear brief and scope.
                 </p>
               </div>
               <ul className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
@@ -298,7 +298,7 @@ export default function ArenaPage() {
                   Gamification
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Engagement yang lebih seru (opsional)
+                  More fun engagement (optional)
                 </h2>
               </div>
               <ul className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
@@ -318,13 +318,13 @@ export default function ArenaPage() {
             <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Keamanan
+                  Security
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Arena aman dengan kontrol yang jelas
+                  Arena is safe with clear controls
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Builder dan konten dikurasi agar cocok untuk kampanye brand.
+                  Builder and content are curated to fit brand campaigns.
                 </p>
               </div>
               <div className="space-y-3">
@@ -353,7 +353,7 @@ export default function ArenaPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan tentang Gigaviz Arena
+                Questions about Gigaviz Arena
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -379,10 +379,10 @@ export default function ArenaPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Ekosistem pendukung Arena
+                  Arena ecosystem support
                 </h2>
               </div>
             </div>
@@ -415,10 +415,10 @@ export default function ArenaPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap mencoba Arena?
+                  Ready to try Arena?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dengan game kurasi atau ajukan request game custom.
+                  Start with curated games or request a custom game.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -426,13 +426,13 @@ export default function ArenaPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

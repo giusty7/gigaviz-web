@@ -1,22 +1,22 @@
 # Acceptable Use Policy
 
-Kebijakan ini menetapkan batas penggunaan layanan agar aman, legal, dan menghormati pihak lain.
+This policy establishes guidelines for service use to keep it safe, legal, and respectful to others.
 
-## Larangan Utama
+## Main Prohibitions
 
-- Mengirim spam atau pesan tanpa persetujuan penerima.
-- Menggunakan layanan untuk aktivitas ilegal, penipuan, atau pelanggaran hak cipta.
-- Mengakses atau mencoba mengakses data pihak lain tanpa izin.
-- Menyebarkan konten yang mengandung ujaran kebencian, kekerasan, atau pornografi.
+- Sending spam or messages without recipient consent.
+- Using the service for illegal activity, fraud, or copyright infringement.
+- Accessing or attempting to access others' data without permission.
+- Distributing content containing hate speech, violence, or pornography.
 
-## Integrasi dan Otomasi
+## Integrations and Automation
 
-Semua integrasi harus mematuhi aturan platform pihak ketiga, termasuk kebijakan WhatsApp dan penyedia pembayaran.
+All integrations must comply with third-party platform rules, including WhatsApp policies and payment provider requirements.
 
-## Penegakan
+## Enforcement
 
-Pelanggaran dapat menyebabkan pembatasan sementara, penghentian akses, atau tindakan lain sesuai tingkat pelanggaran.
+Violations may result in temporary restrictions, access termination, or other actions based on severity.
 
-## Pelaporan
+## Reporting
 
-Jika Anda menemukan penyalahgunaan layanan, silakan laporkan melalui halaman Kontak.
+If you discover service abuse, please report it via the Contact page.

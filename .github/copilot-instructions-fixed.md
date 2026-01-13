@@ -75,3 +75,4 @@ using (
     where user_id = auth.uid()
   )
 );
+```

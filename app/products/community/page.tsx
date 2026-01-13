@@ -8,141 +8,134 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Community",
   description:
-    "Ruang komunitas untuk diskusi, feedback, showcase karya, dan event agar ekosistem Gigaviz tumbuh bersama.",
+    "Community space for discussions, feedback, showcase work, and events to grow the Gigaviz ecosystem together.",
   alternates: {
     canonical: "/products/community",
   },
   openGraph: {
     title: "Gigaviz Community",
     description:
-      "Ruang komunitas untuk diskusi, feedback, showcase karya, dan event agar ekosistem Gigaviz tumbuh bersama.",
+      "Community space for discussions, feedback, showcase work, and events to grow the Gigaviz ecosystem together.",
     url: "/products/community",
   },
 };
 
 const summaryPoints = [
-  "Forum diskusi dan Q&A untuk berbagi insight.",
-  "Feedback board untuk ide dan voting prioritas.",
-  "Showcase karya dan studi kasus dari komunitas.",
-  "Event dan webinar untuk belajar bersama (opsional).",
+  "Discussion forum and Q&A to share insights.",
+  "Feedback board for ideas and voting priorities.",
+  "Showcase work and community case studies.",
+  "Events and webinars to learn together (optional).",
 ];
 
 const featureCards = [
   {
     title: "Forum & Q&A",
-    desc: "Ruang diskusi terbuka untuk tanya jawab dan berbagi pengalaman.",
+    desc: "Open discussion space for questions and shared experience.",
   },
   {
     title: "Feedback board",
-    desc: "Kumpulkan ide, voting, dan pantau perkembangan masukan.",
+    desc: "Collect ideas, voting, and track progress.",
   },
   {
-    title: "Showcase karya",
-    desc: "Sorot karya terbaik agar komunitas saling terinspirasi.",
+    title: "Showcase work",
+    desc: "Highlight top work so the community inspires each other.",
   },
   {
-    title: "Challenges (opsional)",
-    desc: "Tantangan kreatif yang bisa terhubung ke Arena.",
+    title: "Challenges (optional)",
+    desc: "Creative challenges that can connect to Arena.",
   },
   {
-    title: "Events & webinars (opsional)",
-    desc: "Sesi berbagi, pelatihan, dan update ekosistem.",
+    title: "Events & webinars (optional)",
+    desc: "Sharing sessions, training, and ecosystem updates.",
   },
   {
     title: "Moderation & safety",
-    desc: "Aturan komunitas untuk menjaga diskusi tetap sehat.",
+    desc: "Community rules to keep discussions healthy.",
   },
 ];
 
 const steps = [
-  "Gabung ke Community.",
-  "Posting atau ajukan pertanyaan.",
-  "Dapatkan feedback dan diskusi.",
-  "Showcase karya terbaik.",
-  "Berkembang lewat event atau challenge.",
+  "Join the Community.",
+  "Post or ask questions.",
+  "Get feedback and discussions.",
+  "Showcase top work.",
+  "Grow through events or challenges.",
 ];
 
 const safetyPoints = [
   {
-    title: "Pelaporan konten",
-    desc: "Pengguna dapat melaporkan konten yang melanggar aturan.",
+    title: "Content reporting",
+    desc: "Users can report content that violates rules.",
   },
   {
-    title: "Guidelines komunitas",
-    desc: "Panduan perilaku untuk menjaga diskusi tetap relevan dan aman.",
+    title: "Community guidelines",
+    desc: "Behavior guidelines to keep discussions relevant and safe.",
   },
   {
     title: "Anti-spam",
-    desc: "Kontrol dasar untuk membatasi spam dan promosi berlebihan.",
+    desc: "Baseline controls to limit spam and excessive promotion.",
   },
   {
     title: "Role-based moderation",
-    desc: "Moderasi dilakukan berdasarkan role dan tanggung jawab.",
+    desc: "Moderation handled by roles with clear responsibilities.",
   },
 ];
 
 const faqs = [
   {
-    question: "Siapa yang bisa bergabung?",
-    answer:
-      "Semua pengguna Gigaviz dapat bergabung sesuai aturan komunitas.",
+    question: "Who can join?",
+    answer: "All Gigaviz users can join subject to community rules.",
   },
   {
-    question: "Apakah ada biaya untuk Community?",
-    answer:
-      "Community mengikuti paket ekosistem. Detail tersedia di roadmap atau pricing.",
+    question: "Is there a fee for Community?",
+    answer: "Community follows ecosystem plans. Details are on roadmap or pricing.",
   },
   {
-    question: "Bagaimana sistem feedback bekerja?",
-    answer:
-      "Ide dapat diajukan dan divoting untuk membantu prioritas roadmap.",
+    question: "How does the feedback system work?",
+    answer: "Ideas can be submitted and voted to help prioritize the roadmap.",
   },
   {
-    question: "Apakah karya saya bisa ditampilkan publik?",
-    answer:
-      "Showcase bersifat opsional. Anda dapat memilih karya yang ingin dipublikasikan.",
+    question: "Can my work be public?",
+    answer: "Showcase is optional; you choose which work to publish.",
   },
   {
-    question: "Bagaimana moderation dilakukan?",
-    answer:
-      "Moderasi mengikuti guidelines dan dapat dilakukan oleh role khusus.",
+    question: "How is moderation done?",
+    answer: "Moderation follows guidelines and can be performed by designated roles.",
   },
   {
-    question: "Apakah challenge selalu tersedia?",
-    answer:
-      "Challenge diselenggarakan sesuai agenda komunitas dan kebutuhan campaign.",
+    question: "Are challenges always available?",
+    answer: "Challenges run based on community agenda and campaign needs.",
   },
   {
-    question: "Apakah event disediakan rutin?",
-    answer:
-      "Event dan webinar disiapkan secara berkala sesuai agenda ekosistem.",
+    question: "Are events provided regularly?",
+    answer: "Events and webinars are organized periodically per ecosystem schedule.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Studio",
-    desc: "Studio kreatif untuk asset visual dan audio.",
+    desc: "Creative studio for visual and audio assets.",
     href: "/products/studio",
-    cta: "Lihat Studio",
+    cta: "View Studio",
   },
   {
     title: "Gigaviz Arena",
-    desc: "Challenge dan engagement berbasis mini-game.",
+    desc: "Mini-game based challenges and engagement.",
     href: "/products/arena",
-    cta: "Lihat Arena",
+    cta: "View Arena",
   },
   {
     title: "Gigaviz Marketplace",
-    desc: "Jual beli template, prompt pack, dan asset kreatif.",
+    desc: "Buy and sell templates, prompt packs, and creative assets.",
     href: "/products/marketplace",
-    cta: "Lihat Marketplace",
+    cta: "View Marketplace",
   },
   {
     title: "Gigaviz Helper",
-    desc: "Asisten AI untuk drafting dan rangkuman.",
+    desc: "AI assistant for drafting and summarization.",
     href: "/products/helper",
-    cta: "Lihat Helper",
+    cta: "View Helper",
   },
 ];
 
@@ -182,7 +175,7 @@ export default function CommunityPage() {
                   Gigaviz Community
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Ruang diskusi, feedback, dan showcase karya agar ekosistem tumbuh bersama.
+                  Discussion, feedback, and showcase space so the ecosystem grows together.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -190,31 +183,31 @@ export default function CommunityPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Gabung Community
+                  Join Community
                 </Link>
                 <Link
                   href="/roadmap"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Roadmap
+                  View Roadmap
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Forum diskusi
+                  Discussion forum
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
                   Feedback board
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Showcase karya
+                  Showcase work
                 </span>
               </div>
             </div>
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -225,7 +218,7 @@ export default function CommunityPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Community membantu menyatukan pengguna, creator, dan tim Gigaviz.
+                Community connects users, creators, and the Gigaviz team.
               </div>
             </div>
           </div>
@@ -235,13 +228,13 @@ export default function CommunityPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Fitur utama
+                Core features
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Community yang aktif dan terkurasi
+                Active and curated community
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Diskusi, feedback, dan showcase berjalan dalam satu ruang yang aman.
+                Discussion, feedback, and showcase run in a single safe space.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -266,10 +259,10 @@ export default function CommunityPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Cara kerja
+                How it works
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Alur sederhana untuk tumbuh bersama
+                Simple flow to grow together
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -292,13 +285,13 @@ export default function CommunityPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Keamanan & moderasi
+                Safety & moderation
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Komunitas yang aman dan tertib
+                Safe and orderly community
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Moderasi dilakukan untuk menjaga diskusi tetap sehat.
+                Moderation keeps discussions healthy.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -326,7 +319,7 @@ export default function CommunityPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan tentang Gigaviz Community
+                Questions about Gigaviz Community
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -352,10 +345,10 @@ export default function CommunityPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Ekosistem pendukung Community
+                  Community ecosystem support
                 </h2>
               </div>
             </div>
@@ -388,10 +381,10 @@ export default function CommunityPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap gabung komunitas?
+                  Ready to join the community?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Temukan inspirasi dan tumbuh bersama creator lainnya.
+                  Find inspiration and grow with other creators.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -399,13 +392,13 @@ export default function CommunityPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

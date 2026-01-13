@@ -8,145 +8,145 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Pay",
   description:
-    "Wallet, invoice, payment link, dan subscription billing untuk transaksi yang lebih rapi dan terkontrol.",
+    "Wallet, invoicing, payment links, and subscription billing for organized and controlled transactions.",
   alternates: {
     canonical: "/products/pay",
   },
   openGraph: {
     title: "Gigaviz Pay",
     description:
-      "Wallet, invoice, payment link, dan subscription billing untuk transaksi yang lebih rapi dan terkontrol.",
+      "Wallet, invoicing, payment links, and subscription billing for organized and controlled transactions.",
     url: "/products/pay",
   },
 };
 
 const summaryPoints = [
-  "Wallet internal untuk pemantauan saldo dan aliran dana.",
-  "Invoice generator untuk penagihan yang konsisten.",
-  "Payment link untuk pembayaran cepat tanpa integrasi rumit.",
-  "Subscription billing untuk paket dan add-on modular.",
+  "Internal wallet for balance monitoring and fund flow tracking.",
+  "Invoice generator for consistent billing.",
+  "Payment links for quick payments without complex integrations.",
+  "Subscription billing for modular packages and add-ons.",
 ];
 
 const featureCards = [
   {
     title: "Wallet & balance overview",
-    desc: "Gambaran saldo dan aliran dana secara terpusat (concept).",
+    desc: "Centralized view of balance and fund flow (concept).",
   },
   {
     title: "Invoice generator",
-    desc: "Buat invoice rapi dengan status pembayaran yang jelas.",
+    desc: "Create clean invoices with clear payment status.",
   },
   {
     title: "Payment links",
-    desc: "Bagikan link pembayaran langsung ke pelanggan.",
+    desc: "Share payment links directly with customers.",
   },
   {
     title: "Subscription billing",
-    desc: "Kelola paket langganan dan add-on secara fleksibel.",
+    desc: "Manage subscription packages and add-ons flexibly.",
   },
   {
     title: "Transaction history & exports",
-    desc: "Riwayat transaksi lengkap dan ekspor laporan.",
+    desc: "Complete transaction history and report exports.",
   },
   {
     title: "Refunds & adjustments (planned)",
-    desc: "Rencana penyesuaian dan refund sesuai kebijakan bisnis.",
+    desc: "Adjustments and refunds planned per business policy.",
   },
   {
     title: "Marketplace payouts (planned)",
-    desc: "Payout dan komisi untuk creator Marketplace (bertahap).",
+    desc: "Payouts and commissions for Marketplace creators (phased).",
   },
 ];
 
 const steps = [
-  "Buat invoice atau payment link.",
-  "Pelanggan melakukan pembayaran.",
-  "Status transaksi otomatis diperbarui.",
-  "Transaksi tercatat di riwayat.",
-  "Export data untuk laporan dan rekonsiliasi.",
+  "Create invoice or payment link.",
+  "Customer completes payment.",
+  "Transaction status updates automatically.",
+  "Transaction recorded in history.",
+  "Export data for reporting and reconciliation.",
 ];
 
 const safetyPoints = [
   {
-    title: "Keamanan data",
-    desc: "Data transaksi disimpan dengan kontrol keamanan berlapis.",
+    title: "Data security",
+    desc: "Transaction data stored with layered security controls.",
   },
   {
     title: "Auditability via Core OS",
-    desc: "Aktivitas pembayaran dapat dicatat untuk audit bila terhubung ke Core OS.",
+    desc: "Payment activities can be logged for audit when connected to Core OS.",
   },
   {
     title: "Access control",
-    desc: "Akses mengikuti role dan workspace agar tidak semua orang dapat mengubah billing.",
+    desc: "Access follows roles and workspace to ensure not everyone can modify billing.",
   },
   {
     title: "Fraud prevention (high-level)",
-    desc: "Dirancang untuk mendukung deteksi anomali dan kontrol risiko.",
+    desc: "Designed to support anomaly detection and risk controls.",
   },
 ];
 
 const faqs = [
   {
-    question: "Metode pembayaran apa yang didukung?",
+    question: "Which payment methods are supported?",
     answer:
-      "Metode pembayaran mengikuti integrasi yang tersedia di wilayah Anda dan akan diperluas bertahap.",
+      "Payment methods follow available integrations in your region and will expand progressively.",
   },
   {
-    question: "Apakah ada biaya tambahan?",
+    question: "Are there additional fees?",
     answer:
-      "Biaya transaksi tergantung metode dan paket langganan. Detail tersedia pada pricing.",
+      "Transaction fees depend on method and subscription plan. Details available on pricing.",
   },
   {
-    question: "Bagaimana subscription billing bekerja?",
+    question: "How does subscription billing work?",
     answer:
-      "Paket dan add-on dapat diatur per periode dengan status yang transparan.",
+      "Packages and add-ons can be configured per period with transparent status.",
   },
   {
-    question: "Apakah invoice bisa dikustom?",
+    question: "Can invoices be customized?",
     answer:
-      "Invoice disesuaikan dengan detail bisnis dan informasi pembayaran yang diperlukan.",
+      "Invoices are customized with business details and payment information as needed.",
   },
   {
-    question: "Bagaimana proses refund?",
+    question: "How does the refund process work?",
     answer:
-      "Refund direncanakan sebagai fitur bertahap sesuai kebijakan bisnis.",
+      "Refunds are planned as a phased feature per business policy.",
   },
   {
-    question: "Apakah ada batasan penggunaan?",
+    question: "Are there usage limits?",
     answer:
-      "Batasan mengikuti paket langganan dan kebijakan risiko.",
+      "Limits follow your subscription plan and risk policy.",
   },
   {
-    question: "Apakah data transaksi bisa diekspor?",
+    question: "Can transaction data be exported?",
     answer:
-      "Ya, riwayat transaksi dapat diekspor untuk laporan dan rekonsiliasi.",
+      "Yes, transaction history can be exported for reporting and reconciliation.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Platform (Core OS)",
-    desc: "Fondasi akun, workspace, dan billing untuk semua modul.",
+    desc: "Foundation for accounts, workspaces, and billing across all modules.",
     href: "/products/platform",
-    cta: "Lihat Core OS",
+    cta: "View Core OS",
   },
   {
     title: "Gigaviz Marketplace",
-    desc: "Marketplace untuk listing produk digital dan payout bertahap.",
+    desc: "Marketplace for digital product listings and phased payouts.",
     href: "/products/marketplace",
-    cta: "Lihat Marketplace",
+    cta: "View Marketplace",
   },
   {
     title: "Gigaviz Apps",
-    desc: "Request aplikasi custom dan ticketing yang terstruktur.",
+    desc: "Request custom apps and structured ticketing.",
     href: "/products/apps",
-    cta: "Lihat Apps",
+    cta: "View Apps",
   },
   {
     title: "Gigaviz Meta Hub",
-    desc: "Hub WhatsApp Cloud API untuk template dan campaign.",
+    desc: "WhatsApp Cloud API hub for templates and campaigns.",
     href: "/products/meta-hub",
-    cta: "Lihat Meta Hub",
+    cta: "View Meta Hub",
   },
 ];
 
@@ -186,7 +186,7 @@ export default function PayPage() {
                   Gigaviz Pay
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Wallet, invoice, payment link, dan subscription billing untuk transaksi yang rapi.
+                  Wallet, invoicing, payment links, and subscription billing for organized transactions.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -194,13 +194,13 @@ export default function PayPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Aktifkan Pay
+                  Enable Pay
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Pricing
+                  View Pricing
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
@@ -218,7 +218,7 @@ export default function PayPage() {
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -229,7 +229,7 @@ export default function PayPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Pay membantu tim finance mengelola transaksi secara terstruktur.
+                Pay helps finance teams manage transactions in a structured way.
               </div>
             </div>
           </div>
@@ -239,13 +239,13 @@ export default function PayPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Fitur utama
+                Core features
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Fondasi billing yang siap tumbuh
+                Billing foundation ready to scale
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Pay menggabungkan invoice, payment link, dan subscription dalam satu workflow.
+                Pay combines invoicing, payment links, and subscriptions in one workflow.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -270,10 +270,10 @@ export default function PayPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Cara kerja
+                How it works
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Alur transaksi yang jelas
+                Clear transaction flow
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -296,13 +296,13 @@ export default function PayPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Keamanan & compliance
+                Security & compliance
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Transaksi aman dengan kontrol akses
+                Secure transactions with access control
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Pay dirancang untuk menjaga data pembayaran tetap aman dan teraudit.
+                Pay is designed to keep payment data secure and auditable.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -330,7 +330,7 @@ export default function PayPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan tentang Gigaviz Pay
+                Questions about Gigaviz Pay
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -356,10 +356,10 @@ export default function PayPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Ekosistem pendukung Pay
+                  Pay ecosystem support
                 </h2>
               </div>
             </div>
@@ -392,10 +392,10 @@ export default function PayPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap mengaktifkan Pay?
+                  Ready to enable Pay?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dari invoice sederhana hingga subscription billing yang rapi.
+                  Start from simple invoicing to organized subscription billing.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -403,13 +403,13 @@ export default function PayPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

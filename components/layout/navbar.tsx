@@ -110,7 +110,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               priority
             />
             <span className={`mt-1 hidden text-[11px] md:block ${taglineClass}`}>
-              Ekosistem Digital Terpadu
+              Unified Digital Ecosystem
             </span>
           </div>
         </Link>
@@ -171,7 +171,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               ].join(" ")}
             >
               <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                Ekosistem Gigaviz
+                Gigaviz Ecosystem
               </div>
               <div className="mt-3 grid gap-2">
                 {productNav.map((item) => (
@@ -222,16 +222,16 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               <Link
                 href="/dashboard"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
-                onClick={() => trackCta("Masuk", "navbar", "/dashboard")}
+                onClick={() => trackCta("Sign In", "navbar", "/dashboard")}
               >
-                Masuk
+                Sign In
               </Link>
               <Link
                 href="/get-started"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
-                onClick={() => trackCta("Mulai", "navbar", "/get-started")}
+                onClick={() => trackCta("Get Started", "navbar", "/get-started")}
               >
-                Mulai
+                Get Started
               </Link>
             </>
           ) : (
@@ -239,14 +239,14 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               <Link
                 href="/pricing"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
-                onClick={() => trackCta("Lihat Paket", "navbar", "/pricing")}
+                onClick={() => trackCta("View Plans", "navbar", "/pricing")}
               >
-                Lihat Paket
+                View Plans
               </Link>
               <Link
                 href="/get-started"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
-                onClick={() => trackCta("Mulai", "navbar", "/get-started")}
+                onClick={() => trackCta("Get Started", "navbar", "/get-started")}
               >
                 Get Started
               </Link>
@@ -261,11 +261,11 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               ? "inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] bg-transparent px-3 py-2 text-xs font-medium text-[color:var(--gv-text)] md:hidden"
               : "inline-flex items-center justify-center rounded-2xl border border-slate-700/70 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/60 md:hidden"
           }
-          aria-label="Buka menu"
+          aria-label="Open menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
         >
-          {open ? "Tutup" : "Menu"}
+          {open ? "Close" : "Menu"}
         </button>
       </div>
 
@@ -376,21 +376,21 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                     href="/dashboard"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
                     onClick={() => {
-                      trackCta("Masuk", "navbar", "/dashboard");
+                      trackCta("Sign In", "navbar", "/dashboard");
                       closeMenu();
                     }}
                   >
-                    Masuk
+                    Sign In
                   </Link>
                   <Link
                     href="/get-started"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
                     onClick={() => {
-                      trackCta("Mulai", "navbar", "/get-started");
+                      trackCta("Get Started", "navbar", "/get-started");
                       closeMenu();
                     }}
                   >
-                    Mulai
+                    Get Started
                   </Link>
                 </>
               ) : (
@@ -399,17 +399,17 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                     href="/pricing"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaGhost}`}
                     onClick={() => {
-                      trackCta("Lihat Paket", "navbar", "/pricing");
+                      trackCta("View Plans", "navbar", "/pricing");
                       closeMenu();
                     }}
                   >
-                    Lihat Paket
+                    View Plans
                   </Link>
                   <Link
                     href="/get-started"
                     className={`rounded-2xl px-4 py-3 text-center text-sm font-semibold ${ctaPrimary}`}
                     onClick={() => {
-                      trackCta("Mulai", "navbar", "/get-started");
+                      trackCta("Get Started", "navbar", "/get-started");
                       closeMenu();
                     }}
                   >
@@ -424,7 +424,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                 ? "mt-3 text-center text-xs text-[color:var(--gv-muted)]"
                 : "mt-3 text-center text-xs text-slate-400"
             }>
-              Satu akun, satu dashboard untuk seluruh ekosistem Gigaviz.
+              One account, one dashboard for the entire Gigaviz ecosystem.
             </div>
           </div>
         </div>

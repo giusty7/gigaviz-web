@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!policy) {
     return {
-      title: "Kebijakan tidak ditemukan",
+      title: "Policy not found",
     };
   }
 
@@ -56,7 +56,7 @@ export default async function PolicyDetailPage({ params }: PageProps) {
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Kebijakan
+                Policy
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
                 {policy.title}
@@ -68,7 +68,7 @@ export default async function PolicyDetailPage({ params }: PageProps) {
                 href="/policies"
                 className="text-sm font-semibold text-[color:var(--gv-accent)] hover:underline"
               >
-                Kembali ke daftar kebijakan
+                Back to policies
               </Link>
             </div>
           </div>

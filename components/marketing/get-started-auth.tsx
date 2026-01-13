@@ -19,13 +19,13 @@ export default function GetStartedAuth() {
   return (
     <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6">
       <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-        Daftar dengan Email
+        Sign up with Email
       </div>
       <h3 className="mt-2 text-lg font-semibold text-[color:var(--gv-text)]">
-        Buat akun Gigaviz
+        Create your Gigaviz account
       </h3>
       <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-        Gunakan OTP email untuk mendaftar dan lanjut ke onboarding workspace.
+        Use email OTP to sign up and continue to workspace onboarding.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
@@ -42,9 +42,9 @@ export default function GetStartedAuth() {
       </form>
 
       <div className="mt-4 text-xs text-[color:var(--gv-muted)]">
-        Sudah punya akun?{" "}
+        Already have an account?{" "}
         <Link href="/dashboard" className="text-[color:var(--gv-text)] hover:underline">
-          Masuk
+          Sign In
         </Link>
       </div>
     </div>

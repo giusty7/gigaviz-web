@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!post || !post.published) {
     return {
-      title: "Artikel tidak ditemukan",
+      title: "Article not found",
     };
   }
 
@@ -110,7 +110,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 href="/blog"
                 className="text-sm font-semibold text-[color:var(--gv-accent)] hover:underline"
               >
-                Kembali ke Blog
+                Back to Blog
               </Link>
             </div>
           </div>

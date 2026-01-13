@@ -5,16 +5,16 @@ import { Footer } from "@/components/layout/footer";
 import { formatBlogDate, getPublishedPosts } from "@/lib/blog";
 
 export const metadata: Metadata = {
-  title: "Blog Gigaviz",
+  title: "Gigaviz Blog",
   description:
-    "Cerita, pembaruan, dan insight tentang ekosistem Gigaviz dari tim dan komunitas.",
+    "Stories, updates, and insights about the Gigaviz ecosystem from our team and community.",
   alternates: {
     canonical: "/blog",
   },
   openGraph: {
-    title: "Blog Gigaviz",
+    title: "Gigaviz Blog",
     description:
-      "Cerita, pembaruan, dan insight tentang ekosistem Gigaviz dari tim dan komunitas.",
+      "Stories, updates, and insights about the Gigaviz ecosystem from our team and community.",
     url: "/blog",
   },
 };
@@ -31,13 +31,13 @@ export default async function BlogIndexPage() {
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Blog Gigaviz
+                Gigaviz Blog
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Cerita dan pembaruan ekosistem
+                Stories & Ecosystem Updates
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Catatan perjalanan, insight produk, dan cerita di balik Gigaviz.
+                Journey notes, product insights, and stories behind Gigaviz.
               </p>
             </div>
           </div>
@@ -47,7 +47,7 @@ export default async function BlogIndexPage() {
           <div className="container py-12 md:py-16">
             {posts.length === 0 ? (
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-                Belum ada postingan. Nantikan cerita terbaru dari tim Gigaviz.
+                No posts yet. Stay tuned for latest stories from the Gigaviz team.
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">

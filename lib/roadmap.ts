@@ -1,4 +1,4 @@
-export type RoadmapItem = {
+﻿export type RoadmapItem = {
   title: string;
   description: string;
 };
@@ -8,60 +8,60 @@ export type RoadmapStage = "now" | "next" | "later";
 export const roadmap: Record<RoadmapStage, RoadmapItem[]> = {
   now: [
     {
-      title: "Core OS untuk akun dan workspace",
-      description: "Single sign-on, billing dasar, role, dan audit log untuk tim.",
+      title: "Core OS for accounts and workspaces",
+      description: "Single sign-on, base Billing, Roles, and Audit Logs for teams.",
     },
     {
       title: "Meta Hub basics",
-      description: "Webhook, inbox, template, dan workflow opt-in untuk WhatsApp.",
+      description: "Webhooks, inbox, templates, and opt-in workflows for WhatsApp.",
     },
     {
       title: "Studio library",
-      description: "Asset library, prompt management, dan output kreatif awal.",
+      description: "Asset library, prompt management, and early creative outputs.",
     },
     {
       title: "Office templates",
-      description: "Template dokumen, dashboard, dan automasi sederhana.",
+      description: "Document templates, dashboards, and light automation.",
     },
     {
       title: "Pay UI",
-      description: "Invoice dan subscription billing dengan tampilan awal.",
+      description: "Invoices and subscription billing with an initial UI.",
     },
   ],
   next: [
     {
-      title: "Analytics lintas modul",
-      description: "Insight terintegrasi untuk performa bisnis dan kreatif.",
+      title: "Cross-module analytics",
+      description: "Unified insights for business and creative performance.",
     },
     {
       title: "Campaign scheduler v2",
-      description: "Jadwal kampanye yang lebih presisi dan mudah diaudit.",
+      description: "More precise scheduling with audit-ready history.",
     },
     {
       title: "Marketplace hooks",
-      description: "Integrasi ringan ke ekosistem marketplace dan CRM.",
+      description: "Lightweight integrations with marketplace and CRM.",
     },
     {
-      title: "Roles dan audit tingkat lanjut",
-      description: "Pengaturan akses granular dan histori aktivitas detail.",
+      title: "Advanced roles and audit",
+      description: "Granular access control and detailed activity history.",
     },
   ],
   later: [
     {
-      title: "PPOB dan pembayaran rutin",
-      description: "Ekstensi pembayaran dan layanan tagihan.",
+      title: "Utility payments and recurring billing",
+      description: "Extensions for utility payments and scheduled billing flows.",
     },
     {
       title: "BSP upgrades",
-      description: "Peningkatan jalur resmi untuk WhatsApp BSP.",
+      description: "Upgrades for the official WhatsApp BSP path.",
     },
     {
       title: "Community events",
-      description: "Meetup, showcase, dan program komunitas resmi.",
+      description: "Meetups, showcases, and official community programs.",
     },
     {
       title: "Advanced automations",
-      description: "Otomasi lintas modul dengan aturan yang lebih kompleks.",
+      description: "Cross-module automations with more complex rules.",
     },
   ],
 };

@@ -1,24 +1,24 @@
 # Messaging Policy
 
-Kebijakan ini berlaku untuk pengiriman pesan melalui WhatsApp Cloud API atau kanal pesan lain yang terintegrasi.
+This policy applies to messaging via WhatsApp Cloud API or other integrated messaging channels.
 
-## Prinsip Utama
+## Core Principles
 
-- Pesan hanya boleh dikirim ke kontak yang sudah memberikan persetujuan (opt-in).
-- Setiap pesan harus menyertakan cara untuk berhenti menerima pesan (opt-out), seperti kata kunci STOP.
-- Pengiriman harus mengikuti batas harian dan jeda aman untuk menjaga kualitas.
+- Messages may only be sent to contacts who have provided consent (opt-in).
+- Every message must include a way to stop receiving messages (opt-out), such as the keyword STOP.
+- Sending must follow daily limits and safe intervals to maintain quality.
 
-## Template dan Konten
+## Message Templates and Content
 
-- Template pesan harus sesuai kategori dan persetujuan platform.
-- Konten tidak boleh menyesatkan, memaksa, atau mengandung spam.
+- Message templates must match platform categories and approvals.
+- Content must not be misleading, coercive, or contain spam.
 
-## Manajemen Kontak
+## Contact Management
 
-- Simpan bukti persetujuan kontak.
-- Hapus atau tandai opt-out secara konsisten.
-- Hindari mengirim ulang pesan ke kontak yang sudah opt-out.
+- Maintain proof of contact consent.
+- Consistently remove or mark contacts as opt-out.
+- Do not resend messages to contacts who have opted out.
 
-## Audit dan Monitoring
+## Audit and Monitoring
 
-Gigaviz dapat melakukan monitoring untuk menjaga kepatuhan dan kualitas layanan. Pelanggaran dapat menyebabkan pembatasan fitur.
+Gigaviz may monitor to ensure compliance and service quality. Violations may result in feature restrictions.

@@ -1,33 +1,33 @@
 # Privacy Policy
 
-Kebijakan ini menjelaskan bagaimana Gigaviz mengumpulkan, menggunakan, dan melindungi data pribadi.
+This policy explains how Gigaviz collects, uses, and protects personal data.
 
-## Data yang Dikumpulkan
+## Data We Collect
 
-Kami dapat mengumpulkan data berikut:
+We may collect the following data:
 
-- Identitas dasar seperti nama, email, dan nomor kontak.
-- Informasi perusahaan dan kebutuhan penggunaan layanan.
-- Data penggunaan produk untuk tujuan analitik dan peningkatan layanan.
+- Basic identity information such as name, email, and contact number.
+- Company information and service usage requirements.
+- Product usage data for analytics and service improvement.
 
-## Cara Kami Menggunakan Data
+## How We Use Your Data
 
-- Menyediakan akses dan dukungan layanan.
-- Mengirim pembaruan produk, notifikasi sistem, atau informasi penting.
-- Menganalisis performa untuk meningkatkan pengalaman pengguna.
+- Providing service access and support.
+- Sending product updates, system notifications, or important information.
+- Analyzing performance to improve user experience.
 
-## Penyimpanan dan Keamanan
+## Data Storage and Security
 
-Kami menerapkan langkah keamanan yang wajar untuk melindungi data. Akses dibatasi sesuai peran dan kebutuhan operasional.
+We implement reasonable security measures to protect data. Access is restricted by role and operational necessity.
 
-## Berbagi Data
+## Data Sharing
 
-Kami tidak menjual data pribadi. Data hanya dibagikan dengan pihak ketiga yang diperlukan untuk operasional layanan dan tunduk pada perjanjian kerahasiaan.
+We do not sell personal data. Data is only shared with third parties necessary for service operations and subject to confidentiality agreements.
 
-## Hak Pengguna
+## User Rights
 
-Anda berhak meminta akses, koreksi, atau penghapusan data sesuai kebijakan [Data Deletion Instructions](/policies/data-deletion). Permintaan dapat diajukan melalui halaman Kontak.
+You have the right to request access, correction, or deletion of your data per our [Data Deletion Instructions](/policies/data-deletion). Requests can be submitted via the Contact page.
 
-## Perubahan Kebijakan
+## Policy Changes
 
-Kebijakan ini dapat diperbarui. Perubahan material akan diinformasikan melalui kanal resmi.
+This policy may be updated. Material changes will be communicated through official channels.

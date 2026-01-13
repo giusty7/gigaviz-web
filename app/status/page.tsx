@@ -4,16 +4,16 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
-  title: "Status Produk Gigaviz",
+  title: "Gigaviz Product Status",
   description:
-    "Lihat status kesiapan modul Gigaviz v1.1: Live, Beta, hingga Segera (planned).",
+    "View the readiness status of Gigaviz v1.1 modules: Live, Beta, and Planned.",
   alternates: {
     canonical: "/status",
   },
   openGraph: {
-    title: "Status Produk Gigaviz",
+    title: "Gigaviz Product Status",
     description:
-      "Lihat status kesiapan modul Gigaviz v1.1: Live, Beta, hingga Segera (planned).",
+      "View the readiness status of Gigaviz v1.1 modules: Live, Beta, and Planned.",
     url: "/status",
   },
 };
@@ -23,7 +23,7 @@ type StatusType = "available" | "beta" | "coming";
 const statusLabel: Record<StatusType, string> = {
   available: "Live",
   beta: "Beta",
-  coming: "Segera",
+  coming: "Planned",
 };
 
 const statusStyles: Record<StatusType, string> = {
@@ -40,53 +40,53 @@ const statusItems = [
     name: "Gigaviz Platform (Core OS)",
     status: "available",
     available: [
-      "Account & SSO dengan identitas tunggal.",
-      "Workspace untuk organisasi dan billing.",
-      "RBAC dan audit log inti.",
+      "Account & SSO with unified identity.",
+      "Workspace for organization and billing.",
+      "Core RBAC and audit logs.",
     ],
-    next: ["Ekspor audit dan laporan compliance (planned)."],
+    next: ["Audit export and compliance reports (planned)."],
   },
   {
     slug: "meta-hub",
     name: "Gigaviz Meta Hub",
     status: "beta",
     available: [
-      "Integrasi WhatsApp Cloud API.",
+      "WhatsApp Cloud API integration.",
       "Template manager & webhook receiver.",
-      "Inbox bersama + scheduler kampanye.",
+      "Shared inbox + campaign scheduler.",
     ],
-    next: ["Segmentasi kampanye dan analitik lanjutan (planned)."],
+    next: ["Campaign segmentation and advanced analytics (planned)."],
   },
   {
     slug: "helper",
     name: "Gigaviz Helper",
     status: "beta",
     available: [
-      "Chat AI untuk ide cepat.",
-      "Copy generator dan draft balasan.",
-      "Summarizer untuk ringkasan pesan/dokumen.",
+      "AI chat for quick ideas.",
+      "Copy generator and reply drafts.",
+      "Summarizer for messages and documents.",
     ],
-    next: ["Browsing terkontrol dan prompt sharing workspace (planned)."],
+    next: ["Controlled browsing and workspace prompt sharing (planned)."],
   },
   {
     slug: "office",
     name: "Gigaviz Office",
     status: "beta",
     available: [
-      "Template library untuk doc/sheet.",
-      "Formula assistant dan generator dokumen.",
-      "Dashboard builder sederhana.",
+      "Template library for docs and sheets.",
+      "Formula assistant and document generator.",
+      "Simple dashboard builder.",
     ],
-    next: ["Import/export connector bertahap (planned)."],
+    next: ["Phased import/export connectors (planned)."],
   },
   {
     slug: "studio",
     name: "Gigaviz Studio",
     status: "beta",
     available: [
-      "Generative image + asset library.",
-      "Prompt library dan versioning.",
-      "Submodule Graph (Gallery) & Tracks (Music).",
+      "Generative images and asset library.",
+      "Prompt library and versioning.",
+      "Submodules: Graph (Gallery) & Tracks (Music).",
     ],
     next: ["Generative video & music, watermark controls (planned)."],
     submodules: [
@@ -99,52 +99,52 @@ const statusItems = [
     name: "Gigaviz Marketplace",
     status: "beta",
     available: [
-      "Listing produk digital siap jual.",
-      "Lisensi personal & komersial.",
-      "Discovery dan bundle dasar.",
+      "Digital product listings ready to sell.",
+      "Personal and commercial licenses.",
+      "Discovery and basic bundling.",
     ],
-    next: ["Review pengguna dan payout creator (planned)."],
+    next: ["User reviews and creator payouts (planned)."],
   },
   {
     slug: "arena",
     name: "Gigaviz Arena",
     status: "beta",
     available: [
-      "Arena Play untuk game kurasi.",
-      "Commission request untuk game custom.",
-      "Koneksi ke Apps untuk tiket.",
+      "Arena Play for curated games.",
+      "Commission requests for custom games.",
+      "Integration with Apps for ticketing.",
     ],
-    next: ["Mini-game builder dan gamification (planned)."],
+    next: ["Mini-game builder and gamification (planned)."],
   },
   {
     slug: "apps",
     name: "Gigaviz Apps",
     status: "beta",
     available: [
-      "App catalog dan request aplikasi.",
-      "Ticketing & status tracking.",
+      "App catalog and app requests.",
+      "Ticketing and status tracking.",
       "Mini roadmap per workspace.",
     ],
-    next: ["Kolaborasi lampiran & SLA tier (planned)."],
+    next: ["Attachment collaboration and SLA tiers (planned)."],
   },
   {
     slug: "pay",
     name: "Gigaviz Pay",
     status: "beta",
     available: [
-      "Invoice generator dan payment links.",
-      "Subscription billing untuk paket.",
-      "Riwayat transaksi & ekspor.",
+      "Invoice generator and payment links.",
+      "Subscription billing for plans.",
+      "Transaction history and exports.",
     ],
-    next: ["Refunds dan marketplace payouts (planned)."],
+    next: ["Refunds and marketplace payouts (planned)."],
   },
   {
     slug: "community",
     name: "Gigaviz Community",
     status: "coming",
     available: [
-      "Roadmap komunitas dan kurasi awal.",
-      "Pedoman moderasi & safety rules.",
+      "Community roadmap and initial curation.",
+      "Moderation guidelines and safety rules.",
     ],
     next: ["Forum & Q&A, feedback board, showcase (planned)."],
   },
@@ -183,13 +183,13 @@ export default function StatusPage() {
           <div className="container relative z-10 py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Status Produk
+                Product Status
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Status Produk Gigaviz
+                Gigaviz Product Status
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Halaman ini menunjukkan kesiapan modul Gigaviz v1.1 - dari Live, Beta, hingga Segera.
+                This page shows the readiness status of Gigaviz v1.1 modules — from Live, Beta, to Planned.
               </p>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function StatusPage() {
               <StatusPill status="beta" />
               <StatusPill status="coming" />
               <span className="text-xs text-[color:var(--gv-muted)]">
-                Live = siap digunakan, Beta = aktif terbatas, Segera = planned.
+                Live = production-ready, Beta = limited access, Planned = not yet available.
               </span>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function StatusPage() {
                           href={`/products/${item.slug}`}
                           className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                         >
-                          Lihat detail
+                          View Details
                         </Link>
                       </div>
 
@@ -252,7 +252,7 @@ export default function StatusPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-4">
                         <div className="text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                          Tersedia sekarang
+                          Available Now
                         </div>
                         <ul className="mt-3 space-y-2 text-sm text-[color:var(--gv-muted)]">
                           {item.available.map((point) => (
@@ -265,7 +265,7 @@ export default function StatusPage() {
                       </div>
                       <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] p-4">
                         <div className="text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                          Berikutnya
+                          Coming Next
                         </div>
                         <ul className="mt-3 space-y-2 text-sm text-[color:var(--gv-muted)]">
                           {item.next.map((point) => (
@@ -288,10 +288,10 @@ export default function StatusPage() {
           <div className="container py-10">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5 text-sm text-[color:var(--gv-muted)]">
-                Akses modul mengikuti paket langganan.
+                Module access depends on your subscription plan.
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5 text-sm text-[color:var(--gv-muted)]">
-                Biaya token (AI/WhatsApp API) dihitung terpisah sesuai pemakaian.
+                Token costs (AI/WhatsApp API) are calculated separately based on usage.
               </div>
             </div>
           </div>
@@ -302,10 +302,10 @@ export default function StatusPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap masuk ke ekosistem Gigaviz?
+                  Ready to join the Gigaviz ecosystem?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dari paket yang sesuai lalu pantau roadmap pengembangan.
+                  Choose a plan that fits your needs and follow our development roadmap.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -313,13 +313,13 @@ export default function StatusPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/roadmap"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Roadmap
+                  View Roadmap
                 </Link>
               </div>
             </div>

@@ -6,81 +6,81 @@ import { Footer } from "@/components/layout/footer";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Paket langganan Gigaviz dengan modul fleksibel, onboarding terarah, dan transparansi penggunaan token.",
+    "Gigaviz subscription plans with flexible modules, guided onboarding, and transparent token usage reporting.",
 };
 
 const plans = [
   {
     name: "Starter",
     price: "Rp 299.000",
-    note: "Mulai dari",
-    desc: "Untuk tim kecil yang butuh modul inti dan workflow dasar.",
+    note: "Starting from",
+    desc: "For small teams needing core modules and basic workflows.",
     features: [
-      "Akses ke Core OS dan Workspace",
-      "2 modul aktif",
+      "Access to Core OS and Workspace",
+      "2 active modules",
       "1 workspace",
-      "Dukungan email dasar",
+      "Basic email support",
     ],
   },
   {
     name: "Pro",
     price: "Rp 799.000",
-    note: "Mulai dari",
-    desc: "Untuk tim operasional yang butuh automasi dan inbox.",
+    note: "Starting from",
+    desc: "For operational teams needing automation and inbox management.",
     features: [
-      "Semua fitur Starter",
-      "5 modul aktif",
-      "Scheduler kampanye",
-      "Support prioritas",
+      "All Starter features",
+      "5 active modules",
+      "Campaign scheduler",
+      "Priority support",
     ],
-    highlight: "Paling dipilih",
+    highlight: "Most Popular",
   },
   {
     name: "Business",
     price: "Rp 1.900.000",
-    note: "Mulai dari",
-    desc: "Untuk tim yang butuh multi workspace dan integrasi lanjutan.",
+    note: "Starting from",
+    desc: "For teams needing multi-workspace support and advanced integrations.",
     features: [
-      "Semua fitur Pro",
-      "10 modul aktif",
-      "Multi workspace",
-      "Role dan audit tingkat lanjut",
+      "All Pro features",
+      "10 active modules",
+      "Multi-workspace support",
+      "Advanced roles and audit logs",
     ],
   },
   {
     name: "Enterprise",
     price: "Custom",
-    note: "Hubungi tim",
-    desc: "Untuk kebutuhan enterprise, SLA, dan integrasi khusus.",
+    note: "Contact Sales",
+    desc: "For enterprise needs, custom SLA, and specialized integrations.",
     features: [
-      "Semua fitur Business",
-      "SLA dan onboarding khusus",
-      "Integrasi custom",
-      "Account manager dedicated",
+      "All Business features",
+      "Custom SLA and onboarding",
+      "Custom integrations",
+      "Dedicated account manager",
     ],
   },
 ];
 
 const platformIncludes = [
-  "Single sign-on dan manajemen role",
-  "Template workflow operasional utama",
-  "Onboarding dan training singkat untuk tim inti",
-  "Audit trail untuk aktivitas penting",
-  "Roadmap produk yang sinkron dengan kebutuhan tim",
+  "Single sign-on and role management",
+  "Core operational workflow templates",
+  "Onboarding and quick training for core teams",
+  "Audit trail for critical activities",
+  "Product roadmap aligned with team needs",
 ];
 
 const assuranceItems = [
   {
-    title: "Setup berlapis",
-    desc: "Rencana implementasi bertahap agar tim siap tanpa overload.",
+    title: "Phased Setup",
+    desc: "Staged implementation plan to ensure teams are ready without overwhelming them.",
   },
   {
-    title: "Kontrol anggaran",
-    desc: "Limit usage per workspace + laporan penggunaan berkala.",
+    title: "Budget Control",
+    desc: "Usage limits per workspace with periodic usage reports.",
   },
   {
-    title: "Dukungan prioritas",
-    desc: "SLA khusus untuk paket Business dan Enterprise.",
+    title: "Priority Support",
+    desc: "Custom SLA for Business and Enterprise plans.",
   },
 ];
 
@@ -94,13 +94,13 @@ export default function PricingPage() {
           <div className="container py-16 md:py-24">
             <div className="mx-auto max-w-3xl space-y-4 text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Harga
+                Pricing
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Paket langganan untuk seluruh ekosistem
+                Subscription plans for the entire ecosystem
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Harga di bawah ini adalah starting price dan dapat disesuaikan dengan kebutuhan modul serta volume penggunaan.
+                Pricing below are starting prices and can be adjusted based on module requirements and usage volume.
               </p>
             </div>
           </div>
@@ -160,13 +160,13 @@ export default function PricingPage() {
             <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-start">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Selalu termasuk
+                  Always Included
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Fondasi ekosistem Gigaviz
+                  Foundation of the Gigaviz ecosystem
                 </h2>
                 <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                  Setiap paket sudah mencakup modul inti dan setup awal agar tim Anda bisa langsung beroperasi.
+                  Every plan includes core modules and initial setup so your team can start operating immediately.
                 </p>
                 <ul className="mt-6 space-y-2 text-sm text-[color:var(--gv-muted)]">
                   {platformIncludes.map((item) => (
@@ -192,7 +192,7 @@ export default function PricingPage() {
                   </div>
                 ))}
                 <div className="rounded-3xl border border-[color:var(--gv-accent-2)] bg-[color:var(--gv-magenta-soft)] p-5 text-sm text-[color:var(--gv-text)]">
-                  Paket Business & Enterprise mendapat review roadmap dan penyesuaian modul setiap kuartal.
+                  Business & Enterprise plans receive quarterly roadmap reviews and module adjustments.
                 </div>
               </div>
             </div>
@@ -204,21 +204,21 @@ export default function PricingPage() {
             <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Penggunaan token
+                  Token Usage
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Biaya AI generation berbasis token
+                  Token-based AI generation pricing
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Token digunakan untuk fitur AI seperti copy generator, summarizer, dan studio kreatif. Harga token dapat berubah sesuai biaya model dan penggunaan.
+                  Tokens are used for AI features such as copy generation, summarization, and creative studio. Token pricing may change based on model costs and usage.
                 </p>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-                <p className="font-semibold text-[color:var(--gv-text)]">Catatan penggunaan</p>
+                <p className="font-semibold text-[color:var(--gv-text)]">Usage Notes</p>
                 <ul className="mt-3 space-y-2">
-                  <li>- Token dihitung per output atau permintaan.</li>
-                  <li>- Harga token akan ditampilkan sebelum penggunaan masif.</li>
-                  <li>- Anda dapat menetapkan limit token per workspace.</li>
+                  <li>- Tokens are calculated per output or request.</li>
+                  <li>- Token pricing will be displayed before heavy usage.</li>
+                  <li>- You can set token limits per workspace.</li>
                 </ul>
               </div>
             </div>
@@ -230,10 +230,10 @@ export default function PricingPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Ingin paket khusus?
+                  Looking for a custom plan?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Hubungi tim kami untuk paket enterprise, SLA, dan integrasi custom.
+                  Contact our team for enterprise plans, custom SLA, and specialized integrations.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">

@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const defaultMetadata: Metadata = {
   title: {
-    default: "Gigaviz — Ekosistem Digital Glorious Victorious",
+    default: "Gigaviz | Glorious Victorious",
     template: "%s | Gigaviz",
   },
   description:
-    "Gigaviz adalah ekosistem produk digital: WA Blast, dashboard kinerja, musik, dan tools kreatif untuk tim yang ingin naik level.",
+    "Gigaviz is a digital product ecosystem to create, automate, monetize, and manage in one system.",
   metadataBase: new URL("https://gigaviz.com"),
   openGraph: {
-    title: "Gigaviz — Ekosistem Digital Glorious Victorious",
+    title: "Gigaviz | Glorious Victorious",
     description:
-      "Ekosistem produk digital: WA Blast, dashboard kinerja, musik, dan tools kreatif.",
+      "A digital product ecosystem built for teams to move fast with control.",
     url: "https://gigaviz.com",
     siteName: "Gigaviz",
     type: "website",

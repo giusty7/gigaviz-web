@@ -142,6 +142,6 @@ export const getPostBySlug = cache(async (slug: string) => {
 
 export function formatBlogDate(date: string) {
   if (!date) return "";
-  const formatter = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" });
+  const formatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
   return formatter.format(new Date(date));
 }

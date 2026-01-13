@@ -1,21 +1,21 @@
 # Refund and Cancellation Policy
 
-Kebijakan ini menjelaskan proses pembatalan dan pengembalian dana untuk layanan berlangganan Gigaviz.
+This policy outlines the cancellation and refund process for Gigaviz subscriptions.
 
-## Pembatalan
+## Cancellation
 
-- Langganan dapat dibatalkan kapan saja melalui dashboard atau dengan menghubungi tim kami.
-- Pembatalan berlaku pada akhir periode penagihan berjalan.
+- Subscriptions can be cancelled anytime through your dashboard or by contacting our team.
+- Cancellation takes effect at the end of the current billing period.
 
-## Pengembalian Dana
+## Refunds
 
-- Pembayaran yang sudah berjalan umumnya tidak dapat dikembalikan.
-- Pengembalian dana dapat dipertimbangkan jika terjadi kesalahan penagihan atau gangguan layanan yang signifikan.
+- Payments already processed are generally non-refundable.
+- Refunds may be considered if billing errors occur or if there is significant service disruption.
 
-## Perubahan Paket
+## Plan Changes
 
-Anda dapat melakukan upgrade atau downgrade paket sesuai kebutuhan. Perubahan akan dihitung secara proporsional pada periode berikutnya.
+You can upgrade or downgrade your plan as needed. Changes will be applied proportionally to your next billing period.
 
-## Kontak
+## Contact
 
-Untuk pertanyaan terkait pembatalan atau refund, silakan hubungi tim kami melalui halaman Kontak.
+For questions about cancellation or refunds, please contact our team via the Contact page.

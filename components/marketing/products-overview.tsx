@@ -6,18 +6,18 @@ import { topLevelProducts, productCategories } from "@/lib/products";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 
-const categoryOptions = ["Semua", ...productCategories];
+const categoryOptions = ["All", ...productCategories];
 
 export default function ProductsOverview() {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("Semua");
+  const [category, setCategory] = useState("All");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return topLevelProducts.filter((product) => {
       const matchCategory =
-        category === "Semua" || product.categories.includes(category);
+        category === "All" || product.categories.includes(category);
       if (!matchCategory) return false;
       if (!q) return true;
 
@@ -44,19 +44,19 @@ export default function ProductsOverview() {
             htmlFor="product-search"
             className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]"
           >
-            Cari modul
+            Search modules
           </label>
           <input
             id="product-search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Cari modul, fitur, atau kata kunci"
+            placeholder="Search modules, features, or keywords"
             className="mt-2 w-full rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-4 py-3 text-sm text-[color:var(--gv-text)] placeholder:text-[color:var(--gv-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--gv-accent)]"
           />
         </div>
         <div>
           <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-            Filter kategori
+            Filter categories
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {categoryOptions.map((option) => {
@@ -106,7 +106,7 @@ export default function ProductsOverview() {
               </p>
             </div>
             <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--gv-accent)]">
-              Lihat detail
+              View details
             </div>
           </Link>
         ))}
@@ -114,7 +114,7 @@ export default function ProductsOverview() {
 
       {filtered.length === 0 ? (
         <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-          Tidak ada modul yang cocok dengan filter ini. Coba kata kunci lain.
+          No modules match this filter. Try a different keyword.
         </div>
       ) : null}
     </div>

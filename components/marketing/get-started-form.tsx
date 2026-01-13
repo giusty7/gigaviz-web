@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { z } from "zod";
@@ -17,14 +17,14 @@ type FormState = {
 };
 
 const stepOneSchema = z.object({
-  name: z.string().min(2, "Nama minimal 2 karakter."),
-  email: z.string().email("Email tidak valid."),
-  phone: z.string().min(9, "Nomor WhatsApp tidak valid."),
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  email: z.string().email("Invalid email address."),
+  phone: z.string().min(9, "Invalid WhatsApp number."),
   company: z.string().optional(),
 });
 
 const stepTwoSchema = z.object({
-  plan: z.enum(planOptions, { message: "Pilih paket terlebih dahulu." }),
+  plan: z.enum(planOptions, { message: "Select a plan first." }),
 });
 
 function onlyDigits(input: string) {
@@ -62,7 +62,7 @@ export default function GetStartedForm() {
       });
 
       if (!result.success) {
-        setError(result.error.issues[0]?.message ?? "Data belum lengkap.");
+        setError(result.error.issues[0]?.message ?? "Please complete the required fields.");
         return;
       }
 
@@ -73,7 +73,7 @@ export default function GetStartedForm() {
     if (step === 2) {
       const result = stepTwoSchema.safeParse({ plan: form.plan });
       if (!result.success) {
-        setError(result.error.issues[0]?.message ?? "Pilih paket.");
+        setError(result.error.issues[0]?.message ?? "Select a plan.");
         return;
       }
 
@@ -113,12 +113,12 @@ export default function GetStartedForm() {
       };
 
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Gagal mengirim. Coba lagi.");
+        throw new Error(data?.message || "Submission failed. Please try again.");
       }
 
       setSuccess(true);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Terjadi error.";
+      const message = err instanceof Error ? err.message : "Something went wrong.";
       setError(message);
     } finally {
       setLoading(false);
@@ -133,22 +133,23 @@ export default function GetStartedForm() {
             Get Started
           </div>
           <h2 className="mt-2 text-xl font-semibold text-[color:var(--gv-text)]">
-            Mulai onboarding Gigaviz
+            Start Gigaviz onboarding
           </h2>
         </div>
-        <div className="text-xs text-[color:var(--gv-muted)]">Langkah {step} dari 3</div>
+        <div className="text-xs text-[color:var(--gv-muted)]">Step {step} of 3</div>
       </div>
 
       {success ? (
         <div className="mt-6 rounded-2xl border border-[color:var(--gv-accent)] bg-[color:var(--gv-accent-soft)] p-4 text-sm text-[color:var(--gv-text)]">
-          Terima kasih. Tim kami akan menghubungi Anda untuk langkah berikutnya.
+          Thank you. Our team will contact you with the next steps.
         </div>
       ) : (
         <div className="mt-6 space-y-6">
           {step === 1 ? (
             <div className="space-y-4">
               <div className="text-sm text-[color:var(--gv-muted)]">
-                Akun akan diaktifkan setelah proses onboarding. Saat ini kami menggunakan email dan WhatsApp untuk koordinasi.
+                Your account will be activated after onboarding. For now we coordinate via
+                email and WhatsApp.
               </div>
 
               <div className="hidden" aria-hidden="true">
@@ -165,14 +166,14 @@ export default function GetStartedForm() {
               </div>
 
               <div>
-                <label className="text-xs text-[color:var(--gv-muted)]">Nama lengkap *</label>
+                <label className="text-xs text-[color:var(--gv-muted)]">Full name *</label>
                 <input
                   className={fieldClass}
                   value={form.name}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, name: event.target.value }))
                   }
-                  placeholder="Nama Anda"
+                  placeholder="Your name"
                 />
               </div>
 
@@ -190,24 +191,24 @@ export default function GetStartedForm() {
               </div>
 
               <div>
-                <label className="text-xs text-[color:var(--gv-muted)]">Nomor WhatsApp *</label>
+                <label className="text-xs text-[color:var(--gv-muted)]">WhatsApp number *</label>
                 <input
                   className={fieldClass}
                   value={form.phone}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, phone: event.target.value }))
                   }
-                  placeholder="62xxxxxxxxxx atau 08xxxxxxxxxx"
+                  placeholder="62xxxxxxxxxx or 08xxxxxxxxxx"
                   inputMode="tel"
                 />
                 <p className="mt-1 text-xs text-[color:var(--gv-muted)]">
-                  Kami menggunakan WhatsApp untuk koordinasi onboarding awal.
+                  We use WhatsApp for initial onboarding coordination.
                 </p>
               </div>
 
               <div>
                 <label className="text-xs text-[color:var(--gv-muted)]">
-                  Nama bisnis (opsional)
+                  Business name (optional)
                 </label>
                 <input
                   className={fieldClass}
@@ -215,7 +216,7 @@ export default function GetStartedForm() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, company: event.target.value }))
                   }
-                  placeholder="Nama bisnis atau brand"
+                  placeholder="Business or brand name"
                 />
               </div>
             </div>
@@ -224,7 +225,7 @@ export default function GetStartedForm() {
           {step === 2 ? (
             <div className="space-y-4">
               <div className="text-sm text-[color:var(--gv-muted)]">
-                Pilih paket yang paling mendekati kebutuhan Anda saat ini.
+                Pick the plan that best matches your current needs.
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {planOptions.map((option) => (
@@ -243,12 +244,12 @@ export default function GetStartedForm() {
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--gv-muted)]">
                       {option === "Starter"
-                        ? "Akses modul inti untuk tim kecil."
+                        ? "Core module access for small teams."
                         : option === "Pro"
-                        ? "Scheduler dan automasi untuk operasional."
+                        ? "Scheduler and automation for operations."
                         : option === "Business"
-                        ? "Multi workspace dan audit lanjutan."
-                        : "SLA dan integrasi khusus."}
+                        ? "Multi-workspace and advanced audit."
+                        : "SLA and custom integrations."}
                     </div>
                   </button>
                 ))}
@@ -259,11 +260,11 @@ export default function GetStartedForm() {
           {step === 3 ? (
             <div className="space-y-4">
               <div className="text-sm text-[color:var(--gv-muted)]">
-                Periksa kembali data sebelum mengirim.
+                Review your details before submitting.
               </div>
               <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] p-4 text-sm text-[color:var(--gv-muted)]">
                 <div className="flex justify-between">
-                  <span>Nama</span>
+                  <span>Name</span>
                   <span className="text-[color:var(--gv-text)]">{form.name}</span>
                 </div>
                 <div className="mt-2 flex justify-between">
@@ -275,7 +276,7 @@ export default function GetStartedForm() {
                   <span className="text-[color:var(--gv-text)]">{form.phone}</span>
                 </div>
                 <div className="mt-2 flex justify-between">
-                  <span>Paket</span>
+                  <span>Plan</span>
                   <span className="text-[color:var(--gv-text)]">{form.plan}</span>
                 </div>
               </div>
@@ -295,7 +296,7 @@ export default function GetStartedForm() {
                 onClick={goBack}
                 className="inline-flex flex-1 items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)]"
               >
-                Kembali
+                Back
               </button>
             ) : null}
 
@@ -305,7 +306,7 @@ export default function GetStartedForm() {
                 onClick={goNext}
                 className="inline-flex flex-1 items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
               >
-                Lanjutkan
+                Continue
               </button>
             ) : (
               <button
@@ -314,7 +315,7 @@ export default function GetStartedForm() {
                 disabled={loading}
                 className="inline-flex flex-1 items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)] disabled:opacity-60"
               >
-                {loading ? "Mengirim..." : "Kirim"}
+                {loading ? "Sending..." : "Submit"}
               </button>
             )}
           </div>

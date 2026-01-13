@@ -62,14 +62,14 @@ export default function MediaKitCopyBlock({ title, text }: MediaKitCopyProps) {
           onClick={handleCopy}
           className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
         >
-          {copied ? "Disalin" : "Copy"}
+          {copied ? "Copied" : "Copy"}
         </button>
       </div>
       <p className="mt-3 text-sm text-[color:var(--gv-muted)] leading-relaxed whitespace-pre-line">
         {text}
       </p>
       <span className="sr-only" aria-live="polite">
-        {copied ? "Teks berhasil disalin" : ""}
+        {copied ? "Text copied successfully" : ""}
       </span>
     </div>
   );

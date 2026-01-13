@@ -8,134 +8,134 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 export const metadata: Metadata = {
   title: "Gigaviz Helper",
   description:
-    "Asisten AI untuk chat, copy, rangkuman, dan riset ringan yang membantu tim bekerja lebih cepat dan konsisten.",
+    "AI assistant for chat, copy generation, summarization, and light research to help teams work faster and maintain consistency.",
   alternates: {
     canonical: "/products/helper",
   },
   openGraph: {
     title: "Gigaviz Helper",
     description:
-      "Asisten AI untuk chat, copy, rangkuman, dan riset ringan yang membantu tim bekerja lebih cepat dan konsisten.",
+      "AI assistant for chat, copy generation, summarization, and light research to help teams work faster and maintain consistency.",
     url: "/products/helper",
   },
 };
 
 const summaryPoints = [
-  "Chat AI untuk tanya jawab, brainstorming, dan riset ringan.",
-  "Copy Generator untuk caption, skrip, dan draft konten.",
-  "Summarizer dan auto-reply draft untuk mempercepat respon.",
-  "Browsing opsional dengan kontrol akses sesuai kebutuhan.",
+  "AI chat for Q&A, brainstorming, and light research.",
+  "Copy Generator for captions, scripts, and content drafts.",
+  "Summarizer and auto-reply draft to speed up responses.",
+  "Optional browsing with access control as needed.",
 ];
 
 const featureCards = [
   {
     title: "Chat AI",
-    desc: "Tanya jawab cepat untuk ide, data ringan, dan eksplorasi topik.",
+    desc: "Quick Q&A for ideas, light data, and topic exploration.",
   },
   {
     title: "Copy Generator",
-    desc: "Buat draft copy untuk kampanye, konten sosial, dan komunikasi bisnis.",
+    desc: "Draft copy for campaigns, social content, and business communication.",
   },
   {
     title: "Summarizer",
-    desc: "Rangkum pesan masuk, dokumen, atau laporan agar cepat dipahami.",
+    desc: "Summarize incoming messages, documents, or reports for quick understanding.",
   },
   {
     title: "Auto-reply Draft",
-    desc: "Susun balasan awal untuk CS atau inbox agar konsisten dan hemat waktu.",
+    desc: "Prepare initial replies for support or inbox to stay consistent and save time.",
   },
   {
-    title: "Browsing (Opsional)",
-    desc: "Akses web ringan bila diaktifkan, dengan kontrol penggunaan dan sumber.",
+    title: "Browsing (Optional)",
+    desc: "Light web access if enabled, with usage control and source transparency.",
   },
 ];
 
 const useCases = [
-  "Draft balasan cepat untuk customer support.",
-  "Caption dan script kampanye dengan tone konsisten.",
-  "Ringkasan SOP dan dokumentasi internal.",
-  "Draft laporan mingguan atau update proyek.",
-  "Brainstorming ide konten dan headline.",
-  "Rangkuman percakapan panjang untuk eskalasi.",
-  "Template jawaban FAQ internal.",
-  "Draft pesan follow-up untuk sales.",
+  "Quick support reply drafts for customer service.",
+  "Campaign captions and scripts with consistent tone.",
+  "SOP summaries and internal documentation.",
+  "Weekly report or project update drafts.",
+  "Brainstorm content ideas and headlines.",
+  "Summarize long conversations for escalation.",
+  "Internal FAQ answer templates.",
+  "Sales follow-up message drafts.",
 ];
 
 const safetyPoints = [
   {
-    title: "Review manusia tetap penting",
-    desc: "Output AI sebaiknya ditinjau sebelum dipublikasikan atau dikirim ke pelanggan.",
+    title: "Human review still matters",
+    desc: "AI output should be reviewed before publishing or sending to customers.",
   },
   {
-    title: "Hindari data sensitif",
-    desc: "Jangan masukkan informasi rahasia atau data pribadi tanpa persetujuan.",
+    title: "Avoid sensitive data",
+    desc: "Don't input confidential or personal information without approval.",
   },
   {
-    title: "Akurasi bersifat terbatas",
-    desc: "AI dapat salah atau bias; gunakan sebagai draft, bukan sumber final.",
+    title: "Accuracy is limited",
+    desc: "AI can be wrong or biased; use as a draft, not a final source.",
   },
   {
-    title: "Logging & privasi",
-    desc: "Aktivitas dirancang untuk dicatat secara ringkas demi audit dan keamanan.",
+    title: "Logging & privacy",
+    desc: "Activities are designed to be logged briefly for audit and security.",
   },
 ];
 
 const faqs = [
   {
-    question: "Data apa yang disimpan saat memakai Helper?",
+    question: "What data is stored when using Helper?",
     answer:
-      "Secara umum, input dan output dapat dicatat untuk audit dan peningkatan kualitas, sesuai kebijakan privasi.",
+      "Generally, inputs and outputs may be logged for audit and quality improvement per privacy policy.",
   },
   {
-    question: "Apakah Helper bisa browsing web?",
+    question: "Can Helper browse the web?",
     answer:
-      "Bisa jika fitur browsing diaktifkan. Akses dapat dibatasi sesuai kebijakan tim.",
+      "Yes, if browsing is enabled. Access can be restricted per team policy.",
   },
   {
-    question: "Apakah Helper gratis?",
+    question: "Is Helper free?",
     answer:
-      "Helper mengikuti paket langganan dan kuota token. Detail harga tersedia di halaman pricing.",
+      "Helper follows subscription plans and token quotas. Pricing details are available on the pricing page.",
   },
   {
-    question: "Bagaimana skema pricing Helper?",
+    question: "What is Helper's pricing scheme?",
     answer:
-      "Biaya umumnya berbasis paket dan penggunaan token untuk AI generation.",
+      "Cost is typically plan-based and token-usage-based for AI generation.",
   },
   {
-    question: "Apa batasan utama Helper?",
+    question: "What are Helper's main limitations?",
     answer:
-      "Helper bersifat asisten. Output perlu review, dan tidak menggantikan keputusan manusia.",
+      "Helper is an assistant. Output needs review and does not replace human judgment.",
   },
   {
-    question: "Apakah Helper aman untuk data bisnis?",
+    question: "Is Helper safe for business data?",
     answer:
-      "Gunakan hanya data yang sesuai kebijakan internal. Hindari data sensitif tanpa kontrol tambahan.",
+      "Use only data compliant with internal policy. Avoid sensitive data without additional controls.",
   },
   {
-    question: "Apakah output selalu akurat?",
+    question: "Is output always accurate?",
     answer:
-      "Tidak. AI bisa keliru, jadi verifikasi tetap diperlukan.",
+      "No. AI can make mistakes, so verification is still required.",
   },
 ];
 
 const relatedLinks = [
   {
     title: "Gigaviz Platform (Core OS)",
-    desc: "Fondasi akun, workspace, dan billing untuk semua modul.",
+    desc: "Foundation for accounts, workspace, and billing across all modules.",
     href: "/products/platform",
-    cta: "Lihat Core OS",
+    cta: "View Core OS",
   },
   {
     title: "Gigaviz Meta Hub",
-    desc: "Hub WhatsApp Cloud API untuk template, webhook, dan inbox.",
+    desc: "WhatsApp Cloud API hub for templates, webhooks, and inbox.",
     href: "/products/meta-hub",
-    cta: "Lihat Meta Hub",
+    cta: "View Meta Hub",
   },
   {
     title: "Gigaviz Office",
-    desc: "Template kerja dan automasi dokumen untuk tim operasional.",
+    desc: "Work templates and document automation for operations teams.",
     href: "/products/office",
-    cta: "Lihat Office",
+    cta: "View Office",
   },
 ];
 
@@ -175,7 +175,7 @@ export default function HelperPage() {
                   Gigaviz Helper
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Asisten AI untuk chat, copy, rangkuman, dan riset ringan.
+                  AI assistant for chat, copy generation, summarization, and light research.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -183,19 +183,19 @@ export default function HelperPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Coba Helper
+                  Try Helper
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Lihat Pricing
+                  View Pricing
                 </Link>
                 <Link
                   href="/policies"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Baca Kebijakan AI
+                  Read AI Policy
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
@@ -213,7 +213,7 @@ export default function HelperPage() {
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Ringkasan modul
+                Module summary
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -224,7 +224,7 @@ export default function HelperPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Helper tersedia untuk tim yang ingin mempercepat produksi konten dan respons.
+                Helper is available for teams wanting to accelerate content production and responses.
               </div>
             </div>
           </div>
@@ -234,27 +234,27 @@ export default function HelperPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Apa yang dikerjakan
+                What it does
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Membantu tim menulis, merangkum, dan merespons lebih cepat
+                Help teams write, summarize, and respond faster
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Mempercepat produksi konten tanpa mengorbankan konsistensi.</span>
+                  <span>Speed up content production without sacrificing consistency.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Membantu tim merangkum informasi penting secara terstruktur.</span>
+                  <span>Help teams summarize important information in a structured way.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Menyiapkan draft balasan agar komunikasi lebih cepat dan rapi.</span>
+                  <span>Prepare reply drafts to make communication faster and cleaner.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Memudahkan brainstorming dan eksplorasi ide konten.</span>
+                  <span>Facilitate brainstorming and content idea exploration.</span>
                 </li>
               </ul>
             </div>
@@ -265,13 +265,13 @@ export default function HelperPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Fitur utama
+                Core features
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Asisten AI yang fleksibel untuk kebutuhan harian
+                Flexible AI assistant for daily needs
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Pilih fitur yang sesuai dengan workflow tim, dari copy hingga rangkuman.
+                Choose features that fit your team's workflow, from copy to summaries.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -300,7 +300,7 @@ export default function HelperPage() {
                   Use cases
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Contoh penggunaan untuk tim kreatif dan operasional
+                  Examples for creative and operations teams
                 </h2>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
@@ -324,10 +324,10 @@ export default function HelperPage() {
                 Safety & quality
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Keamanan dan kualitas tetap di tangan manusia
+                Safety and quality remain in human hands
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Helper dirancang sebagai pendamping. Review manusia tetap disarankan untuk hasil akhir.
+                Helper is designed as a companion. Human review is still recommended for final output.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -355,7 +355,7 @@ export default function HelperPage() {
                 FAQ
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Pertanyaan seputar Gigaviz Helper
+                Questions about Gigaviz Helper
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -381,10 +381,10 @@ export default function HelperPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Modul terkait
+                  Related modules
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Lengkapi workflow dengan modul lain
+                  Complete your workflow with other modules
                 </h2>
               </div>
             </div>
@@ -417,10 +417,10 @@ export default function HelperPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Siap mencoba Helper?
+                  Ready to try Helper?
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Mulai dari kebutuhan kecil dan skalakan sesuai penggunaan tim.
+                  Start small and scale with your team's usage.
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -428,13 +428,13 @@ export default function HelperPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Mulai
+                  Get Started
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Hubungi Sales
+                  Contact Sales
                 </Link>
               </div>
             </div>

@@ -1,39 +1,39 @@
 # Terms of Service
 
-Dengan mengakses atau menggunakan layanan Gigaviz, Anda setuju dengan ketentuan di halaman ini. Jika tidak setuju, mohon tidak melanjutkan penggunaan layanan.
+By accessing or using Gigaviz services, you agree to the terms on this page. If you do not agree, please do not use the service.
 
-## Ruang Lingkup Layanan
+## Scope of Service
 
-Gigaviz menyediakan ekosistem produk digital untuk membantu proses Create, Automate, Monetize, dan Manage. Setiap modul memiliki fitur yang dapat berubah dari waktu ke waktu sesuai roadmap.
+Gigaviz provides a digital product ecosystem to support Create, Automate, Monetize, and Manage processes. Each module has features that may change over time according to our roadmap.
 
-## Akun dan Akses
+## Accounts and Access
 
-- Anda bertanggung jawab atas keamanan akun dan kredensial.
-- Setiap aktivitas yang terjadi di dalam akun menjadi tanggung jawab pemilik akun.
-- Kami berhak menonaktifkan akses jika ada indikasi pelanggaran kebijakan.
+- You are responsible for the security of your account and credentials.
+- All activity within your account is your responsibility as the account owner.
+- We reserve the right to disable access if there is evidence of policy violation.
 
-## Penggunaan yang Diperbolehkan
+## Permitted Use
 
-Anda setuju untuk menggunakan layanan sesuai hukum yang berlaku dan mengikuti Acceptable Use Policy. Dilarang menggunakan layanan untuk aktivitas yang melanggar privasi, spam, atau tindakan yang merugikan pihak lain.
+You agree to use the service in compliance with applicable law and our Acceptable Use Policy. You may not use the service for activities that violate privacy, constitute spam, or harm others.
 
-## Pembayaran dan Langganan
+## Payment and Subscriptions
 
-- Harga dan paket dapat berubah dengan pemberitahuan yang wajar.
-- Tagihan bersifat berulang sesuai paket yang dipilih.
-- Ketentuan pembatalan diatur pada Refund and Cancellation Policy.
+- Pricing and packages may change with reasonable notice.
+- Billing is recurring according to your selected plan.
+- Cancellation terms are outlined in our Refund and Cancellation Policy.
 
-## Ketersediaan Layanan
+## Service Availability
 
-Kami berupaya menjaga layanan tetap tersedia, namun tidak menjamin bebas gangguan atau bebas kesalahan. Perawatan dan pembaruan dapat dilakukan secara berkala.
+We work to maintain service availability, but we do not guarantee uninterrupted or error-free service. Maintenance and updates may occur periodically.
 
-## Batasan Tanggung Jawab
+## Limitation of Liability
 
-Gigaviz tidak bertanggung jawab atas kerugian tidak langsung, kehilangan data, atau dampak bisnis yang timbul dari penggunaan layanan di luar kontrol wajar kami.
+Gigaviz is not liable for indirect damages, data loss, or business impact arising from service use beyond our reasonable control.
 
-## Perubahan Ketentuan
+## Changes to Terms
 
-Ketentuan dapat diperbarui sewaktu waktu. Perubahan material akan diinformasikan melalui kanal resmi.
+Terms may be updated at any time. Material changes will be communicated through official channels.
 
-## Kontak
+## Contact
 
-Untuk pertanyaan lebih lanjut, silakan hubungi tim kami melalui halaman Kontak atau email ke support@gigaviz.com.
+For further questions, please contact our team via the Contact page or email support@gigaviz.com.
