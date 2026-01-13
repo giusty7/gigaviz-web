@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 import { WhatsappTemplatesClient } from "@/components/meta-hub/WhatsappTemplatesClient";
 import { getAppContext } from "@/lib/app-context";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -25,6 +26,11 @@ export default async function MetaHubWhatsappPage({ params }: Props) {
     .select("sandbox_enabled, test_whitelist")
     .eq("workspace_id", workspaceId)
     .maybeSingle();
+  const { data: connections } = await supabaseAdmin()
+    .from("wa_phone_numbers")
+    .select("id, phone_number_id, waba_id, display_name, status")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
 
   return (
     <div className="space-y-4">
@@ -58,6 +64,7 @@ export default async function MetaHubWhatsappPage({ params }: Props) {
         workspaceSlug={workspaceSlug}
         canEdit={canEdit}
         templates={[]}
+        connections={connections ?? []}
         sandboxEnabled={settings?.sandbox_enabled ?? true}
         whitelist={Array.isArray(settings?.test_whitelist) ? settings?.test_whitelist : []}
       />

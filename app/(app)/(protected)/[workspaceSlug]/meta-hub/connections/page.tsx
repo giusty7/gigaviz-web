@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { WhatsappConnectionForm } from "@/components/meta-hub/WhatsappConnectionForm";
+import { WhatsappEmbeddedSignup } from "@/components/meta-hub/WhatsappEmbeddedSignup";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -40,6 +41,8 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
           browser.
         </p>
       </div>
+
+      <WhatsappEmbeddedSignup workspaceSlug={workspaceSlug} canEdit={canEdit} />
 
       <div className="rounded-2xl border border-border bg-card p-6">
         <WhatsappConnectionForm

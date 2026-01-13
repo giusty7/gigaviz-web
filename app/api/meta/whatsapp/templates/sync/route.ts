@@ -11,6 +11,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
+import { findTokenForConnection } from "@/lib/meta/wa-connections";
 
 type MetaTemplate = {
   name?: string;
@@ -33,7 +34,31 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const workspaceId = getWorkspaceId(req, undefined, body.workspaceId);
+  const connectionId = typeof body?.connectionId === "string" ? body.connectionId : null;
+  let workspaceId = getWorkspaceId(req, undefined, body.workspaceId);
+
+  const adminDb = supabaseAdmin();
+  const connection = connectionId
+    ? await adminDb
+        .from("wa_phone_numbers")
+        .select("id, workspace_id, phone_number_id, waba_id")
+        .eq("id", connectionId)
+        .maybeSingle()
+    : null;
+
+  if (connectionId && (!connection?.data || connection?.error)) {
+    return withCookies(
+      NextResponse.json(
+        { ok: false, code: "connection_not_found", message: "Connection tidak ditemukan" },
+        { status: 404 }
+      )
+    );
+  }
+
+  if (connection?.data) {
+    workspaceId = connection.data.workspace_id;
+  }
+
   if (!workspaceId) {
     return workspaceRequiredResponse(withCookies);
   }
@@ -51,13 +76,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const adminDb = supabaseAdmin();
-  const { data: phone, error: phoneError } = await adminDb
-    .from("wa_phone_numbers")
-    .select("phone_number_id, waba_id")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
-    .maybeSingle();
+  const { data: phone, error: phoneError } = connection?.data
+    ? { data: connection.data, error: connection.error }
+    : await adminDb
+        .from("wa_phone_numbers")
+        .select("phone_number_id, waba_id")
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .maybeSingle();
 
   if (phoneError || !phone) {
     return withCookies(
@@ -95,13 +121,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data: tokenRow } = await adminDb
-    .from("meta_tokens")
-    .select("token_encrypted")
-    .eq("workspace_id", workspaceId)
-    .eq("provider", "meta_whatsapp")
-    .order("created_at", { ascending: false })
-    .maybeSingle();
+  const { data: tokenRow } = await findTokenForConnection(
+    adminDb,
+    workspaceId,
+    phone.phone_number_id,
+    phone.waba_id
+  );
 
   if (!tokenRow?.token_encrypted) {
     return withCookies(

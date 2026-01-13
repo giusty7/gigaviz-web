@@ -12,6 +12,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
+import { findTokenForConnection } from "@/lib/meta/wa-connections";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -105,13 +106,12 @@ export async function POST(req: NextRequest) {
 
   const phoneNumberId = thread.phone_number_id;
 
-  const { data: tokenRow } = await adminDb
-    .from("meta_tokens")
-    .select("token_encrypted")
-    .eq("workspace_id", workspaceId)
-    .eq("provider", "meta_whatsapp")
-    .order("created_at", { ascending: false })
-    .maybeSingle();
+  const { data: tokenRow } = await findTokenForConnection(
+    adminDb,
+    workspaceId,
+    phoneNumberId,
+    null
+  );
 
   if (!phoneNumberId || !tokenRow?.token_encrypted) {
     return withCookies(

@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+import { findTokenForConnection } from "@/lib/meta/wa-connections";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -76,7 +77,13 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
   const phoneNumberId = thread.phone_number_id || process.env.WA_PHONE_NUMBER_ID || "unknown";
 
-  const accessToken = process.env.WA_ACCESS_TOKEN;
+  const { data: tokenRow } = await findTokenForConnection(
+    db,
+    workspaceId,
+    thread.phone_number_id ?? null,
+    null
+  );
+  const accessToken = tokenRow?.token_encrypted ?? process.env.WA_ACCESS_TOKEN ?? null;
   if (!accessToken) {
     return withCookies(
       NextResponse.json({ error: "server_error", reason: "wa_token_missing" }, { status: 500 })

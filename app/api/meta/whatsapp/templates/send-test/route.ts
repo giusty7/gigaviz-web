@@ -13,9 +13,11 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
+import { findConnectionById, findTokenForConnection } from "@/lib/meta/wa-connections";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
+  connectionId: z.string().uuid().optional(),
   templateName: z.string().min(1),
   language: z.string().min(2),
   toPhone: z.string().min(6),
@@ -44,7 +46,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId: bodyWorkspaceId, templateName, language, toPhone, variables } = parsed.data;
+  const {
+    workspaceId: bodyWorkspaceId,
+    connectionId,
+    templateName,
+    language,
+    toPhone,
+    variables,
+  } = parsed.data;
   const workspaceId = getWorkspaceId(req, undefined, bodyWorkspaceId);
   if (!workspaceId) {
     return workspaceRequiredResponse(withCookies);
@@ -114,26 +123,42 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { data: phone } = await adminDb
-    .from("wa_phone_numbers")
-    .select("phone_number_id")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
-    .maybeSingle();
+  const connection = connectionId
+    ? await findConnectionById(adminDb, connectionId)
+    : { data: null, error: null };
 
-  if (!phone?.phone_number_id) {
+  if (connectionId && (!connection.data || connection.error)) {
+    return withCookies(
+      NextResponse.json(
+        { error: "not_found", reason: "connection_not_found" },
+        { status: 404 }
+      )
+    );
+  }
+
+  let phoneNumberId: string | null = connection.data?.phone_number_id ?? null;
+  if (!phoneNumberId) {
+    const { data } = await adminDb
+      .from("wa_phone_numbers")
+      .select("phone_number_id")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .maybeSingle();
+    phoneNumberId = data?.phone_number_id ?? null;
+  }
+
+  if (!phoneNumberId) {
     return withCookies(
       NextResponse.json({ error: "bad_request", reason: "phone_not_found" }, { status: 400 })
     );
   }
 
-  const { data: tokenRow } = await adminDb
-    .from("meta_tokens")
-    .select("token_encrypted")
-    .eq("workspace_id", workspaceId)
-    .eq("provider", "meta_whatsapp")
-    .order("created_at", { ascending: false })
-    .maybeSingle();
+  const { data: tokenRow } = await findTokenForConnection(
+    adminDb,
+    workspaceId,
+    phoneNumberId,
+    null
+  );
 
   if (!tokenRow?.token_encrypted) {
     return withCookies(
@@ -169,7 +194,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v19.0/${phone.phone_number_id}/messages`,
+      `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
