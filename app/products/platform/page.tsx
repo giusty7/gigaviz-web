@@ -241,10 +241,10 @@ export default function PlatformProductPage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
                   Fitur utama
-                </Core features
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
                   Core modules that keep the ecosystem organized
+                </h2>
               </div>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
