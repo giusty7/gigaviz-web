@@ -36,12 +36,14 @@ export default function AppShell({
   const dashboardHref = workspaceSlug ? `/${workspaceSlug}/dashboard` : "/";
   const modulesHref = workspaceSlug ? `/${workspaceSlug}/modules` : "/modules";
   const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
+  const notificationsHref = workspaceSlug ? `/${workspaceSlug}/notifications` : "/notifications";
   const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
   const settingsHref = workspaceSlug ? `/${workspaceSlug}/settings` : "/settings";
   const navLinks = [
     { href: dashboardHref, label: "Dashboard" },
     { href: modulesHref, label: "Modules" },
     { href: tokensHref, label: "Tokens" },
+    { href: notificationsHref, label: "Notifications" },
     { href: billingHref, label: "Billing" },
     { href: settingsHref, label: "Settings" },
   ];

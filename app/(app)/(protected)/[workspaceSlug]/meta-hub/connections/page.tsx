@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { WhatsappConnectionForm } from "@/components/meta-hub/WhatsappConnectionForm";
 import { WhatsappEmbeddedSignup } from "@/components/meta-hub/WhatsappEmbeddedSignup";
+import { ConnectionsHealth } from "@/components/meta-hub/ConnectionsHealth";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -32,8 +33,18 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     .eq("provider", "meta_whatsapp")
     .maybeSingle();
 
+  const tokenSet = Boolean(tokenRow);
+  const initialConnection = phone
+    ? {
+        phoneNumberId: phone.phone_number_id,
+        wabaId: phone.waba_id,
+        displayName: phone.display_name,
+        status: phone.status,
+      }
+    : null;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Connections</h2>
         <p className="text-sm text-muted-foreground">
@@ -41,6 +52,15 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
           browser.
         </p>
       </div>
+
+      {/* Health Panel */}
+      <ConnectionsHealth
+        workspaceId={workspaceId}
+        workspaceSlug={workspaceSlug}
+        initialConnection={initialConnection}
+        tokenSet={tokenSet}
+        canEdit={canEdit}
+      />
 
       <WhatsappEmbeddedSignup workspaceSlug={workspaceSlug} canEdit={canEdit} />
 
@@ -55,7 +75,7 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
           status={phone?.status ?? null}
           lastTestedAt={phone?.last_tested_at ?? null}
           lastTestResult={phone?.last_test_result ?? null}
-          tokenSet={Boolean(tokenRow)}
+          tokenSet={tokenSet}
         />
         {!canEdit ? (
           <p className="mt-4 text-xs text-muted-foreground">

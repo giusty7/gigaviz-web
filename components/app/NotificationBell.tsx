@@ -189,7 +189,7 @@ export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <Link href={`/${workspaceSlug}/settings?tab=notifications`}>
+        <Link href={`/${workspaceSlug}/notifications`}>
           <DropdownMenuItem className="justify-center text-sm text-gigaviz-gold">
             View all notifications
           </DropdownMenuItem>
