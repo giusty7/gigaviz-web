@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ActionGate } from "@/components/gates/action-gate";
@@ -54,6 +55,10 @@ type Props = {
 
 const STATUS_OPTIONS = ["open", "pending", "closed"];
 
+function makeTempId() {
+  return `temp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
 export function WhatsappInboxClient({
   workspaceId,
   workspaceSlug,
@@ -86,6 +91,7 @@ export function WhatsappInboxClient({
   const [assignedTo, setAssignedTo] = useState<string | null>(threads[0]?.assigned_to ?? null);
   const [isPending, startTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assignFilter, setAssignFilter] = useState<string>("all");
@@ -134,6 +140,7 @@ export function WhatsappInboxClient({
         throw new Error(data?.reason || data?.error || "Failed to load threads");
       }
       setThreadList(data.threads ?? []);
+      setLastRefreshed(new Date());
     } catch (err) {
       setThreadsError(err instanceof Error ? err.message : "Failed to load threads");
     } finally {
@@ -301,6 +308,15 @@ export function WhatsappInboxClient({
 
   async function handleSendText() {
     if (!selectedId || !composerText.trim()) return;
+    const tempId = makeTempId();
+    const nowIso = new Date().toISOString();
+    const optimistic = {
+      id: tempId,
+      direction: "outbound" as const,
+      text_body: composerText.trim(),
+      wa_timestamp: nowIso,
+    };
+    setMessages((prev) => [...prev, optimistic]);
     try {
       const res = await fetch("/api/meta/whatsapp/send-text", {
         method: "POST",
@@ -310,16 +326,17 @@ export function WhatsappInboxClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to send message");
       const inserted = data?.insertedMessage as Partial<Message> | undefined;
-      const nowIso = new Date().toISOString();
       const insertedId = typeof inserted?.id === "string" ? inserted.id : null;
       const insertedDirection =
         (inserted?.direction as Message["direction"]) ?? "outbound";
       const insertedText = inserted?.text_body ?? composerText.trim();
       const insertedTimestamp = inserted?.wa_timestamp ?? nowIso;
       const insertedWaMessageId = inserted?.wa_message_id ?? undefined;
-      if (insertedId) {
-        setMessages((prev) => [
-          ...prev,
+      setMessages((prev) => {
+        const withoutTemp = prev.filter((m) => m.id !== tempId);
+        if (!insertedId) return withoutTemp;
+        return [
+          ...withoutTemp,
           {
             id: insertedId,
             direction: insertedDirection,
@@ -327,8 +344,8 @@ export function WhatsappInboxClient({
             wa_message_id: insertedWaMessageId,
             wa_timestamp: insertedTimestamp,
           },
-        ]);
-      }
+        ];
+      });
       setThreadList((prev) =>
         prev.map((thread) =>
           thread.id === selectedId
@@ -345,6 +362,7 @@ export function WhatsappInboxClient({
         await loadThread(selectedId);
       }
     } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast({
         title: "Send failed",
         description: err instanceof Error ? err.message : "Error",
@@ -382,9 +400,11 @@ export function WhatsappInboxClient({
       const insertedText = inserted?.text_body ?? preview;
       const insertedTimestamp = inserted?.wa_timestamp ?? nowIso;
       const insertedWaMessageId = inserted?.wa_message_id ?? undefined;
-      if (insertedId) {
-        setMessages((prev) => [
-          ...prev,
+      setMessages((prev) => {
+        const withoutTemp = prev.filter((m) => m.id !== "__tpl_pending__");
+        if (!insertedId) return withoutTemp;
+        return [
+          ...withoutTemp,
           {
             id: insertedId,
             direction: insertedDirection,
@@ -392,8 +412,8 @@ export function WhatsappInboxClient({
             wa_message_id: insertedWaMessageId,
             wa_timestamp: insertedTimestamp,
           },
-        ]);
-      }
+        ];
+      });
       setThreadList((prev) =>
         prev.map((thread) =>
           thread.id === selectedId
@@ -432,6 +452,7 @@ export function WhatsappInboxClient({
         description: `Processed ${data.processedEvents ?? data.processed ?? 0}, inserted ${data.insertedMessages ?? data.messagesCreated ?? 0}, reconciled ${data.reconciledMessages ?? 0}`,
       });
       await fetchThreads();
+      setLastRefreshed(new Date());
       if (selectedId) {
         await loadThread(selectedId);
       }
@@ -461,6 +482,8 @@ export function WhatsappInboxClient({
     direction === "in" || direction === "inbound";
 
   const canSend = canEdit && allowWrite;
+  const hasFilters =
+    statusFilter !== "all" || assignFilter !== "all" || search.trim().length > 0;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1.5fr_1fr]">
@@ -472,6 +495,10 @@ export function WhatsappInboxClient({
             <Button size="sm" variant="outline" onClick={handleProcessEvents} disabled={refreshing}>
               {refreshing ? "Refreshing..." : "Refresh Inbox"}
             </Button>
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Use search, status, assignee to filter threads.</span>
+            <span>{lastRefreshed ? `Last refresh: ${lastRefreshed.toLocaleTimeString()}` : ""}</span>
           </div>
           <div className="mt-2 grid gap-2">
             <Input
@@ -501,9 +528,52 @@ export function WhatsappInboxClient({
                 <option value="unassigned">Unassigned</option>
               </select>
             </div>
+            {hasFilters ? (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Filters:</span>
+                {statusFilter !== "all" ? (
+                  <Badge variant="outline" className="border-gigaviz-gold text-foreground">
+                    Status: {statusFilter}
+                  </Badge>
+                ) : null}
+                {assignFilter !== "all" ? (
+                  <Badge variant="outline" className="border-gigaviz-gold text-foreground">
+                    Assign: {assignFilter}
+                  </Badge>
+                ) : null}
+                {search.trim() ? (
+                  <Badge variant="outline" className="border-gigaviz-gold text-foreground">
+                    Search: {search.trim()}
+                  </Badge>
+                ) : null}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2"
+                  onClick={() => {
+                    setSearch("");
+                    setStatusFilter("all");
+                    setAssignFilter("all");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
+            ) : null}
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
+          {threadsLoading && visibleThreads.length === 0 ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={`th-skel-${idx}`} className="rounded-lg border border-border bg-background p-3">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="mt-2 h-3 w-24" />
+                  <Skeleton className="mt-1 h-3 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : null}
           {visibleThreads.map((thread) => {
             const active = thread.id === selectedId;
             const unread = thread.unread_count ?? 0;
@@ -558,7 +628,16 @@ export function WhatsappInboxClient({
             className="max-h-[460px] overflow-y-auto space-y-2 rounded-lg border border-border bg-background p-3"
           >
             {messagesLoading ? (
-              <p className="text-sm text-muted-foreground">Loading messages...</p>
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={`msg-skel-${idx}`} className="flex justify-start">
+                    <div className="max-w-[80%] rounded-2xl bg-gigaviz-surface p-3">
+                      <Skeleton className="h-3 w-28" />
+                      <Skeleton className="mt-2 h-4 w-60" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : null}
             {messages.map((msg) => {
               const inbound = isInbound(msg.direction);

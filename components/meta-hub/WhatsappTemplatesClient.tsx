@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -301,6 +302,7 @@ export function WhatsappTemplatesClient({
 }: Props) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [templateList, setTemplateList] = useState<TemplateRow[]>(templates ?? []);
   const [sandboxEnabled, setSandboxEnabled] = useState(initialSandbox);
   const [whitelist, setWhitelist] = useState(initialWhitelist.join(", "));
@@ -328,6 +330,11 @@ export function WhatsappTemplatesClient({
   }, [connections, connectionId]);
   const activeConnection = connections.find((conn) => conn.id === connectionId) ?? null;
   const canManage = canEdit && Boolean(activeConnection);
+
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 250);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const filtered = useMemo(
     () =>
@@ -823,12 +830,18 @@ export function WhatsappTemplatesClient({
                   No connection yet. Connect WhatsApp in Connections.
                 </p>
               )}
-              <Input
-                placeholder="Cari template..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9 w-40 bg-background"
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Cari template..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="h-9 w-40 bg-background"
+                  aria-label="Search templates"
+                />
+                {search ? (
+                  <Button size="sm" variant="outline" onClick={() => setSearchInput("")}>Clear</Button>
+                ) : null}
+              </div>
               <Button size="sm" variant="outline" onClick={fetchTemplates} disabled={loading}>
                 {loading ? "Loading..." : "Refresh"}
               </Button>
@@ -853,7 +866,11 @@ export function WhatsappTemplatesClient({
               .
             </div>
           ) : null}
-          {errorText ? <div className="p-4 text-sm text-amber-200">Error: {errorText}</div> : null}
+          {errorText ? (
+            <div className="mx-4 my-3 rounded-lg border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-100">
+              Error: {errorText}
+            </div>
+          ) : null}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -866,6 +883,17 @@ export function WhatsappTemplatesClient({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {loading && filtered.length === 0
+                    ? Array.from({ length: 4 }).map((_, idx) => (
+                        <TableRow key={`skeleton-${idx}`}>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                          <TableCell className="text-right"><Skeleton className="ml-auto h-5 w-20" /></TableCell>
+                        </TableRow>
+                      ))
+                    : null}
                   {filtered.map((tpl) => {
                     const active = selected?.id === tpl.id;
                     return (
@@ -932,7 +960,14 @@ export function WhatsappTemplatesClient({
                   {filtered.length === 0 && !loading ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No templates yet. Create the first template or sync from Meta.
+                        <div className="flex flex-col items-center gap-2 py-3">
+                          <span>No templates yet.</span>
+                          {canManage ? (
+                            <Button size="sm" onClick={handleSync} disabled={syncing}>
+                              {syncing ? "Syncing..." : "Sync templates"}
+                            </Button>
+                          ) : null}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : null}
