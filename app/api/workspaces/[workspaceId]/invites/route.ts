@@ -7,16 +7,14 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-type Ctx =
-  | { params: Promise<{ workspaceId: string }> }
-  | { params: { workspaceId: string } };
+type Ctx = { params: Promise<{ workspaceId: string }> };
 
 function sha256Hex(input: string) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
 export async function POST(req: NextRequest, context: Ctx) {
-  const params = await Promise.resolve(context.params);
+  const params = await context.params;
   const guard = await guardWorkspace(req, params);
   if (!guard.ok) return guard.response;
   const { user, withCookies, workspaceId } = guard;

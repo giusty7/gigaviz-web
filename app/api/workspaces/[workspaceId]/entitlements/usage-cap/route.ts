@@ -5,9 +5,7 @@ import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
 
 export const runtime = "nodejs";
 
-type Ctx =
-  | { params: { workspaceId: string } }
-  | { params: Promise<{ workspaceId: string }> };
+type Ctx = { params: Promise<{ workspaceId: string }> };
 
 function parseCap(input: unknown) {
   if (input === null) return null;
@@ -18,7 +16,7 @@ function parseCap(input: unknown) {
 }
 
 export async function PATCH(req: NextRequest, ctx: Ctx) {
-  const params = await Promise.resolve(ctx.params);
+  const params = await ctx.params;
   const guard = await guardWorkspace(req, params);
   if (!guard.ok) return guard.response;
   const { withCookies, user, workspaceId } = guard;

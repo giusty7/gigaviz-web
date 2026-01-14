@@ -32,7 +32,7 @@ const CHECKPOINT_CHARS = 300;
 const CHECKPOINT_MS = 2000;
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 type UsageShape = { inputTokens: number; outputTokens: number; totalTokens: number };
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   const { user, withCookies } = userRes;
 
   // Get conversation ID from params
-  const conversationId = params.id;
+  const { id: conversationId } = await params;
 
   // Resolve workspace
   const workspaceId = body.workspaceId ?? body.workspaceSlug;

@@ -4,12 +4,10 @@ import { guardWorkspace } from "@/lib/auth/guard";
 
 export const runtime = "nodejs";
 
-type Ctx =
-  | { params: { workspaceId: string } }
-  | { params: Promise<{ workspaceId: string }> };
+type Ctx = { params: Promise<{ workspaceId: string }> };
 
 export async function GET(req: NextRequest, ctx: Ctx) {
-  const params = await Promise.resolve(ctx.params);
+  const params = await ctx.params;
   const guard = await guardWorkspace(req, params);
   if (!guard.ok) return guard.response;
   const { withCookies, workspaceId } = guard;
