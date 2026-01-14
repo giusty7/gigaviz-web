@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { label: "Templates", slug: "" },
   { label: "Inbox", slug: "/inbox" },
+  { label: "Webhooks", slug: "/webhooks" },
 ];
 
 export function WhatsappStickyTabs({ basePath }: { basePath: string }) {

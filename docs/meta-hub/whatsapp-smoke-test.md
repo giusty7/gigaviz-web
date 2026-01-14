@@ -10,6 +10,7 @@
 ## Test URLs
 - Templates: `/{workspaceSlug}/meta-hub/messaging/whatsapp`
 - Inbox: `/{workspaceSlug}/meta-hub/messaging/whatsapp/inbox`
+- **Webhooks Monitor**: `/{workspaceSlug}/meta-hub/messaging/whatsapp/webhooks`
 - Templates detail (same page sections) if routed: `/{workspaceSlug}/meta-hub/messaging/whatsapp/templates`
 
 ## Templates Flow
@@ -28,6 +29,14 @@
 5) Send template reply: load template dropdown (spinner if loading), choose, send → toast success.
 6) Update status/assignee: change fields and save → values persist and reflect in thread list details.
 7) Tags and internal note: add tags and a note → they render immediately and persist on reload.
+
+## Webhooks Monitor Flow
+1) Navigate to **Webhooks** tab: expect Health header with last event time, events in 24h, errors in 24h, and token status.
+2) Refresh events: click **Refresh** → event timeline updates; "Last refreshed" indicator updates.
+3) Filters: change status (OK/Failed/All), event type dropdown, date range tabs (24h/7d/30d/All) → list filters accordingly.
+4) Reconcile: click **Reconcile now** → toast shows reconcile result; events re-fetched.
+5) Empty state: if no events, verify CTA links appear ("Verify webhook setup", "Reconcile now").
+6) Token status: if connection missing, "Missing" badge appears with "Open Connections" link.
 
 ## Supabase Data Checks
 - `wa_threads`: thread status/assignee updates, unread_count drops after mark-read.
