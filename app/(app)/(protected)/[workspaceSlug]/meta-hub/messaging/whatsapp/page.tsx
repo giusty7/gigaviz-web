@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
-import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 import { WhatsappTemplatesClient } from "@/components/meta-hub/WhatsappTemplatesClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
-import Link from "next/link";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -33,42 +31,15 @@ export default async function MetaHubWhatsappPage({ params }: Props) {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">WhatsApp Hub</h2>
-          <p className="text-sm text-muted-foreground">
-            Kelola template, sandbox whitelist, dan kirim pesan tes secara aman.
-          </p>
-        </div>
-        <MetaHubBadge status="live" />
-      </div>
-
-      <div className="flex gap-2 rounded-xl border border-border bg-card p-2 text-sm">
-        <Link
-          href={`/${workspaceSlug}/meta-hub/messaging/whatsapp`}
-          className="rounded-lg px-3 py-2 font-semibold text-foreground hover:bg-gigaviz-surface"
-        >
-          Templates
-        </Link>
-        <Link
-          href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
-          className="rounded-lg px-3 py-2 font-semibold text-muted-foreground hover:bg-gigaviz-surface"
-        >
-          Inbox
-        </Link>
-      </div>
-
-      <WhatsappTemplatesClient
-        workspaceId={workspaceId}
-        workspaceSlug={workspaceSlug}
-        canEdit={canEdit}
-        templates={[]}
-        connections={connections ?? []}
-        sandboxEnabled={settings?.sandbox_enabled ?? true}
-        whitelist={Array.isArray(settings?.test_whitelist) ? settings?.test_whitelist : []}
-      />
-    </div>
+    <WhatsappTemplatesClient
+      workspaceId={workspaceId}
+      workspaceSlug={workspaceSlug}
+      canEdit={canEdit}
+      templates={[]}
+      connections={connections ?? []}
+      sandboxEnabled={settings?.sandbox_enabled ?? true}
+      whitelist={Array.isArray(settings?.test_whitelist) ? settings?.test_whitelist : []}
+    />
   );
 }
 

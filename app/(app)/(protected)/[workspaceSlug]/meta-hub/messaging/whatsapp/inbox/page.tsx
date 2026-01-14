@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
-import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 import { WhatsappInboxClient } from "@/components/meta-hub/WhatsappInboxClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
-import Link from "next/link";
 import { getWorkspacePlan } from "@/lib/plans";
 
 type Props = {
@@ -101,52 +99,25 @@ export default async function WhatsappInboxPage({ params }: Props) {
 
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">WhatsApp Inbox</h2>
-          <p className="text-sm text-muted-foreground">
-            Lihat percakapan, tandai status, catat notes, dan balas dengan template yang disetujui.
-          </p>
-        </div>
-        <MetaHubBadge status="live" />
-      </div>
-
-      <div className="flex gap-2 rounded-xl border border-border bg-card p-2 text-sm">
-        <Link
-          href={`/${workspaceSlug}/meta-hub/messaging/whatsapp`}
-          className="rounded-lg px-3 py-2 font-semibold text-muted-foreground hover:bg-gigaviz-surface"
-        >
-          Templates
-        </Link>
-        <Link
-          href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
-          className="rounded-lg px-3 py-2 font-semibold text-foreground hover:bg-gigaviz-surface"
-        >
-          Inbox
-        </Link>
-      </div>
-
-      <WhatsappInboxClient
-        workspaceId={workspaceId}
-        workspaceSlug={workspaceSlug}
-        userId={ctx.user.id}
-        canEdit={canEdit}
-        allowWrite={allowWrite}
-        isPreview={!allowWrite}
-        threads={threads ?? []}
-        initialMessages={
-          messages?.map((m) => ({
-            ...m,
-            payload_json: m.payload_json ?? {},
-            content_json: m.payload_json ?? {},
-          })) ?? []
-        }
-        initialTags={tags?.map((t) => t.tag) ?? []}
-        initialNotes={notes ?? []}
-        templates={[]}
-      />
-    </div>
+    <WhatsappInboxClient
+      workspaceId={workspaceId}
+      workspaceSlug={workspaceSlug}
+      userId={ctx.user.id}
+      canEdit={canEdit}
+      allowWrite={allowWrite}
+      isPreview={!allowWrite}
+      threads={threads ?? []}
+      initialMessages={
+        messages?.map((m) => ({
+          ...m,
+          payload_json: m.payload_json ?? {},
+          content_json: m.payload_json ?? {},
+        })) ?? []
+      }
+      initialTags={tags?.map((t) => t.tag) ?? []}
+      initialNotes={notes ?? []}
+      templates={[]}
+    />
   );
 }
 
