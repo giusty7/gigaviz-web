@@ -9,6 +9,8 @@ export type HelperConversation = {
   lastSnippet?: string;
 };
 
+export type MessageStatus = "streaming" | "done" | "error" | "cancelled";
+
 export type HelperMessage = {
   id: string;
   role: "user" | "assistant";
@@ -16,6 +18,7 @@ export type HelperMessage = {
   timestamp: string;
   mode?: HelperMode;
   provider?: Exclude<HelperProvider, "auto">;
+  status?: MessageStatus;
 };
 
 export type HelperMode = "chat" | "copy" | "summary";

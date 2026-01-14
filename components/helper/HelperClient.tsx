@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MenuIcon, XIcon, PanelRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -11,6 +11,7 @@ import { MessageList } from "./MessageList";
 import { ChatEmptyState } from "./ChatEmptyState";
 import { Composer } from "./Composer";
 import { WorkspaceControls } from "./WorkspaceControls";
+import { parseSSEStream } from "./use-sse-stream";
 import type { HelperConversation, HelperMessage, HelperMode, HelperProvider } from "./types";
 
 // Re-export types for backward compatibility
@@ -82,6 +83,9 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
   const [isOverBudget, setIsOverBudget] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+
+  // Abort controller ref for streaming
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Derived state for ConversationList (with messages attached)
   const conversationsWithMessages = useMemo(() => {
@@ -210,35 +214,150 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
       toast({ title: "Monthly token budget exceeded", variant: "destructive" });
       return;
     }
+
+    const content = composer.trim();
+    setComposer("");
     setSending(true);
+
+    // Create temporary user message
+    const tempUserId = `temp-user-${Date.now()}`;
+    const userMsg: HelperMessage = {
+      id: tempUserId,
+      role: "user",
+      content,
+      timestamp: new Date().toISOString(),
+      status: "done",
+    };
+
+    // Create temporary streaming assistant message
+    const tempAssistantId = `temp-assistant-${Date.now()}`;
+    const assistantMsg: HelperMessage = {
+      id: tempAssistantId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date().toISOString(),
+      status: "streaming",
+    };
+
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+
+    // Create abort controller
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     try {
-      const res = await fetch("/api/helper/messages", {
+      const response = await fetch(`/api/helper/conversations/${selectedId}/messages/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspaceId,
-          conversationId: selectedId,
-          content: composer,
-          role: "user",
-          mode,
-          provider,
+          content,
+          providerKey: provider,
+          modeKey: mode,
         }),
+        signal: abortController.signal,
       });
-      const data = await res.json();
-      if (!data.ok) throw new Error(data?.error || "Failed to send message");
-      const userMsg = toLocalMessage(data.message);
-      const assistant = data.assistant ? toLocalMessage(data.assistant) : null;
-      setMessages((prev) => [...prev, userMsg, ...(assistant ? [assistant] : [])]);
-      setComposer("");
-      // Refresh usage after sending
-      void fetchUsage();
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      let realAssistantId: string | null = null;
+      let realUserMsgId: string | null = null;
+      let accumulatedContent = "";
+
+      for await (const event of parseSSEStream(response)) {
+        if (abortController.signal.aborted) break;
+
+        switch (event.event) {
+          case "meta": {
+            const meta = event.data as { assistantMessageId?: string; userMessageId?: string };
+            realAssistantId = meta.assistantMessageId ?? null;
+            realUserMsgId = meta.userMessageId ?? null;
+            // Update message IDs to real ones
+            setMessages((prev) =>
+              prev.map((m) => {
+                if (m.id === tempUserId && realUserMsgId) return { ...m, id: realUserMsgId };
+                if (m.id === tempAssistantId && realAssistantId) return { ...m, id: realAssistantId };
+                return m;
+              })
+            );
+            break;
+          }
+          case "delta": {
+            const delta = event.data as { text?: string };
+            if (delta.text) {
+              accumulatedContent += delta.text;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === (realAssistantId ?? tempAssistantId)
+                    ? { ...m, content: accumulatedContent }
+                    : m
+                )
+              );
+            }
+            break;
+          }
+          case "done": {
+            const done = event.data as { status?: string; provider?: string };
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === (realAssistantId ?? tempAssistantId)
+                  ? { ...m, status: "done", provider: done.provider as HelperMessage["provider"] }
+                  : m
+              )
+            );
+            // Refresh usage
+            void fetchUsage();
+            break;
+          }
+          case "error": {
+            const error = event.data as { code?: string; message?: string };
+            toast({
+              title: error.message ?? "Streaming failed",
+              variant: "destructive",
+            });
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === (realAssistantId ?? tempAssistantId)
+                  ? { ...m, status: "error", content: accumulatedContent || "Error occurred" }
+                  : m
+              )
+            );
+            break;
+          }
+        }
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Send failed";
-      toast({ title: message, variant: "destructive" });
+      if (err instanceof Error && err.name === "AbortError") {
+        // User cancelled
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempAssistantId ? { ...m, status: "cancelled" } : m
+          )
+        );
+      } else {
+        const message = err instanceof Error ? err.message : "Send failed";
+        toast({ title: message, variant: "destructive" });
+        // Mark as error
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempAssistantId ? { ...m, status: "error", content: "Failed to send" } : m
+          )
+        );
+      }
     } finally {
       setSending(false);
+      abortControllerRef.current = null;
     }
   }, [selectedId, composer, workspaceId, mode, provider, toast, isOverBudget, fetchUsage]);
+
+  const handleStopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {
     setComposer(prompt);
@@ -348,7 +467,12 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
         <main className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 overflow-hidden">
             {messages.length > 0 ? (
-              <MessageList messages={messages} isProcessing={sending} isLoading={loadingMessages} />
+              <MessageList 
+                messages={messages} 
+                isProcessing={sending} 
+                isLoading={loadingMessages}
+                onStop={handleStopStreaming}
+              />
             ) : (
               <ChatEmptyState
                 onPromptSelect={handleSuggestedPrompt}
@@ -383,7 +507,12 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div className="flex-1 overflow-hidden">
             {messages.length > 0 ? (
-              <MessageList messages={messages} isProcessing={sending} isLoading={loadingMessages} />
+              <MessageList 
+                messages={messages} 
+                isProcessing={sending} 
+                isLoading={loadingMessages}
+                onStop={handleStopStreaming}
+              />
             ) : (
               <ChatEmptyState
                 onPromptSelect={handleSuggestedPrompt}

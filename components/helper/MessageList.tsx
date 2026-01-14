@@ -1,7 +1,7 @@
 "use client";
 
-import { memo, useRef, useEffect } from "react";
-import { CopyIcon, CheckIcon, UserIcon, BotIcon, Loader2Icon } from "lucide-react";
+import { memo, useRef, useEffect, useState } from "react";
+import { CopyIcon, CheckIcon, UserIcon, BotIcon, Loader2Icon, SquareIcon, AlertCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,16 +14,19 @@ import {
 import { COPY_EN } from "@/lib/copy/en";
 import { cn } from "@/lib/utils";
 import { type HelperMessage, relativeTime } from "./types";
-import { useState } from "react";
 
 type MessageBubbleProps = {
   message: HelperMessage;
+  onStop?: () => void;
 };
 
-function MessageBubble({ message }: MessageBubbleProps) {
+function MessageBubble({ message, onStop }: MessageBubbleProps) {
   const copy = COPY_EN.helper;
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
+  const isStreaming = message.status === "streaming";
+  const isError = message.status === "error";
+  const isCancelled = message.status === "cancelled";
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
@@ -44,11 +47,15 @@ function MessageBubble({ message }: MessageBubbleProps) {
           "flex-none h-8 w-8 rounded-full flex items-center justify-center",
           isUser
             ? "bg-gigaviz-gold text-gigaviz-bg"
-            : "bg-gigaviz-surface border border-gigaviz-border"
+            : isError
+              ? "bg-destructive/20 border border-destructive/40"
+              : "bg-gigaviz-surface border border-gigaviz-border"
         )}
       >
         {isUser ? (
           <UserIcon className="h-4 w-4" />
+        ) : isError ? (
+          <AlertCircleIcon className="h-4 w-4 text-destructive" />
         ) : (
           <BotIcon className="h-4 w-4 text-gigaviz-gold" />
         )}
@@ -61,13 +68,50 @@ function MessageBubble({ message }: MessageBubbleProps) {
             "relative rounded-2xl px-4 py-3 text-sm",
             isUser
               ? "bg-gigaviz-gold text-gigaviz-bg rounded-tr-sm"
-              : "bg-gigaviz-surface/80 border border-gigaviz-border/60 rounded-tl-sm"
+              : isError
+                ? "bg-destructive/10 border border-destructive/30 rounded-tl-sm"
+                : isCancelled
+                  ? "bg-muted/50 border border-gigaviz-border/60 rounded-tl-sm"
+                  : "bg-gigaviz-surface/80 border border-gigaviz-border/60 rounded-tl-sm"
           )}
         >
-          <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          {/* Message content */}
+          <p className="whitespace-pre-wrap leading-relaxed">
+            {message.content}
+            {isStreaming && (
+              <span className="inline-block w-2 h-4 bg-gigaviz-gold/70 ml-0.5 animate-pulse" />
+            )}
+          </p>
 
-          {/* Copy button for assistant */}
-          {!isUser && (
+          {/* Streaming indicator */}
+          {isStreaming && (
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gigaviz-border/30">
+              <Loader2Icon className="h-3 w-3 animate-spin text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">{copy.processing}</span>
+              {onStop && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs ml-auto"
+                  onClick={onStop}
+                >
+                  <SquareIcon className="h-3 w-3 mr-1" />
+                  Stop
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Status badges */}
+          {isCancelled && (
+            <p className="text-xs text-muted-foreground mt-2 italic">Cancelled</p>
+          )}
+          {isError && !message.content && (
+            <p className="text-xs text-destructive">Failed to generate response</p>
+          )}
+
+          {/* Copy button for assistant (not streaming) */}
+          {!isUser && !isStreaming && message.content && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -120,18 +164,31 @@ type Props = {
   messages: HelperMessage[];
   isLoading?: boolean;
   isProcessing?: boolean;
+  onStop?: () => void;
 };
 
-function MessageListComponent({ messages, isLoading = false, isProcessing = false }: Props) {
+function MessageListComponent({ messages, isLoading = false, isProcessing = false, onStop }: Props) {
   const helperCopy = COPY_EN.helper;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isUserScrolledUp = useRef(false);
 
-  // Auto-scroll to bottom on new messages
+  // Track user scroll position
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    isUserScrolledUp.current = !isAtBottom;
+  };
+
+  // Auto-scroll to bottom on new messages (unless user scrolled up)
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && !isUserScrolledUp.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages.length, isProcessing]);
+  }, [messages]);
+
+  // Check if any message is currently streaming
+  const hasStreamingMessage = messages.some((m) => m.status === "streaming");
 
   if (isLoading) {
     return (
@@ -150,14 +207,18 @@ function MessageListComponent({ messages, isLoading = false, isProcessing = fals
   }
 
   return (
-    <ScrollArea className="flex-1" ref={scrollRef}>
+    <ScrollArea className="flex-1" ref={scrollRef} onScrollCapture={handleScroll}>
       <div className="p-4 space-y-4">
         {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
+          <MessageBubble 
+            key={m.id} 
+            message={m} 
+            onStop={m.status === "streaming" ? onStop : undefined}
+          />
         ))}
 
-        {/* Processing indicator */}
-        {isProcessing && (
+        {/* Processing indicator (only when not streaming in messages) */}
+        {isProcessing && !hasStreamingMessage && (
           <div className="flex gap-3">
             <div className="flex-none h-8 w-8 rounded-full bg-gigaviz-surface border border-gigaviz-border flex items-center justify-center">
               <BotIcon className="h-4 w-4 text-gigaviz-gold" />

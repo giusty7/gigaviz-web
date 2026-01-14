@@ -1,6 +1,6 @@
-create table audit_events (
+create table if not exists public.audit_events (
   id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references workspaces(id) on delete cascade,
+  workspace_id uuid not null references public.workspaces(id) on delete cascade,
   actor_user_id uuid references auth.users(id),
   actor_email text,
   action text not null,
@@ -8,29 +8,36 @@ create table audit_events (
   created_at timestamptz not null default now()
 );
 
-create index audit_events_workspace_id_created_at_idx
-  on audit_events (workspace_id, created_at desc);
+create index if not exists audit_events_workspace_id_idx
+  on public.audit_events (workspace_id);
 
-alter table audit_events enable row level security;
+create index if not exists audit_events_workspace_created_at_idx
+  on public.audit_events (workspace_id, created_at desc);
 
-create policy "audit_events_select_members"
-  on audit_events
-  for select
-  using (
-    workspace_id in (
-      select workspace_id from workspace_members where user_id = auth.uid()
-    )
-  );
+alter table public.audit_events enable row level security;
 
-create policy "audit_events_insert_service_or_member"
-  on audit_events
-  for insert
-  with check (
-    auth.role() = 'service_role'
-    or (
-      actor_user_id = auth.uid()
-      and workspace_id in (
-        select workspace_id from workspace_members where user_id = auth.uid()
-      )
-    )
-  );
+drop policy if exists audit_events_select_own_workspace on public.audit_events;
+drop policy if exists audit_events_insert_own_workspace on public.audit_events;
+
+create policy audit_events_select_own_workspace
+on public.audit_events
+for select
+using (
+  workspace_id in (
+    select wm.workspace_id
+    from public.workspace_members wm
+    where wm.user_id = auth.uid()
+  )
+);
+
+create policy audit_events_insert_own_workspace
+on public.audit_events
+for insert
+with check (
+  workspace_id in (
+    select wm.workspace_id
+    from public.workspace_members wm
+    where wm.user_id = auth.uid()
+  )
+  and (actor_user_id is null or actor_user_id = auth.uid())
+);
