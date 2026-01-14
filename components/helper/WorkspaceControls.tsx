@@ -30,7 +30,9 @@ type Props = {
   workspaceName: string;
   workspaceSlug: string;
   dailySpent: number;
+  monthlySpent?: number;
   monthlyCap: number;
+  isOverBudget?: boolean;
   allowAutomation: boolean;
   onAutomationChange: (value: boolean) => void;
   onQuickPrompt: (prompt: string) => void;
@@ -40,7 +42,9 @@ function WorkspaceControlsComponent({
   workspaceName,
   workspaceSlug,
   dailySpent,
+  monthlySpent = 0,
   monthlyCap,
+  isOverBudget = false,
   allowAutomation,
   onAutomationChange,
   onQuickPrompt,
@@ -98,14 +102,20 @@ function WorkspaceControlsComponent({
             </div>
             <div className="pl-6">
               <p className="text-2xl font-semibold tabular-nums">
-                {dailySpent.toFixed(2)}
+                {dailySpent.toLocaleString()}
                 <span className="text-sm font-normal text-muted-foreground ml-1">
                   {copy.tokens}
                 </span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {copy.monthlyCap}: {monthlyCap > 0 ? monthlyCap.toLocaleString() : "—"}
+                {copy.monthlyUsage}: {monthlySpent.toLocaleString()}
+                {monthlyCap > 0 && ` / ${monthlyCap.toLocaleString()}`}
               </p>
+              {isOverBudget && (
+                <p className="text-xs text-destructive font-medium mt-1">
+                  {copy.budgetExceeded ?? "Budget exceeded"}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

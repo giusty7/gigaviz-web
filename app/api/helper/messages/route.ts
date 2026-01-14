@@ -75,6 +75,42 @@ export async function POST(req: NextRequest) {
   }
 
   const db = supabaseAdmin();
+
+  // Budget check: verify workspace has not exceeded monthly cap
+  const today = new Date().toISOString().slice(0, 10);
+  const monthStart = today.slice(0, 7) + "-01";
+
+  const { data: settings } = await db
+    .from("helper_settings")
+    .select("monthly_cap")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  const monthlyCap = Number(settings?.monthly_cap ?? 0);
+
+  if (monthlyCap > 0) {
+    const { data: monthlyData } = await db
+      .from("helper_usage_daily")
+      .select("tokens_in, tokens_out")
+      .eq("workspace_id", workspaceId)
+      .gte("date", monthStart)
+      .lte("date", today);
+
+    const monthlyTotal = (monthlyData ?? []).reduce(
+      (sum, row) => sum + (row.tokens_in ?? 0) + (row.tokens_out ?? 0),
+      0
+    );
+
+    if (monthlyTotal >= monthlyCap) {
+      return withCookies(
+        NextResponse.json(
+          { ok: false, error: "budget_exceeded", message: "Monthly token budget exceeded" },
+          { status: 403 }
+        )
+      );
+    }
+  }
+
   const { data: convo } = await db
     .from("helper_conversations")
     .select("id")

@@ -77,7 +77,9 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
   const [provider, setProvider] = useState<HelperProvider>("auto");
   const [allowAutomation, setAllowAutomation] = useState(true);
   const [monthlyCap, setMonthlyCap] = useState<number>(0);
-  const [dailySpent] = useState(0);
+  const [dailySpent, setDailySpent] = useState(0);
+  const [monthlySpent, setMonthlySpent] = useState(0);
+  const [isOverBudget, setIsOverBudget] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
 
@@ -95,6 +97,21 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
       if (data?.settings) {
         setAllowAutomation(Boolean(data.settings.allow_automation));
         setMonthlyCap(Number(data.settings.monthly_cap ?? 0));
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [workspaceId]);
+
+  const fetchUsage = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/helper/usage?workspaceId=${workspaceId}`, { cache: "no-store" });
+      const data = await res.json();
+      if (data?.ok) {
+        setDailySpent(data.today?.total ?? 0);
+        setMonthlySpent(data.monthly?.total ?? 0);
+        setMonthlyCap(data.monthly?.cap ?? 0);
+        setIsOverBudget(Boolean(data.monthly?.isOverBudget));
       }
     } catch {
       /* ignore */
@@ -125,7 +142,8 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
 
   useEffect(() => {
     void fetchSettings();
-  }, [fetchSettings]);
+    void fetchUsage();
+  }, [fetchSettings, fetchUsage]);
 
   const handleNewConversation = useCallback(async () => {
     setCreating(true);
@@ -161,19 +179,37 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
     setConversations((prev) =>
       prev.map((c) => (c.id === id ? { ...c, title: newTitle, updatedAt: new Date().toISOString() } : c))
     );
-    // TODO: Persist to API
-  }, []);
+    try {
+      await fetch(`/api/helper/conversations/${id}?workspaceId=${workspaceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle }),
+      });
+    } catch {
+      toast({ title: "Failed to rename conversation", variant: "destructive" });
+    }
+  }, [workspaceId, toast]);
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (selectedId === id) {
       setSelectedId(conversations.find((c) => c.id !== id)?.id ?? null);
     }
-    // TODO: Persist to API
-  }, [selectedId, conversations]);
+    try {
+      await fetch(`/api/helper/conversations/${id}?workspaceId=${workspaceId}`, {
+        method: "DELETE",
+      });
+    } catch {
+      toast({ title: "Failed to delete conversation", variant: "destructive" });
+    }
+  }, [selectedId, conversations, workspaceId, toast]);
 
   const handleSend = useCallback(async () => {
     if (!selectedId || !composer.trim()) return;
+    if (isOverBudget) {
+      toast({ title: "Monthly token budget exceeded", variant: "destructive" });
+      return;
+    }
     setSending(true);
     try {
       const res = await fetch("/api/helper/messages", {
@@ -194,13 +230,15 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
       const assistant = data.assistant ? toLocalMessage(data.assistant) : null;
       setMessages((prev) => [...prev, userMsg, ...(assistant ? [assistant] : [])]);
       setComposer("");
+      // Refresh usage after sending
+      void fetchUsage();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Send failed";
       toast({ title: message, variant: "destructive" });
     } finally {
       setSending(false);
     }
-  }, [selectedId, composer, workspaceId, mode, provider, toast]);
+  }, [selectedId, composer, workspaceId, mode, provider, toast, isOverBudget, fetchUsage]);
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {
     setComposer(prompt);
@@ -243,7 +281,9 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
       workspaceName={workspaceName}
       workspaceSlug={workspaceSlug}
       dailySpent={dailySpent}
+      monthlySpent={monthlySpent}
       monthlyCap={monthlyCap}
+      isOverBudget={isOverBudget}
       allowAutomation={allowAutomation}
       onAutomationChange={handleAutomationChange}
       onQuickPrompt={handleQuickPrompt}
