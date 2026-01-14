@@ -4,6 +4,7 @@ import { guardWorkspace } from "@/lib/auth/guard";
 import { activateTopupRequest } from "@/lib/tokens";
 import { recordAuditEvent } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { emitTopupPosted } from "@/lib/notifications/emit-rules";
 
 const schema = z.object({
   workspaceId: z.string().min(1),
@@ -60,6 +61,17 @@ export async function POST(req: NextRequest) {
     action: "tokens.topup_paid",
     meta: { requestId: parsed.data.requestId, tokens: request.tokens, balance: result.balance },
   });
+
+  // Emit notification to all workspace members
+  await emitTopupPosted(
+    { workspaceId },
+    {
+      requestId: parsed.data.requestId,
+      tokens: request.tokens,
+      newBalance: result.balance,
+      activatedBy: user.id,
+    }
+  );
 
   return withCookies(
     NextResponse.json({ ok: true, status: "paid", balance: result.balance, ledgerId: result.ledger_id })

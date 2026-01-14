@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import AppNavLinks from "@/components/app/AppNavLinks";
 import WorkspaceSwitcher from "@/components/app/WorkspaceSwitcher";
+import { NotificationBell } from "@/components/app/NotificationBell";
 import { AppShell as Shell } from "@/components/layout/app-shell";
 import { UpgradeModalProvider } from "@/components/billing/upgrade-modal-provider";
 
@@ -73,6 +74,12 @@ export default function AppShell({
               <p className="text-lg font-semibold">{userEmail}</p>
             </div>
             <div className="flex items-center gap-3">
+              {workspaceSlug && (
+                <NotificationBell
+                  workspaceId={currentWorkspaceId}
+                  workspaceSlug={workspaceSlug}
+                />
+              )}
               <WorkspaceSwitcher
                 workspaces={workspaces}
                 currentWorkspaceId={currentWorkspaceId}

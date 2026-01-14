@@ -3,6 +3,7 @@ import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { createTopupRequest } from "@/lib/tokens";
 import { recordAuditEvent } from "@/lib/audit";
+import { emitTopupRequested } from "@/lib/notifications/emit-rules";
 
 const schema = z.object({
   workspaceId: z.string().min(1),
@@ -43,6 +44,17 @@ export async function POST(req: NextRequest) {
     action: "tokens.topup_requested",
     meta: { requestId: request.id, packageKey: parsed.data.packageKey, tokens: parsed.data.tokens },
   });
+
+  // Emit notification to workspace admins
+  await emitTopupRequested(
+    { workspaceId },
+    {
+      requestId: request.id,
+      tokens: parsed.data.tokens,
+      packageKey: parsed.data.packageKey,
+      requestedBy: user.id,
+    }
+  );
 
   return withCookies(NextResponse.json({ request }));
 }
