@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   if (!plan?.code) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "plan_not_found", message: "Plan tidak ditemukan" },
+        { ok: false, code: "plan_not_found", message: "Plan not found" },
         { status: 404 }
       )
     );
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   if (plan.is_active === false) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "plan_inactive", message: "Plan belum aktif" },
+        { ok: false, code: "plan_inactive", message: "Plan is not active" },
         { status: 400 }
       )
     );

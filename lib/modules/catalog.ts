@@ -106,7 +106,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["office", "graph"],
     requiresEntitlement: "helper",
     hrefMarketing: "/products/helper",
-    hrefApp: "/[workspaceSlug]/modules/helper",
+    hrefApp: "/[workspaceSlug]/helper",
     topLevel: true,
   },
   {

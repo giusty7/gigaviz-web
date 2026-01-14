@@ -832,7 +832,7 @@ export function WhatsappTemplatesClient({
               )}
               <div className="flex items-center gap-2">
                 <Input
-                  placeholder="Cari template..."
+                  placeholder="Search templates..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   className="h-9 w-40 bg-background"

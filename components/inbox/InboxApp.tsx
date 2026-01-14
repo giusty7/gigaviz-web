@@ -1435,7 +1435,7 @@ export default function InboxApp({ selectedId }: Props) {
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Cari nomor/nama/tag…"
+                  placeholder="Search number/name/tag…"
                   className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-700"
                 />
                 <div className="mt-2 grid grid-cols-2 gap-2">
@@ -1444,7 +1444,7 @@ export default function InboxApp({ selectedId }: Props) {
                     onChange={(e) => setFilterStatus(e.target.value as TicketStatus | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
-                    <option value="all">Semua status</option>
+                    <option value="all">All statuses</option>
                     <option value="open">Open</option>
                     <option value="pending">Pending</option>
                     <option value="solved">Solved</option>
@@ -1456,7 +1456,7 @@ export default function InboxApp({ selectedId }: Props) {
                     onChange={(e) => setFilterPriority(e.target.value as Priority | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
-                    <option value="all">Semua priority</option>
+                    <option value="all">All priorities</option>
                     <option value="low">Low</option>
                     <option value="med">Med</option>
                     <option value="high">High</option>
@@ -1470,7 +1470,7 @@ export default function InboxApp({ selectedId }: Props) {
                     onChange={(e) => setFilterAssignee(e.target.value as string | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
-                    <option value="all">Semua agent</option>
+                    <option value="all">All agents</option>
                     {agents.map((a) => (
                       <option key={a} value={a}>
                         {a}
@@ -1484,9 +1484,9 @@ export default function InboxApp({ selectedId }: Props) {
                     onChange={(e) => setFilterArchived(e.target.value as "active" | "archived" | "all")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
-                    <option value="active">Aktif</option>
+                    <option value="active">Active</option>
                     <option value="archived">Archived</option>
-                    <option value="all">Semua</option>
+                    <option value="all">All</option>
                   </select>
                 </div>
 
@@ -1503,8 +1503,8 @@ export default function InboxApp({ selectedId }: Props) {
                     onChange={(e) => setFilterPinned(e.target.value as "all" | "pinned")}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
-                    <option value="all">Semua</option>
-                    <option value="pinned">Pinned saja</option>
+                    <option value="all">All</option>
+                    <option value="pinned">Pinned only</option>
                   </select>
                 </div>
               </div>
@@ -2450,7 +2450,7 @@ export default function InboxApp({ selectedId }: Props) {
         </div>
 
         <div className="mt-6 text-xs text-slate-500">
-          Shortcut: buka langsung{" "}
+          Shortcut: open directly{" "}
           <code className="rounded border border-slate-800 px-2 py-1 bg-slate-950">
             /admin/inbox/&lt;conversation_id&gt;
           </code>

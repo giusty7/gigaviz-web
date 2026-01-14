@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   if (!appId || !appSecret) {
     return withCookies(
       NextResponse.json(
-        { ok: false, code: "meta_config_missing", message: "Meta config belum lengkap" },
+        { ok: false, code: "meta_config_missing", message: "Meta config is incomplete" },
         { status: 500 }
       )
     );

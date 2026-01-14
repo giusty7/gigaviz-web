@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 
 export type ModuleStatus = "available" | "locked" | "coming_soon" | "setup_required";
@@ -12,7 +13,10 @@ export type ModuleItem = {
   description: string;
   status: ModuleStatus;
   href?: string;
+  previewHref?: string;
   previewLabel?: string;
+  notifyLabel?: string;
+  comingSoonLabel?: string;
   planId?: string | null;
 };
 
@@ -24,6 +28,8 @@ type ModuleGridProps = {
 };
 
 export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: ModuleGridProps) {
+  const router = useRouter();
+
   const handleUnavailable = useCallback(
     (status: ModuleStatus, module: ModuleItem) => {
       if (status === "locked" && onUnlock) {
@@ -83,6 +89,13 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
         <div
           key={module.key}
           className={`relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-md shadow-black/20 focus-within:ring-2 focus-within:ring-gigaviz-gold/60 focus-within:ring-offset-2 focus-within:ring-offset-background ${hoverClass}`}
+          onClick={() => {
+            if (module.status === "coming_soon" && module.previewHref) {
+              router.push(module.previewHref);
+            }
+          }}
+          role={module.status === "coming_soon" && module.previewHref ? "button" : undefined}
+          tabIndex={module.status === "coming_soon" && module.previewHref ? 0 : -1}
         >
           <div className="flex items-start justify-between">
             <div>
@@ -100,25 +113,39 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
             {module.status === "available" && module.href ? (
               <Link
                 href={module.href}
+                onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold/70"
               >
                 Open
               </Link>
             ) : module.status === "coming_soon" ? (
               <div className="inline-flex items-center gap-2">
+                {module.previewHref ? (
+                  <Link
+                    href={module.previewHref}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center rounded-xl bg-gigaviz-gold px-3 py-2 text-xs font-semibold text-gigaviz-bg shadow hover:bg-gigaviz-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold/70"
+                  >
+                    {module.previewLabel ?? "Preview"}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    aria-disabled
+                    className="inline-flex cursor-not-allowed items-center rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-slate-900"
+                  >
+                    {module.comingSoonLabel ?? "Coming soon"}
+                  </button>
+                )}
                 <button
                   type="button"
-                  aria-disabled
-                  className="inline-flex cursor-not-allowed items-center rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-slate-900"
-                >
-                  Coming soon
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onNotify?.(module)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNotify?.(module);
+                  }}
                   className="text-xs font-semibold text-gigaviz-gold hover:underline"
                 >
-                  Notify me
+                  {module.notifyLabel ?? "Notify me"}
                 </button>
               </div>
             ) : (

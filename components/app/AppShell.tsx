@@ -35,6 +35,7 @@ export default function AppShell({
   const workspaceSlug = currentWorkspaceSlug ?? currentWorkspace?.slug ?? null;
   const dashboardHref = workspaceSlug ? `/${workspaceSlug}/dashboard` : "/";
   const modulesHref = workspaceSlug ? `/${workspaceSlug}/modules` : "/modules";
+  const helperHref = workspaceSlug ? `/${workspaceSlug}/helper` : "/helper";
   const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
   const notificationsHref = workspaceSlug ? `/${workspaceSlug}/notifications` : "/notifications";
   const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
@@ -42,6 +43,7 @@ export default function AppShell({
   const navLinks = [
     { href: dashboardHref, label: "Dashboard" },
     { href: modulesHref, label: "Modules" },
+    { href: helperHref, label: "Helper" },
     { href: tokensHref, label: "Tokens" },
     { href: notificationsHref, label: "Notifications" },
     { href: billingHref, label: "Billing" },

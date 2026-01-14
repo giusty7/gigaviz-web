@@ -29,7 +29,7 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
       <div>
         <h2 className="text-xl font-semibold text-foreground">Webhooks</h2>
         <p className="text-sm text-muted-foreground">
-          Menampilkan 50 event terakhir yang diterima untuk workspace ini.
+          Showing the last 50 events received for this workspace.
         </p>
       </div>
 
@@ -39,7 +39,7 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
             <table className="w-full text-left text-sm">
               <thead className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                 <tr>
-                  <th className="py-2 pr-3">Waktu</th>
+                  <th className="py-2 pr-3">Time</th>
                   <th className="py-2 pr-3">Channel</th>
                   <th className="py-2 pr-3">Event</th>
                   <th className="py-2 pr-3">Payload</th>
@@ -67,9 +67,9 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background px-6 py-10 text-center">
-            <p className="text-sm font-semibold text-foreground">Belum ada event</p>
+            <p className="text-sm font-semibold text-foreground">No events yet</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Tambah koneksi terlebih dahulu untuk mulai menerima webhook.
+              Connect a channel first to start receiving webhooks.
             </p>
           </div>
         )}

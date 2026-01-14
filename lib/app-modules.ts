@@ -28,10 +28,10 @@ export const appModules: AppModule[] = topLevelModules.map((module) => ({
   description: module.short || module.description,
   availability: availabilityFromStatus(module.status),
   feature: module.requiresEntitlement,
-  lockedTitle: `${module.name} terkunci`,
-  lockedDescription: "Upgrade untuk membuka modul ini sesuai entitlement plan.",
+  lockedTitle: `${module.name} is locked`,
+  lockedDescription: "Upgrade your plan to unlock this module.",
   summary: module.description,
-  note: module.status === "beta" ? "Status beta: mungkin ada perubahan." : undefined,
+  note: module.status === "beta" ? "Beta status: subject to change." : undefined,
   status: module.status,
 }));
 

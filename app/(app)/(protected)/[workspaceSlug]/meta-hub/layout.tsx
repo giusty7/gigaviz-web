@@ -17,7 +17,7 @@ export default async function MetaHubLayout({ children, params }: LayoutProps) {
       <aside className="rounded-2xl border border-border bg-card p-4">
         <div className="mb-3">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Meta Hub</p>
-          <h1 className="text-lg font-semibold text-foreground">Integrasi Meta</h1>
+          <h1 className="text-lg font-semibold text-foreground">Meta Integration</h1>
         </div>
         <MetaHubNav basePath={basePath} flags={flags} />
       </aside>

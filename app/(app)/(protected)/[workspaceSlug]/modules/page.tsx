@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation";
-import { type ModuleStatus } from "@/components/app/ModuleGrid";
 import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
+import type { ModuleStatus } from "@/components/app/ModuleGrid";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { canAccess, getPlanMeta, planMeta } from "@/lib/entitlements";
+import { getPlanMeta, planMeta } from "@/lib/entitlements";
+import { COPY_EN } from "@/lib/copy/en";
+import { HUBS } from "@/lib/hubs";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
-import { topLevelModules } from "@/lib/modules/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -35,45 +36,30 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
     .maybeSingle();
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
-  const isAdmin = Boolean(ctx.profile?.is_admin);
   const userEmail = ctx.user.email ?? "";
   const basePath = `/${workspace.slug}`;
 
-  const moduleCards = topLevelModules.map((module) => {
-    const comingSoon = module.status === "coming";
-    const canUse =
-      !comingSoon &&
-      (!module.requiresEntitlement ||
-        canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement));
-    const status: ModuleStatus = comingSoon
-      ? "coming_soon"
-      : canUse
-        ? "available"
-        : "locked";
-
-    const href = !comingSoon
-      ? (module.hrefApp
-          ? module.hrefApp.replace("[workspaceSlug]", workspace.slug)
-          : `${basePath}/modules/${module.slug}`)
-      : undefined;
-
+  const moduleCards = HUBS.map((hub) => {
+    const status: ModuleStatus = hub.status === "OPEN" ? "available" : "coming_soon";
+    const targetHref = `${basePath}/${hub.slug}`;
     return {
-      key: module.key,
-      name: module.name,
-      description: module.short || module.description,
+      key: hub.slug,
+      name: hub.title,
+      description: hub.description,
       status,
-      href,
+      href: hub.status === "OPEN" ? targetHref : undefined,
+      previewHref: hub.status === "COMING_SOON" ? targetHref : undefined,
+      previewLabel: "Preview",
+      notifyLabel: COPY_EN.hubs.notifyMe,
+      comingSoonLabel: COPY_EN.hubs.statusComingSoon,
     };
   });
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Modules</h1>
-        <p className="text-sm text-muted-foreground">
-          Explore available modules. Locked items require an upgrade; coming soon modules show a
-          status badge.
-        </p>
+        <h1 className="text-xl font-semibold">{COPY_EN.hubs.catalogTitle}</h1>
+        <p className="text-sm text-muted-foreground">{COPY_EN.hubs.catalogSubtitle}</p>
       </div>
       <ModuleGridWithSalesDialog
         modules={moduleCards}

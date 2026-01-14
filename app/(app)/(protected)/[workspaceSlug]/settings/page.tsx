@@ -302,7 +302,7 @@ export default async function SettingsPage({ params }: Props) {
 
           {(members?.length ?? 0) === 0 ? (
             <div className="rounded-xl border border-gigaviz-border bg-gigaviz-card p-4 text-sm text-gigaviz-muted">
-              Belum ada anggota selain kamu.
+              No other members yet.
             </div>
           ) : (
             <div className="rounded-xl border border-gigaviz-border bg-gigaviz-card">
@@ -399,7 +399,7 @@ export default async function SettingsPage({ params }: Props) {
             </div>
           )}
           <div className="text-xs text-gigaviz-muted">
-            Owner/admin dapat remove anggota. Kamu bisa leave workspace jika bukan owner.
+            Owners and admins can remove members. You can leave the workspace if you are not the owner.
           </div>
           {canManageMembers && (
             <div className="mt-4">
