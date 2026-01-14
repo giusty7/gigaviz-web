@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +56,8 @@ type Props = {
 
 const STATUS_OPTIONS = ["open", "pending", "closed"];
 
+const FILTER_PARAM_KEYS = { status: "status", assigned: "assigned", q: "q" } as const;
+
 function makeTempId() {
   return `temp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
@@ -96,6 +99,14 @@ export function WhatsappInboxClient({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assignFilter, setAssignFilter] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
+  const [enterToSend, setEnterToSend] = useState(false);
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const templateSelectRef = useRef<HTMLSelectElement | null>(null);
+  const assignSelectRef = useRef<HTMLSelectElement | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const visibleThreads = useMemo(() => threadList, [threadList]);
 
@@ -112,6 +123,28 @@ export function WhatsappInboxClient({
   useEffect(() => {
     setThreadList(threads);
   }, [threads]);
+
+  useEffect(() => {
+    const qpStatus = searchParams?.get(FILTER_PARAM_KEYS.status) ?? "all";
+    const qpAssign = searchParams?.get(FILTER_PARAM_KEYS.assigned) ?? "all";
+    const qpQ = searchParams?.get(FILTER_PARAM_KEYS.q) ?? "";
+    setStatusFilter(qpStatus || "all");
+    setAssignFilter(qpAssign || "all");
+    setSearch(qpQ || "");
+  }, [searchParams]);
+
+  const pushFiltersToUrl = useCallback(
+    (next: { status?: string; assigned?: string; q?: string }) => {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      const current = new URLSearchParams(url.search);
+      if (next.status !== undefined) current.set(FILTER_PARAM_KEYS.status, next.status);
+      if (next.assigned !== undefined) current.set(FILTER_PARAM_KEYS.assigned, next.assigned);
+      if (next.q !== undefined) current.set(FILTER_PARAM_KEYS.q, next.q);
+      router.replace(`${url.pathname}?${current.toString()}`);
+    },
+    [router]
+  );
 
   useEffect(() => {
     if (threadList.length === 0) {
@@ -155,11 +188,86 @@ export function WhatsappInboxClient({
     return () => clearTimeout(timer);
   }, [fetchThreads]);
 
+  const loadThread = useCallback(
+    async (threadId: string) => {
+      setSelectedId(threadId);
+      startTransition(async () => {
+        try {
+          setMessagesLoading(true);
+          const res = await fetch(
+            `/api/meta/whatsapp/thread/messages?threadId=${encodeURIComponent(
+              threadId
+            )}&workspaceId=${encodeURIComponent(workspaceId)}`,
+            { cache: "no-store", credentials: "include" }
+          );
+          const data = await res.json();
+          if (!res.ok || data?.ok === false) {
+            throw new Error(data?.reason || data?.error || "Failed to load messages");
+          }
+          setMessages(data.messages ?? []);
+          setTags(data.tags ?? []);
+          setNotes(data.notes ?? []);
+          await fetch("/api/meta/whatsapp/thread/mark-read", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ workspaceId, threadId }),
+          });
+          await fetchThreads();
+        } catch (err) {
+          toast({
+            title: "Failed to load",
+            description: err instanceof Error ? err.message : "Cannot load thread",
+            variant: "destructive",
+          });
+        } finally {
+          setMessagesLoading(false);
+        }
+      });
+    },
+    [workspaceId, fetchThreads, toast]
+  );
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
   }, [messages]);
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (event.key.toLowerCase() === "j") {
+        event.preventDefault();
+        const idx = visibleThreads.findIndex((t) => t.id === selectedId);
+        const next = visibleThreads[Math.min(idx + 1, visibleThreads.length - 1)];
+        if (next) loadThread(next.id);
+      }
+      if (event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        const idx = visibleThreads.findIndex((t) => t.id === selectedId);
+        const prev = visibleThreads[Math.max(idx - 1, 0)];
+        if (prev) loadThread(prev.id);
+      }
+      if (event.key.toLowerCase() === "r") {
+        event.preventDefault();
+        composerRef.current?.focus();
+      }
+      if (event.key.toLowerCase() === "t") {
+        event.preventDefault();
+        templateSelectRef.current?.focus();
+      }
+      if (event.key.toLowerCase() === "e") {
+        event.preventDefault();
+        assignSelectRef.current?.focus();
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setSelectedId(null);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [visibleThreads, selectedId, loadThread]);
 
   useEffect(() => {
     let active = true;
@@ -198,6 +306,34 @@ export function WhatsappInboxClient({
     };
   }, []);
 
+  useEffect(() => {
+    const key = `wa-composer-${workspaceId}-${selectedThread?.id ?? "none"}`;
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
+    if (saved) setComposerText(saved);
+    return () => {
+      if (typeof window !== "undefined") window.localStorage.removeItem(key);
+    };
+  }, [workspaceId, selectedThread?.id]);
+
+  useEffect(() => {
+    if (!selectedThread?.id) return;
+    const key = `wa-composer-${workspaceId}-${selectedThread.id}`;
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(key, composerText);
+    }
+  }, [composerText, workspaceId, selectedThread?.id]);
+
+  useEffect(() => {
+    const key = `wa-enter-to-send-${workspaceId}`;
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
+    if (saved) setEnterToSend(saved === "1");
+  }, [workspaceId]);
+
+  useEffect(() => {
+    const key = `wa-enter-to-send-${workspaceId}`;
+    if (typeof window !== "undefined") window.localStorage.setItem(key, enterToSend ? "1" : "0");
+  }, [enterToSend, workspaceId]);
+
   const approvedTemplates = useMemo(() => {
     return templateOptions.filter((tpl) => (tpl.status ?? "").toUpperCase() === "APPROVED");
   }, [templateOptions]);
@@ -211,42 +347,6 @@ export function WhatsappInboxClient({
       language: first.language ?? "id",
     }));
   }, [approvedTemplates, replyTemplate.name]);
-
-  async function loadThread(threadId: string) {
-    setSelectedId(threadId);
-    startTransition(async () => {
-      try {
-        setMessagesLoading(true);
-        const res = await fetch(
-          `/api/meta/whatsapp/thread/messages?threadId=${encodeURIComponent(
-            threadId
-          )}&workspaceId=${encodeURIComponent(workspaceId)}`,
-          { cache: "no-store", credentials: "include" }
-        );
-        const data = await res.json();
-        if (!res.ok || data?.ok === false) {
-          throw new Error(data?.reason || data?.error || "Failed to load messages");
-        }
-        setMessages(data.messages ?? []);
-        setTags(data.tags ?? []);
-        setNotes(data.notes ?? []);
-        await fetch("/api/meta/whatsapp/thread/mark-read", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workspaceId, threadId }),
-        });
-        await fetchThreads();
-      } catch (err) {
-        toast({
-          title: "Failed to load",
-          description: err instanceof Error ? err.message : "Cannot load thread",
-          variant: "destructive",
-        });
-      } finally {
-        setMessagesLoading(false);
-      }
-    });
-  }
 
   async function handleTagsSave() {
     try {
@@ -485,6 +585,22 @@ export function WhatsappInboxClient({
   const hasFilters =
     statusFilter !== "all" || assignFilter !== "all" || search.trim().length > 0;
 
+  function toggleBulkSelection(threadId: string) {
+    setSelectedThreadIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(threadId)) next.delete(threadId);
+      else next.add(threadId);
+      return next;
+    });
+  }
+
+  function clearFilters() {
+    setSearch("");
+    setStatusFilter("all");
+    setAssignFilter("all");
+    pushFiltersToUrl({ status: "all", assigned: "all", q: "" });
+  }
+
   return (
     <div className="grid gap-4 lg:grid-cols-[280px_1.5fr_1fr]">
       {isPreview && <PreviewBanner />}
@@ -504,14 +620,20 @@ export function WhatsappInboxClient({
             <Input
               placeholder="Search name/phone"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                pushFiltersToUrl({ q: e.target.value });
+              }}
               className="bg-background"
             />
             <div className="grid grid-cols-2 gap-2 text-xs">
               <select
                 className="rounded-lg border border-border bg-background px-2 py-1"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  pushFiltersToUrl({ status: e.target.value });
+                }}
               >
                 <option value="all">All statuses</option>
                 <option value="open">Open</option>
@@ -521,7 +643,10 @@ export function WhatsappInboxClient({
               <select
                 className="rounded-lg border border-border bg-background px-2 py-1"
                 value={assignFilter}
-                onChange={(e) => setAssignFilter(e.target.value)}
+                onChange={(e) => {
+                  setAssignFilter(e.target.value);
+                  pushFiltersToUrl({ assigned: e.target.value });
+                }}
               >
                 <option value="all">Assign: all</option>
                 <option value="assigned">Assigned</option>
@@ -550,16 +675,88 @@ export function WhatsappInboxClient({
                   size="sm"
                   variant="ghost"
                   className="h-7 px-2"
-                  onClick={() => {
-                    setSearch("");
-                    setStatusFilter("all");
-                    setAssignFilter("all");
-                  }}
+                  onClick={clearFilters}
                 >
                   Clear
                 </Button>
               </div>
             ) : null}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Presets:</span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2"
+                onClick={() => {
+                  setStatusFilter("open");
+                  pushFiltersToUrl({ status: "open" });
+                }}
+              >
+                Open
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2"
+                onClick={() => {
+                  setAssignFilter("unassigned");
+                  pushFiltersToUrl({ assigned: "unassigned" });
+                }}
+              >
+                Unassigned
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2"
+                onClick={() => {
+                  setAssignFilter("assigned");
+                  pushFiltersToUrl({ assigned: "assigned" });
+                }}
+              >
+                Assigned
+              </Button>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={bulkMode}
+                  onChange={(e) => {
+                    setBulkMode(e.target.checked);
+                    setSelectedThreadIds(new Set());
+                  }}
+                  className="h-4 w-4"
+                />
+                <span>Bulk select</span>
+              </label>
+              {bulkMode && selectedThreadIds.size > 0 ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => toast({ title: "Assign", description: "Bulk assign is UI-only" })}
+                  >
+                    Assign
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => toast({ title: "Tag", description: "Bulk tag is UI-only" })}
+                  >
+                    Add tag
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => toast({ title: "Marked", description: "Marked done (UI-only)" })}
+                  >
+                    Mark done
+                  </Button>
+                  <span className="text-muted-foreground">Selected: {selectedThreadIds.size}</span>
+                </div>
+              ) : null}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -577,20 +774,39 @@ export function WhatsappInboxClient({
           {visibleThreads.map((thread) => {
             const active = thread.id === selectedId;
             const unread = thread.unread_count ?? 0;
+            const selected = selectedThreadIds.has(thread.id);
             return (
               <button
                 key={thread.id}
                 className={cn(
                   "w-full rounded-lg border px-3 py-2 text-left text-sm",
-                  active ? "border-gigaviz-gold bg-gigaviz-surface" : "border-border bg-background"
+                  active ? "border-gigaviz-gold bg-gigaviz-surface" : "border-border bg-background",
+                  selected ? "ring-1 ring-gigaviz-gold/60" : ""
                 )}
-                onClick={() => loadThread(thread.id)}
+                onClick={() => {
+                  if (bulkMode) {
+                    toggleBulkSelection(thread.id);
+                  } else {
+                    loadThread(thread.id);
+                  }
+                }}
                 disabled={isPending}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-foreground">
-                    {thread.contact?.display_name || thread.contact?.phone || "Unknown"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {bulkMode ? (
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={selected}
+                        onChange={() => toggleBulkSelection(thread.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : null}
+                    <span className="font-semibold text-foreground">
+                      {thread.contact?.display_name || thread.contact?.phone || "Unknown"}
+                    </span>
+                  </div>
                   {unread > 0 ? (
                     <Badge className="bg-amber-500/20 text-amber-100">{unread}</Badge>
                   ) : null}
