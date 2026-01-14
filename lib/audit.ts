@@ -6,7 +6,9 @@ export type AuditAction =
   | "billing.requested"
   | "feature.interest"
   | "workspace.created"
-  | "member.role_updated";
+  | "member.role_updated"
+  | "tokens.topup_requested"
+  | "tokens.topup_paid";
 
 export type AuditEventInput = {
   workspaceId: string;

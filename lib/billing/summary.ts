@@ -1,7 +1,7 @@
 import "server-only";
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { getWallet } from "@/lib/tokens";
+import { getTokenSettings, getTokenUsage, getWallet } from "@/lib/tokens";
 
 export type BillingPlanRow = {
   code: string;
@@ -40,10 +40,6 @@ export type BillingSummary = {
   plans: BillingPlanRow[];
 };
 
-function monthStartUTC(d = new Date()) {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1, 0, 0, 0, 0));
-}
-
 function currentYyyymm(d = new Date()) {
   return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
@@ -74,17 +70,6 @@ function mapStatus(status: string | null | undefined) {
   }
 }
 
-function sumUsage(rows: Array<{ delta_bigint?: number | null; amount?: number | null; type?: string | null }>) {
-  return rows.reduce((total, row) => {
-    if (row.type === "usage" && row.amount !== null && row.amount !== undefined) {
-      return total + Math.abs(Number(row.amount));
-    }
-    const delta = Number(row.delta_bigint ?? 0);
-    if (delta < 0) return total + Math.abs(delta);
-    return total;
-  }, 0);
-}
-
 export async function getBillingSummary(workspaceId: string): Promise<BillingSummary> {
   const db = supabaseAdmin();
 
@@ -105,27 +90,15 @@ export async function getBillingSummary(workspaceId: string): Promise<BillingSum
     .maybeSingle();
 
   const walletRow = await getWallet(workspaceId);
-  const { data: walletMeta } = await db
-    .from("token_wallets")
-    .select("monthly_cap, updated_at")
-    .eq("workspace_id", workspaceId)
-    .maybeSingle();
+  const settings = await getTokenSettings(workspaceId);
+  const usage = await getTokenUsage(workspaceId);
 
-  const monthStart = monthStartUTC();
-  const { data: ledgerRows } = await db
-    .from("token_ledger")
-    .select("delta_bigint, amount, type")
-    .eq("workspace_id", workspaceId)
-    .gte("created_at", monthStart.toISOString());
-
-  const used = sumUsage((ledgerRows ?? []) as Array<{ delta_bigint?: number; amount?: number; type?: string }>);
-  const capRaw = walletMeta?.monthly_cap ?? null;
-  const capValue = capRaw !== null && capRaw !== undefined ? Number(capRaw) : null;
-  const normalizedCap =
-    capValue !== null && Number.isFinite(capValue) && capValue > 0 ? capValue : null;
-  const remaining = normalizedCap !== null ? Math.max(normalizedCap - used, 0) : null;
-  const percentUsed =
-    normalizedCap !== null && normalizedCap > 0 ? Math.min(100, (used / normalizedCap) * 100) : null;
+  const cap = settings.monthly_cap !== null && Number.isFinite(settings.monthly_cap) && settings.monthly_cap > 0
+    ? Number(settings.monthly_cap)
+    : null;
+  const used = usage.used;
+  const remaining = cap !== null ? Math.max(cap - used, 0) : null;
+  const percentUsed = cap !== null && cap > 0 ? Math.min(100, (used / cap) * 100) : null;
 
   const periodStart = formatDateLabel(subscription?.current_period_start);
   const periodEnd = formatDateLabel(subscription?.current_period_end);
@@ -153,15 +126,15 @@ export async function getBillingSummary(workspaceId: string): Promise<BillingSum
     plan: (planRow as BillingPlanRow | null) ?? null,
     wallet: {
       balance: Number(walletRow.balance_bigint ?? 0),
-      monthly_cap: normalizedCap,
-      updated_at: walletMeta?.updated_at ?? walletRow.updated_at ?? null,
+      monthly_cap: cap,
+      updated_at: settings.updated_at ?? walletRow.updated_at ?? null,
     },
     usage: {
-      cap: normalizedCap,
+      cap,
       used,
       remaining,
       percentUsed,
-      yyyymm: currentYyyymm(),
+      yyyymm: usage.yyyymm || currentYyyymm(),
     },
     statusLabel: mapStatus(subscription?.status),
     periodLabel,
