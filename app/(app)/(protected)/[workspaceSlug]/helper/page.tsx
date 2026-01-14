@@ -26,20 +26,11 @@ export default async function HelperPage({ params }: Props) {
     .limit(20);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">Gigaviz Helper</p>
-          <h1 className="text-2xl font-bold">AI assistant for chat, copy, and summaries</h1>
-        </div>
-      </div>
-
-      <HelperClient
-        workspaceId={workspace.id}
-        workspaceSlug={workspace.slug}
-        workspaceName={workspace.name}
-        initialConversations={conversations ?? []}
-      />
-    </div>
+    <HelperClient
+      workspaceId={workspace.id}
+      workspaceSlug={workspace.slug}
+      workspaceName={workspace.name}
+      initialConversations={conversations ?? []}
+    />
   );
 }
