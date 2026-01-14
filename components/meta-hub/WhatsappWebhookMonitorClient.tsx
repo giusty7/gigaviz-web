@@ -1,7 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+  Settings,
+  Zap,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +40,8 @@ type Props = {
   workspaceId: string;
   workspaceSlug: string;
   hasToken: boolean;
+  phoneNumberId: string | null;
+  displayName: string | null;
   initialEvents: WebhookEvent[];
   initialStats: Stats;
 };
@@ -45,6 +57,13 @@ const STATUS_OPTIONS = [
   { label: "All", value: "all" },
   { label: "OK", value: "ok" },
   { label: "Failed", value: "failed" },
+] as const;
+
+const AUTO_REFRESH_OPTIONS = [
+  { label: "Off", value: 0 },
+  { label: "15s", value: 15000 },
+  { label: "30s", value: 30000 },
+  { label: "60s", value: 60000 },
 ] as const;
 
 function getDateFrom(range: string): string | null {
@@ -85,10 +104,18 @@ function summarizePayload(payload: Record<string, unknown>): string {
   return keys || "-";
 }
 
+function maskPhoneId(id: string | null): string {
+  if (!id) return "-";
+  if (id.length <= 4) return id;
+  return `•••${id.slice(-4)}`;
+}
+
 export function WhatsappWebhookMonitorClient({
   workspaceId,
   workspaceSlug,
   hasToken,
+  phoneNumberId,
+  displayName,
   initialEvents,
   initialStats,
 }: Props) {
@@ -104,6 +131,14 @@ export function WhatsappWebhookMonitorClient({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [dateRange, setDateRange] = useState<string>("24h");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Auto-refresh
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(0);
+  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Expanded rows
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   // Unique event types for dropdown
   const eventTypes = useMemo(() => {
@@ -148,6 +183,24 @@ export function WhatsappWebhookMonitorClient({
     return () => clearTimeout(timer);
   }, [fetchEvents]);
 
+  // Auto-refresh effect
+  useEffect(() => {
+    if (autoRefreshRef.current) {
+      clearInterval(autoRefreshRef.current);
+      autoRefreshRef.current = null;
+    }
+    if (autoRefreshInterval > 0) {
+      autoRefreshRef.current = setInterval(() => {
+        fetchEvents();
+      }, autoRefreshInterval);
+    }
+    return () => {
+      if (autoRefreshRef.current) {
+        clearInterval(autoRefreshRef.current);
+      }
+    };
+  }, [autoRefreshInterval, fetchEvents]);
+
   const handleReconcile = useCallback(async () => {
     setReconciling(true);
     try {
@@ -173,6 +226,23 @@ export function WhatsappWebhookMonitorClient({
     }
   }, [workspaceId, fetchEvents, toast]);
 
+  const handleCopyPayload = useCallback(
+    (payload: Record<string, unknown>) => {
+      navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      toast({ title: "Copied", description: "Payload copied to clipboard" });
+    },
+    [toast]
+  );
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   const healthStatus = useMemo(() => {
     if (!stats.lastEventAt) return "none";
     const diff = Date.now() - new Date(stats.lastEventAt).getTime();
@@ -186,18 +256,128 @@ export function WhatsappWebhookMonitorClient({
     return "bg-gray-400/20 text-gray-300 border-gray-400/50";
   }, [healthStatus]);
 
-  const filteredEvents = events;
+  // Filter events by search
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return events;
+    const q = searchQuery.toLowerCase();
+    return events.filter((evt) => {
+      const type = evt.event_type?.toLowerCase() ?? "";
+      const summary = summarizePayload(evt.payload_json).toLowerCase();
+      const errText = evt.error_text?.toLowerCase() ?? "";
+      return type.includes(q) || summary.includes(q) || errText.includes(q);
+    });
+  }, [events, searchQuery]);
+
+  // Group events by day
+  const groupedEvents = useMemo(() => {
+    const groups: Record<string, WebhookEvent[]> = {};
+    filteredEvents.forEach((evt) => {
+      const date = evt.received_at ? new Date(evt.received_at).toLocaleDateString() : "Unknown";
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(evt);
+    });
+    return groups;
+  }, [filteredEvents]);
+
+  const showTokenAlert = !hasToken;
+  const showNoEventsAlert = healthStatus === "none" || (stats.total24h === 0 && !showTokenAlert);
+  const showErrorsAlert = stats.errors24h > 0;
 
   return (
     <div className="space-y-6">
+      {/* Alerts */}
+      {showTokenAlert && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
+          <AlertTriangle className="h-5 w-5 text-red-400" />
+          <div className="flex-1">
+            <p className="font-semibold text-red-300">Token Missing</p>
+            <p className="text-red-300/80">WhatsApp connection requires a valid access token.</p>
+          </div>
+          <Link href={`/${workspaceSlug}/meta-hub/connections`}>
+            <Button size="sm" variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20">
+              Open Connections
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {showNoEventsAlert && !showTokenAlert && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
+          <AlertTriangle className="h-5 w-5 text-amber-400" />
+          <div className="flex-1">
+            <p className="font-semibold text-amber-300">No Events in 24h</p>
+            <p className="text-amber-300/80">Verify your webhook is configured correctly in Meta Business Suite.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/components"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="sm" variant="ghost" className="text-amber-300">
+                How to Verify <ExternalLink className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-amber-400/50 text-amber-300 hover:bg-amber-500/20"
+              onClick={handleReconcile}
+              disabled={reconciling}
+            >
+              Reconcile now
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showErrorsAlert && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
+          <AlertTriangle className="h-5 w-5 text-red-400" />
+          <div className="flex-1">
+            <p className="font-semibold text-red-300">{stats.errors24h} Errors in 24h</p>
+            <p className="text-red-300/80">Some webhook events failed to process.</p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-red-400/50 text-red-300 hover:bg-red-500/20"
+            onClick={() => setStatusFilter("failed")}
+          >
+            Show Errors
+          </Button>
+        </div>
+      )}
+
       {/* Health Header */}
       <Card className="border-border bg-gradient-to-br from-[#0b1221] via-[#0f1c2c] to-[#111827]">
         <CardHeader className="pb-3">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <CardTitle className="text-lg font-semibold text-foreground">Webhook Health</CardTitle>
-            <Badge className={cn("border text-xs", healthBadgeStyle)}>
-              {healthStatus === "ok" ? "Healthy" : healthStatus === "stale" ? "Stale" : "No events"}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <span className="rounded-lg bg-gigaviz-gold/20 p-2 text-gigaviz-gold">
+                <Zap size={18} />
+              </span>
+              <div>
+                <CardTitle className="text-lg font-semibold text-foreground">Webhook Health</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {displayName ?? "WhatsApp"} • {maskPhoneId(phoneNumberId)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge className={cn("border text-xs", healthBadgeStyle)}>
+                {healthStatus === "ok" ? "Healthy" : healthStatus === "stale" ? "Stale" : "No events"}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs",
+                  hasToken ? "border-emerald-400/50 text-emerald-300" : "border-red-400/50 text-red-300"
+                )}
+              >
+                Token: {hasToken ? "OK" : "Missing"}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -218,18 +398,18 @@ export function WhatsappWebhookMonitorClient({
               </p>
             </div>
             <div className="rounded-xl border border-border bg-card/60 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Token Status</p>
-              <p className={cn("mt-1 text-lg font-semibold", hasToken ? "text-emerald-400" : "text-amber-400")}>
-                {hasToken ? "Connected" : "Missing"}
-              </p>
-              {!hasToken && (
-                <Link
-                  href={`/${workspaceSlug}/meta-hub/connections`}
-                  className="mt-2 inline-block text-xs text-gigaviz-gold hover:underline"
-                >
-                  Open Connections →
-                </Link>
-              )}
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Auto Refresh</p>
+              <select
+                className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                value={autoRefreshInterval}
+                onChange={(e) => setAutoRefreshInterval(Number(e.target.value))}
+              >
+                {AUTO_REFRESH_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -237,10 +417,28 @@ export function WhatsappWebhookMonitorClient({
               {reconciling ? "Reconciling..." : "Reconcile now"}
             </Button>
             <Button size="sm" variant="ghost" onClick={fetchEvents} disabled={loading}>
+              <RefreshCw className={cn("mr-1 h-4 w-4", loading && "animate-spin")} />
               {loading ? "Refreshing..." : "Refresh"}
             </Button>
+            <Link href={`/${workspaceSlug}/meta-hub/connections`}>
+              <Button size="sm" variant="ghost">
+                <Settings className="mr-1 h-4 w-4" />
+                Open Connections
+              </Button>
+            </Link>
+            <Link
+              href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/components"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="sm" variant="ghost">
+                How to Verify <ExternalLink className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
             {lastRefreshed && (
-              <span className="text-xs text-muted-foreground">Last refreshed: {lastRefreshed.toLocaleTimeString()}</span>
+              <span className="text-xs text-muted-foreground">
+                Last refreshed: {lastRefreshed.toLocaleTimeString()}
+              </span>
             )}
           </div>
         </CardContent>
@@ -253,6 +451,13 @@ export function WhatsappWebhookMonitorClient({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-3 text-sm">
+            <input
+              type="text"
+              placeholder="Search events..."
+              className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             <select
               className="rounded-lg border border-border bg-background px-3 py-1.5"
               value={statusFilter}
@@ -331,44 +536,81 @@ export function WhatsappWebhookMonitorClient({
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {filteredEvents.map((evt) => {
-                const isError = !!evt.error_text;
-                const isProcessed = !!evt.processed_at;
-                return (
-                  <div
-                    key={evt.id}
-                    className={cn(
-                      "flex flex-wrap items-start gap-4 px-4 py-3 text-sm",
-                      isError && "bg-red-500/5"
-                    )}
-                  >
-                    <div className="min-w-[140px]">
-                      <p className="font-medium text-foreground">{formatTime(evt.received_at)}</p>
-                      <p className="text-xs text-muted-foreground">{getRelativeTime(evt.received_at)}</p>
-                    </div>
-                    <div className="min-w-[100px]">
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-xs",
-                          isError
-                            ? "border-red-400/50 text-red-300"
-                            : isProcessed
-                            ? "border-emerald-400/50 text-emerald-300"
-                            : "border-amber-400/50 text-amber-300"
-                        )}
-                      >
-                        {isError ? "Failed" : isProcessed ? "OK" : "Pending"}
-                      </Badge>
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="font-medium text-foreground">{evt.event_type || "event"}</p>
-                      <p className="text-xs text-muted-foreground">{summarizePayload(evt.payload_json)}</p>
-                      {isError && <p className="text-xs text-red-400">{evt.error_text}</p>}
-                    </div>
+              {Object.entries(groupedEvents).map(([date, dayEvents]) => (
+                <div key={date}>
+                  <div className="sticky top-0 z-10 border-b border-border bg-gigaviz-surface/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
+                    {date}
                   </div>
-                );
-              })}
+                  {dayEvents.map((evt) => {
+                    const isError = !!evt.error_text;
+                    const isProcessed = !!evt.processed_at;
+                    const isExpanded = expandedIds.has(evt.id);
+                    return (
+                      <div key={evt.id}>
+                        <button
+                          className={cn(
+                            "flex w-full flex-wrap items-start gap-4 px-4 py-3 text-left text-sm transition hover:bg-gigaviz-surface/30",
+                            isError && "bg-red-500/5"
+                          )}
+                          onClick={() => toggleExpand(evt.id)}
+                        >
+                          <span className="mt-1 text-muted-foreground">
+                            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          </span>
+                          <div className="min-w-[120px]">
+                            <p className="font-medium text-foreground">
+                              {evt.received_at ? new Date(evt.received_at).toLocaleTimeString() : "-"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{getRelativeTime(evt.received_at)}</p>
+                          </div>
+                          <div className="min-w-[80px]">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-xs",
+                                isError
+                                  ? "border-red-400/50 text-red-300"
+                                  : isProcessed
+                                  ? "border-emerald-400/50 text-emerald-300"
+                                  : "border-amber-400/50 text-amber-300"
+                              )}
+                            >
+                              {isError ? "Failed" : isProcessed ? "OK" : "Pending"}
+                            </Badge>
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="font-medium text-foreground">{evt.event_type || "event"}</p>
+                            <p className="text-xs text-muted-foreground">{summarizePayload(evt.payload_json)}</p>
+                            {isError && <p className="text-xs text-red-400">{evt.error_text}</p>}
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="border-t border-border bg-background px-4 py-3">
+                            <div className="flex items-center justify-between gap-2 pb-2">
+                              <span className="text-xs font-semibold uppercase text-muted-foreground">Payload</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyPayload(evt.payload_json);
+                                }}
+                              >
+                                <Copy size={12} className="mr-1" />
+                                Copy
+                              </Button>
+                            </div>
+                            <pre className="max-h-64 overflow-auto rounded-lg bg-gigaviz-surface p-3 text-xs text-muted-foreground">
+                              {JSON.stringify(evt.payload_json, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
         </CardContent>

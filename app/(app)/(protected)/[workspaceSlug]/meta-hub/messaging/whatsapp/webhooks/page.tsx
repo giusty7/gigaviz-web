@@ -65,13 +65,26 @@ export default async function WhatsappWebhooksPage({ params }: Props) {
     .limit(1)
     .maybeSingle();
 
-  // Check if token exists
-  const { data: connection } = await db
-    .from("meta_connections")
-    .select("id")
+  // Check if token/connection exists
+  const { data: waConnection } = await db
+    .from("wa_phone_numbers")
+    .select("id, phone_number_id, display_name")
     .eq("workspace_id", workspace.id)
-    .eq("channel", "whatsapp")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
+
+  let hasToken = false;
+  if (waConnection?.phone_number_id) {
+    const { data: token } = await db
+      .from("meta_tokens")
+      .select("id")
+      .eq("workspace_id", workspace.id)
+      .eq("provider", "meta_whatsapp")
+      .limit(1)
+      .maybeSingle();
+    hasToken = !!token?.id;
+  }
 
   const initialStats = {
     total24h: total24h ?? 0,
@@ -83,7 +96,9 @@ export default async function WhatsappWebhooksPage({ params }: Props) {
     <WhatsappWebhookMonitorClient
       workspaceId={workspace.id}
       workspaceSlug={workspace.slug}
-      hasToken={!!connection?.id}
+      hasToken={hasToken}
+      phoneNumberId={waConnection?.phone_number_id ?? null}
+      displayName={waConnection?.display_name ?? null}
       initialEvents={events ?? []}
       initialStats={initialStats}
     />

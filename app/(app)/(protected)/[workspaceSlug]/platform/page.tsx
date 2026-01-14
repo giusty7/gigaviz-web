@@ -12,7 +12,14 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GetStartedPanel } from "@/components/onboarding/get-started-panel";
 import { getAppContext } from "@/lib/app-context";
+import {
+  getOnboardingSignals,
+  buildOnboardingSteps,
+  getOnboardingProgress,
+  getNextIncompleteStep,
+} from "@/lib/onboarding/signals";
 import { getWorkspacePlan } from "@/lib/plans";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
@@ -83,6 +90,12 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
     .eq("workspace_id", workspace.id)
     .order("created_at", { ascending: false })
     .limit(6);
+
+  // Onboarding signals
+  const onboardingSignals = await getOnboardingSignals(workspace.id);
+  const onboardingSteps = buildOnboardingSteps(onboardingSignals, workspaceSlug);
+  const onboardingProgress = getOnboardingProgress(onboardingSteps);
+  const nextOnboardingStep = getNextIncompleteStep(onboardingSteps);
 
   const summaryCards = [
     {
@@ -171,6 +184,16 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
   ];
   return (
     <div className="space-y-6">
+      {/* Get Started wizard */}
+      <GetStartedPanel
+        workspaceId={workspace.id}
+        workspaceSlug={workspaceSlug}
+        userId={ctx.user.id}
+        steps={onboardingSteps}
+        progress={onboardingProgress}
+        nextStep={nextOnboardingStep}
+      />
+
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map((card) => {
           const Icon = card.icon;

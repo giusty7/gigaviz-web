@@ -13,6 +13,31 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { ActionGate } from "@/components/gates/action-gate";
 import PreviewBanner from "@/components/modules/preview-banner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { BookmarkIcon, CheckIcon, MoreVerticalIcon, TagIcon, UserIcon, XIcon } from "lucide-react";
+
+/** Saved view configuration */
+type SavedView = {
+  id: string;
+  name: string;
+  status: string;
+  assigned: string;
+  q: string;
+};
+
+/** Default preset views shipped out of the box */
+const DEFAULT_VIEWS: SavedView[] = [
+  { id: "preset-open", name: "Open", status: "open", assigned: "all", q: "" },
+  { id: "preset-unassigned", name: "Unassigned", status: "all", assigned: "unassigned", q: "" },
+  { id: "preset-assigned", name: "Assigned to me", status: "all", assigned: "assigned", q: "" },
+  { id: "preset-vip", name: "VIP", status: "all", assigned: "all", q: "vip" },
+];
 
 type Thread = {
   id: string;
@@ -107,6 +132,29 @@ export function WhatsappInboxClient({
   const assignSelectRef = useRef<HTMLSelectElement | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Saved Views state
+  const savedViewsKey = `gv:wa-inbox-views:${workspaceId}:${userId}`;
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const [bulkActionInProgress, setBulkActionInProgress] = useState(false);
+
+  // Load saved views from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem(savedViewsKey) : null;
+      if (raw) setSavedViews(JSON.parse(raw));
+    } catch {
+      // ignore
+    }
+  }, [savedViewsKey]);
+
+  // Persist saved views to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined" && savedViews.length > 0) {
+      window.localStorage.setItem(savedViewsKey, JSON.stringify(savedViews));
+    }
+  }, [savedViews, savedViewsKey]);
 
   const visibleThreads = useMemo(() => threadList, [threadList]);
 
@@ -406,6 +454,153 @@ export function WhatsappInboxClient({
     }
   }
 
+  // --- Saved Views handlers ---
+  function applyView(view: SavedView) {
+    setStatusFilter(view.status);
+    setAssignFilter(view.assigned);
+    setSearch(view.q);
+    setActiveViewId(view.id);
+    pushFiltersToUrl({ status: view.status, assigned: view.assigned, q: view.q });
+  }
+
+  function saveCurrentView() {
+    const name = prompt("Enter a name for this view:");
+    if (!name?.trim()) return;
+    const newView: SavedView = {
+      id: `view-${Date.now().toString(36)}`,
+      name: name.trim(),
+      status: statusFilter,
+      assigned: assignFilter,
+      q: search,
+    };
+    setSavedViews((prev) => [...prev, newView]);
+    setActiveViewId(newView.id);
+    toast({ title: "View saved", description: `"${newView.name}" saved successfully.` });
+  }
+
+  function deleteView(viewId: string) {
+    setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
+    if (activeViewId === viewId) setActiveViewId(null);
+  }
+
+  // --- Quick Actions (per-thread) ---
+  async function quickAssignToMe(threadId: string) {
+    try {
+      const res = await fetch("/api/meta/whatsapp/thread/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId, threadId, assignedTo: userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to assign");
+      toast({ title: "Assigned to you" });
+      await fetchThreads();
+    } catch (err) {
+      toast({ title: "Failed", description: err instanceof Error ? err.message : "Error", variant: "destructive" });
+    }
+  }
+
+  async function quickMarkDone(threadId: string) {
+    try {
+      const res = await fetch("/api/meta/whatsapp/thread/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId, threadId, status: "closed" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to mark done");
+      toast({ title: "Marked done" });
+      await fetchThreads();
+    } catch (err) {
+      toast({ title: "Failed", description: err instanceof Error ? err.message : "Error", variant: "destructive" });
+    }
+  }
+
+  async function quickAddTag(threadId: string) {
+    const tagInput = prompt("Enter tag to add:");
+    if (!tagInput?.trim()) return;
+    try {
+      const res = await fetch("/api/meta/whatsapp/thread/tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId, threadId, tags: [tagInput.trim()] }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to add tag");
+      toast({ title: "Tag added", description: tagInput.trim() });
+    } catch (err) {
+      toast({ title: "Failed", description: err instanceof Error ? err.message : "Error", variant: "destructive" });
+    }
+  }
+
+  // --- Bulk Quick Actions ---
+  async function bulkAssignToMe() {
+    if (selectedThreadIds.size === 0) return;
+    setBulkActionInProgress(true);
+    let successCount = 0;
+    for (const tid of selectedThreadIds) {
+      try {
+        const res = await fetch("/api/meta/whatsapp/thread/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId, threadId: tid, assignedTo: userId }),
+        });
+        if (res.ok) successCount++;
+      } catch {
+        // continue on error
+      }
+    }
+    setBulkActionInProgress(false);
+    toast({ title: "Bulk assign complete", description: `Assigned ${successCount} of ${selectedThreadIds.size} threads.` });
+    setSelectedThreadIds(new Set());
+    await fetchThreads();
+  }
+
+  async function bulkMarkDone() {
+    if (selectedThreadIds.size === 0) return;
+    setBulkActionInProgress(true);
+    let successCount = 0;
+    for (const tid of selectedThreadIds) {
+      try {
+        const res = await fetch("/api/meta/whatsapp/thread/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId, threadId: tid, status: "closed" }),
+        });
+        if (res.ok) successCount++;
+      } catch {
+        // continue
+      }
+    }
+    setBulkActionInProgress(false);
+    toast({ title: "Bulk mark done", description: `Marked ${successCount} of ${selectedThreadIds.size} threads as done.` });
+    setSelectedThreadIds(new Set());
+    await fetchThreads();
+  }
+
+  async function bulkAddTag() {
+    if (selectedThreadIds.size === 0) return;
+    const tagInput = prompt("Enter tag to add to selected threads:");
+    if (!tagInput?.trim()) return;
+    setBulkActionInProgress(true);
+    let successCount = 0;
+    for (const tid of selectedThreadIds) {
+      try {
+        const res = await fetch("/api/meta/whatsapp/thread/tags", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId, threadId: tid, tags: [tagInput.trim()] }),
+        });
+        if (res.ok) successCount++;
+      } catch {
+        // continue
+      }
+    }
+    setBulkActionInProgress(false);
+    toast({ title: "Bulk tag complete", description: `Tagged ${successCount} of ${selectedThreadIds.size} threads.` });
+    setSelectedThreadIds(new Set());
+  }
+
   async function handleSendText() {
     if (!selectedId || !composerText.trim()) return;
     const tempId = makeTempId();
@@ -682,40 +877,59 @@ export function WhatsappInboxClient({
               </div>
             ) : null}
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Presets:</span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2"
-                onClick={() => {
-                  setStatusFilter("open");
-                  pushFiltersToUrl({ status: "open" });
-                }}
-              >
-                Open
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2"
-                onClick={() => {
-                  setAssignFilter("unassigned");
-                  pushFiltersToUrl({ assigned: "unassigned" });
-                }}
-              >
-                Unassigned
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2"
-                onClick={() => {
-                  setAssignFilter("assigned");
-                  pushFiltersToUrl({ assigned: "assigned" });
-                }}
-              >
-                Assigned
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 px-2 gap-1">
+                    <BookmarkIcon className="h-3 w-3" />
+                    {activeViewId
+                      ? [...DEFAULT_VIEWS, ...savedViews].find((v) => v.id === activeViewId)?.name ?? "Views"
+                      : "Views"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-[160px]">
+                  {DEFAULT_VIEWS.map((view) => (
+                    <DropdownMenuItem
+                      key={view.id}
+                      onClick={() => applyView(view)}
+                      className={cn(activeViewId === view.id && "bg-gigaviz-surface")}
+                    >
+                      {view.name}
+                    </DropdownMenuItem>
+                  ))}
+                  {savedViews.length > 0 && <DropdownMenuSeparator />}
+                  {savedViews.map((view) => (
+                    <DropdownMenuItem
+                      key={view.id}
+                      className={cn("flex items-center justify-between gap-2", activeViewId === view.id && "bg-gigaviz-surface")}
+                    >
+                      <span onClick={() => applyView(view)} className="flex-1 cursor-pointer">
+                        {view.name}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteView(view.id); }}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <XIcon className="h-3 w-3" />
+                      </button>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={saveCurrentView} className="text-gigaviz-gold">
+                    Save current view...
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {DEFAULT_VIEWS.slice(0, 3).map((view) => (
+                <Button
+                  key={view.id}
+                  size="sm"
+                  variant="outline"
+                  className={cn("h-7 px-2", activeViewId === view.id && "border-gigaviz-gold")}
+                  onClick={() => applyView(view)}
+                >
+                  {view.name}
+                </Button>
+              ))}
             </div>
             <div className="flex items-center gap-3 text-xs">
               <label className="flex items-center gap-2">
@@ -735,23 +949,26 @@ export function WhatsappInboxClient({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => toast({ title: "Assign", description: "Bulk assign is UI-only" })}
+                    disabled={bulkActionInProgress}
+                    onClick={bulkAssignToMe}
                   >
-                    Assign
+                    <UserIcon className="mr-1 h-3 w-3" /> Assign to me
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => toast({ title: "Tag", description: "Bulk tag is UI-only" })}
+                    disabled={bulkActionInProgress}
+                    onClick={bulkAddTag}
                   >
-                    Add tag
+                    <TagIcon className="mr-1 h-3 w-3" /> Add tag
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => toast({ title: "Marked", description: "Marked done (UI-only)" })}
+                    disabled={bulkActionInProgress}
+                    onClick={bulkMarkDone}
                   >
-                    Mark done
+                    <CheckIcon className="mr-1 h-3 w-3" /> Mark done
                   </Button>
                   <span className="text-muted-foreground">Selected: {selectedThreadIds.size}</span>
                 </div>
@@ -776,21 +993,22 @@ export function WhatsappInboxClient({
             const unread = thread.unread_count ?? 0;
             const selected = selectedThreadIds.has(thread.id);
             return (
-              <button
+              <div
                 key={thread.id}
                 className={cn(
                   "w-full rounded-lg border px-3 py-2 text-left text-sm",
                   active ? "border-gigaviz-gold bg-gigaviz-surface" : "border-border bg-background",
-                  selected ? "ring-1 ring-gigaviz-gold/60" : ""
+                  selected ? "ring-1 ring-gigaviz-gold/60" : "",
+                  isPending ? "opacity-60" : "cursor-pointer hover:bg-gigaviz-surface/50"
                 )}
                 onClick={() => {
+                  if (isPending) return;
                   if (bulkMode) {
                     toggleBulkSelection(thread.id);
                   } else {
                     loadThread(thread.id);
                   }
                 }}
-                disabled={isPending}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -807,9 +1025,31 @@ export function WhatsappInboxClient({
                       {thread.contact?.display_name || thread.contact?.phone || "Unknown"}
                     </span>
                   </div>
-                  {unread > 0 ? (
-                    <Badge className="bg-amber-500/20 text-amber-100">{unread}</Badge>
-                  ) : null}
+                  <div className="flex items-center gap-2">
+                    {unread > 0 ? (
+                      <Badge className="bg-amber-500/20 text-amber-100">{unread}</Badge>
+                    ) : null}
+                    {!bulkMode && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                          <button className="p-1 rounded hover:bg-gigaviz-surface" aria-label="Quick actions">
+                            <MoreVerticalIcon className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => quickAssignToMe(thread.id)}>
+                            <UserIcon className="mr-2 h-3 w-3" /> Assign to me
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => quickMarkDone(thread.id)}>
+                            <CheckIcon className="mr-2 h-3 w-3" /> Mark done
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => quickAddTag(thread.id)}>
+                            <TagIcon className="mr-2 h-3 w-3" /> Add tag
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {thread.status ?? "open"} - {thread.external_thread_id ?? "-"}
@@ -819,7 +1059,7 @@ export function WhatsappInboxClient({
                     {thread.last_message_preview}
                   </p>
                 ) : null}
-              </button>
+              </div>
             );
           })}
           {threadsLoading ? (
