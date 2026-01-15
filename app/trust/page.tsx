@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { EvidenceCarousel } from "@/components/marketing/evidence-carousel";
 
 export const metadata: Metadata = {
   title: "Verification & Trust — Gigaviz Ecosystem",
@@ -65,18 +65,11 @@ export default function TrustPage() {
             <div className="grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
               <div className="rounded-3xl border border-border bg-card p-6">
                 <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Evidence</div>
-                <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-background">
-                  <div className="relative aspect-[16/9]">
-                    <Image
-                      src="/trust/technology-provider-proof.png"
-                      alt="Technology Provider verification proof (sanitized)"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                <div className="mt-4">
+                  <EvidenceCarousel aspectClass="aspect-video" showThumbnails />
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Add your sanitized screenshot to /public/trust/technology-provider-proof.png before publishing.
+                  Sanitized screenshots from Meta Business Suite verifying Technology Provider status.
                 </p>
               </div>
 

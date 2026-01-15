@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { VerificationModal } from "./verification-modal";
 
 const trustIntegrations = ["Meta", "WhatsApp Cloud API", "Supabase", "Vercel"];
 const builtWithChips = ["Next.js 15", "Supabase", "PostgreSQL", "Tailwind CSS", "TypeScript"];
@@ -37,12 +40,9 @@ export function TrustConsole() {
             <p className="mt-1 text-xs text-gigaviz-muted">
               Onboarding completed (2/2 steps)
             </p>
-            <Link
-              href="/trust"
-              className="mt-3 inline-flex items-center text-xs font-semibold text-gigaviz-gold hover:underline"
-            >
-              View verification →
-            </Link>
+            <div className="mt-3">
+              <VerificationModal>View verification →</VerificationModal>
+            </div>
           </div>
 
           {/* Integrations Card - Dark Glass */}
