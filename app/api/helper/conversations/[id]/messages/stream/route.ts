@@ -216,11 +216,15 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
           if (chunk.error) {
             hasError = true;
+            if (chunk.provider) {
+              finalProvider = chunk.provider;
+            }
             controller.enqueue(
               encoder.encode(
                 sseEvent("error", {
                   code: "provider_error",
                   message: chunk.error,
+                  provider: chunk.provider ?? (providerKey === "auto" ? null : providerKey),
                 })
               )
             );

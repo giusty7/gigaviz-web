@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GV_SYSTEM_PROMPT } from "../persona";
 import { ProviderResponse } from "@/lib/helper/providers/types";
 
 function estimateTokens(text: string) {
@@ -13,7 +14,8 @@ export async function callAnthropic(prompt: string): Promise<ProviderResponse> {
   const body = {
     model: "claude-3-5-sonnet-20241022",
     max_tokens: 320,
-    messages: [{ role: "user", content: prompt }],
+    system: GV_SYSTEM_PROMPT,
+    messages: [{ role: "user" as const, content: prompt }],
   };
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {

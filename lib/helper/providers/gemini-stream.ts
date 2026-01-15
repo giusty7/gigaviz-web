@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GV_SYSTEM_PROMPT } from "../persona";
 import type { StreamChunk, StreamInput } from "./types";
 
 function estimateTokens(text: string): number {
@@ -17,6 +18,10 @@ export async function* streamGemini(input: StreamInput): AsyncGenerator<StreamCh
   }
 
   const body = {
+    systemInstruction: {
+      role: "system",
+      parts: [{ text: GV_SYSTEM_PROMPT }],
+    },
     contents: [
       {
         role: "user",

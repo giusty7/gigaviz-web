@@ -113,7 +113,7 @@ function ComposerComponent({
           onKeyDown={handleKeyDown}
           placeholder={copy.composerPlaceholder}
           disabled={disabled || sending}
-          className="min-h-[100px] max-h-[240px] resize-none bg-gigaviz-surface/60 pr-24"
+          className="min-h-[100px] max-h-[240px] resize-none bg-white/5 text-white placeholder:text-white/40 border border-white/10 focus:border-[var(--gv-gold)] focus:ring-[var(--gv-gold)]/30 pr-24"
           rows={3}
         />
 

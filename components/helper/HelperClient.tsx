@@ -12,7 +12,7 @@ import { ChatEmptyState } from "./ChatEmptyState";
 import { Composer } from "./Composer";
 import { WorkspaceControls } from "./WorkspaceControls";
 import { parseSSEStream } from "./use-sse-stream";
-import type { HelperConversation, HelperMessage, HelperMode, HelperProvider } from "./types";
+import type { HelperConversation, HelperMessage, HelperMode, HelperProvider, MessageStatus } from "./types";
 
 // Re-export types for backward compatibility
 export type { HelperConversation, HelperMessage };
@@ -30,6 +30,8 @@ type ApiMessage = {
   content: string;
   metadata?: Record<string, unknown> | null;
   created_at: string;
+  provider_key?: HelperProvider | null;
+  status?: MessageStatus | null;
 };
 
 type Props = {
@@ -52,11 +54,21 @@ function toLocalConversation(c: ApiConversation): HelperConversation {
 
 // Convert API message to local format
 function toLocalMessage(m: ApiMessage): HelperMessage {
+  const providerFromMetadata = typeof m.metadata?.provider === "string" ? m.metadata.provider : null;
+  const normalizedProvider =
+    providerFromMetadata && providerFromMetadata !== "auto"
+      ? (providerFromMetadata as HelperMessage["provider"])
+      : m.provider_key && m.provider_key !== "auto"
+        ? (m.provider_key as HelperMessage["provider"])
+        : undefined;
+
   return {
     id: m.id,
     role: m.role === "user" ? "user" : "assistant",
     content: m.content,
     timestamp: m.created_at,
+    provider: normalizedProvider,
+    status: m.status ?? undefined,
   };
 }
 
@@ -312,15 +324,21 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
             break;
           }
           case "error": {
-            const error = event.data as { code?: string; message?: string };
+            const error = event.data as { code?: string; message?: string; provider?: string | null };
             toast({
               title: error.message ?? "Streaming failed",
               variant: "destructive",
             });
+            const providerFromError = (error.provider ?? undefined) as HelperMessage["provider"];
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === (realAssistantId ?? tempAssistantId)
-                  ? { ...m, status: "error", content: accumulatedContent || "Error occurred" }
+                  ? {
+                      ...m,
+                      status: "error",
+                      provider: providerFromError ?? m.provider ?? (provider === "auto" ? undefined : provider),
+                      content: accumulatedContent || error.message || "Error occurred",
+                    }
                   : m
               )
             );

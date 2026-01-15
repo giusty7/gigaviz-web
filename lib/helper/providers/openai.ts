@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GV_SYSTEM_PROMPT } from "../persona";
 import { ProviderResponse } from "@/lib/helper/providers/types";
 
 function estimateTokens(text: string) {
@@ -14,7 +15,10 @@ export async function callOpenAI(prompt: string): Promise<ProviderResponse> {
 
   const body = {
     model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
+    messages: [
+      { role: "system" as const, content: GV_SYSTEM_PROMPT },
+      { role: "user" as const, content: prompt },
+    ],
     max_tokens: 320,
     temperature: 0.4,
   };

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GV_SYSTEM_PROMPT } from "../persona";
 import type { StreamChunk, StreamInput } from "./types";
 
 function estimateTokens(text: string): number {
@@ -19,7 +20,8 @@ export async function* streamAnthropic(input: StreamInput): AsyncGenerator<Strea
   const body = {
     model: "claude-3-5-sonnet-20241022",
     max_tokens: input.maxTokens ?? 1024,
-    messages: [{ role: "user", content: input.prompt }],
+    system: GV_SYSTEM_PROMPT,
+    messages: [{ role: "user" as const, content: input.prompt }],
     stream: true,
   };
 

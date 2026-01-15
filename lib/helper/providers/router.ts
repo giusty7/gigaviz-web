@@ -1,5 +1,6 @@
 import "server-only";
 
+import { identityFallback } from "../persona";
 import { callAnthropic } from "@/lib/helper/providers/anthropic";
 import { callGemini } from "@/lib/helper/providers/gemini";
 import { callLocalProvider } from "@/lib/helper/providers/local";
@@ -33,6 +34,16 @@ export async function runHelperModel(args: {
   mode: HelperMode;
   provider: ProviderName;
 }): Promise<ProviderResponse> {
+  const identityAnswer = identityFallback(args.content);
+  if (identityAnswer) {
+    return {
+      text: identityAnswer,
+      tokensIn: 0,
+      tokensOut: 0,
+      provider: "local",
+    };
+  }
+
   const prompt = buildPrompt(args.mode, args.content);
   const candidates = args.provider === "auto" ? availableProviders() : [args.provider];
 

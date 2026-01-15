@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GV_SYSTEM_PROMPT } from "../persona";
 import { ProviderResponse } from "@/lib/helper/providers/types";
 
 function estimateTokens(text: string) {
@@ -11,6 +12,10 @@ export async function callGemini(prompt: string): Promise<ProviderResponse> {
   if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
   const body = {
+    systemInstruction: {
+      role: "system",
+      parts: [{ text: GV_SYSTEM_PROMPT }],
+    },
     contents: [
       {
         role: "user",

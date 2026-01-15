@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GV_SYSTEM_PROMPT } from "../persona";
 import type { StreamChunk, StreamInput } from "./types";
 
 function estimateTokens(text: string): number {
@@ -18,7 +19,10 @@ export async function* streamOpenAI(input: StreamInput): AsyncGenerator<StreamCh
 
   const body = {
     model: "gpt-4o-mini",
-    messages: [{ role: "user", content: input.prompt }],
+    messages: [
+      { role: "system" as const, content: GV_SYSTEM_PROMPT },
+      { role: "user" as const, content: input.prompt },
+    ],
     max_tokens: input.maxTokens ?? 1024,
     temperature: 0.4,
     stream: true,

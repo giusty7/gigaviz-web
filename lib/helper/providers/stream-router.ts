@@ -1,5 +1,6 @@
 import "server-only";
 
+import { identityFallback } from "../persona";
 import { streamOpenAI } from "./openai-stream";
 import { streamAnthropic } from "./anthropic-stream";
 import { streamGemini } from "./gemini-stream";
@@ -31,6 +32,10 @@ function availableProviders(): Exclude<ProviderName, "auto">[] {
   return list;
 }
 
+function estimateTokens(text: string): number {
+  return Math.max(1, Math.ceil(text.length / 4));
+}
+
 /** Get the streaming adapter for a specific provider */
 function getStreamingAdapter(provider: Exclude<ProviderName, "auto">) {
   switch (provider) {
@@ -60,6 +65,23 @@ export type StreamHelperInput = {
 export async function* streamHelperModel(
   args: StreamHelperInput
 ): AsyncGenerator<StreamChunk, void, unknown> {
+  const identityAnswer = identityFallback(args.content);
+  if (identityAnswer) {
+    const inputTokens = estimateTokens(args.content);
+    const outputTokens = estimateTokens(identityAnswer);
+    yield { delta: identityAnswer, provider: "local" };
+    yield {
+      done: true,
+      provider: "local",
+      usage: {
+        inputTokens,
+        outputTokens,
+        totalTokens: inputTokens + outputTokens,
+      },
+    };
+    return;
+  }
+
   const prompt = buildPrompt(args.mode, args.content);
   const candidates = args.provider === "auto" ? availableProviders() : [args.provider];
 
@@ -76,6 +98,7 @@ export async function* streamHelperModel(
   }
 
   let lastError: string | undefined;
+  let lastProvider: Exclude<ProviderName, "auto"> | undefined;
 
   for (const provider of validCandidates) {
     const adapter = getStreamingAdapter(provider);
@@ -93,6 +116,7 @@ export async function* streamHelperModel(
         // If we got an error and haven't yielded content yet, try next provider
         if (chunk.error && !hasYieldedContent) {
           lastError = chunk.error;
+          lastProvider = provider;
           break;
         }
 
@@ -114,6 +138,7 @@ export async function* streamHelperModel(
       }
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Unknown streaming error";
+      lastProvider = provider;
       continue;
     }
   }
@@ -121,6 +146,7 @@ export async function* streamHelperModel(
   // All providers failed
   yield {
     error: lastError ?? "All providers failed",
+    provider: lastProvider,
     done: true,
   };
 }

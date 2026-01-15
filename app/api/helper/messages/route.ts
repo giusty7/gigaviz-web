@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await db
     .from("helper_messages")
-    .select("id, role, content, metadata, created_at")
+    .select("id, role, content, metadata, created_at, status, provider_key")
     .eq("workspace_id", workspaceId)
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
