@@ -1,9 +1,9 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
+import { BadgeCheck } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { EcosystemGraph } from "@/components/marketing/ecosystem-graph";
-import { TrustBadge } from "@/components/marketing/trust-badge";
 import { TrustConsole } from "@/components/marketing/trust-console";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
@@ -103,68 +103,74 @@ const timelineItems = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#050a18] text-[#f5f5dc]">
       <Navbar variant="marketing" />
 
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border hero-gradient text-foreground">
-          {/* Cinematic aurora glows - brighter magenta emphasis */}
+        <section className="relative overflow-hidden border-b border-[#d4af37]/15 hero-gradient text-[#f5f5dc]">
+          {/* Constellation pattern overlay */}
+          <div className="pointer-events-none absolute inset-0 constellation-pattern opacity-60" aria-hidden />
+          {/* Cinematic aurora glows - Gold & Magenta emphasis */}
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-[5%] top-[0%] h-[520px] w-[520px] rounded-full bg-gigaviz-gold/30 blur-[160px]" />
-            <div className="absolute right-[-5%] top-[10%] h-[480px] w-[480px] rounded-full bg-gigaviz-magenta/35 blur-[140px]" />
-            <div className="absolute bottom-[-15%] left-1/3 h-[360px] w-[560px] rounded-full bg-gigaviz-magenta/15 blur-[120px]" />
-            <div className="absolute left-1/2 top-1/2 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gigaviz-cream/5 blur-[100px]" />
+            <div className="absolute left-[5%] top-[0%] h-[520px] w-[520px] rounded-full bg-[#d4af37]/20 blur-[160px]" />
+            <div className="absolute right-[-5%] top-[10%] h-[480px] w-[480px] rounded-full bg-[#e11d48]/25 blur-[140px]" />
+            <div className="absolute bottom-[-15%] left-1/3 h-[360px] w-[560px] rounded-full bg-[#e11d48]/10 blur-[120px]" />
+            <div className="absolute left-1/2 top-1/2 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f5f5dc]/3 blur-[100px]" />
           </div>
           {/* Batik-inspired etched motif overlay */}
           <div className="pointer-events-none absolute inset-0 batik-pattern [mask-image:radial-gradient(ellipse_80%_70%_at_50%_40%,white,transparent)]" aria-hidden />
 
-          <div className="container relative z-10 grid gap-12 py-20 lg:grid-cols-[1fr_1fr] md:py-24 lg:py-28">
+          <div className="container relative z-10 py-20 md:py-24 lg:py-28">
+            <div className="grid gap-12 lg:grid-cols-[1fr_1fr]">
             <div className="space-y-7">
-              {/* Badge row - cream trust pill with spark */}
-              <div className="flex flex-wrap items-center gap-3">
-                <TrustBadge />
-                <span className="inline-flex h-9 items-center rounded-full border border-gigaviz-cream/20 bg-gigaviz-surface/70 px-4 text-[11px] text-gigaviz-cream backdrop-blur-lg">
-                  Onboarding completed (2/2 steps)
+              {/* Verified Badge - Left aligned */}
+              <div className="flex">
+                <span className="group inline-flex items-center gap-2.5 rounded-full border border-[#d4af37]/30 bg-[#0a1229]/80 px-5 py-2.5 text-sm font-medium text-[#f5f5dc] shadow-[0_0_24px_-4px_rgba(212,175,55,0.35)] backdrop-blur-xl animate-pulse-slow">
+                  <BadgeCheck 
+                    className="h-5 w-5 text-emerald-500 drop-shadow-[0_0_8px_rgba(212,175,55,0.6)]" 
+                    strokeWidth={2.5}
+                  />
+                  <span>Official Meta Verified Technology Provider</span>
                 </span>
               </div>
 
               <div className="space-y-5">
-                <h1 className="max-w-xl text-balance text-3xl font-gvDisplay font-semibold leading-tight tracking-tight text-gigaviz-cream md:text-4xl lg:text-[2.85rem]">
-                  The Unified Infrastructure for Scalable Digital Ventures
+                <h1 className="max-w-xl text-balance text-3xl font-gvDisplay font-semibold leading-tight tracking-tight bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent md:text-4xl lg:text-[2.85rem]">
+                  The Unified Digital Infrastructure for Enterprise Growth.
                 </h1>
-                <p className="max-w-lg text-pretty text-sm leading-relaxed text-gigaviz-muted md:text-base">
-                  Built on the official WhatsApp Business Platform (Cloud API). Gigaviz Ecosystem modules (Core OS + Meta Hub + Helper + Studio) share auth, billing, audit logs, and access control.
+                <p className="max-w-lg text-pretty text-sm leading-relaxed text-[#f5f5dc]/75 md:text-base">
+                  One secure identity to rule 10 interconnected powerhouses—from official Meta messaging hubs to AI workflows and creative studios. Centralized auth, billing, and control for your entire operation.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
                   href="/get-started"
-                  label="Get Started"
+                  label="Explore the Imperium"
                   location="homepage_hero"
-                  className="inline-flex items-center justify-center rounded-2xl bg-gigaviz-gold px-7 py-3.5 text-sm font-semibold text-gigaviz-navy shadow-[0_8px_32px_-8px_var(--gv-gold)] transition hover:bg-gigaviz-gold-bright hover:shadow-[0_12px_40px_-8px_var(--gv-gold)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-7 py-3.5 text-sm font-semibold text-[#050a18] shadow-[0_8px_32px_-8px_rgba(212,175,55,0.5)] transition hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.7)] focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050a18]"
                 >
-                  Get Started
+                  Explore the Imperium
                 </TrackedLink>
                 <Link
-                  href="#how-it-works"
-                  className="inline-flex items-center justify-center rounded-2xl border border-gigaviz-cream/20 bg-gigaviz-surface/60 px-7 py-3.5 text-sm font-semibold text-gigaviz-cream backdrop-blur-lg transition hover:border-gigaviz-gold/40 hover:bg-gigaviz-surface/80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  href="#ecosystem"
+                  className="inline-flex items-center justify-center rounded-2xl border border-[#d4af37]/30 bg-[#0a1229]/60 px-7 py-3.5 text-sm font-semibold text-[#d4af37] backdrop-blur-lg transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/10 focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050a18]"
                 >
-                  See How It Works
+                  View Ecosystem Demo
                 </Link>
               </div>
 
-              {/* Feature tags - subtle pills */}
+              {/* Feature tags - subtle Gold pills */}
               <div className="flex flex-wrap gap-2 text-xs">
                 {[
-                  "Gigaviz Ecosystem",
-                  "WhatsApp Cloud API",
-                  "Policy-Aligned Messaging",
-                  "Audit & Token Usage",
+                  "10 Unified Pillars",
+                  "Meta Verified",
+                  "AI Workflows",
+                  "Centralized Billing",
                 ].map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-gigaviz-cream/10 bg-gigaviz-surface/50 px-3 py-1.5 text-gigaviz-muted backdrop-blur-sm"
+                    className="rounded-full border border-[#d4af37]/15 bg-[#0a1229]/50 px-3 py-1.5 text-[#f5f5dc]/60 backdrop-blur-sm"
                   >
                     {tag}
                   </span>
@@ -175,24 +181,25 @@ export default function HomePage() {
             <div className="relative flex items-center justify-center lg:justify-center">
               <EcosystemGraph />
             </div>
+            </div>
           </div>
         </section>
 
         {/* Trust Console - Premium Status Strip */}
         <TrustConsole />
 
-        <section id="how-it-works" className="border-b border-border bg-gradient-to-b from-gigaviz-bg via-gigaviz-surface/30 to-gigaviz-bg">
+        <section id="how-it-works" className="border-b border-[#d4af37]/15 bg-[#050a18]">
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">Workflow</p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Workflow</p>
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   How It Works
                 </h2>
               </div>
               <Link
                 href="/products"
-                className="text-sm font-semibold text-gigaviz-gold hover:underline"
+                className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
                 View all modules
               </Link>
@@ -202,32 +209,32 @@ export default function HomePage() {
               {steps.map((step, index) => (
                 <div
                   key={step.title}
-                  className="glass-premium console-border rounded-2xl p-5"
+                  className="glass-imperium rounded-2xl p-5"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-gigaviz-gold/15 text-sm font-bold text-gigaviz-gold">
+                    <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#d4af37]/10 text-lg font-bold text-[#d4af37] shadow-[0_0_20px_-4px_rgba(212,175,55,0.3)]">
                       {index + 1}
                     </div>
-                    <h3 className="text-base font-semibold text-gigaviz-cream">{step.title}</h3>
+                    <h3 className="text-base font-semibold text-[#f5f5dc]">{step.title}</h3>
                   </div>
-                  <p className="mt-3 text-sm text-gigaviz-muted">{step.desc}</p>
+                  <p className="mt-3 text-sm text-[#f5f5dc]/65">{step.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="border-b border-border bg-gradient-to-b from-gigaviz-bg via-gigaviz-surface/30 to-gigaviz-bg">
+        <section className="border-b border-[#d4af37]/15 bg-[#050a18]">
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">
                   Ecosystem Modules
                 </p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   Modules ready for your team
                 </h2>
-                <p className="mt-2 max-w-xl text-sm text-gigaviz-muted">
+                <p className="mt-2 max-w-xl text-sm text-[#f5f5dc]/65">
                   Core OS (Live), Meta Hub (Technology Provider, Live), Helper (in progress), Studio
                   and Office/Graph/Tracks (coming soon) run on the same workspace, billing, and audit
                   foundation.
@@ -235,7 +242,7 @@ export default function HomePage() {
               </div>
               <Link
                 href="/products"
-                className="text-sm font-semibold text-gigaviz-gold hover:underline"
+                className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
                 View all modules
               </Link>
@@ -249,23 +256,23 @@ export default function HomePage() {
                   <Link
                     key={module.slug}
                     href={module.hrefMarketing ?? `/products/${module.slug}`}
-                    className={`group flex h-full flex-col justify-between rounded-2xl p-5 transition hover:-translate-y-1 glass-premium console-border ${
+                    className={`group flex h-full flex-col justify-between rounded-2xl p-5 transition hover:-translate-y-1 glass-imperium ${
                       isHelper 
-                        ? "border-gigaviz-magenta/25 hover:shadow-[0_16px_48px_-12px_var(--gv-magenta)]" 
-                        : "hover:border-gigaviz-gold/40 hover:shadow-[0_16px_48px_-12px_var(--gv-gold)]"
+                        ? "border-[#e11d48]/25 hover:border-[#e11d48]/50 hover:shadow-[0_0_24px_-6px_rgba(225,29,72,0.3)]" 
+                        : "hover:border-[#d4af37]/40 hover:shadow-[0_0_24px_-6px_rgba(212,175,55,0.3)]"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className={`grid h-11 w-11 place-items-center rounded-xl ${isHelper ? "bg-gigaviz-magenta/15" : "bg-gigaviz-gold/15"}`}>
-                        <MarketingIcon name={module.icon} className={`h-5 w-5 ${isHelper ? "text-gigaviz-magenta" : "text-gigaviz-gold"}`} />
+                      <div className={`grid h-11 w-11 place-items-center rounded-xl ${isHelper ? "bg-[#e11d48]/15" : "bg-[#d4af37]/15"}`}>
+                        <MarketingIcon name={module.icon} className={`h-5 w-5 ${isHelper ? "text-[#e11d48]" : "text-[#d4af37]"}`} />
                       </div>
                       <StatusBadge status={module.status} />
                     </div>
                     <div className="mt-4 space-y-1.5">
-                      <h3 className="text-base font-semibold text-gigaviz-cream">{module.name}</h3>
-                      <p className="text-sm text-gigaviz-muted">{short}</p>
+                      <h3 className="text-base font-semibold text-[#f5f5dc]">{module.name}</h3>
+                      <p className="text-sm text-[#f5f5dc]/65">{short}</p>
                     </div>
-                    <div className={`mt-4 inline-flex items-center text-xs font-semibold uppercase tracking-[0.2em] ${isHelper ? "text-gigaviz-magenta" : "text-gigaviz-gold"}`}>
+                    <div className={`mt-4 inline-flex items-center text-xs font-semibold uppercase tracking-[0.2em] ${isHelper ? "text-[#e11d48]" : "text-[#d4af37]"}`}>
                       {moduleStatusLabel[module.status]}
                     </div>
                   </Link>
@@ -275,13 +282,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-b border-border bg-gigaviz-surface/50">
+        <section className="border-b border-[#d4af37]/15 bg-[#0a1229]/50">
           <div className="container py-16 md:py-20">
             <div className="max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">
+              <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">
                 Security by design
               </p>
-              <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+              <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                 Built for workspace isolation and governance
               </h2>
             </div>
@@ -301,57 +308,57 @@ export default function HomePage() {
                   desc: "Token Usage, Billing, and entitlements are scoped per workspace.",
                 },
               ].map((item) => (
-                <div key={item.title} className="glass-dark rounded-2xl p-5">
-                  <h3 className="text-sm font-semibold text-gigaviz-cream">{item.title}</h3>
-                  <p className="mt-2 text-sm text-gigaviz-muted">{item.desc}</p>
+                <div key={item.title} className="glass-imperium rounded-2xl p-5">
+                  <h3 className="text-sm font-semibold text-[#f5f5dc]">{item.title}</h3>
+                  <p className="mt-2 text-sm text-[#f5f5dc]/65">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="border-b border-border bg-gigaviz-bg">
+        <section className="border-b border-[#d4af37]/15 bg-[#050a18]">
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">
                   Compliance Standards
                 </p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   Designed for policy-aligned messaging workflows
                 </h2>
               </div>
-              <Link href="/trust" className="text-sm font-semibold text-gigaviz-gold hover:underline">
+              <Link href="/trust" className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors">
                 View verification
               </Link>
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {complianceItems.map((item) => (
-                <div key={item.title} className="glass-premium console-border rounded-2xl p-5">
-                  <h3 className="text-sm font-semibold text-gigaviz-cream">{item.title}</h3>
-                  <p className="mt-2 text-sm text-gigaviz-muted">{item.desc}</p>
+                <div key={item.title} className="glass-imperium rounded-2xl p-5 transition-all duration-300 hover:border-[#d4af37]/40">
+                  <h3 className="text-sm font-semibold text-[#f5f5dc]">{item.title}</h3>
+                  <p className="mt-2 text-sm text-[#f5f5dc]/65">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="border-b border-border bg-gigaviz-surface/40">
+        <section className="border-b border-[#d4af37]/15 bg-[#0a1229]/50">
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">Integrations</p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Integrations</p>
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   Connected tools for teams
                 </h2>
-                <p className="mt-2 max-w-lg text-sm text-gigaviz-muted">
+                <p className="mt-2 max-w-lg text-sm text-[#f5f5dc]/65">
                   Works with your messaging stack, AI providers, data, and deployment tooling. No implied partnerships — just integrations.
                 </p>
               </div>
               <Link
                 href="/integrations"
-                className="text-sm font-semibold text-gigaviz-gold hover:underline"
+                className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
                 View all integrations
               </Link>
@@ -359,15 +366,15 @@ export default function HomePage() {
 
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {integrationCategories.map((category) => (
-                <div key={category.title} className="glass-dark rounded-2xl p-5">
-                  <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-gigaviz-gold">
+                <div key={category.title} className="glass-imperium rounded-2xl p-5 transition-all duration-300 hover:border-[#d4af37]/40">
+                  <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#d4af37]">
                     {category.title}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {category.items.map((item) => (
                       <span
                         key={item}
-                        className="inline-flex h-6 items-center rounded-full border border-gigaviz-cream/15 bg-gigaviz-surface/80 px-2.5 text-[10px] font-medium text-gigaviz-cream"
+                        className="inline-flex h-6 items-center rounded-full border border-[#d4af37]/20 bg-[#050a18]/80 px-2.5 text-[10px] font-medium text-[#f5f5dc]"
                       >
                         {item}
                       </span>
@@ -377,7 +384,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <p className="mt-4 text-[10px] text-gigaviz-muted/80">
+            <p className="mt-4 text-[10px] text-[#f5f5dc]/50">
               WhatsApp, Meta, and other trademarks are the property of their respective owners. Integrations do not imply affiliation or endorsement.
             </p>
           </div>
@@ -387,18 +394,18 @@ export default function HomePage() {
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">Roadmap</p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Roadmap</p>
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   Delivery timeline
                 </h2>
               </div>
-              <Link href="/roadmap" className="text-sm font-semibold text-gigaviz-gold hover:underline">
+              <Link href="/roadmap" className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors">
                 View roadmap
               </Link>
             </div>
 
-            <div className="relative mt-8 overflow-hidden rounded-2xl glass-premium console-border p-6">
-              <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-gigaviz-gold/30 to-transparent" aria-hidden />
+            <div className="relative mt-8 overflow-hidden rounded-2xl glass-imperium p-6">
+              <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" aria-hidden />
               <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
                 {timelineItems.map((item, index) => (
                   <div key={item.title} className="relative flex flex-col gap-2">
@@ -406,19 +413,19 @@ export default function HomePage() {
                       className={
                         "absolute left-1/2 top-[-18px] h-3 w-3 -translate-x-1/2 rounded-full " +
                         (index === 0
-                          ? "bg-gigaviz-gold shadow-[0_0_16px_var(--gv-gold)]"
-                          : "bg-gigaviz-cream/60 shadow-[0_0_12px_rgba(255,255,255,0.25)]")
+                          ? "bg-[#d4af37] shadow-[0_0_16px_#d4af37]"
+                          : "bg-[#f5f5dc]/60 shadow-[0_0_12px_rgba(245,245,220,0.25)]")
                       }
                       aria-hidden
                     />
-                    <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-gigaviz-muted">
+                    <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#f5f5dc]/50">
                       {index === 0 ? "Completed" : item.status}
                     </div>
-                    <div className="text-sm font-semibold text-gigaviz-cream">{item.title}</div>
-                    <p className="text-sm text-gigaviz-muted">{item.detail}</p>
+                    <div className="text-sm font-semibold text-[#f5f5dc]">{item.title}</div>
+                    <p className="text-sm text-[#f5f5dc]/65">{item.detail}</p>
                     {index === 0 ? (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-gigaviz-gold">
-                        <span className="h-2 w-2 rounded-full bg-gigaviz-gold shadow-[0_0_10px_var(--gv-gold)]" />
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#d4af37]">
+                        <span className="h-2 w-2 rounded-full bg-[#d4af37] shadow-[0_0_10px_#d4af37]" />
                         Live
                       </span>
                     ) : null}
@@ -426,24 +433,24 @@ export default function HomePage() {
                 ))}
               </div>
             </div>
-            <p className="mt-4 text-[10px] text-gigaviz-muted/80">
+            <p className="mt-4 text-[10px] text-[#f5f5dc]/50">
               BSP/Partner listing remains planned. No guarantees are implied; timelines may change.
             </p>
           </div>
         </section>
 
-        <section className="border-b border-border bg-gradient-to-b from-gigaviz-bg via-gigaviz-surface/30 to-gigaviz-bg">
+        <section className="border-b border-[#d4af37]/15 bg-gradient-to-b from-[#050a18] via-[#0a1229]/40 to-[#050a18]">
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-gigaviz-gold">Pricing</p>
-                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-gigaviz-cream md:text-3xl">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Pricing</p>
+                <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   Plans plus usage-based tokens
                 </h2>
               </div>
               <Link
                 href="/pricing"
-                className="text-sm font-semibold text-gigaviz-gold hover:underline"
+                className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
                 View pricing
               </Link>
@@ -475,30 +482,30 @@ export default function HomePage() {
               ].map((plan) => (
                 <div
                   key={plan.name}
-                  className={`rounded-2xl p-5 glass-premium console-border ${
+                  className={`rounded-2xl p-5 glass-imperium transition-all duration-300 ${
                     plan.featured 
-                      ? "border-gigaviz-gold/30 shadow-[0_0_24px_-6px_var(--gv-gold)]" 
-                      : ""
+                      ? "ring-2 ring-[#d4af37]/50 shadow-[0_0_32px_-8px_#d4af37]" 
+                      : "hover:border-[#d4af37]/40"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-base font-semibold text-gigaviz-cream">{plan.name}</h3>
+                    <h3 className="text-base font-semibold text-[#f5f5dc]">{plan.name}</h3>
                     <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase ${
                       plan.badge === "AVAILABLE" 
-                        ? "bg-green-500/15 text-green-600" 
-                        : plan.featured ? "bg-gigaviz-gold/20 text-gigaviz-gold" : "bg-gigaviz-surface text-gigaviz-muted"
+                        ? "bg-green-500/15 text-green-500" 
+                        : plan.featured ? "bg-[#d4af37]/20 text-[#d4af37]" : "bg-[#0a1229] text-[#f5f5dc]/50"
                     }`}>
                       {plan.badge}
                     </span>
                   </div>
-                  <div className="mt-3 text-xl font-semibold text-gigaviz-gold">{plan.price}</div>
-                  <p className="mt-2 text-sm text-gigaviz-muted">{plan.desc}</p>
+                  <div className="mt-3 text-xl font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{plan.price}</div>
+                  <p className="mt-2 text-sm text-[#f5f5dc]/65">{plan.desc}</p>
                   <Link
                     href="/get-started"
                     className={`mt-4 inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
                       plan.featured 
-                        ? "bg-gigaviz-gold text-gigaviz-navy shadow-[0_4px_16px_-4px_var(--gv-gold)] hover:bg-gigaviz-gold-bright" 
-                        : "border border-gigaviz-cream/20 bg-gigaviz-surface/60 text-gigaviz-cream hover:border-gigaviz-gold/50"
+                        ? "bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] shadow-[0_4px_20px_-4px_#d4af37] hover:shadow-[0_8px_28px_-4px_#d4af37]" 
+                        : "border border-[#f5f5dc]/20 bg-[#0a1229]/60 text-[#f5f5dc] hover:border-[#d4af37]/50"
                     }`}
                   >
                     Choose plan
@@ -510,20 +517,20 @@ export default function HomePage() {
         </section>
 
         {/* Footer CTA */}
-        <section className="bg-gigaviz-bg">
+        <section className="bg-[#050a18]">
           <div className="container py-16 md:py-20">
-            <div className="relative overflow-hidden rounded-2xl glass-premium console-border p-8 md:flex md:items-center md:justify-between">
-              {/* Subtle gradient overlay */}
+            <div className="relative overflow-hidden rounded-2xl glass-imperium p-8 md:flex md:items-center md:justify-between">
+              {/* Rich gold-to-magenta gradient overlay */}
               <div 
                 className="pointer-events-none absolute inset-0 rounded-2xl"
                 style={{
-                  background: "linear-gradient(135deg, hsla(42 62% 62% / 0.1) 0%, transparent 50%, hsla(323 70% 60% / 0.05) 100%)"
+                  background: "linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, transparent 50%, rgba(225, 29, 72, 0.08) 100%)"
                 }}
                 aria-hidden
               />
               <div className="relative space-y-2">
-                <h2 className="text-2xl font-gvDisplay font-semibold text-gigaviz-cream">Ready for onboarding</h2>
-                <p className="max-w-md text-sm text-gigaviz-muted">
+                <h2 className="text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">Ready for onboarding</h2>
+                <p className="max-w-md text-sm text-[#f5f5dc]/65">
                   Technology Provider — WhatsApp Business Platform. Unlock modules with subscriptions; power AI and API actions with token usage.
                 </p>
               </div>
@@ -532,13 +539,13 @@ export default function HomePage() {
                   href="/get-started"
                   label="Get Started"
                   location="homepage_footer"
-                  className="inline-flex items-center justify-center rounded-xl bg-gigaviz-gold px-6 py-3 text-sm font-semibold text-gigaviz-navy shadow-[0_8px_32px_-8px_var(--gv-gold)] transition hover:bg-gigaviz-gold-bright hover:shadow-[0_12px_40px_-8px_var(--gv-gold)]"
+                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-6 py-3 text-sm font-semibold text-[#050a18] shadow-[0_8px_32px_-8px_#d4af37] transition hover:shadow-[0_12px_40px_-8px_#d4af37]"
                 >
                   Request onboarding
                 </TrackedLink>
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center rounded-xl border border-gigaviz-cream/20 bg-gigaviz-surface/60 px-6 py-3 text-sm font-semibold text-gigaviz-cream backdrop-blur transition hover:border-gigaviz-gold/50"
+                  className="inline-flex items-center justify-center rounded-xl border border-[#f5f5dc]/20 bg-[#0a1229]/60 px-6 py-3 text-sm font-semibold text-[#f5f5dc] backdrop-blur transition hover:border-[#d4af37]/50"
                 >
                   Contact sales
                 </Link>

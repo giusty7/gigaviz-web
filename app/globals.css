@@ -3,29 +3,29 @@
 @tailwind utilities;
 
 :root {
-  /* Marketing default (homepage) - brighter premium palette */
-  --gv-navy: hsl(220 44% 8%);
-  --gv-navy-light: hsl(220 38% 14%);
-  --gv-gold: hsl(42 62% 62%);
-  --gv-gold-bright: hsl(42 68% 68%);
-  --gv-magenta: hsl(323 70% 60%);
-  --gv-magenta-neon: hsl(323 85% 65%);
-  --gv-cream: hsl(38 52% 94%);
-  --gv-cream-soft: hsl(38 48% 90%);
+  /* Gigaviz Imperium Palette - Premium Navy/Gold/Magenta/Cream */
+  --gv-navy: #050a18;
+  --gv-navy-light: #0a1229;
+  --gv-gold: #d4af37;
+  --gv-gold-bright: #f9d976;
+  --gv-magenta: #e11d48;
+  --gv-magenta-neon: #f43f6d;
+  --gv-cream: #f5f5dc;
+  --gv-cream-soft: #eae8d4;
 
-  --gv-bg: hsl(220 44% 7%);
-  --gv-surface: hsl(223 34% 13%);
-  --gv-card: hsl(222 32% 15%);
-  --gv-card-cream: hsl(38 40% 92%);
-  --gv-card-soft: hsla(222 32% 15% / 0.8);
-  --gv-surface-soft: hsla(223 34% 13% / 0.9);
-  --gv-text: hsl(38 52% 96%);
-  --gv-muted: hsl(40 18% 78%);
-  --gv-border: hsl(225 24% 28%);
+  --gv-bg: #050a18;
+  --gv-surface: #0a1229;
+  --gv-card: #0d1630;
+  --gv-card-cream: #f5f5dc;
+  --gv-card-soft: rgba(13, 22, 48, 0.8);
+  --gv-surface-soft: rgba(10, 18, 41, 0.9);
+  --gv-text: #f5f5dc;
+  --gv-muted: rgba(245, 245, 220, 0.65);
+  --gv-border: rgba(212, 175, 55, 0.15);
   --gv-accent: var(--gv-gold);
   --gv-accent-2: var(--gv-magenta);
-  --gv-accent-soft: hsla(42 62% 62% / 0.25);
-  --gv-magenta-soft: hsla(323 70% 60% / 0.25);
+  --gv-accent-soft: rgba(212, 175, 55, 0.25);
+  --gv-magenta-soft: rgba(225, 29, 72, 0.25);
   --gv-neon-glow: 0 0 24px -4px;
 
   --background: var(--gv-bg);
@@ -195,23 +195,36 @@ a:hover {
   }
 }
 
-/* Premium glass layers */
+/* Premium glass layers - Imperium Edition */
 .glass-cream {
-  background: linear-gradient(135deg, hsla(38 52% 94% / 0.95) 0%, hsla(38 48% 90% / 0.9) 100%);
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.95) 0%, rgba(234, 232, 212, 0.9) 100%);
   backdrop-filter: blur(12px);
-  color: hsl(220 44% 12%);
+  color: #050a18;
 }
 
 .glass-dark {
-  background: linear-gradient(135deg, hsla(222 32% 15% / 0.85) 0%, hsla(223 34% 13% / 0.75) 100%);
+  background: linear-gradient(135deg, rgba(10, 18, 41, 0.85) 0%, rgba(5, 10, 24, 0.75) 100%);
   backdrop-filter: blur(16px);
-  border: 1px solid hsla(38 52% 94% / 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.1);
 }
 
 .glass-premium {
-  background: linear-gradient(145deg, hsla(38 52% 94% / 0.08) 0%, hsla(222 32% 15% / 0.9) 100%);
+  background: linear-gradient(145deg, rgba(10, 18, 41, 0.6) 0%, rgba(5, 10, 24, 0.8) 100%);
   backdrop-filter: blur(20px);
-  border: 1px solid hsla(38 52% 94% / 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Imperium glassmorphism card */
+.glass-imperium {
+  background: rgba(10, 18, 41, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  transition: all 0.3s ease;
+}
+
+.glass-imperium:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 20px -4px rgba(212, 175, 55, 0.2);
 }
 
 .neon-magenta {
@@ -223,25 +236,30 @@ a:hover {
 }
 
 .console-border {
-  border: 1px solid hsla(38 52% 94% / 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.2);
   box-shadow: 
-    inset 0 1px 0 hsla(38 52% 94% / 0.1),
-    0 4px 24px -8px hsla(0 0% 0% / 0.4);
+    inset 0 1px 0 rgba(212, 175, 55, 0.1),
+    0 4px 24px -8px rgba(0, 0, 0, 0.5);
 }
 
-/* Batik-inspired etched motif pattern - abstract geometric curves */
+/* Cyber-Batik pattern - Parang curves with Kawung accent circles at 4% opacity */
 .batik-pattern {
-  --batik-stroke: var(--gv-cream);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23F5EFE0' stroke-width='0.5' opacity='0.05'%3E%3C!-- Parang-inspired diagonal curves --%3E%3Cpath d='M0 40 Q20 20 40 40 T80 40'/%3E%3Cpath d='M0 60 Q20 40 40 60 T80 60'/%3E%3Cpath d='M0 20 Q20 0 40 20 T80 20'/%3E%3C!-- Kawung-inspired circles --%3E%3Ccircle cx='20' cy='20' r='8'/%3E%3Ccircle cx='60' cy='20' r='8'/%3E%3Ccircle cx='20' cy='60' r='8'/%3E%3Ccircle cx='60' cy='60' r='8'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3C!-- Cross-hatch accent lines --%3E%3Cpath d='M10 0 L0 10 M30 0 L0 30 M50 0 L0 50 M70 0 L0 70'/%3E%3Cpath d='M80 10 L70 0 M80 30 L50 0 M80 50 L30 0 M80 70 L10 0'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 80px 80px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='batikGold' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23d4af37'/%3E%3Cstop offset='100%25' stop-color='%23f9d976'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='%23f5f5dc' stroke-width='0.6' opacity='0.04'%3E%3C!-- Parang diagonal S-curves (traditional wave motif) --%3E%3Cpath d='M0 30 Q15 15 30 30 T60 30 T90 30 T120 30'/%3E%3Cpath d='M0 60 Q15 45 30 60 T60 60 T90 60 T120 60'/%3E%3Cpath d='M0 90 Q15 75 30 90 T60 90 T90 90 T120 90'/%3E%3Cpath d='M-30 0 Q-15 -15 0 0 T30 0 T60 0 T90 0 T120 0'/%3E%3Cpath d='M-30 120 Q-15 105 0 120 T30 120 T60 120 T90 120 T120 120'/%3E%3C!-- Kawung four-petal flower motifs --%3E%3Cellipse cx='30' cy='30' rx='10' ry='5' transform='rotate(45 30 30)'/%3E%3Cellipse cx='30' cy='30' rx='10' ry='5' transform='rotate(-45 30 30)'/%3E%3Cellipse cx='90' cy='30' rx='10' ry='5' transform='rotate(45 90 30)'/%3E%3Cellipse cx='90' cy='30' rx='10' ry='5' transform='rotate(-45 90 30)'/%3E%3Cellipse cx='60' cy='60' rx='8' ry='4' transform='rotate(45 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='8' ry='4' transform='rotate(-45 60 60)'/%3E%3Cellipse cx='30' cy='90' rx='10' ry='5' transform='rotate(45 30 90)'/%3E%3Cellipse cx='30' cy='90' rx='10' ry='5' transform='rotate(-45 30 90)'/%3E%3Cellipse cx='90' cy='90' rx='10' ry='5' transform='rotate(45 90 90)'/%3E%3Cellipse cx='90' cy='90' rx='10' ry='5' transform='rotate(-45 90 90)'/%3E%3C!-- Center dots for Kawung flowers --%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3Ccircle cx='90' cy='30' r='2'/%3E%3Ccircle cx='60' cy='60' r='1.5'/%3E%3Ccircle cx='30' cy='90' r='2'/%3E%3Ccircle cx='90' cy='90' r='2'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
 }
 
-/* Hero cinematic gradient with magenta aura */
+/* Hero cinematic gradient - Imperium Edition with Gold/Magenta aura */
 .hero-gradient {
   background: 
-    radial-gradient(ellipse 60% 50% at 85% 20%, var(--gv-magenta-soft) 0%, transparent 50%),
-    radial-gradient(ellipse 80% 60% at 15% 80%, var(--gv-accent-soft) 0%, transparent 40%),
-    linear-gradient(180deg, var(--gv-bg) 0%, var(--gv-navy-light) 40%, var(--gv-bg) 100%);
+    radial-gradient(ellipse 60% 50% at 85% 20%, rgba(225, 29, 72, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 15% 80%, rgba(212, 175, 55, 0.2) 0%, transparent 40%),
+    linear-gradient(180deg, #050a18 0%, #0a1229 40%, #050a18 100%);
+}
+
+/* Constellation network pattern overlay */
+.constellation-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23d4af37' stroke-width='0.5' opacity='0.08'%3E%3Ccircle cx='20' cy='30' r='2'/%3E%3Ccircle cx='80' cy='50' r='2'/%3E%3Ccircle cx='140' cy='20' r='2'/%3E%3Ccircle cx='180' cy='70' r='2'/%3E%3Ccircle cx='50' cy='100' r='2'/%3E%3Ccircle cx='120' cy='90' r='2'/%3E%3Ccircle cx='170' cy='130' r='2'/%3E%3Ccircle cx='30' cy='160' r='2'/%3E%3Ccircle cx='100' cy='150' r='2'/%3E%3Ccircle cx='160' cy='180' r='2'/%3E%3Cpath d='M20 30 L80 50 L140 20 M80 50 L120 90 L180 70 M50 100 L120 90 M30 160 L100 150 L160 180 M50 100 L30 160 M120 90 L100 150 M170 130 L160 180'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 200px 200px;
 }
 
 /* Auth layout entrance animation */
@@ -260,11 +278,30 @@ a:hover {
   animation: fadeInUp 0.5s ease-out forwards;
 }
 
+/* Subtle pulse animation for verified badge */
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 24px -4px rgba(212, 175, 55, 0.35);
+  }
+  50% {
+    opacity: 0.92;
+    box-shadow: 0 0 32px -2px rgba(212, 175, 55, 0.5);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 3s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-safe\:animate-\[spin_20s_linear_infinite\] {
     animation: none;
   }
   .auth-card-entrance {
+    animation: none;
+  }
+  .animate-pulse-slow {
     animation: none;
   }
 }
