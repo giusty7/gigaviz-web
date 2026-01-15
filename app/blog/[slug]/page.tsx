@@ -5,7 +5,31 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { formatBlogDate, getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { renderMarkdown } from "@/lib/markdown";
-import { SCHEMA_CONTEXT, blogPostingSchema } from "@/lib/seo/schema";
+import { SCHEMA_CONTEXT, blogPostingSchema, faqPageSchema, type FAQItem } from "@/lib/seo/schema";
+
+/**
+ * FAQ data for specific blog posts that include FAQ sections.
+ * The key is the slug of the post.
+ */
+const POST_FAQ_DATA: Record<string, FAQItem[]> = {
+  "meta-technology-provider-verification": [
+    {
+      question: "Is Gigaviz a Meta partner?",
+      answer:
+        "Gigaviz does not claim Meta partnership or endorsement. We only claim what is shown in Meta's official product interfaces, and we publish sanitized proof on our trust page.",
+    },
+    {
+      question: "Can I onboard my business through Gigaviz?",
+      answer:
+        "Gigaviz Meta Hub is designed to support onboarding flows on the official WhatsApp Business Platform (Cloud API). The exact availability may depend on your account requirements and region-specific constraints.",
+    },
+    {
+      question: "Does this guarantee no bans?",
+      answer:
+        "No platform can guarantee outcomes if policies are violated. Gigaviz focuses on policy-aligned design to reduce operational risk and improve long-term reliability.",
+    },
+  ],
+};
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -62,6 +86,15 @@ export default async function BlogPostPage({ params }: PageProps) {
     }),
   };
 
+  // FAQ schema for posts that have FAQ sections
+  const faqItems = POST_FAQ_DATA[slug];
+  const faqJsonLd = faqItems
+    ? {
+        "@context": SCHEMA_CONTEXT,
+        ...faqPageSchema(faqItems),
+      }
+    : null;
+
   return (
     <div className="gv-marketing flex min-h-screen flex-col bg-[color:var(--gv-bg)] font-gv">
       <Navbar variant="marketing" />
@@ -69,6 +102,12 @@ export default async function BlogPostPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       <main className="flex-1">
         <section className="border-b border-[color:var(--gv-border)]">

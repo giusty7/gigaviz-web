@@ -81,3 +81,22 @@ export function blogPostingSchema(post: BlogPostingInput) {
 
   return schema;
 }
+
+export type FAQItem = {
+  question: string;
+  answer: string;
+};
+
+export function faqPageSchema(items: FAQItem[]) {
+  return {
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
