@@ -67,10 +67,10 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     key: "meta_hub",
     slug: "meta-hub",
     name: "Gigaviz Meta Hub",
-    short: "WhatsApp Cloud API hub: templates, webhooks, inbox, scheduler.",
+    short: "Live: WhatsApp Business Platform onboarding, templates, inbox, delivery.",
     description:
-      "Manage templates, webhooks, multi-agent inbox, and campaign scheduling with compliance.",
-    status: "beta",
+      "Direct onboarding via the WhatsApp Business Platform flow. Manage numbers, templates, inbox, delivery status, and automation from one place.",
+    status: "available",
     icon: "meta",
     categories: ["Messaging", "Automation"],
     features: [
