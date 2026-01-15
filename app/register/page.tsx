@@ -23,8 +23,8 @@ export default async function RegisterPage() {
 
   return (
     <AuthLayout
-      title="Create your account"
-      description="Start with a verified email and a secure password."
+      title="Enter the Imperium"
+      description="Your single gateway to 10 interconnected digital powerhouses."
     >
       <RegisterForm />
     </AuthLayout>

@@ -3,14 +3,42 @@ import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getResendFromAuth } from "@/lib/email";
 import { registerSchema } from "@/lib/validation/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
+
+/** Rate limit: 5 signup attempts per IP per 15 minutes */
+const SIGNUP_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 };
+
+function getClientIP(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
 
 function getBaseUrl(req: NextRequest) {
   return process.env.APP_BASE_URL ?? req.nextUrl.origin;
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit by IP
+  const ip = getClientIP(req);
+  const rateLimitResult = rateLimit(`signup:${ip}`, SIGNUP_RATE_LIMIT);
+
+  if (!rateLimitResult.ok) {
+    return NextResponse.json(
+      { error: "Too many signup attempts. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)),
+        },
+      }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = registerSchema.safeParse(body);
 

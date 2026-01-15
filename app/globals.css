@@ -244,8 +244,27 @@ a:hover {
     linear-gradient(180deg, var(--gv-bg) 0%, var(--gv-navy-light) 40%, var(--gv-bg) 100%);
 }
 
+/* Auth layout entrance animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-card-entrance {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .motion-safe\:animate-\[spin_20s_linear_infinite\] {
+    animation: none;
+  }
+  .auth-card-entrance {
     animation: none;
   }
 }

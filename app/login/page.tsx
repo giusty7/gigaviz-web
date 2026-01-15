@@ -41,8 +41,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      description="Sign in to access your Gigaviz workspace."
+      title="Enter the Imperium"
+      description="Your single gateway to 10 interconnected digital powerhouses."
     >
       <LoginForm nextSafe={nextSafe} loginAction={loginAction} />
     </AuthLayout>
