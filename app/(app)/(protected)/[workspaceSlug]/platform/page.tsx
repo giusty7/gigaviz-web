@@ -183,7 +183,34 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
     },
   ];
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* Cyber-Batik Pattern Background */}
+      <div className="pointer-events-none fixed inset-0 batik-pattern opacity-[0.03]" aria-hidden />
+
+      {/* Imperium Page Header */}
+      <div className="relative mb-2">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10 shadow-lg shadow-[#d4af37]/10">
+            <Building2 className="h-5 w-5 text-[#d4af37]" />
+          </div>
+          <div className="flex items-center gap-2 rounded-full bg-[#10b981]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#10b981]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
+            </span>
+            Command Center
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold md:text-3xl">
+          <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
+            Imperial Platform
+          </span>
+        </h1>
+        <p className="mt-2 text-sm text-[#f5f5dc]/60">
+          Manage workspaces, members, roles, billing, and audit trails from your command center.
+        </p>
+      </div>
+
       {/* Get Started wizard */}
       <GetStartedPanel
         workspaceId={workspace.id}
@@ -198,48 +225,56 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key={card.title} className="bg-card/80 border-border/80">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm text-muted-foreground">{card.title}</CardTitle>
-                <span className="rounded-full bg-gigaviz-surface/60 p-2 text-gigaviz-gold">
-                  <Icon size={16} />
-                </span>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg font-semibold text-foreground">{card.value}</p>
-                <p className="text-xs text-muted-foreground">{card.helper}</p>
-              </CardContent>
-            </Card>
+            <div key={card.title} className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl transition-all hover:border-[#d4af37]/40">
+              <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.06) 0%, transparent 50%)" }} aria-hidden />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/50">{card.title}</p>
+                  <span className="rounded-full bg-[#d4af37]/10 p-2 text-[#d4af37]">
+                    <Icon size={16} />
+                  </span>
+                </div>
+                <p className="text-xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{card.value}</p>
+                <p className="mt-1 text-xs text-[#f5f5dc]/50">{card.helper}</p>
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <Card className="bg-card/85 border-border/80">
-        <CardHeader className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Jump to the controls you need most.</CardDescription>
-          </div>
-          <Badge variant="outline" className="border-gigaviz-gold/60 text-gigaviz-gold">
-            Plan: {planLabel}
-          </Badge>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {quickActions.map((action) => (
-            <Link
-              key={action.label}
-              href={action.href}
-              className="group flex items-center justify-between rounded-xl border border-border/80 bg-gigaviz-surface/70 px-4 py-3 text-sm font-semibold text-foreground shadow-sm transition hover:-translate-y-0.5 hover:border-gigaviz-gold hover:shadow-lg hover:shadow-gigaviz-gold/10 motion-reduce:transform-none"
-            >
-              <div className="text-left">
-                <div>{action.label}</div>
-                <p className="text-xs font-normal text-muted-foreground">{action.helper}</p>
+      <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
+        <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at bottom left, rgba(225, 29, 72, 0.05) 0%, transparent 50%)" }} aria-hidden />
+        <div className="relative">
+          <div className="flex flex-col gap-3 mb-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="h-4 w-4 text-[#e11d48]" />
+                <h2 className="text-lg font-semibold text-[#f5f5dc]">Quick Actions</h2>
               </div>
-              <ArrowRight className="h-4 w-4 text-gigaviz-gold transition group-hover:translate-x-1" />
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
+              <p className="text-sm text-[#f5f5dc]/60">Jump to the controls you need most.</p>
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 px-3 py-1.5 text-xs font-semibold text-[#d4af37]">
+              <Sparkles className="h-3 w-3" />
+              Plan: {planLabel}
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {quickActions.map((action) => (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="group flex items-center justify-between rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 px-4 py-3 text-sm font-semibold text-[#f5f5dc] transition-all hover:-translate-y-0.5 hover:border-[#d4af37]/40 hover:shadow-lg hover:shadow-[#d4af37]/10 motion-reduce:transform-none"
+              >
+                <div className="text-left">
+                  <div>{action.label}</div>
+                  <p className="text-xs font-normal text-[#f5f5dc]/50">{action.helper}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-[#d4af37] transition group-hover:translate-x-1" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="bg-card/85 border-border/80">
@@ -275,9 +310,12 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {(recentAudit ?? []).length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-center">
-                <p className="font-semibold text-foreground">No events yet</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#d4af37]/30 bg-[#050a18]/30 px-4 py-8 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10">
+                  <Clock3 className="h-6 w-6 text-[#d4af37]" />
+                </div>
+                <p className="font-semibold text-[#d4af37]">Awaiting Sovereignty</p>
+                <p className="mt-1 text-xs text-[#f5f5dc]/50">
                   Trigger actions like role updates or billing requests to populate the log.
                 </p>
               </div>

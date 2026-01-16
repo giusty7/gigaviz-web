@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { KeyRound, ShieldCheck, Users2 } from "lucide-react";
+import { Crown, KeyRound, ShieldCheck, Users2 } from "lucide-react";
 import { WorkspaceRoleManager, type WorkspaceMember } from "@/components/platform/workspace-role-manager";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,33 +47,38 @@ export default async function RolesPage({ params }: RolesPageProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-card/85 border-border/80">
+      <Card className="bg-[#0a1229]/80 backdrop-blur-xl border border-[#d4af37]/20 shadow-xl">
         <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Roles &amp; Access</CardTitle>
-            <CardDescription>Assign owner, admin, or member per workspace.</CardDescription>
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10 border border-[#d4af37]/30">
+              <Crown className="h-5 w-5 text-[#d4af37]" />
+            </span>
+            <div>
+              <CardTitle className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">Royal Court</CardTitle>
+              <CardDescription className="text-[#f5f5dc]/60">Assign sovereign, steward, or citizen rank per territory.</CardDescription>
+            </div>
           </div>
-          <Badge variant="outline" className="border-gigaviz-gold/60 text-gigaviz-gold">
+          <Badge variant="outline" className="border-[#d4af37]/60 bg-[#d4af37]/10 text-[#d4af37]">
             You are {ctx.currentRole ?? "member"}
           </Badge>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3 text-sm">
-          <Guardrail icon={<ShieldCheck className="h-4 w-4" />} title="Owners">
-            Full control, billing, and audit enforcement.
+          <Guardrail icon={<ShieldCheck className="h-4 w-4" />} title="Sovereigns">
+            Full control, treasury, and chronicle enforcement.
           </Guardrail>
-          <Guardrail icon={<KeyRound className="h-4 w-4" />} title="Admins">
-            Manage members and configuration inside the workspace.
+          <Guardrail icon={<KeyRound className="h-4 w-4" />} title="Stewards">
+            Manage citizens and configuration within the territory.
           </Guardrail>
-          <Guardrail icon={<Users2 className="h-4 w-4" />} title="Members">
-            Least-privilege access to modules scoped by workspace.
+          <Guardrail icon={<Users2 className="h-4 w-4" />} title="Citizens">
+            Least-privilege access to modules scoped by realm.
           </Guardrail>
         </CardContent>
       </Card>
 
-      <Card className="bg-card/85 border-border/80">
+      <Card className="bg-[#0a1229]/80 backdrop-blur-xl border border-[#d4af37]/20 shadow-xl">
         <CardHeader>
-          <CardTitle>Members</CardTitle>
-          <CardDescription>Role changes are audit logged and scoped to this workspace.</CardDescription>
+          <CardTitle className="text-[#f5f5dc]">Court Members</CardTitle>
+          <CardDescription className="text-[#f5f5dc]/60">Rank changes are chronicled and scoped to this territory.</CardDescription>
         </CardHeader>
         <CardContent>
           <WorkspaceRoleManager
@@ -89,13 +94,13 @@ export default async function RolesPage({ params }: RolesPageProps) {
 
 function Guardrail({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border/80 bg-background px-4 py-3">
-      <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-gigaviz-surface/70 text-gigaviz-gold">
+    <div className="flex items-start gap-3 rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 px-4 py-3 transition-all hover:border-[#d4af37]/40">
+      <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#d4af37]/20 to-transparent border border-[#d4af37]/30 text-[#d4af37]">
         {icon}
       </span>
       <div className="space-y-1 text-sm">
-        <p className="font-semibold text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground leading-relaxed">{children}</p>
+        <p className="font-semibold text-[#f5f5dc]">{title}</p>
+        <p className="text-xs text-[#f5f5dc]/50 leading-relaxed">{children}</p>
       </div>
     </div>
   );

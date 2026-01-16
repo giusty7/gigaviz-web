@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
-import { WhatsappConnectionForm } from "@/components/meta-hub/WhatsappConnectionForm";
-import { WhatsappEmbeddedSignup } from "@/components/meta-hub/WhatsappEmbeddedSignup";
-import { ConnectionsHealth } from "@/components/meta-hub/ConnectionsHealth";
+import { ImperiumConnectionsClient } from "@/components/meta-hub/ImperiumConnectionsClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -33,8 +31,23 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     .eq("provider", "meta_whatsapp")
     .maybeSingle();
 
+  // Fetch recent webhook events for the terminal display
+  const { data: recentEventsData } = await db
+    .from("wa_webhook_events")
+    .select("event_type, received_at")
+    .eq("workspace_id", workspaceId)
+    .order("received_at", { ascending: false })
+    .limit(10);
+
+  // Count events in last 24 hours using PostgreSQL interval
+  const { count: eventsLast24h } = await db
+    .from("wa_webhook_events")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .gte("received_at", new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString());
+
   const tokenSet = Boolean(tokenRow);
-  const initialConnection = phone
+  const connection = phone
     ? {
         phoneNumberId: phone.phone_number_id,
         wabaId: phone.waba_id,
@@ -43,47 +56,21 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
       }
     : null;
 
+  const recentEvents = (recentEventsData ?? []).map((e) => ({
+    type: e.event_type ?? "unknown",
+    timestamp: e.received_at ?? new Date().toISOString(),
+  }));
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-foreground">Connections</h2>
-        <p className="text-sm text-muted-foreground">
-          Simpan kredensial WhatsApp dengan aman. Token tidak akan pernah ditampilkan kembali di
-          browser.
-        </p>
-      </div>
-
-      {/* Health Panel */}
-      <ConnectionsHealth
-        workspaceId={workspaceId}
-        workspaceSlug={workspaceSlug}
-        initialConnection={initialConnection}
-        tokenSet={tokenSet}
-        canEdit={canEdit}
-      />
-
-      <WhatsappEmbeddedSignup workspaceSlug={workspaceSlug} canEdit={canEdit} />
-
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <WhatsappConnectionForm
-          workspaceId={workspaceId}
-          workspaceSlug={workspaceSlug}
-          canEdit={canEdit}
-          initialPhoneNumberId={phone?.phone_number_id ?? null}
-          initialWabaId={phone?.waba_id ?? null}
-          initialDisplayName={phone?.display_name ?? null}
-          status={phone?.status ?? null}
-          lastTestedAt={phone?.last_tested_at ?? null}
-          lastTestResult={phone?.last_test_result ?? null}
-          tokenSet={tokenSet}
-        />
-        {!canEdit ? (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Hanya owner atau admin yang dapat memperbarui koneksi. Anda tetap dapat melihat status.
-          </p>
-        ) : null}
-      </div>
-    </div>
+    <ImperiumConnectionsClient
+      workspaceId={workspaceId}
+      workspaceSlug={workspaceSlug}
+      canEdit={canEdit}
+      connection={connection}
+      tokenSet={tokenSet}
+      recentEvents={recentEvents}
+      eventsLast24h={eventsLast24h ?? 0}
+    />
   );
 }
 

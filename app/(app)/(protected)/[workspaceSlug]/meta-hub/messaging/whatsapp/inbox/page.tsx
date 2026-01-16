@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
-import { WhatsappInboxClient } from "@/components/meta-hub/WhatsappInboxClient";
+import { ImperiumInboxClient } from "@/components/meta-hub/ImperiumInboxClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
 import { getWorkspacePlan } from "@/lib/plans";
 
@@ -97,16 +98,35 @@ export default async function WhatsappInboxPage({ params }: Props) {
         .limit(50)
     : { data: [] };
 
+  // Fetch approved templates for quick send
+  const { data: tokenRow } = await supabaseAdmin()
+    .from("whatsapp_tokens")
+    .select("display_name")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  const { data: templateRows } = await supabaseAdmin()
+    .from("wa_templates")
+    .select("name, language, body")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "APPROVED")
+    .limit(50);
+
+  const approvedTemplates = (templateRows ?? []).map((t) => ({
+    name: t.name,
+    language: t.language,
+    body: t.body,
+  }));
 
   return (
-    <WhatsappInboxClient
+    <ImperiumInboxClient
       workspaceId={workspaceId}
       workspaceSlug={workspaceSlug}
       userId={ctx.user.id}
       canEdit={canEdit}
       allowWrite={allowWrite}
-      isPreview={!allowWrite}
-      threads={threads ?? []}
+      connectionName={tokenRow?.display_name ?? "WhatsApp"}
+      initialThreads={threads ?? []}
       initialMessages={
         messages?.map((m) => ({
           ...m,
@@ -116,7 +136,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
       }
       initialTags={tags?.map((t) => t.tag) ?? []}
       initialNotes={notes ?? []}
-      templates={[]}
+      templates={approvedTemplates}
     />
   );
 }

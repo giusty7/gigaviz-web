@@ -49,10 +49,16 @@ function getRelativeTime(iso: string): string {
 
 export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Ensure hydration safety - only render dropdown after client mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -125,19 +131,28 @@ export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
     [workspaceId]
   );
 
+  // Render placeholder during SSR to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="sm" className="relative p-2">
+        <BellIcon className="h-5 w-5 text-[#d4af37]" />
+      </Button>
+    );
+  }
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative p-2">
-          <BellIcon className="h-5 w-5" />
+        <Button variant="ghost" size="sm" className="relative p-2 hover:bg-[#d4af37]/10">
+          <BellIcon className="h-5 w-5 text-[#d4af37]" />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#e11d48] text-[9px] font-bold text-white shadow-[0_0_6px_rgba(225,29,72,0.5)]">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 max-h-[400px] overflow-y-auto">
+      <DropdownMenuContent align="end" className="w-80 max-h-[400px] overflow-y-auto border-[#d4af37]/20 bg-[#050a18]/95 backdrop-blur-xl">
         <div className="flex items-center justify-between px-3 py-2">
           <span className="font-semibold text-sm">Notifications</span>
           {unreadCount > 0 && (

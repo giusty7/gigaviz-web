@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import AppNavLinks from "@/components/app/AppNavLinks";
 import WorkspaceSwitcher from "@/components/app/WorkspaceSwitcher";
 import { NotificationBell } from "@/components/app/NotificationBell";
+import { RoyalAvatar, SidebarUserCard } from "@/components/app/RoyalAvatar";
 import { AppShell as Shell } from "@/components/layout/app-shell";
 import { UpgradeModalProvider } from "@/components/billing/upgrade-modal-provider";
 
@@ -55,29 +56,89 @@ export default function AppShell({
       <Shell
         className="gv-app"
         sidebar={
-          <>
+          <div className="flex h-full flex-col">
+            {/* Logo & Brand */}
             <div className="mb-8">
-              <Link href="/" className="text-lg font-semibold tracking-tight">
+              <Link href="/" className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-lg font-bold tracking-tight text-transparent">
                 Gigaviz
               </Link>
-              <p className="mt-1 text-xs text-gigaviz-muted">App Area</p>
+              <p className="mt-1 text-xs text-[#f5f5dc]/40">Imperium Console</p>
             </div>
+
+            {/* Navigation Links */}
             <AppNavLinks links={navLinks} />
 
             {isAdmin && (
-              <div className="mt-auto rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+              <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
                 Admin override active
               </div>
             )}
-          </>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* System Health Widget */}
+            <div className="mb-4 rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#10b981]" />
+                </span>
+                <span className="text-xs font-medium text-[#10b981]">Secure Link Active</span>
+              </div>
+            </div>
+
+            {/* Sidebar User Identity Card */}
+            <SidebarUserCard
+              name={userEmail.split("@")[0]}
+              email={userEmail}
+              tier={isAdmin ? "Imperium Admin" : "Imperium Member"}
+            />
+          </div>
         }
         header={
-          <div className="flex flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm text-gigaviz-muted">Welcome back</p>
-              <p className="text-lg font-semibold">{userEmail}</p>
+          <div className="flex items-center gap-4 px-6 py-3">
+            {/* Left: Breadcrumbs */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-[#d4af37] font-medium">Imperium</span>
+              <span className="text-[#f5f5dc]/30">/</span>
+              <span className="text-[#f5f5dc]/60">{currentWorkspace?.name ?? "Workspace"}</span>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Center: Global Search */}
+            <div className="hidden flex-1 justify-center md:flex">
+              <div className="relative w-full max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search commands, contacts, messages..."
+                  className="w-full rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 px-4 py-2 pl-10 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 backdrop-blur transition-all focus:border-[#d4af37]/50 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30"
+                />
+                <svg
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#f5f5dc]/40"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-[#f5f5dc]/10 bg-[#f5f5dc]/5 px-1.5 py-0.5 text-[10px] text-[#f5f5dc]/40">
+                  ⌘K
+                </kbd>
+              </div>
+            </div>
+
+            {/* Right: Crown Jewels */}
+            <div className="ml-auto flex items-center gap-3">
+              {/* System Status */}
+              <div className="hidden items-center gap-1.5 rounded-lg border border-[#10b981]/20 bg-[#10b981]/5 px-2.5 py-1.5 md:flex">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
+                </span>
+                <span className="text-[10px] font-semibold tracking-wide text-[#10b981]">OPERATIONAL</span>
+              </div>
+
               {workspaceSlug && (
                 <NotificationBell
                   workspaceId={currentWorkspaceId}
@@ -87,6 +148,13 @@ export default function AppShell({
               <WorkspaceSwitcher
                 workspaces={workspaces}
                 currentWorkspaceId={currentWorkspaceId}
+              />
+              {/* Royal Avatar with Dropdown */}
+              <RoyalAvatar
+                name={userEmail.split("@")[0]}
+                email={userEmail}
+                settingsHref={settingsHref}
+                billingHref={billingHref}
               />
             </div>
           </div>

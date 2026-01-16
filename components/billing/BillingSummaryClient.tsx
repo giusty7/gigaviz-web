@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Crown, Sparkles, ArrowUpRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import type { BillingSummary } from "@/lib/billing/summary";
@@ -82,54 +84,141 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-white/50">Active plan</p>
-              <h1 className="text-2xl font-semibold text-white">
-                {loading ? "Loading..." : activePlanName}
-              </h1>
-              <p className="text-sm text-white/60">
-                Code: {summary?.subscription?.plan_code ?? "free_locked"}
-              </p>
+    <div className="relative space-y-6">
+      {/* Cyber-Batik Pattern Background */}
+      <div className="pointer-events-none absolute inset-0 batik-pattern opacity-[0.03]" aria-hidden />
+
+      {/* Royal Treasury Header Card */}
+      <motion.section
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl"
+      >
+        {/* Gold gradient overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{
+            background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.1) 0%, transparent 50%)",
+          }}
+          aria-hidden
+        />
+        
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              {/* Crown Icon */}
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10 shadow-lg shadow-[#d4af37]/10">
+                <Crown className="h-7 w-7 text-[#d4af37]" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.15em] text-[#d4af37]">Royal Treasury</p>
+                <h1 className="mt-1 text-2xl font-bold">
+                  <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
+                    {loading ? "Loading..." : activePlanName}
+                  </span>
+                </h1>
+                <p className="mt-1 text-sm text-[#f5f5dc]/60">
+                  Plan Code: <span className="font-mono text-[#f5f5dc]/80">{summary?.subscription?.plan_code ?? "free_locked"}</span>
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-white/60">Status</p>
-              <p className="text-sm font-semibold text-white">
-                {summary?.statusLabel ?? "—"}
-              </p>
+            
+            {/* Status Badge */}
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2 rounded-full bg-[#10b981]/15 px-3 py-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
+                </span>
+                <span className="text-xs font-semibold text-[#10b981]">
+                  {summary?.statusLabel ?? "Active"}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="text-sm text-white/60">{summary?.periodLabel ?? "Period not available"}</div>
-          {summary?.plan?.seat_limit ? (
-            <div className="text-sm text-white/60">Seat limit: {summary.plan.seat_limit}</div>
-          ) : null}
-          <div className="pt-3">
-            <Button onClick={handleUpgrade} variant="secondary" disabled={upgrading}>
-              {upgrading ? "Processing..." : "Upgrade (coming soon)"}
+
+          {/* Stats Row */}
+          <div className="mt-2 grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 px-4 py-3">
+              <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">Billing Period</p>
+              <p className="mt-1 text-sm font-semibold text-[#f5f5dc]">
+                {summary?.periodLabel ?? "Period not available"}
+              </p>
+            </div>
+            {summary?.plan?.seat_limit && (
+              <div className="rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 px-4 py-3">
+                <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">Seat Limit</p>
+                <p className="mt-1 text-sm font-semibold text-[#f5f5dc]">{summary.plan.seat_limit} seats</p>
+              </div>
+            )}
+            <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-[#10b981]" />
+                <p className="text-xs font-medium text-[#10b981]">Enterprise Security</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="pt-2">
+            <Button
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] font-semibold hover:from-[#f9d976] hover:to-[#d4af37] shadow-lg shadow-[#d4af37]/20"
+            >
+              {upgrading ? (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Crown className="mr-2 h-4 w-4" />
+                  Upgrade Plan
+                </>
+              )}
             </Button>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {/* Upgrade Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="relative overflow-hidden rounded-2xl border border-[#d4af37]/15 bg-[#0a1229]/60 p-6 backdrop-blur-xl"
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Upgrade</h2>
-            <p className="text-sm text-white/60">Upgrade via sales. Payments are not enabled yet.</p>
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[#e11d48]" />
+              <h2 className="text-lg font-semibold text-[#f5f5dc]">Upgrade Your Empire</h2>
+            </div>
+            <p className="mt-1 text-sm text-[#f5f5dc]/60">
+              Contact sales to unlock premium features. Self-serve payments coming soon.
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button onClick={handleUpgrade} variant="secondary" disabled={upgrading}>
-              {upgrading ? "Processing..." : "Contact sales / Upgrade"}
+            <Button
+              onClick={handleUpgrade}
+              variant="outline"
+              disabled={upgrading}
+              className="border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50"
+            >
+              {upgrading ? "Processing..." : "Contact Sales"}
+              <ArrowUpRight className="ml-2 h-4 w-4" />
             </Button>
-            <Link href={`/${workspaceSlug}/billing`} className="text-sm text-white/60 underline">
+            <Link
+              href={`/${workspaceSlug}/billing`}
+              className="text-sm text-[#f5f5dc]/50 hover:text-[#d4af37] transition-colors"
+            >
               Refresh
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CreditCard, Sparkles } from "lucide-react";
+import { CreditCard, Crown, Sparkles } from "lucide-react";
 import ContactSalesDialog from "@/components/app/ContactSalesDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,20 +34,25 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
 
   return (
     <div className="space-y-6">
-      <Card className="bg-card/85 border-border/80">
+      <Card className="bg-[#0a1229]/80 backdrop-blur-xl border border-[#d4af37]/20 shadow-xl">
         <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <CardTitle>Billing</CardTitle>
-            <CardDescription>Plan, seat limits, and upgrade requests.</CardDescription>
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10 border border-[#d4af37]/30">
+              <Crown className="h-5 w-5 text-[#d4af37]" />
+            </span>
+            <div>
+              <CardTitle className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">Royal Treasury</CardTitle>
+              <CardDescription className="text-[#f5f5dc]/60">Plan, seat limits, and upgrade requests for this realm.</CardDescription>
+            </div>
           </div>
-          <Badge variant="outline" className="border-gigaviz-gold/60 text-gigaviz-gold">
+          <Badge variant="outline" className="border-[#d4af37]/60 bg-[#d4af37]/10 text-[#d4af37]">
             {planLabel}
           </Badge>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2 text-foreground">
-              <Sparkles className="h-4 w-4 text-gigaviz-gold" />
+          <div className="space-y-1 text-sm text-[#f5f5dc]/60">
+            <div className="flex items-center gap-2 text-[#f5f5dc]">
+              <Sparkles className="h-4 w-4 text-[#d4af37]" />
               <span className="font-semibold">{planLabel}</span>
             </div>
             <p>Status: {planInfo.status ?? "Active"}</p>
@@ -61,43 +66,49 @@ export default async function PlatformBillingPage({ params }: BillingPageProps) 
               userEmail={ctx.user.email ?? ""}
               planOptions={planMeta}
               defaultPlanId={planInfo.planId}
-              trigger={<Button size="sm">Contact sales / Upgrade</Button>}
+              trigger={<Button size="sm" className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] font-semibold hover:opacity-90">Contact Sales / Upgrade</Button>}
             />
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/${workspaceSlug}/billing`}>Open legacy billing</Link>
+            <Button asChild variant="outline" size="sm" className="border-[#d4af37]/30 text-[#f5f5dc]/70 hover:bg-[#d4af37]/10 hover:text-[#d4af37]">
+              <Link href={`/${workspaceSlug}/billing`}>Open Legacy Treasury</Link>
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="bg-card/85 border-border/80">
+      <Card className="bg-[#0a1229]/80 backdrop-blur-xl border border-[#d4af37]/20 shadow-xl">
         <CardHeader className="flex items-center justify-between">
           <div>
-            <CardTitle>Upgrade requests</CardTitle>
-            <CardDescription>Latest submissions for this workspace.</CardDescription>
+            <CardTitle className="text-[#f5f5dc]">Treasury Petitions</CardTitle>
+            <CardDescription className="text-[#f5f5dc]/60">Latest submissions for this realm.</CardDescription>
           </div>
-          <CreditCard className="h-4 w-4 text-gigaviz-gold" />
+          <CreditCard className="h-4 w-4 text-[#d4af37]" />
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {!requests?.length ? (
-            <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-center">
-              <p className="font-semibold text-foreground">No requests yet</p>
-              <p className="text-xs text-muted-foreground">Contact sales to unlock paid plans.</p>
+            <div className="relative overflow-hidden rounded-2xl border border-dashed border-[#d4af37]/30 bg-[#050a18]/60 px-6 py-10 text-center">
+              <div className="absolute inset-0 batik-pattern opacity-[0.04]" />
+              <div className="relative">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#d4af37]/20 to-transparent border border-[#d4af37]/30">
+                  <CreditCard className="h-8 w-8 text-[#d4af37]/60" />
+                </div>
+                <p className="text-lg font-semibold bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">Awaiting Sovereignty</p>
+                <p className="mt-1 text-sm text-[#f5f5dc]/50">Contact the royal council to unlock premium plans.</p>
+              </div>
             </div>
           ) : (
             requests.map((req) => (
               <div
                 key={req.id}
-                className="flex items-center justify-between rounded-xl border border-border/80 bg-background px-4 py-3"
+                className="flex items-center justify-between rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 px-4 py-3 transition-all hover:border-[#d4af37]/40"
               >
                 <div>
-                  <p className="font-semibold text-foreground">{req.plan_id}</p>
-                  <p className="text-xs text-muted-foreground">Seats: {req.seats}</p>
+                  <p className="font-semibold text-[#f5f5dc]">{req.plan_id}</p>
+                  <p className="text-xs text-[#f5f5dc]/50">Seats: {req.seats}</p>
                   {req.notes ? (
-                    <p className="text-xs text-muted-foreground">{req.notes}</p>
+                    <p className="text-xs text-[#f5f5dc]/50">{req.notes}</p>
                   ) : null}
                 </div>
-                <div className="text-right text-xs text-muted-foreground">
+                <div className="text-right text-xs text-[#f5f5dc]/50">
                   <StatusBadge status={req.status} />
                   <div>{new Date(req.created_at).toLocaleString()}</div>
                 </div>

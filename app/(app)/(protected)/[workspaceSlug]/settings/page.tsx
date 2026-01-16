@@ -1,21 +1,9 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAppContext } from "@/lib/app-context";
 import { getWorkspaceMembership } from "@/lib/workspaces";
-import { SettingsLayout } from "@/components/layout/settings-layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { ImperiumSettingsClient } from "@/components/app/ImperiumSettingsClient";
 import InviteForm from "@/components/admin/InviteForm";
 import PendingInvites from "@/components/admin/PendingInvites";
 
@@ -224,221 +212,48 @@ export default async function SettingsPage({ params }: Props) {
     redirect("/app");
   }
 
-  const navLinks = [
-    { href: `/${workspaceSlug}/settings`, label: "Overview" },
-    { href: `/${workspaceSlug}/settings#members`, label: "Members" },
-    { href: `/${workspaceSlug}/billing`, label: "Billing" },
-    {
-      href: `/${workspaceSlug}/settings/design-tokens`,
-      label: "Design Tokens",
-      visible: canEditWorkspace || process.env.NODE_ENV !== "production",
-    },
-  ].filter((item) => item.visible !== false);
+  // Prepare members data for client component
+  const membersData = (members ?? []).map((member) => {
+    const isSelf = member.user_id === ctx.user.id;
+    const memberProfile = profileMap.get(member.user_id);
+    const displayName =
+      memberProfile?.full_name ||
+      memberProfile?.email ||
+      (isSelf ? "You" : member.user_id);
+    const displayEmail =
+      memberProfile?.email || (isSelf ? ctx.user.email ?? null : null);
+    const isLastOwner = member.role === "owner" && ownerCount <= 1;
+
+    return {
+      user_id: member.user_id,
+      role: member.role,
+      displayName,
+      displayEmail,
+      isSelf,
+      isLastOwner,
+    };
+  });
 
   return (
-    <SettingsLayout
-      title="Settings"
-      description="Manage your account and workspace preferences."
-      nav={
-        <nav className="space-y-1 text-sm text-muted-foreground">
-          {navLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block rounded-lg px-2 py-1 hover:bg-gigaviz-surface text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      }
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Settings</CardTitle>
-          <CardDescription>Update your profile basics.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={updateProfile} className="grid gap-3 md:grid-cols-2">
-            <Input
-              name="full_name"
-              placeholder="Full name"
-              defaultValue={profile?.full_name ?? ""}
-            />
-            <Input
-              value={profile?.email ?? ctx.user.email ?? ""}
-              readOnly
-              className="text-gigaviz-muted"
-            />
-            <Button type="submit" className="md:col-span-2">
-              Save profile
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card id="members">
-        <CardHeader>
-          <CardTitle>Members</CardTitle>
-          <CardDescription>
-            Manage workspace members and access roles.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-gigaviz-muted">
-              {members?.length ?? 0} member(s) in this workspace.
-            </div>
-            {canManageMembers ? (
-              <div>
-                <InviteForm workspaceSlug={currentWorkspace.slug} />
-              </div>
-            ) : (
-              <Button variant="secondary" disabled>
-                Invite member
-              </Button>
-            )}
-          </div>
-
-          {(members?.length ?? 0) === 0 ? (
-            <div className="rounded-xl border border-gigaviz-border bg-gigaviz-card p-4 text-sm text-gigaviz-muted">
-              No other members yet.
-            </div>
-          ) : (
-            <div className="rounded-xl border border-gigaviz-border bg-gigaviz-card">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(members ?? []).map((member) => {
-                    const isSelf = member.user_id === ctx.user.id;
-                    const memberProfile = profileMap.get(member.user_id);
-                    const displayName =
-                      memberProfile?.full_name ||
-                      memberProfile?.email ||
-                      (isSelf ? "You" : member.user_id);
-                    const displayEmail =
-                      memberProfile?.email || (isSelf ? ctx.user.email : null);
-                    const isLastOwner =
-                      member.role === "owner" && ownerCount <= 1;
-
-                    return (
-                      <TableRow key={member.user_id}>
-                        <TableCell>
-                          <div className="text-sm font-medium text-gigaviz-cream">
-                            {displayName}
-                            {isSelf && (
-                              <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase text-white/60">
-                                You
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gigaviz-muted">
-                            {displayEmail || member.user_id}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="rounded-full bg-white/10 px-2 py-1 text-xs uppercase text-white/70">
-                            {member.role}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {isSelf ? (
-                            member.role !== "owner" ? (
-                              <form action={leaveWorkspace}>
-                                <input
-                                  type="hidden"
-                                  name="workspace_id"
-                                  value={currentWorkspace.id}
-                                />
-                                <Button variant="outline" size="sm">
-                                  Leave workspace
-                                </Button>
-                              </form>
-                            ) : (
-                              <span className="text-xs text-gigaviz-muted">
-                                Owner {isLastOwner ? "(last owner)" : ""}
-                              </span>
-                            )
-                          ) : canManageMembers ? (
-                            <form action={removeMember}>
-                                <input
-                                  type="hidden"
-                                  name="workspace_id"
-                                  value={currentWorkspace.id}
-                                />
-                              <input
-                                type="hidden"
-                                name="user_id"
-                                value={member.user_id}
-                              />
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                disabled={isLastOwner}
-                              >
-                                Remove
-                              </Button>
-                            </form>
-                          ) : (
-                            <span className="text-xs text-gigaviz-muted">
-                              No access
-                            </span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-          <div className="text-xs text-gigaviz-muted">
-            Owners and admins can remove members. You can leave the workspace if you are not the owner.
-          </div>
-          {canManageMembers && (
-            <div className="mt-4">
-              <h4 className="text-sm font-semibold">Pending Invites</h4>
-              <div className="mt-2">
-                <PendingInvites invites={pendingInvites ?? []} />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Workspace Settings</CardTitle>
-          <CardDescription>
-            Only owners/admins can update workspace data.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={updateWorkspace} className="grid gap-3 md:grid-cols-2">
-            <input type="hidden" name="workspace_id" value={currentWorkspace.id} />
-            <Input
-              name="workspace_name"
-              defaultValue={currentWorkspace.name}
-              disabled={!canEditWorkspace}
-            />
-            <Input
-              value={currentWorkspace.slug}
-              readOnly
-              className="text-gigaviz-muted"
-            />
-            <Button type="submit" disabled={!canEditWorkspace} className="md:col-span-2">
-              Save workspace
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </SettingsLayout>
+    <ImperiumSettingsClient
+      profile={profile}
+      workspace={{
+        id: currentWorkspace.id,
+        name: currentWorkspace.name,
+        slug: currentWorkspace.slug,
+      }}
+      members={membersData}
+      pendingInvites={pendingInvites ?? []}
+      canEditWorkspace={canEditWorkspace}
+      canManageMembers={canManageMembers}
+      userEmail={ctx.user.email ?? ""}
+      updateProfileAction={updateProfile}
+      updateWorkspaceAction={updateWorkspace}
+      removeMemberAction={removeMember}
+      leaveWorkspaceAction={leaveWorkspace}
+      inviteFormSlot={<InviteForm workspaceSlug={currentWorkspace.slug} />}
+      pendingInvitesSlot={<PendingInvites invites={pendingInvites ?? []} />}
+    />
   );
 }
 

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { HelperClient } from "@/components/helper/HelperClient";
+import { ImperiumHelperClient } from "@/components/helper/ImperiumHelperClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -26,7 +26,7 @@ export default async function HelperPage({ params }: Props) {
     .limit(20);
 
   return (
-    <HelperClient
+    <ImperiumHelperClient
       workspaceId={workspace.id}
       workspaceSlug={workspace.slug}
       workspaceName={workspace.name}

@@ -80,27 +80,30 @@ export default async function BillingPage({
         </Alert>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-lg font-semibold">Feature access</h2>
-        <p className="text-sm text-white/60 mt-1">
-          Features available on the current plan. Upgrade to unlock the rest.
-        </p>
-        <div className="mt-4 grid gap-2 md:grid-cols-2">
-          {featureUnion.map((key) => (
-            <div
-              key={key}
-              className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"
-            >
-              <span className="text-white/80">{featureLabels[key] ?? key}</span>
-              <span
-                className={`text-xs font-semibold ${
-                  available(key) ? "text-emerald-300" : "text-white/40"
-                }`}
+      <section className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
+        <div className="absolute inset-0 batik-pattern opacity-[0.04]" />
+        <div className="relative">
+          <h2 className="text-lg font-semibold bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">Feature Access</h2>
+          <p className="text-sm text-[#f5f5dc]/60 mt-1">
+            Features available on the current plan. Upgrade to unlock the rest.
+          </p>
+          <div className="mt-4 grid gap-2 md:grid-cols-2">
+            {featureUnion.map((key) => (
+              <div
+                key={key}
+                className="flex items-center justify-between rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 px-3 py-2 text-sm transition-all hover:border-[#d4af37]/40"
               >
-                {available(key) ? "Available" : "Locked"}
-              </span>
-            </div>
-          ))}
+                <span className="text-[#f5f5dc]/80">{featureLabels[key] ?? key}</span>
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    available(key) ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border border-[#f5f5dc]/10"
+                  }`}
+                >
+                  {available(key) ? "Available" : "Locked"}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

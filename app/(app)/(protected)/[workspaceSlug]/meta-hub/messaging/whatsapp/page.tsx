@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { WhatsappTemplatesClient } from "@/components/meta-hub/WhatsappTemplatesClient";
+import { ImperiumTemplateForgeClient } from "@/components/meta-hub/ImperiumTemplateForgeClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { supabaseServer } from "@/lib/supabase/server";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -18,27 +17,31 @@ export default async function MetaHubWhatsappPage({ params }: Props) {
 
   const workspaceId = ctx.currentWorkspace.id;
   const canEdit = ["owner", "admin"].includes(ctx.currentRole ?? "");
-  const supabase = await supabaseServer();
-  const { data: settings } = await supabase
-    .from("wa_settings")
-    .select("sandbox_enabled, test_whitelist")
-    .eq("workspace_id", workspaceId)
-    .maybeSingle();
+  
   const { data: connections } = await supabaseAdmin()
     .from("wa_phone_numbers")
     .select("id, phone_number_id, waba_id, display_name, status")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
+  // Fetch initial templates for first connection
+  const activeConnection = connections?.find((c) => c.status?.toLowerCase() === "active") ?? connections?.[0];
+  const { data: templates } = activeConnection
+    ? await supabaseAdmin()
+        .from("wa_templates")
+        .select("id, name, language, status, category, quality_score, rejection_reason, phone_number_id, meta_template_id, body, header, footer, buttons, last_synced_at")
+        .eq("workspace_id", workspaceId)
+        .order("updated_at", { ascending: false })
+        .limit(100)
+    : { data: [] };
+
   return (
-    <WhatsappTemplatesClient
+    <ImperiumTemplateForgeClient
       workspaceId={workspaceId}
       workspaceSlug={workspaceSlug}
       canEdit={canEdit}
-      templates={[]}
+      initialTemplates={templates ?? []}
       connections={connections ?? []}
-      sandboxEnabled={settings?.sandbox_enabled ?? true}
-      whitelist={Array.isArray(settings?.test_whitelist) ? settings?.test_whitelist : []}
     />
   );
 }

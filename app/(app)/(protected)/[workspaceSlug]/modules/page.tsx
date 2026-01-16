@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
-import type { ModuleStatus } from "@/components/app/ModuleGrid";
+import ImperiumModulesClient from "@/components/app/ImperiumModulesClient";
+import type { ModuleStatus } from "@/components/app/ImperiumModuleGrid";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getPlanMeta, planMeta } from "@/lib/entitlements";
@@ -56,21 +56,17 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
   });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold">{COPY_EN.hubs.catalogTitle}</h1>
-        <p className="text-sm text-muted-foreground">{COPY_EN.hubs.catalogSubtitle}</p>
-      </div>
-      <ModuleGridWithSalesDialog
-        modules={moduleCards}
-        workspaceId={workspace.id}
-        workspaceName={workspace.name}
-        workspaceSlug={workspace.slug}
-        userEmail={userEmail}
-        planOptions={planMeta}
-        defaultPlanId={plan.plan_id}
-      />
-    </div>
+    <ImperiumModulesClient
+      modules={moduleCards}
+      workspaceId={workspace.id}
+      workspaceName={workspace.name}
+      workspaceSlug={workspace.slug}
+      userEmail={userEmail}
+      planOptions={planMeta}
+      defaultPlanId={plan.plan_id}
+      title={COPY_EN.hubs.catalogTitle}
+      subtitle={COPY_EN.hubs.catalogSubtitle}
+    />
   );
 }
 
