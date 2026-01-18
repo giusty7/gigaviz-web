@@ -5,6 +5,7 @@ import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { GAPageView } from "@/components/analytics/ga-pageview";
 import { Toaster } from "@/components/ui/toaster";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import Providers from "./providers";
 import "./globals.css";
 
 const gvSans = Plus_Jakarta_Sans({
@@ -51,7 +52,7 @@ export default function RootLayout({
         />
         <GoogleAnalytics />
         <GAPageView />
-        {children}
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>
