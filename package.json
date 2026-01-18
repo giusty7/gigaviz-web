@@ -15,7 +15,9 @@
     "test:smoke": "tsx lib/worker/backoff.test.ts",
     "kb:index": "tsx scripts/kb-index.ts",
     "kb:index:docs": "tsx scripts/kb-index.ts docs",
-    "kb:index:web": "tsx scripts/kb-index.ts web"
+    "kb:index:web": "tsx scripts/kb-index.ts web",
+    "db:push": "bash scripts/supabase/push.sh",
+    "db:verify": "bash scripts/supabase/verify.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

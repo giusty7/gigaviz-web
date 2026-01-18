@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { ImperiumHelperClient } from "@/components/helper/ImperiumHelperClient";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { getAppContext } from "@/lib/app-context";
+import { requireEntitlement } from "@/lib/entitlements/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +20,8 @@ export default async function HelperPage({ params }: Props) {
   const workspace = ctx.currentWorkspace;
   const db = supabaseAdmin();
 
+  const entitlement = await requireEntitlement(workspace.id, "helper");
+
   const { data: conversations } = await db
     .from("helper_conversations")
     .select("id, title, created_at, updated_at")
@@ -26,11 +30,13 @@ export default async function HelperPage({ params }: Props) {
     .limit(20);
 
   return (
-    <ImperiumHelperClient
-      workspaceId={workspace.id}
-      workspaceSlug={workspace.slug}
-      workspaceName={workspace.name}
-      initialConversations={conversations ?? []}
-    />
+    <FeatureGate allowed={entitlement.allowed}>
+      <ImperiumHelperClient
+        workspaceId={workspace.id}
+        workspaceSlug={workspace.slug}
+        workspaceName={workspace.name}
+        initialConversations={conversations ?? []}
+      />
+    </FeatureGate>
   );
 }

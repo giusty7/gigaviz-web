@@ -1,3 +1,5 @@
+import "server-only";
+
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
   getPlanFeatures,
@@ -11,10 +13,35 @@ export type WorkspaceEntitlements = {
   planId: PlanId;
   features: Record<FeatureKey, boolean>;
   limits: Record<string, unknown>;
+  payloads: Record<string, unknown>;
 };
 
+const ownerEntitlementKeys: FeatureKey[] = [
+  // 10 Hubs
+  "core_os",
+  "meta_hub",
+  "studio",
+  "helper",
+  "office",
+  "marketplace",
+  "arena",
+  "pay",
+  "trade",
+  "community",
+  // Capabilities
+  "inbox",
+  "automation",
+  "studio_graph",
+  "wa_blast",
+  "mass_blast",
+  "analytics",
+];
+
 const featureUniverse: FeatureKey[] = Array.from(
-  new Set(planMeta.flatMap((p) => getPlanFeatures(p.plan_id)))
+  new Set([
+    ...planMeta.flatMap((p) => getPlanFeatures(p.plan_id)),
+    ...ownerEntitlementKeys,
+  ])
 ) as FeatureKey[];
 
 function normalizePlan(planId?: string | null): PlanId {
@@ -41,31 +68,50 @@ export async function getWorkspaceEntitlements(workspaceId: string): Promise<Wor
   const planId = normalizePlan(subscription?.plan_id);
   const features = buildBaseFeatures(planId);
   const limits: Record<string, unknown> = {};
+  const payloads: Record<string, unknown> = {};
 
-  const { data: overrides } = await db
+  const { data: overrides, error } = await db
     .from("workspace_entitlements")
-    .select("key, value")
+    .select("key, enabled, payload")
     .eq("workspace_id", workspaceId);
 
-  (overrides ?? []).forEach((row: { key: string; value: unknown }) => {
-    if (!row || typeof row.key !== "string") return;
-    const key = row.key as FeatureKey;
-    const val = row.value;
-    if (typeof val === "boolean" && (featureUniverse as string[]).includes(key)) {
-      features[key] = val;
-      return;
-    }
-    if (typeof val === "object" && val !== null && "enabled" in (val as Record<string, unknown>)) {
-      const enabled = (val as { enabled?: unknown }).enabled;
-      if (typeof enabled === "boolean" && (featureUniverse as string[]).includes(key)) {
-        features[key] = enabled;
+  if (!error) {
+    (overrides ?? []).forEach(
+      (row: { key: string; enabled?: boolean | null; payload?: unknown }) => {
+        if (!row || typeof row.key !== "string") return;
+        const key = row.key as FeatureKey;
+        const enabled = row.enabled ?? false;
+        const payload = row.payload ?? {};
+
+        if ((featureUniverse as string[]).includes(key)) {
+          features[key] = enabled;
+          payloads[key] = payload;
+          limits[key] = payload;
+          return;
+        }
+
+        limits[row.key] = payload;
+      }
+    );
+  } else {
+    const { data: legacy } = await db
+      .from("workspace_entitlements")
+      .select("key, value")
+      .eq("workspace_id", workspaceId);
+
+    (legacy ?? []).forEach((row: { key: string; value: unknown }) => {
+      if (!row || typeof row.key !== "string") return;
+      const key = row.key as FeatureKey;
+      const val = row.value;
+      if (typeof val === "boolean" && (featureUniverse as string[]).includes(key)) {
+        features[key] = val;
         return;
       }
-    }
-    limits[row.key] = val;
-  });
+      limits[row.key] = val;
+    });
+  }
 
-  return { planId, features, limits };
+  return { planId, features, limits, payloads };
 }
 
 export async function requireEntitlement(

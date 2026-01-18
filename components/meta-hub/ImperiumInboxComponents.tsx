@@ -879,6 +879,7 @@ function MessageBubble({ message, onReply, onStar, onForward }: MessageBubblePro
 
         {/* Media */}
         {message.media_url && message.media_type === "image" && (
+          // eslint-disable-next-line @next/next/no-img-element -- dynamic user-uploaded content with unknown dimensions
           <img src={message.media_url} alt="Media" className="mb-2 max-w-full rounded-lg" />
         )}
         {message.media_url && message.media_type === "video" && (
@@ -1320,6 +1321,7 @@ export function CRMSidebar({
                           className="group relative aspect-square overflow-hidden rounded-xl border border-[#d4af37]/10 bg-[#050a18]"
                         >
                           {item.type === "image" && (
+                            // eslint-disable-next-line @next/next/no-img-element -- dynamic user-uploaded content
                             <img
                               src={item.url}
                               alt={item.filename ?? "Media"}

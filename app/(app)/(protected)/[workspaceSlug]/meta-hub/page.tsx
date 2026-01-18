@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { ImperiumMetaHubOverviewClient } from "@/components/meta-hub/ImperiumMetaHubOverviewClient";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { getMetaHubFlags } from "@/lib/meta-hub/config";
 import { getMetaHubOverview } from "@/lib/meta/overview-data";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess } from "@/lib/entitlements";
+import { requireEntitlement } from "@/lib/entitlements/server";
 import { getWorkspacePlan } from "@/lib/plans";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
@@ -33,6 +35,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
   const allowTemplates = canAccess(entitlementCtx, "meta_templates");
   const allowSend = canAccess(entitlementCtx, "meta_send");
+  const metaHubEntitlement = await requireEntitlement(workspace.id, "meta_hub");
 
   const overview = await getMetaHubOverview(workspace.id);
   const flags = getMetaHubFlags();
@@ -81,19 +84,21 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   ];
 
   return (
-    <ImperiumMetaHubOverviewClient
-      basePath={basePath}
-      planLabel={planLabel}
-      isDevOverride={isDevOverride}
-      isPreview={isPreview}
-      allowTemplates={allowTemplates}
-      allowSend={allowSend}
-      health={overview.health}
-      kpis={overview.kpis}
-      alerts={overview.alerts}
-      recentEvents={overview.recentEvents}
-      recentConversations={overview.recentConversations}
-      channels={channels}
-    />
+    <FeatureGate allowed={metaHubEntitlement.allowed}>
+      <ImperiumMetaHubOverviewClient
+        basePath={basePath}
+        planLabel={planLabel}
+        isDevOverride={isDevOverride}
+        isPreview={isPreview}
+        allowTemplates={allowTemplates}
+        allowSend={allowSend}
+        health={overview.health}
+        kpis={overview.kpis}
+        alerts={overview.alerts}
+        recentEvents={overview.recentEvents}
+        recentConversations={overview.recentConversations}
+        channels={channels}
+      />
+    </FeatureGate>
   );
 }

@@ -68,12 +68,15 @@ alter table public.gv_kb_chunks force row level security;
 alter table public.gv_kb_suggestions force row level security;
 
 -- Policies: sources
+drop policy if exists gv_kb_sources_service_role_full on public.gv_kb_sources;
 create policy gv_kb_sources_service_role_full on public.gv_kb_sources
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
+drop policy if exists gv_kb_sources_public_read on public.gv_kb_sources;
 create policy gv_kb_sources_public_read on public.gv_kb_sources
   for select using (workspace_id is null and is_public = true);
 
+drop policy if exists gv_kb_sources_member_read on public.gv_kb_sources;
 create policy gv_kb_sources_member_read on public.gv_kb_sources
   for select using (
     exists (
@@ -85,9 +88,11 @@ create policy gv_kb_sources_member_read on public.gv_kb_sources
   );
 
 -- Policies: chunks
+drop policy if exists gv_kb_chunks_service_role_full on public.gv_kb_chunks;
 create policy gv_kb_chunks_service_role_full on public.gv_kb_chunks
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
+drop policy if exists gv_kb_chunks_public_read on public.gv_kb_chunks;
 create policy gv_kb_chunks_public_read on public.gv_kb_chunks
   for select using (
     workspace_id is null and exists (
@@ -97,6 +102,7 @@ create policy gv_kb_chunks_public_read on public.gv_kb_chunks
     )
   );
 
+drop policy if exists gv_kb_chunks_member_read on public.gv_kb_chunks;
 create policy gv_kb_chunks_member_read on public.gv_kb_chunks
   for select using (
     exists (
@@ -108,13 +114,16 @@ create policy gv_kb_chunks_member_read on public.gv_kb_chunks
   );
 
 -- Policies: index runs (service role only)
+drop policy if exists gv_kb_index_runs_service_role_full on public.gv_kb_index_runs;
 create policy gv_kb_index_runs_service_role_full on public.gv_kb_index_runs
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
 -- Policies: suggestions
+drop policy if exists gv_kb_suggestions_service_role_full on public.gv_kb_suggestions;
 create policy gv_kb_suggestions_service_role_full on public.gv_kb_suggestions
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
+drop policy if exists gv_kb_suggestions_member_read on public.gv_kb_suggestions;
 create policy gv_kb_suggestions_member_read on public.gv_kb_suggestions
   for select using (
     workspace_id is null
@@ -126,6 +135,7 @@ create policy gv_kb_suggestions_member_read on public.gv_kb_suggestions
     )
   );
 
+drop policy if exists gv_kb_suggestions_member_insert on public.gv_kb_suggestions;
 create policy gv_kb_suggestions_member_insert on public.gv_kb_suggestions
   for insert with check (
     auth.role() = 'authenticated'

@@ -67,14 +67,14 @@ interface ImperiumInboxClientProps {
 
 export function ImperiumInboxClient({
   workspaceId,
-  workspaceSlug: _workspaceSlug,
+  // workspaceSlug - reserved for future routing
   userId,
   canEdit,
   allowWrite,
   connectionName,
   initialThreads,
   initialMessages,
-  initialTags: _initialTags,
+  // initialTags - reserved for tag filtering
   initialNotes,
   templates,
 }: ImperiumInboxClientProps) {

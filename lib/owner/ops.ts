@@ -1,0 +1,245 @@
+import "server-only";
+
+import { z } from "zod";
+import { recordOwnerAudit } from "@/lib/owner/audit";
+import { requireOwner } from "@/lib/owner/requireOwner";
+import { assertOwnerRateLimit } from "@/lib/owner/rate-limit";
+
+type OwnerOpResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+const entitlementSchema = z.object({
+  workspaceId: z.string().uuid(),
+  key: z.string().trim().min(2).max(120),
+  enabled: z.boolean(),
+  payload: z.unknown().optional(),
+  reason: z.string().trim().max(500).optional(),
+});
+
+const tokenSchema = z.object({
+  workspaceId: z.string().uuid(),
+  amount: z.number().int().min(1).max(1_000_000),
+  reason: z.string().trim().min(3).max(500),
+  ref_id: z.string().trim().max(200).optional(),
+});
+
+const workspaceIdSchema = z.string().uuid();
+
+export type WorkspaceEntitlementRow = {
+  workspace_id: string;
+  key: string;
+  enabled: boolean;
+  payload: unknown;
+  updated_at?: string | null;
+  updated_by?: string | null;
+};
+
+export async function setWorkspaceEntitlement(
+  input: unknown
+): Promise<OwnerOpResult<WorkspaceEntitlementRow>> {
+  const parsed = entitlementSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const owner = await requireOwner();
+  if (!owner.ok) return { ok: false, error: owner.reason };
+
+  try {
+    assertOwnerRateLimit(`${owner.user.id}:entitlement`);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("rate_limited:")) {
+      return { ok: false, error: "Too many owner actions. Please wait and retry." };
+    }
+    return { ok: false, error: "rate_limited" };
+  }
+
+  const { workspaceId, key, enabled, payload, reason } = parsed.data;
+  const { db, user, actorEmail, actorRole } = owner;
+
+  const { data: before } = await db
+    .from("workspace_entitlements")
+    .select("workspace_id, key, enabled, payload, updated_at, updated_by")
+    .eq("workspace_id", workspaceId)
+    .eq("key", key)
+    .maybeSingle();
+
+  const { data: after, error } = await db
+    .from("workspace_entitlements")
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        key,
+        enabled,
+        payload: payload ?? {},
+        updated_at: new Date().toISOString(),
+        updated_by: user.id,
+      },
+      { onConflict: "workspace_id,key" }
+    )
+    .select("workspace_id, key, enabled, payload, updated_at, updated_by")
+    .single();
+
+  if (error || !after) {
+    // Log structured error for debugging
+    console.error("[Owner Ops] setWorkspaceEntitlement failed:", {
+      action: "setWorkspaceEntitlement",
+      workspace_id: workspaceId,
+      key,
+      enabled,
+      payload: payload ?? {},
+      error: error
+        ? {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          }
+        : "no data returned",
+    });
+    const errorMessage = error?.message
+      ? `failed_to_set_entitlement: ${error.message}`
+      : "failed_to_set_entitlement: no data returned";
+    return { ok: false, error: errorMessage };
+  }
+
+  await recordOwnerAudit({
+    action: enabled ? "owner.entitlement.enabled" : "owner.entitlement.disabled",
+    actorUserId: user.id,
+    actorEmail,
+    actorRole,
+    workspaceId,
+    targetTable: "workspace_entitlements",
+    targetId: `${workspaceId}:${key}`,
+    before: before ?? null,
+    after,
+    meta: { key, reason: reason ?? null },
+  });
+
+  return { ok: true, data: after as WorkspaceEntitlementRow };
+}
+
+async function applyTokenDelta(
+  input: unknown,
+  deltaSign: 1 | -1,
+  refType: string
+): Promise<OwnerOpResult<{ applied: boolean; balance: number | null }>> {
+  const parsed = tokenSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const owner = await requireOwner();
+  if (!owner.ok) return { ok: false, error: owner.reason };
+
+  try {
+    assertOwnerRateLimit(`${owner.user.id}:tokens`);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("rate_limited:")) {
+      return { ok: false, error: "Too many owner actions. Please wait and retry." };
+    }
+    return { ok: false, error: "rate_limited" };
+  }
+
+  const { workspaceId, amount, reason, ref_id } = parsed.data;
+  const { db, user, actorEmail, actorRole } = owner;
+
+  const beforeBalance = await getWorkspaceTokenBalance(workspaceId);
+  const delta = deltaSign * amount;
+
+  const { data, error } = await db.rpc("apply_workspace_token_delta", {
+    p_workspace_id: workspaceId,
+    p_delta: delta,
+    p_reason: reason,
+    p_ref_type: refType,
+    p_ref_id: ref_id ?? null,
+    p_actor: user.id,
+  });
+
+  if (error) {
+    return { ok: false, error: error.message || "failed_to_apply_tokens" };
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+  const applied = Boolean(result?.applied ?? true);
+  const afterBalance =
+    typeof result?.balance === "number"
+      ? result.balance
+      : await getWorkspaceTokenBalance(workspaceId);
+
+  await recordOwnerAudit({
+    action: deltaSign > 0 ? "owner.tokens.granted" : "owner.tokens.deducted",
+    actorUserId: user.id,
+    actorEmail,
+    actorRole,
+    workspaceId,
+    targetTable: "workspace_token_ledger",
+    targetId: result?.ledger_id ?? null,
+    before: { balance: beforeBalance },
+    after: { balance: afterBalance, delta, applied },
+    meta: { reason, ref_id: ref_id ?? null, ref_type: refType },
+  });
+
+  return { ok: true, data: { applied, balance: afterBalance ?? null } };
+}
+
+export async function grantWorkspaceTokens(input: unknown) {
+  return applyTokenDelta(input, 1, "owner_grant");
+}
+
+export async function deductWorkspaceTokens(input: unknown) {
+  return applyTokenDelta(input, -1, "owner_deduct");
+}
+
+export async function getWorkspaceTokenBalance(
+  workspaceId: string
+): Promise<number | null> {
+  const parsed = workspaceIdSchema.safeParse(workspaceId);
+  if (!parsed.success) return null;
+
+  const owner = await requireOwner();
+  if (!owner.ok) return null;
+
+  const db = owner.db;
+  const { data, error } = await db
+    .from("workspace_token_balance")
+    .select("balance")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  if (!error && data?.balance !== undefined && data?.balance !== null) {
+    return Number(data.balance);
+  }
+
+  const { data: ledger, error: ledgerErr } = await db
+    .from("workspace_token_ledger")
+    .select("delta")
+    .eq("workspace_id", workspaceId);
+
+  if (ledgerErr) return null;
+  return (ledger ?? []).reduce((sum, row) => sum + Number(row.delta ?? 0), 0);
+}
+
+export async function getEntitlements(
+  workspaceId: string
+): Promise<OwnerOpResult<WorkspaceEntitlementRow[]>> {
+  const parsed = workspaceIdSchema.safeParse(workspaceId);
+  if (!parsed.success) {
+    return { ok: false, error: "invalid_workspace" };
+  }
+
+  const owner = await requireOwner();
+  if (!owner.ok) return { ok: false, error: owner.reason };
+
+  const db = owner.db;
+  const { data, error } = await db
+    .from("workspace_entitlements")
+    .select("workspace_id, key, enabled, payload, updated_at, updated_by")
+    .eq("workspace_id", workspaceId)
+    .order("key", { ascending: true });
+
+  if (error) {
+    return { ok: false, error: "failed_to_fetch_entitlements" };
+  }
+
+  return { ok: true, data: (data ?? []) as WorkspaceEntitlementRow[] };
+}

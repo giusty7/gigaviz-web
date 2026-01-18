@@ -34,17 +34,31 @@ export default async function BillingPage({
     new Set(planMeta.flatMap((p) => getPlanFeatures(p.plan_id)).concat(getPlanFeatures(planIdNormalized)))
   );
   const featureLabels: Record<FeatureKey, string> = {
+    // Base features
     dashboard_home: "Dashboard",
     account_settings: "Account settings",
     plan_comparison_view: "View plan comparison",
     billing_manage: "Manage billing",
     tokens_view: "View tokens",
+    // 10 Hubs
+    core_os: "Core OS",
+    meta_hub: "Meta Hub",
+    studio: "Studio",
     helper: "Helper AI",
     office: "Office docs",
+    marketplace: "Marketplace",
+    arena: "Arena",
+    pay: "Pay",
+    trade: "Trade",
+    community: "Community",
+    // Legacy/capabilities
     graph: "Graph data",
     tracks: "Tracks",
-    meta_hub: "Meta Hub",
+    inbox: "Inbox",
+    automation: "Automation",
+    studio_graph: "Studio graph",
     mass_blast: "Mass blast",
+    wa_blast: "WA blast",
     analytics: "Analytics",
     member_invites: "Invite members",
     roles_permissions: "Roles & permissions",
@@ -118,4 +132,3 @@ export default async function BillingPage({
     </div>
   );
 }
-

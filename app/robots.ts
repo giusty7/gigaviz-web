@@ -14,6 +14,8 @@ export default function robots(): MetadataRoute.Robots {
         "/onboarding",
         "/app/onboarding",
         "/app",
+        "/owner",
+        "/owner/",
       ],
     },
     sitemap: "https://gigaviz.com/sitemap.xml",

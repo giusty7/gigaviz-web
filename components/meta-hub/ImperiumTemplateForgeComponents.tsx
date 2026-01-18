@@ -455,6 +455,7 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
             {state.headerMediaUrl ? (
               <>
                 {state.headerType === "image" && (
+                  // eslint-disable-next-line @next/next/no-img-element -- dynamic template media preview
                   <img
                     src={state.headerMediaUrl}
                     alt="Header preview"
@@ -904,6 +905,7 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
                 <p className="mb-2 text-xs font-bold text-white">{state.headerText}</p>
               )}
               {state.headerType === "image" && state.headerMediaUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- dynamic template media preview
                 <img
                   src={state.headerMediaUrl}
                   alt="Header"
