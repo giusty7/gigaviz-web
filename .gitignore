@@ -46,3 +46,8 @@ data/
 
 # temporary webhook file
 echo tmp-webhook.json >> .gitignore
+
+# Supabase local backups / temp artifacts
+supabase/backups/
+supabase/.temp/
+**/backup-*.sql

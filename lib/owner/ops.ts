@@ -1,6 +1,7 @@
 import "server-only";
 
 import { z } from "zod";
+import { validatePayload } from "@/lib/entitlements/payload-spec";
 import { recordOwnerAudit } from "@/lib/owner/audit";
 import { requireOwner } from "@/lib/owner/requireOwner";
 import { assertOwnerRateLimit } from "@/lib/owner/rate-limit";
@@ -54,6 +55,18 @@ export async function setWorkspaceEntitlement(
   }
 
   const { workspaceId, key, enabled, payload, reason } = parsed.data;
+  let validatedPayload: unknown = {};
+  try {
+    validatedPayload = validatePayload(key, payload);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        ok: false,
+        error: error.issues[0]?.message ?? "Invalid entitlement payload",
+      };
+    }
+    return { ok: false, error: "Invalid entitlement payload" };
+  }
   const { db, user, actorEmail, actorRole } = owner;
 
   const { data: before } = await db
@@ -70,7 +83,7 @@ export async function setWorkspaceEntitlement(
         workspace_id: workspaceId,
         key,
         enabled,
-        payload: payload ?? {},
+        payload: validatedPayload,
         updated_at: new Date().toISOString(),
         updated_by: user.id,
       },
@@ -86,7 +99,7 @@ export async function setWorkspaceEntitlement(
       workspace_id: workspaceId,
       key,
       enabled,
-      payload: payload ?? {},
+      payload: JSON.stringify(validatedPayload),
       error: error
         ? {
             message: error.message,

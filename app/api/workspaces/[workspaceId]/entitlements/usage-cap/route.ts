@@ -65,6 +65,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
         workspace_id: workspaceId,
         key: "usage_cap_tokens",
         value: cap,
+        payload: {},
       },
       { onConflict: "workspace_id,key" }
     );

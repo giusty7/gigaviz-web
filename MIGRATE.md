@@ -93,6 +93,13 @@ Ensure these are set for production deployments:
 5. Click **Disable**, leave reason empty → should succeed.
 6. Click **Disable** again with a reason filled → should also succeed.
 
+### Entitlement Payload v1 (Owner Ops)
+1. Open `/owner/workspaces/<workspace_id>`.
+2. Enable `core_os` with an empty payload (leave payload editor empty) - should succeed and payload becomes `{}`.
+3. Edit payload to `{"plan":"pro"}` - should persist.
+4. Grant tokens `50000` with reason "For Meta Review" - balance updates and ledger entry created.
+5. Verify audit log entries for `owner.entitlement.enabled` and `owner.tokens.granted`.
+
 ## Known Schema Migrations
 
 ### 20260120_fix_entitlements_value_column.sql
@@ -120,4 +127,3 @@ npm run db:verify
 psql "$SUPABASE_DB_URL" -c "SELECT column_name, is_nullable FROM information_schema.columns WHERE table_name='workspace_entitlements' AND column_name='value';"
 # Should show: value | YES
 ```
-
