@@ -49,4 +49,9 @@ export const copy = {
   },
 };
 
+export const AUTH_DISCLAIMER_LINES = [
+  "Gigaviz is a Verified Technology Provider for solutions built on the WhatsApp Business Platform (Cloud API).",
+  "WhatsApp and Meta are trademarks of Meta Platforms, Inc.",
+] as const;
+
 export type Copy = typeof copy;

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { AuthLayout } from "@/components/layout/auth-layout";
+import { AUTH_DISCLAIMER_LINES } from "@/lib/copy";
 import { supabaseServer } from "@/lib/supabase/server";
 import LoginForm from "./login-form";
 import { loginAction } from "./actions";
@@ -43,10 +44,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <AuthLayout
       title="Enter the Imperium"
       description="Your single gateway to 10 interconnected digital powerhouses."
+      disclaimerLines={AUTH_DISCLAIMER_LINES}
     >
       <LoginForm nextSafe={nextSafe} loginAction={loginAction} />
     </AuthLayout>
   );
 }
-
 

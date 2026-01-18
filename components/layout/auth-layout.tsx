@@ -6,6 +6,7 @@ type AuthLayoutProps = {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  disclaimerLines?: readonly [string, string];
   /** Show the Technology Provider trust badge */
   showTrustBadge?: boolean;
   /** Show the 10-pillar ecosystem grid */

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { AUTH_DISCLAIMER_LINES } from "@/lib/copy";
 import { AuthTrustBadge } from "./auth-trust-badge";
 import { PillarGrid } from "./pillar-grid";
 
@@ -11,6 +12,7 @@ type AuthLayoutProps = {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  disclaimerLines?: readonly [string, string];
   /** Show the Technology Provider trust badge */
   showTrustBadge?: boolean;
   /** Show the 10-pillar ecosystem grid */
@@ -47,9 +49,12 @@ export function AuthLayoutClient({
   description,
   children,
   footer,
+  disclaimerLines = AUTH_DISCLAIMER_LINES,
   showTrustBadge = true,
   showPillarGrid = true,
 }: AuthLayoutProps) {
+  const [disclaimerLine1, disclaimerLine2] = disclaimerLines;
+
   return (
     <div className="auth-layout min-h-screen bg-[#050a18] text-[#f5f5dc]">
       {/* Animated Constellation Background */}
@@ -156,9 +161,9 @@ export function AuthLayoutClient({
                 {/* Legal disclaimer */}
                 <div className="space-y-3 border-t border-[#d4af37]/20 pt-4 text-center text-[10px] leading-relaxed text-[#f5f5dc]/40">
                   <p>
-                    Gigaviz is an independent solution provider.
+                    {disclaimerLine1}
                     <br />
-                    WhatsApp and Meta are trademarks of Meta Platforms, Inc.
+                    {disclaimerLine2}
                   </p>
                   <div className="flex items-center justify-center gap-3">
                     <Link

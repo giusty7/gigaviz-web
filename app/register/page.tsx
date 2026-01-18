@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { AuthLayout } from "@/components/layout/auth-layout";
+import { AUTH_DISCLAIMER_LINES } from "@/lib/copy";
 import { supabaseServer } from "@/lib/supabase/server";
 import RegisterForm from "./register-form";
 
@@ -25,6 +26,7 @@ export default async function RegisterPage() {
     <AuthLayout
       title="Enter the Imperium"
       description="Your single gateway to 10 interconnected digital powerhouses."
+      disclaimerLines={AUTH_DISCLAIMER_LINES}
     >
       <RegisterForm />
     </AuthLayout>
