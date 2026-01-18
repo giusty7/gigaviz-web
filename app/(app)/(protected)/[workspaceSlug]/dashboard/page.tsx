@@ -3,16 +3,15 @@ import { redirect } from "next/navigation";
 import SetPasswordModal from "@/components/auth/SetPasswordModal";
 import PlanCard from "@/components/app/PlanCard";
 import TokenCard from "@/components/app/TokenCard";
-import { type ModuleStatus } from "@/components/app/ModuleGrid";
+import type { ModuleItem } from "@/components/app/ModuleGrid";
 import ComparePlans from "@/components/app/ComparePlans";
 import AdminPanel from "@/components/app/AdminPanel";
 import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
-import QuickAccessSection from "@/components/app/QuickAccessSection";
 import { DashboardWidgetsSection } from "@/components/app/dashboard-widgets";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { topLevelModules } from "@/lib/modules/catalog";
-import { canAccess, getPlanMeta, planMeta } from "@/lib/entitlements";
+import { getPlanMeta, planMeta } from "@/lib/entitlements";
+import { buildModuleRegistry } from "@/lib/modules/registry";
 import { getWallet } from "@/lib/tokens";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
@@ -47,6 +46,12 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   const isAdmin = Boolean(ctx.profile?.is_admin);
   const userEmail = ctx.user.email ?? "";
 
+  const moduleRegistry = buildModuleRegistry({
+    workspaceSlug: workspace.slug,
+    planId: plan.plan_id,
+    isAdmin,
+  });
+
   const wallet = await getWallet(ctx.currentWorkspace.id);
   const balance = Number(wallet.balance_bigint ?? 0);
 
@@ -59,32 +64,14 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
   const createdAtLabel = new Date(workspace.created_at).toLocaleDateString();
   const basePath = `/${workspace.slug}`;
 
-  const moduleCards = topLevelModules.map((module) => {
-    const comingSoon = module.status === "coming";
-    const canUse =
-      !comingSoon &&
-      (!module.requiresEntitlement ||
-        canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement));
-    const status: ModuleStatus = comingSoon
-      ? "coming_soon"
-      : canUse
-        ? "available"
-        : "locked";
-
-    const href = !comingSoon
-      ? (module.hrefApp
-          ? module.hrefApp.replace("[workspaceSlug]", workspace.slug)
-          : `${basePath}/modules/${module.slug}`)
-      : undefined;
-
-    return {
-      key: module.key,
-      name: module.name,
-      description: module.short || module.description,
-      status,
-      href,
-    };
-  });
+  const moduleCards: ModuleItem[] = moduleRegistry.map((module) => ({
+    key: module.key,
+    slug: module.slug,
+    name: module.name,
+    description: module.description,
+    status: module.status,
+    href: module.href,
+  }));
 
   return (
     <div className="relative space-y-8">
@@ -94,9 +81,12 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
       <SetPasswordModal />
       
       {/* Premium Imperium Dashboard Widgets */}
-      <DashboardWidgetsSection workspaceSlug={workspace.slug} />
+      <DashboardWidgetsSection
+        workspaceSlug={workspace.slug}
+        workspaceId={workspace.id}
+        modules={moduleRegistry}
+      />
       
-      <QuickAccessSection workspaceId={workspace.id} modules={moduleCards} />
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
           <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.08) 0%, transparent 50%)" }} aria-hidden />
@@ -265,4 +255,3 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     </div>
   );
 }
-

@@ -9,6 +9,7 @@ export type ModuleStatus = "available" | "locked" | "coming_soon" | "setup_requi
 
 export type ModuleItem = {
   key: string;
+  slug?: string;
   name: string;
   description: string;
   status: ModuleStatus;

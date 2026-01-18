@@ -1,9 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Wifi, Bot, CreditCard, AlertCircle } from "lucide-react";
+import type { ModuleRegistryItem } from "@/lib/modules/registry";
 
-type ConnectionStatus = "connected" | "active" | "setup_needed" | "offline";
+type ConnectionStatus = "active" | "locked" | "coming_soon";
 
 type ServiceItem = {
   name: string;
@@ -12,19 +14,33 @@ type ServiceItem = {
 };
 
 const statusConfig: Record<ConnectionStatus, { label: string; color: string; pulse: boolean }> = {
-  connected: { label: "Connected", color: "#10b981", pulse: true },
   active: { label: "Active", color: "#10b981", pulse: true },
-  setup_needed: { label: "Setup Needed", color: "#d4af37", pulse: false },
-  offline: { label: "Offline", color: "#6b7280", pulse: false },
+  locked: { label: "Locked", color: "#d4af37", pulse: false },
+  coming_soon: { label: "Planned", color: "#6b7280", pulse: false },
 };
 
-const services: ServiceItem[] = [
-  { name: "Meta Hub", status: "connected", icon: <Wifi className="h-4 w-4" /> },
-  { name: "Helper AI", status: "active", icon: <Bot className="h-4 w-4" /> },
-  { name: "Pay", status: "setup_needed", icon: <CreditCard className="h-4 w-4" /> },
+const serviceKeyMap = [
+  { key: "meta_hub", label: "Meta Hub", icon: <Wifi className="h-4 w-4" /> },
+  { key: "helper", label: "Helper AI", icon: <Bot className="h-4 w-4" /> },
+  { key: "pay", label: "Pay", icon: <CreditCard className="h-4 w-4" /> },
 ];
 
-export function EcosystemHealthWidget() {
+type EcosystemHealthWidgetProps = {
+  modules: ModuleRegistryItem[];
+};
+
+export function EcosystemHealthWidget({ modules }: EcosystemHealthWidgetProps) {
+  const services = useMemo<ServiceItem[]>(
+    () =>
+      serviceKeyMap.map((item) => {
+        const mod = modules.find((module) => module.key === item.key);
+        const status: ConnectionStatus =
+          mod?.status === "available" ? "active" : mod?.status === "locked" ? "locked" : "coming_soon";
+        return { name: mod?.name ?? item.label, status, icon: item.icon };
+      }),
+    [modules]
+  );
+
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl">
       {/* Subtle gradient overlay */}

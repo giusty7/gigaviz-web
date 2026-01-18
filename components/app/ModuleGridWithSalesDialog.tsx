@@ -33,7 +33,7 @@ export default function ModuleGridWithSalesDialog(props: ModuleGridWithSalesDial
             <ModuleGrid
               modules={modules}
               onUnlock={(module) => openSalesDialog(module.planId)}
-              onNotify={(module) => openNotify(module.key, module.name)}
+              onNotify={(module) => openNotify(module.slug ?? module.key, module.name)}
             />
           )}
         </ContactSalesDialog>

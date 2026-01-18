@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
-  moduleKey: z.string().min(1),
+  moduleSlug: z.string().min(1),
   notes: z.string().max(2000).optional().nullable(),
 });
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId: bodyWorkspaceId, moduleKey, notes } = parsed.data;
+  const { workspaceId: bodyWorkspaceId, moduleSlug, notes } = parsed.data;
   if (bodyWorkspaceId !== workspaceId) {
     return withCookies(
       NextResponse.json({ error: "workspace_mismatch", reason: "workspace_mismatch" }, { status: 400 })
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const { error } = await db.from("feature_interest").insert({
     workspace_id: workspaceId,
     user_id: user.id,
-    module_key: moduleKey,
+    module_slug: moduleSlug,
     notes: notes?.trim() || null,
   });
 
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     actorUserId: user.id,
     actorEmail: user.email,
     action: "feature.interest",
-    meta: { moduleKey },
+    meta: { moduleSlug },
   }).catch(() => null);
 
   return withCookies(NextResponse.json({ ok: true }));

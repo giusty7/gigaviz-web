@@ -1,43 +1,31 @@
 "use client";
 
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Fuel, MessageSquare, Bot, Cloud } from "lucide-react";
 
 type ResourceData = {
   name: string;
   icon: React.ReactNode;
-  used: number;
-  total: number;
+  used: number | null;
+  total: number | null;
   unit: string;
   gradient: { start: string; end: string };
 };
 
-const resources: ResourceData[] = [
-  {
-    name: "WA Quota",
-    icon: <MessageSquare className="h-4 w-4" />,
-    used: 847,
-    total: 1000,
-    unit: "msgs",
-    gradient: { start: "#d4af37", end: "#f9d976" },
-  },
-  {
-    name: "AI Tokens",
-    icon: <Bot className="h-4 w-4" />,
-    used: 12500,
-    total: 50000,
-    unit: "tokens",
-    gradient: { start: "#e11d48", end: "#f43f5e" },
-  },
-  {
-    name: "Cloud Storage",
-    icon: <Cloud className="h-4 w-4" />,
-    used: 2.4,
-    total: 5,
-    unit: "GB",
-    gradient: { start: "#d4af37", end: "#e11d48" },
-  },
-];
+type TokenOverviewResponse = {
+  overview?: {
+    used?: number;
+    cap?: number | null;
+  };
+};
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+function formatNumber(value: number) {
+  return numberFormatter.format(value);
+}
 
 function CircularProgress({
   percentage,
@@ -91,7 +79,59 @@ function CircularProgress({
   );
 }
 
-export function ResourceFuelWidget() {
+type ResourceFuelWidgetProps = {
+  workspaceId: string;
+};
+
+export function ResourceFuelWidget({ workspaceId }: ResourceFuelWidgetProps) {
+  const { data, isLoading } = useQuery<TokenOverviewResponse>({
+    queryKey: ["token-overview", workspaceId],
+    queryFn: async () => {
+      const res = await fetch(`/api/tokens/overview?workspaceId=${workspaceId}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error("token_overview_failed");
+      }
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+
+  const resources = useMemo<ResourceData[]>(() => {
+    const usedRaw = data?.overview?.used;
+    const capRaw = data?.overview?.cap;
+    const used = typeof usedRaw === "number" && Number.isFinite(usedRaw) ? usedRaw : null;
+    const cap = typeof capRaw === "number" && Number.isFinite(capRaw) ? capRaw : null;
+
+    return [
+      {
+        name: "WA Quota",
+        icon: <MessageSquare className="h-4 w-4" />,
+        used: null,
+        total: null,
+        unit: "msgs",
+        gradient: { start: "#d4af37", end: "#f9d976" },
+      },
+      {
+        name: "AI Tokens",
+        icon: <Bot className="h-4 w-4" />,
+        used,
+        total: cap,
+        unit: "tokens",
+        gradient: { start: "#e11d48", end: "#f43f5e" },
+      },
+      {
+        name: "Cloud Storage",
+        icon: <Cloud className="h-4 w-4" />,
+        used: null,
+        total: null,
+        unit: "GB",
+        gradient: { start: "#d4af37", end: "#e11d48" },
+      },
+    ];
+  }, [data?.overview?.cap, data?.overview?.used]);
+
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl">
       {/* Subtle gradient overlay */}
@@ -111,7 +151,18 @@ export function ResourceFuelWidget() {
 
         <div className="mt-5 flex items-center justify-around gap-2">
           {resources.map((resource, index) => {
-            const percentage = Math.round((resource.used / resource.total) * 100);
+            const percentage =
+              resource.used !== null && resource.total !== null && resource.total > 0
+                ? Math.round((resource.used / resource.total) * 100)
+                : 0;
+            const usageLabel =
+              isLoading && resource.name === "AI Tokens"
+                ? "Loading..."
+                : resource.used === null
+                  ? "No data yet"
+                  : resource.total === null || resource.total === 0
+                    ? `${formatNumber(resource.used)} ${resource.unit}`
+                    : `${formatNumber(resource.used)}/${formatNumber(resource.total)} ${resource.unit}`;
             return (
               <motion.div
                 key={resource.name}
@@ -129,7 +180,7 @@ export function ResourceFuelWidget() {
                 <div className="text-center">
                   <p className="text-xs font-medium text-[#f5f5dc]">{resource.name}</p>
                   <p className="mt-0.5 text-[10px] text-[#f5f5dc]/50">
-                    {resource.used.toLocaleString()}/{resource.total.toLocaleString()} {resource.unit}
+                    {usageLabel}
                   </p>
                 </div>
               </motion.div>

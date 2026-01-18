@@ -17,27 +17,27 @@ import { useToast } from "@/components/ui/use-toast";
 
 export type FeatureInterestDialogProps = {
   workspaceId: string;
-  children?: (openDialog: (moduleKey: string, moduleName?: string) => void) => ReactNode;
+  children?: (openDialog: (moduleSlug: string, moduleName?: string) => void) => ReactNode;
 };
 
 export default function FeatureInterestDialog({ workspaceId, children }: FeatureInterestDialogProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [moduleKey, setModuleKey] = useState<string>("");
+  const [moduleSlug, setModuleSlug] = useState<string>("");
   const [moduleName, setModuleName] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const openDialog = useCallback((key: string, name?: string) => {
-    setModuleKey(key);
-    setModuleName(name ?? key);
+  const openDialog = useCallback((slug: string, name?: string) => {
+    setModuleSlug(slug);
+    setModuleName(name ?? slug);
     setOpen(true);
   }, []);
 
   const title = useMemo(() => (moduleName ? `Notify me: ${moduleName}` : "Notify me"), [moduleName]);
 
   const handleSubmit = useCallback(async () => {
-    if (!moduleKey) {
+    if (!moduleSlug) {
       toast({ title: "Module required", description: "Pick a module to subscribe to updates." });
       return;
     }
@@ -49,7 +49,7 @@ export default function FeatureInterestDialog({ workspaceId, children }: Feature
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspaceId,
-          moduleKey,
+          moduleSlug,
           notes: notes.trim() || null,
         }),
       });
@@ -67,7 +67,7 @@ export default function FeatureInterestDialog({ workspaceId, children }: Feature
     } finally {
       setSubmitting(false);
     }
-  }, [moduleKey, notes, toast, workspaceId]);
+  }, [moduleSlug, notes, toast, workspaceId]);
 
   return (
     <>
@@ -84,7 +84,7 @@ export default function FeatureInterestDialog({ workspaceId, children }: Feature
 
           <div className="space-y-3">
             <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              Module: {moduleName || moduleKey}
+              Module: {moduleName || moduleSlug}
             </div>
             <div className="space-y-2">
               <Label htmlFor="fi-notes">Notes (optional)</Label>

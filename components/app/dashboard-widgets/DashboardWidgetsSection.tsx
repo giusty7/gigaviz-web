@@ -1,5 +1,6 @@
 "use client";
 
+import type { ModuleRegistryItem } from "@/lib/modules/registry";
 import { EcosystemHealthWidget } from "./EcosystemHealthWidget";
 import { PerformanceMetricsWidget } from "./PerformanceMetricsWidget";
 import { ResourceFuelWidget } from "./ResourceFuelWidget";
@@ -8,9 +9,15 @@ import { QuickLaunchGrid } from "./QuickLaunchGrid";
 
 type DashboardWidgetsSectionProps = {
   workspaceSlug: string;
+  workspaceId: string;
+  modules: ModuleRegistryItem[];
 };
 
-export function DashboardWidgetsSection({ workspaceSlug }: DashboardWidgetsSectionProps) {
+export function DashboardWidgetsSection({
+  workspaceSlug,
+  workspaceId,
+  modules,
+}: DashboardWidgetsSectionProps) {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold text-[#f5f5dc]">Imperium Overview</h2>
@@ -24,22 +31,26 @@ export function DashboardWidgetsSection({ workspaceSlug }: DashboardWidgetsSecti
         
         {/* Ecosystem Health - Small */}
         <div className="lg:col-span-1">
-          <EcosystemHealthWidget />
+          <EcosystemHealthWidget modules={modules} />
         </div>
         
         {/* Resource Fuel - Medium */}
         <div className="md:col-span-1">
-          <ResourceFuelWidget />
+          <ResourceFuelWidget workspaceId={workspaceId} />
         </div>
         
         {/* AI Assistant Feed - Medium */}
         <div className="md:col-span-1">
-          <AIAssistantFeedWidget />
+          <AIAssistantFeedWidget workspaceId={workspaceId} />
         </div>
         
         {/* Quick Launch Grid - Spans full width on mobile, 1 col on lg */}
         <div className="lg:col-span-1">
-          <QuickLaunchGrid workspaceSlug={workspaceSlug} />
+          <QuickLaunchGrid
+            workspaceSlug={workspaceSlug}
+            workspaceId={workspaceId}
+            modules={modules}
+          />
         </div>
       </div>
     </section>
