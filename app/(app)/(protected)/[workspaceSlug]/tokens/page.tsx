@@ -48,10 +48,7 @@ export default async function TokensPage({ params }: TokensPageProps) {
       <section className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
         {/* Gold gradient overlay */}
         <div
-          className="pointer-events-none absolute inset-0 rounded-2xl"
-          style={{
-            background: "radial-gradient(ellipse at bottom left, rgba(212, 175, 55, 0.06) 0%, transparent 50%)",
-          }}
+          className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-bl-soft"
           aria-hidden
         />
         <div className="relative">

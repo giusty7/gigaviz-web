@@ -7,7 +7,7 @@ import {
   toggleFeatureFlagAction,
   unsuspendWorkspaceAction,
   upsertFeatureFlagAction,
-} from "@/app/owner/actions";
+} from "@/app/ops/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

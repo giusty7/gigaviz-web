@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Plus, ChevronLeft, ChevronRight, X, Loader2, Send, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -119,6 +120,8 @@ export function ImperiumTemplateForgeClient({
     return active?.id ?? connections[0]?.id ?? "";
   });
   const activeConnection = connections.find((c) => c.id === connectionId) ?? null;
+  const hasConnection = Boolean(activeConnection);
+  const connectHref = `/${workspaceSlug}/meta-hub/connections`;
 
   // Templates state
   const [templates, setTemplates] = useState<TemplateRow[]>(initialTemplates);
@@ -394,8 +397,27 @@ export function ImperiumTemplateForgeClient({
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
-          <ForgeHeader onSync={handleSync} syncing={syncing} />
+          <ForgeHeader onSync={hasConnection ? handleSync : undefined} syncing={syncing} />
         </motion.div>
+
+        {!hasConnection && (
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col gap-4 rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6"
+          >
+            <div>
+              <p className="text-sm font-semibold text-[#f5f5dc]">No WhatsApp connection</p>
+              <p className="mt-1 text-sm text-[#f5f5dc]/60">
+                Connect a WhatsApp phone number to sync and manage templates.
+              </p>
+            </div>
+            <Link href={connectHref} className="w-fit">
+              <Button className="bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:from-[#f9d976] hover:to-[#d4af37]">
+                Connect WhatsApp
+              </Button>
+            </Link>
+          </motion.div>
+        )}
 
         {/* Connection Selector + Search */}
         <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
@@ -403,6 +425,7 @@ export function ImperiumTemplateForgeClient({
             <select
               value={connectionId}
               onChange={(e) => setConnectionId(e.target.value)}
+              title="Select connection"
               className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-2.5 text-sm text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
             >
               {connections.map((c) => (
@@ -417,11 +440,13 @@ export function ImperiumTemplateForgeClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search templates..."
-            className="flex-1 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
+            disabled={!hasConnection}
+            className="flex-1 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 disabled:opacity-60"
           />
           {canEdit && (
             <Button
               onClick={openWizard}
+              disabled={!hasConnection}
               className="gap-2 bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:from-[#f9d976] hover:to-[#d4af37]"
             >
               <Plus className="h-4 w-4" />
@@ -488,6 +513,7 @@ export function ImperiumTemplateForgeClient({
                   </div>
                   <button
                     onClick={closeWizard}
+                    title="Close wizard"
                     className="rounded-full p-2 text-[#f5f5dc]/40 hover:bg-[#e11d48]/20 hover:text-[#e11d48]"
                   >
                     <X className="h-5 w-5" />
@@ -593,6 +619,7 @@ export function ImperiumTemplateForgeClient({
                 ) : (
                   <button
                     onClick={() => setPreviewExpanded(true)}
+                    title="Expand preview"
                     className="flex h-full items-center justify-center"
                   >
                     <Eye className="h-5 w-5 text-[#d4af37]" />

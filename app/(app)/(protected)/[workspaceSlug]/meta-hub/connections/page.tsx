@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ImperiumConnectionsClient } from "@/components/meta-hub/ImperiumConnectionsClient";
 import { getAppContext } from "@/lib/app-context";
+import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type Props = {
@@ -15,6 +16,14 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
 
   const workspaceId = ctx.currentWorkspace.id;
   const canEdit = ["owner", "admin"].includes(ctx.currentRole ?? "");
+  const devEmails = (process.env.DEV_FULL_ACCESS_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  const isDevOverride = devEmails.includes((ctx.user.email || "").toLowerCase());
+  const isAdminOverride = Boolean(ctx.profile?.is_admin) || isDevOverride;
+  const canTest = canEdit || isAdminOverride;
+  const envStatus = getMetaHubTestEnvStatus();
 
   const db = supabaseAdmin();
   const { data: phone } = await db
@@ -53,6 +62,8 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
         wabaId: phone.waba_id,
         displayName: phone.display_name,
         status: phone.status,
+        lastTestedAt: phone.last_tested_at,
+        lastTestResult: phone.last_test_result,
       }
     : null;
 
@@ -60,17 +71,22 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     type: e.event_type ?? "unknown",
     timestamp: e.received_at ?? new Date().toISOString(),
   }));
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gigaviz.id";
+  const webhookUrl = `${baseUrl}/api/webhooks/meta/whatsapp`;
 
   return (
     <ImperiumConnectionsClient
       workspaceId={workspaceId}
       workspaceSlug={workspaceSlug}
       canEdit={canEdit}
+      canTest={canTest}
       connection={connection}
       tokenSet={tokenSet}
       recentEvents={recentEvents}
       eventsLast24h={eventsLast24h ?? 0}
+      webhookUrl={webhookUrl}
+      connectionTestEnvMissing={envStatus.connectionTestMissing}
+      webhookTestEnvMissing={envStatus.webhookPingMissing}
     />
   );
 }
-

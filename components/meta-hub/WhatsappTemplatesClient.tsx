@@ -817,6 +817,7 @@ export function WhatsappTemplatesClient({
                     className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
                     value={connectionId}
                     onChange={(e) => setConnectionId(e.target.value)}
+                    title="Select connection"
                   >
                     {connections.map((conn) => (
                       <option key={conn.id} value={conn.id}>
@@ -1121,6 +1122,7 @@ export function WhatsappTemplatesClient({
                   checked={sandboxEnabled}
                   disabled={!canEdit}
                   onChange={(e) => setSandboxEnabled(e.target.checked)}
+                  title="Toggle sandbox mode"
                 />
                 <p className="text-xs text-muted-foreground">When enabled, send tests only to whitelisted numbers.</p>
               </div>
@@ -1193,6 +1195,7 @@ export function WhatsappTemplatesClient({
                   <select
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     value={wizardState.category}
+                    title="Select template category"
                     onChange={(e) =>
                       setWizardState({
                         ...wizardState,
@@ -1225,6 +1228,7 @@ export function WhatsappTemplatesClient({
                         headerEnabled: e.target.value === "text",
                       })
                     }
+                    title="Select header type"
                   >
                     <option value="none">None</option>
                     <option value="text">Text</option>
@@ -1308,6 +1312,7 @@ export function WhatsappTemplatesClient({
                                 return { ...prev, buttons: next };
                               });
                             }}
+                            title="Select button type"
                           >
                             <option value="QUICK_REPLY">Quick Reply</option>
                             <option value="URL">URL</option>

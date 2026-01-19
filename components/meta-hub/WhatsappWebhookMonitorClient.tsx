@@ -403,6 +403,7 @@ export function WhatsappWebhookMonitorClient({
                 className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1 text-sm"
                 value={autoRefreshInterval}
                 onChange={(e) => setAutoRefreshInterval(Number(e.target.value))}
+                title="Select auto refresh interval"
               >
                 {AUTO_REFRESH_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -462,6 +463,7 @@ export function WhatsappWebhookMonitorClient({
               className="rounded-lg border border-border bg-background px-3 py-1.5"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              title="Filter by status"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -473,6 +475,7 @@ export function WhatsappWebhookMonitorClient({
               className="rounded-lg border border-border bg-background px-3 py-1.5"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
+              title="Filter by event type"
             >
               <option value="">All types</option>
               {eventTypes.map((t) => (

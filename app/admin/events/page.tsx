@@ -131,6 +131,7 @@ export default function MetaEventsPage() {
           <select
             value={eventName}
             onChange={(e) => setEventName(e.target.value as (typeof EVENT_OPTIONS)[number])}
+            title="Select event type"
             className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
           >
             {EVENT_OPTIONS.map((e) => (

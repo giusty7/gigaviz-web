@@ -226,7 +226,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
           const Icon = card.icon;
           return (
             <div key={card.title} className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl transition-all hover:border-[#d4af37]/40">
-              <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.06) 0%, transparent 50%)" }} aria-hidden />
+              <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-tr-soft" aria-hidden />
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/50">{card.title}</p>
@@ -243,7 +243,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
       </div>
 
       <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
-        <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at bottom left, rgba(225, 29, 72, 0.05) 0%, transparent 50%)" }} aria-hidden />
+        <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-magenta-bl-soft" aria-hidden />
         <div className="relative">
           <div className="flex flex-col gap-3 mb-5 md:flex-row md:items-center md:justify-between">
             <div>

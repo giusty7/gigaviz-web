@@ -69,7 +69,14 @@ export default async function BillingPage({
     meta_webhooks: "Meta webhooks",
   };
   const available = (key: FeatureKey) =>
-    canAccess({ plan_id: planIdNormalized, is_admin: ctx.profile?.is_admin }, key);
+    canAccess(
+      {
+        plan_id: planIdNormalized,
+        is_admin: ctx.profile?.is_admin,
+        effectiveEntitlements: ctx.effectiveEntitlements,
+      },
+      key
+    );
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_noStore } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
   getPlanFeatures,
@@ -57,6 +58,7 @@ function buildBaseFeatures(planId: PlanId) {
 }
 
 export async function getWorkspaceEntitlements(workspaceId: string): Promise<WorkspaceEntitlements> {
+  unstable_noStore();
   const db = supabaseAdmin();
 
   const { data: subscription } = await db
@@ -72,21 +74,31 @@ export async function getWorkspaceEntitlements(workspaceId: string): Promise<Wor
 
   const { data: overrides, error } = await db
     .from("workspace_entitlements")
-    .select("key, enabled, payload")
+    .select("key, enabled, payload, expires_at")
     .eq("workspace_id", workspaceId);
 
   if (!error) {
+    const now = Date.now();
     (overrides ?? []).forEach(
-      (row: { key: string; enabled?: boolean | null; payload?: unknown }) => {
+      (row: {
+        key: string;
+        enabled?: boolean | null;
+        payload?: unknown;
+        expires_at?: string | null;
+      }) => {
         if (!row || typeof row.key !== "string") return;
         const key = row.key as FeatureKey;
         const enabled = row.enabled ?? false;
         const payload = row.payload ?? {};
+        const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : null;
+        const isActive = enabled && (!expiresAt || expiresAt > now);
 
         if ((featureUniverse as string[]).includes(key)) {
-          features[key] = enabled;
-          payloads[key] = payload;
-          limits[key] = payload;
+          if (isActive) {
+            features[key] = true;
+            payloads[key] = payload;
+            limits[key] = payload;
+          }
           return;
         }
 

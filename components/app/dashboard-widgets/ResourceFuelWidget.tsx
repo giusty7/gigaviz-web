@@ -136,10 +136,7 @@ export function ResourceFuelWidget({ workspaceId }: ResourceFuelWidgetProps) {
     <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl">
       {/* Subtle gradient overlay */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-2xl"
-        style={{
-          background: "radial-gradient(ellipse at center, rgba(212, 175, 55, 0.04) 0%, transparent 60%)",
-        }}
+        className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-center-soft"
         aria-hidden
       />
 

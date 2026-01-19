@@ -97,10 +97,7 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
       >
         {/* Gold gradient overlay */}
         <div
-          className="pointer-events-none absolute inset-0 rounded-2xl"
-          style={{
-            background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.1) 0%, transparent 50%)",
-          }}
+          className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-tr-10"
           aria-hidden
         />
         

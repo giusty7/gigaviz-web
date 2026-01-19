@@ -109,6 +109,7 @@ export default function AdminPanel({
           <select
             className="rounded-xl border border-amber-400/30 bg-black/30 px-3 py-2 text-sm text-amber-50"
             value={planId}
+            title="Select plan"
             onChange={(e) => setPlanId(e.target.value as PlanId)}
           >
             {planMeta.map((plan) => (

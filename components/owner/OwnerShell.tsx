@@ -20,10 +20,10 @@ type OwnerShellProps = {
 };
 
 const NAV_ITEMS = [
-  { label: "Overview", href: "/owner", icon: LayoutDashboard },
-  { label: "Workspaces", href: "/owner/workspaces", icon: Building2 },
-  { label: "Audit", href: "/owner/audit", icon: ScrollText },
-  { label: "Health", href: "/owner/health", icon: HeartPulse },
+  { label: "Platform Admin", href: "/ops/platform-admin", icon: LayoutDashboard },
+  { label: "Workspaces", href: "/ops/workspaces", icon: Building2 },
+  { label: "Audit", href: "/ops/audit", icon: ScrollText },
+  { label: "Health", href: "/ops/health", icon: HeartPulse },
 ];
 
 export function OwnerShell({ children, actorEmail, actorRole }: OwnerShellProps) {
@@ -35,11 +35,11 @@ export function OwnerShell({ children, actorEmail, actorRole }: OwnerShellProps)
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card/80 px-4 py-4 shadow-sm backdrop-blur">
           <div className="space-y-1">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              Owner / Internal Ops
+              Platform Admin / Internal Ops
             </p>
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-foreground" />
-              <h1 className="text-xl font-semibold leading-tight">Owner Console</h1>
+              <h1 className="text-xl font-semibold leading-tight">Ops Console</h1>
             </div>
             <p className="text-sm text-muted-foreground">
               Oversight for workspaces, flags, and operational health.
@@ -59,7 +59,8 @@ export function OwnerShell({ children, actorEmail, actorRole }: OwnerShellProps)
         <nav className="flex gap-2 overflow-x-auto pb-1">
           {NAV_ITEMS.map((item) => {
             const active =
-              pathname === item.href || (item.href !== "/owner" && pathname.startsWith(item.href));
+              pathname === item.href ||
+              (item.href !== "/ops/platform-admin" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}

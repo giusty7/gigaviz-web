@@ -51,3 +51,6 @@ echo tmp-webhook.json >> .gitignore
 supabase/backups/
 supabase/.temp/
 **/backup-*.sql
+
+# local
+.vscode/

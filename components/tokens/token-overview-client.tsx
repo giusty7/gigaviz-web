@@ -140,6 +140,7 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
+            title="Select month for token usage"
             className="rounded-xl border border-border/80 bg-card px-3 py-2 text-sm text-foreground shadow-inner"
           >
             {options.map((opt) => (

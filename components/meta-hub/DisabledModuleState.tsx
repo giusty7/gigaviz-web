@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import FeatureInterestDialog from "@/components/app/FeatureInterestDialog";
 import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 
 type Props = {
   title: string;
   description: string;
+  workspaceId?: string;
+  moduleSlug?: string;
+  moduleName?: string;
+  badgeStatus?: "live" | "beta" | "soon" | "locked";
   ctaLabel?: string;
   ctaHref?: string;
 };
@@ -13,20 +18,40 @@ type Props = {
 export function DisabledModuleState({
   title,
   description,
-  ctaLabel = "Contact Sales",
+  workspaceId,
+  moduleSlug,
+  moduleName,
+  badgeStatus = "soon",
+  ctaLabel = "Notify me",
   ctaHref = "/contact",
 }: Props) {
+  const showNotify = Boolean(workspaceId && moduleSlug);
+
   return (
     <div className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6">
-      <MetaHubBadge status="soon" />
+      <MetaHubBadge status={badgeStatus} />
       <h2 className="text-xl font-semibold text-foreground">{title}</h2>
       <p className="text-sm text-muted-foreground">{description}</p>
-      <Link
-        href={ctaHref}
-        className="mt-2 inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
-      >
-        {ctaLabel}
-      </Link>
+      {showNotify ? (
+        <FeatureInterestDialog workspaceId={workspaceId!}>
+          {(openDialog) => (
+            <button
+              type="button"
+              onClick={() => openDialog(moduleSlug!, moduleName ?? title)}
+              className="mt-2 inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
+            >
+              {ctaLabel}
+            </button>
+          )}
+        </FeatureInterestDialog>
+      ) : (
+        <Link
+          href={ctaHref}
+          className="mt-2 inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
+        >
+          {ctaLabel}
+        </Link>
+      )}
     </div>
   );
 }

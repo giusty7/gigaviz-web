@@ -168,6 +168,7 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
                     <select
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
+                      title="Select workspace type"
                       className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
                     >
                       <option value="team">Team</option>

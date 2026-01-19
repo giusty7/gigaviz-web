@@ -251,6 +251,7 @@ export default function BlastPage() {
                 <select
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
+                  title="Select template"
                   className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   disabled={templatesLoading || approvedTemplates.length === 0}
                   required

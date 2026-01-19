@@ -92,10 +92,7 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
         className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl"
       >
         <div
-          className="pointer-events-none absolute inset-0 rounded-2xl"
-          style={{
-            background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.08) 0%, transparent 50%)",
-          }}
+          className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-tr"
           aria-hidden
         />
         <div className="relative">
@@ -110,7 +107,7 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + idx * 0.1 }}
-                className="flex gap-4"
+                className="flex gap-4 list-none"
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10 text-sm font-bold text-[#d4af37]">
                   {idx + 1}
@@ -160,10 +157,7 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
           className="relative overflow-hidden rounded-2xl border border-[#e11d48]/20 bg-[#0a1229]/60 p-6 backdrop-blur-xl"
         >
           <div
-            className="pointer-events-none absolute inset-0 rounded-2xl"
-            style={{
-              background: "radial-gradient(ellipse at bottom left, rgba(225, 29, 72, 0.08) 0%, transparent 50%)",
-            }}
+            className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-magenta-bl"
             aria-hidden
           />
           <div className="relative">

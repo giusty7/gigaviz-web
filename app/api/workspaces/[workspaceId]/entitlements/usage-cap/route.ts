@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
+import { isPlatformAdmin } from "@/lib/platform/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -29,16 +30,9 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     );
   }
 
-  const adminDb = supabaseAdmin();
-  const { data: membership } = await adminDb
-    .from("workspace_members")
-    .select("role")
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const role = membership?.role;
-  if (!(role === "owner" || role === "admin")) {
+  const supabase = await supabaseServer();
+  const platformAdmin = await isPlatformAdmin(supabase);
+  if (!platformAdmin) {
     return forbiddenResponse(withCookies);
   }
 
@@ -49,26 +43,36 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   }
 
   if (cap === null) {
-    await adminDb
-      .from("workspace_entitlements")
-      .delete()
-      .eq("workspace_id", workspaceId)
-      .eq("key", "usage_cap_tokens");
+    const { error } = await supabase.rpc("set_workspace_entitlement_payload", {
+      p_workspace_id: workspaceId,
+      p_entitlement_key: "usage_cap_tokens",
+      p_enabled: false,
+      p_payload: {},
+      p_expires_at: null,
+      p_reason: "usage_cap_cleared",
+    });
+    if (error) {
+      return withCookies(
+        NextResponse.json({ error: error.message || "cap_update_failed" }, { status: 500 })
+      );
+    }
 
     return withCookies(NextResponse.json({ workspaceId, cap: null }));
   }
 
-  await adminDb
-    .from("workspace_entitlements")
-    .upsert(
-      {
-        workspace_id: workspaceId,
-        key: "usage_cap_tokens",
-        value: cap,
-        payload: {},
-      },
-      { onConflict: "workspace_id,key" }
+  const { error } = await supabase.rpc("set_workspace_entitlement_payload", {
+    p_workspace_id: workspaceId,
+    p_entitlement_key: "usage_cap_tokens",
+    p_enabled: true,
+    p_payload: cap,
+    p_expires_at: null,
+    p_reason: "usage_cap_updated",
+  });
+  if (error) {
+    return withCookies(
+      NextResponse.json({ error: error.message || "cap_update_failed" }, { status: 500 })
     );
+  }
 
   return withCookies(NextResponse.json({ workspaceId, cap }));
 }

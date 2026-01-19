@@ -3,7 +3,7 @@ import { type ModuleStatus } from "@/components/app/ModuleGrid";
 import ModuleGridWithSalesDialog from "@/components/app/ModuleGridWithSalesDialog";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { canAccess, getPlanMeta, planMeta } from "@/lib/entitlements";
+import { canAccess, getPlanFeatures, getPlanMeta, planMeta } from "@/lib/entitlements";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { studioChildren } from "@/lib/modules/catalog";
 
@@ -32,6 +32,7 @@ export default async function StudioModulesPage({ params }: PageProps) {
     .maybeSingle();
 
   const plan = getPlanMeta(subscription?.plan_id || "free_locked");
+  const planFeatures = getPlanFeatures(plan.plan_id);
   const isAdmin = Boolean(ctx.profile?.is_admin);
   const userEmail = ctx.user.email ?? "";
   const basePath = `/${ctx.currentWorkspace.slug}`;
@@ -41,12 +42,32 @@ export default async function StudioModulesPage({ params }: PageProps) {
     const canUse =
       !comingSoon &&
       (!module.requiresEntitlement ||
-        canAccess({ plan_id: plan.plan_id, is_admin: isAdmin }, module.requiresEntitlement));
+        canAccess(
+          {
+            plan_id: plan.plan_id,
+            is_admin: isAdmin,
+            effectiveEntitlements: ctx.effectiveEntitlements,
+          },
+          module.requiresEntitlement
+        ));
     const status: ModuleStatus = comingSoon
       ? "coming_soon"
       : canUse
         ? "available"
         : "locked";
+    const requires = module.requiresEntitlement;
+    const ownerGranted = requires
+      ? Boolean(ctx.effectiveEntitlements?.includes(requires))
+      : false;
+    const includedInPlan = requires ? planFeatures.includes(requires) : false;
+    const accessLabel =
+      status === "available" && requires
+        ? ownerGranted && !includedInPlan
+          ? "Granted (owner)"
+          : includedInPlan
+            ? "Included in plan"
+            : undefined
+        : undefined;
 
     return {
       key: module.key,
@@ -54,6 +75,7 @@ export default async function StudioModulesPage({ params }: PageProps) {
       description: module.short || module.description,
       status,
       href: !comingSoon ? `${basePath}/modules/${module.slug}` : undefined,
+      accessLabel,
     };
   });
 
@@ -78,4 +100,3 @@ export default async function StudioModulesPage({ params }: PageProps) {
     </div>
   );
 }
-

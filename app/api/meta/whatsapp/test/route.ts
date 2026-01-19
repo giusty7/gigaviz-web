@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
+import { isAdminEmail } from "@/lib/admin";
 import {
   forbiddenResponse,
   getWorkspaceId,
@@ -9,6 +10,7 @@ import {
   unauthorizedResponse,
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
+import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 
@@ -24,6 +26,21 @@ export async function POST(req: NextRequest) {
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
     return unauthorizedResponse(withCookies);
+  }
+
+  const envStatus = getMetaHubTestEnvStatus();
+  if (envStatus.connectionTestMissing.length > 0) {
+    return withCookies(
+      NextResponse.json(
+        {
+          ok: false,
+          error: "missing_env",
+          missing: envStatus.connectionTestMissing,
+          message: "Missing required environment variables for connection test.",
+        },
+        { status: 400 }
+      )
+    );
   }
 
   const body = await req.json().catch(() => null);
@@ -43,12 +60,27 @@ export async function POST(req: NextRequest) {
     return workspaceRequiredResponse(withCookies);
   }
 
+  const db = supabaseAdmin();
+  const { data: profile } = await db
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", userData.user.id)
+    .maybeSingle();
+  const devEmails = (process.env.DEV_FULL_ACCESS_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  const isDevOverride = devEmails.includes((userData.user.email || "").toLowerCase());
+  const isAdminOverride = Boolean(profile?.is_admin) || isAdminEmail(userData.user.email) || isDevOverride;
+
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin"])) {
+  if (
+    (!membership.ok && !isAdminOverride) ||
+    (membership.ok && !requireWorkspaceRole(membership.role, ["owner", "admin"]) && !isAdminOverride)
+  ) {
     return forbiddenResponse(withCookies);
   }
 
-  const db = supabaseAdmin();
   const phoneQuery = db
     .from("wa_phone_numbers")
     .select("phone_number_id, waba_id, display_name, status")

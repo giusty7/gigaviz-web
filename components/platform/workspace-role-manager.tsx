@@ -79,6 +79,7 @@ export function WorkspaceRoleManager({ workspaceId, canManage, members }: Worksp
                   value={member.role ?? "member"}
                   onChange={(e) => updateRole(member.userId, e.target.value)}
                   disabled={pendingId === member.userId}
+                  title="Change member role"
                   className="w-32 rounded-md border border-border bg-background px-2 py-1 text-xs capitalize text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
                 >
                   <option value="owner">Owner</option>

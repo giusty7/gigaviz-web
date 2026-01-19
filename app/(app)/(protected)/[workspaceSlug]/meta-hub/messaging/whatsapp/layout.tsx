@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 import { WhatsappStickyTabs } from "@/components/meta-hub/WhatsappStickyTabs";
 import { getAppContext } from "@/lib/app-context";
+import { getMetaHubAccess } from "@/lib/meta-hub/access";
+import { getWorkspacePlan } from "@/lib/plans";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +29,35 @@ export default async function WhatsappShellLayout({ children, params }: LayoutPr
 
   await ensureWorkspaceCookie(workspace.id);
 
+  const planInfo = await getWorkspacePlan(workspace.id);
+  const isAdmin = Boolean(ctx.profile?.is_admin) || Boolean(planInfo.devOverride);
+  const access = getMetaHubAccess({ planId: planInfo.planId, isAdmin });
+
+  const db = supabaseAdmin();
+  const { data: phone } = await db
+    .from("wa_phone_numbers")
+    .select("phone_number_id")
+    .eq("workspace_id", workspace.id)
+    .order("created_at", { ascending: false })
+    .maybeSingle();
+
+  const { data: metaToken } = await db
+    .from("meta_tokens")
+    .select("id")
+    .eq("workspace_id", workspace.id)
+    .eq("provider", "meta_whatsapp")
+    .maybeSingle();
+
+  const { data: waToken } = await db
+    .from("whatsapp_tokens")
+    .select("id")
+    .eq("workspace_id", workspace.id)
+    .maybeSingle();
+
+  const hasToken = Boolean(metaToken?.id || waToken?.id);
+  const whatsappConfigured = Boolean(phone?.phone_number_id) && hasToken;
+  const badgeStatus = !access.metaHub ? "locked" : whatsappConfigured ? "live" : "beta";
+
   const basePath = `/${workspace.slug}/meta-hub/messaging/whatsapp`;
 
   return (
@@ -40,7 +72,7 @@ export default async function WhatsappShellLayout({ children, params }: LayoutPr
               Manage approved templates, sandbox delivery, and inbox follow-ups without leaving this hub.
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <MetaHubBadge status="live" />
+              <MetaHubBadge status={badgeStatus} />
               <Link
                 href={`/${workspace.slug}/meta-hub/connections`}
                 className="rounded-lg border border-border bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition hover:border-gigaviz-gold"

@@ -340,6 +340,7 @@ export function Step1HeaderCategory({ state, onChange, errors }: Step1Props) {
         <select
           value={state.language}
           onChange={(e) => onChange({ language: e.target.value })}
+          title="Select template language"
           className="w-full rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-3 text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
         >
           {LANGUAGE_OPTIONS.map((lang) => (
@@ -478,6 +479,7 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
                 <button
                   type="button"
                   onClick={() => onChange({ headerMediaUrl: null })}
+                  title="Remove media"
                   className="absolute right-3 top-3 rounded-full bg-[#e11d48]/20 p-1.5 text-[#e11d48] hover:bg-[#e11d48]/30"
                 >
                   <X className="h-4 w-4" />
@@ -759,6 +761,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
                   <button
                     type="button"
                     onClick={() => removeButton(btn.id)}
+                    title="Remove button"
                     className="rounded-full p-1 text-[#f5f5dc]/40 hover:bg-[#e11d48]/20 hover:text-[#e11d48]"
                   >
                     <X className="h-4 w-4" />

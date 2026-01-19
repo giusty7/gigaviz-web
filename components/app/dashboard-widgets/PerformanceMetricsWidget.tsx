@@ -82,17 +82,11 @@ export function PerformanceMetricsWidget() {
     <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
       {/* Gradient overlays */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-2xl"
-        style={{
-          background: "radial-gradient(ellipse at bottom left, rgba(225, 29, 72, 0.08) 0%, transparent 50%)",
-        }}
+        className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-magenta-bl"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 rounded-2xl"
-        style={{
-          background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.06) 0%, transparent 50%)",
-        }}
+        className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-tr-soft"
         aria-hidden
       />
 

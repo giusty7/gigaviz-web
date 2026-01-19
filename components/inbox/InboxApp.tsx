@@ -1442,6 +1442,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value as TicketStatus | "all")}
+                    title="Filter by status"
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">All statuses</option>
@@ -1454,6 +1455,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <select
                     value={filterPriority}
                     onChange={(e) => setFilterPriority(e.target.value as Priority | "all")}
+                    title="Filter by priority"
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">All priorities</option>
@@ -1468,6 +1470,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <select
                     value={filterAssignee}
                     onChange={(e) => setFilterAssignee(e.target.value as string | "all")}
+                    title="Filter by agent"
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">All agents</option>
@@ -1482,6 +1485,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <select
                     value={filterArchived}
                     onChange={(e) => setFilterArchived(e.target.value as "active" | "archived" | "all")}
+                    title="Filter by archive status"
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="active">Active</option>
@@ -1501,6 +1505,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <select
                     value={filterPinned}
                     onChange={(e) => setFilterPinned(e.target.value as "all" | "pinned")}
+                    title="Filter pinned conversations"
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
                     <option value="all">All</option>
@@ -1645,6 +1650,7 @@ export default function InboxApp({ selectedId }: Props) {
                       <select
                         value={activeConv.assigned_to ?? ""}
                         onChange={(e) => setAssignee(activeConv.id, e.target.value || undefined)}
+                        title="Assign to agent"
                         className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                       >
                         <option value="">Unassigned</option>
@@ -1666,6 +1672,7 @@ export default function InboxApp({ selectedId }: Props) {
                         <select
                           value={activeConv.ticket_status}
                           onChange={(e) => setTicketStatus(activeConv.id, e.target.value as TicketStatus)}
+                          title="Set ticket status"
                           className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                         >
                           <option value="open">Open</option>
@@ -1677,6 +1684,7 @@ export default function InboxApp({ selectedId }: Props) {
                         <select
                           value={activeConv.priority}
                           onChange={(e) => setPriority(activeConv.id, e.target.value as Priority)}
+                          title="Set priority"
                           className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                         >
                           <option value="low">low</option>
@@ -1812,6 +1820,7 @@ export default function InboxApp({ selectedId }: Props) {
                                         <button
                                           onClick={() => setLightboxUrl(lightboxTarget)}
                                           className="block"
+                                          title="View attachment"
                                         >
                                           <Image
                                             src={thumb}
@@ -1979,6 +1988,7 @@ export default function InboxApp({ selectedId }: Props) {
                   <select
                     value={selectedTemplateKey}
                     onChange={(e) => setSelectedTemplateKey(e.target.value)}
+                    title="Select template"
                     disabled={templatesLoading || approvedTemplates.length === 0}
                     className="flex-1 min-w-[220px] rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                   >
@@ -2020,6 +2030,7 @@ export default function InboxApp({ selectedId }: Props) {
                       onChange={(e) =>
                         setEventType(e.target.value as (typeof META_EVENT_OPTIONS)[number])
                       }
+                      title="Select event type"
                       className="rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                     >
                       {META_EVENT_OPTIONS.map((opt) => (
@@ -2132,6 +2143,7 @@ export default function InboxApp({ selectedId }: Props) {
                           e.target.value as "normal" | "blacklisted" | "whitelisted"
                         )
                       }
+                      title="Set communication status"
                       className="flex-1 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                       disabled={commsSaving}
                     >
@@ -2241,6 +2253,7 @@ export default function InboxApp({ selectedId }: Props) {
                                 onChange={(e) => updateCrmValue(field, e.target.value)}
                                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
                                 disabled={crmDisabled}
+                                placeholder={field.label}
                               />
                             )}
 
@@ -2251,6 +2264,7 @@ export default function InboxApp({ selectedId }: Props) {
                                 onChange={(e) => updateCrmValue(field, e.target.value)}
                                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
                                 disabled={crmDisabled}
+                                placeholder={field.label}
                               />
                             )}
 
@@ -2261,6 +2275,7 @@ export default function InboxApp({ selectedId }: Props) {
                                 onChange={(e) => updateCrmValue(field, e.target.value)}
                                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
                                 disabled={crmDisabled}
+                                title={field.label}
                               />
                             )}
 
@@ -2270,6 +2285,7 @@ export default function InboxApp({ selectedId }: Props) {
                                 onChange={(e) => updateCrmValue(field, e.target.value)}
                                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-sm"
                                 disabled={crmDisabled}
+                                title={field.label}
                               >
                                 <option value="">Select...</option>
                                 {choices.map((choice) => (
@@ -2321,6 +2337,7 @@ export default function InboxApp({ selectedId }: Props) {
                       <select
                         value={activeConv?.category_id ?? ""}
                         onChange={(e) => setCategory(e.target.value || null)}
+                        title="Set category"
                         className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                         disabled={categoriesLoading}
                       >
@@ -2347,6 +2364,7 @@ export default function InboxApp({ selectedId }: Props) {
                     <select
                       value={transferTeamId}
                       onChange={(e) => setTransferTeamId(e.target.value)}
+                      title="Transfer to team"
                       className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
                     >
                       <option value="">Choose a team</option>

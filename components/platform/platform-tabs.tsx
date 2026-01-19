@@ -7,6 +7,7 @@ import {
   Home,
   KeyRound,
   ScrollText,
+  Shield,
   Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const tabs = [
   { label: "Roles & Access", segment: "/roles", icon: KeyRound },
   { label: "Audit Log", segment: "/audit", icon: ScrollText },
   { label: "Billing", segment: "/billing", icon: CreditCard },
+  { label: "Entitlements", segment: "/entitlements", icon: Shield },
 ];
 
 export function PlatformTabs({ baseHref }: PlatformTabsProps) {

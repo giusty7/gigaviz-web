@@ -70,31 +70,31 @@ Ensure these are set for production deployments:
 
 ## Smoke tests
 
-### Owner Console Workspace Detail
-1. Login as an owner (email in `owner_members` table).
-2. Navigate to `/owner` → **Workspaces** list.
+### Ops Console Workspace Detail
+1. Login as a platform admin (email allowlisted + platform_admins).
+2. Navigate to `/ops/platform-admin` → **Workspaces** list.
 3. Click **Details** on any workspace row.
-4. Verify `/owner/workspaces/<workspace_id>` loads without 404.
+4. Verify `/ops/workspaces/<workspace_id>` loads without 404.
 5. For a non-existent UUID, verify a friendly "Workspace not found" message instead of 404.
 
-### Owner Console Token Actions
-1. Navigate to `/owner/workspaces/<workspace_id>`.
+### Ops Console Token Actions
+1. Navigate to `/ops/workspaces/<workspace_id>`.
 2. Click **Grant tokens**.
 3. Enter amount (e.g., 100), reason ("Test grant"), leave Reference ID empty.
 4. Click **Confirm grant** → should succeed, balance increases. No "Invalid input" error.
 5. Repeat with Reference ID filled (e.g., "test-ref-123") → should also succeed.
 6. Click **Deduct tokens**, enter amount and reason, leave Reference ID empty → should succeed.
 
-### Owner Console Entitlement Actions
-1. Navigate to `/owner/workspaces/<workspace_id>`.
+### Ops Console Entitlement Actions
+1. Navigate to `/ops/workspaces/<workspace_id>`.
 2. Find any disabled entitlement (e.g., "Core OS").
 3. Click **Enable** → should succeed with payload stored as `{}`.
 4. Click **Payload** button, leave JSON as `{}` or add `{"tier":"beta"}`, save → should succeed.
 5. Click **Disable**, leave reason empty → should succeed.
 6. Click **Disable** again with a reason filled → should also succeed.
 
-### Entitlement Payload v1 (Owner Ops)
-1. Open `/owner/workspaces/<workspace_id>`.
+### Entitlement Payload v1 (Ops)
+1. Open `/ops/workspaces/<workspace_id>`.
 2. Enable `core_os` with an empty payload (leave payload editor empty) - should succeed and payload becomes `{}`.
 3. Edit payload to `{"plan":"pro"}` - should persist.
 4. Grant tokens `50000` with reason "For Meta Review" - balance updates and ledger entry created.
@@ -127,3 +127,33 @@ npm run db:verify
 psql "$SUPABASE_DB_URL" -c "SELECT column_name, is_nullable FROM information_schema.columns WHERE table_name='workspace_entitlements' AND column_name='value';"
 # Should show: value | YES
 ```
+
+### 20260121200000_fix_ambiguous_column_refs.sql
+Fixes **Error**: `column reference 'workspace_id' is ambiguous`
+
+**Problem**: `set_workspace_entitlement_payload` function returns `TABLE(workspace_id uuid, ...)` with column names matching the table columns, causing ambiguity in the `RETURN QUERY SELECT` statement.
+
+**Fix**:
+- Uses table alias `we` in the SELECT query
+- Fully qualifies all column references: `we.workspace_id`, `we.key`, `we.enabled`, etc.
+- Also updates `apply_workspace_token_delta` with proper table qualification
+- Removes duplicate unique index (primary key already covers it)
+
+**Applied via**:
+```bash
+supabase db push --db-url "$SUPABASE_DB_URL"
+```
+
+**Verify**:
+```bash
+# Test entitlement enable in Owner Console
+# Should succeed without "workspace_id is ambiguous" error
+```
+
+### Regression sanity checks (entitlement RPCs)
+After deploying entitlement fixes, run:
+```sql
+select * from public.set_workspace_entitlement('coba-gigaviz','meta_hub',true,null,'owner grant');
+select * from public.set_workspace_entitlement_payload('<workspace_uuid>','core_os',true,'{}'::jsonb,null,'owner grant');
+```
+Both should return rows without ambiguity errors.

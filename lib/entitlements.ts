@@ -162,12 +162,16 @@ export function getPlanMeta(planId?: string | null) {
   return planMeta.find((plan) => plan.plan_id === planId) ?? planMeta[0];
 }
 
-export function canAccess(
-  plan: { plan_id: PlanId; is_admin?: boolean | null },
-  featureKey: FeatureKey
-) {
-  if (plan.is_admin) return true;
-  const features = planFeatures[plan.plan_id] ?? baseFeatures;
+export type AccessContext = {
+  plan_id: PlanId;
+  is_admin?: boolean | null;
+  effectiveEntitlements?: string[] | null;
+};
+
+export function canAccess(ctx: AccessContext, featureKey: FeatureKey) {
+  if (ctx.is_admin) return true;
+  if (ctx.effectiveEntitlements?.includes(featureKey)) return true;
+  const features = planFeatures[ctx.plan_id] ?? baseFeatures;
   return features.includes(featureKey);
 }
 

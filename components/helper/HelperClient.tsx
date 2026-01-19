@@ -428,7 +428,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
   );
 
   return (
-    <div className="flex h-full w-full bg-gigaviz-bg -mx-4 -mt-6 md:-mx-6 lg:-mx-8" style={{ minHeight: "calc(100vh - 80px)" }}>
+    <div className="flex h-full w-full bg-gigaviz-bg -mx-4 -mt-6 md:-mx-6 lg:-mx-8 min-h-screen-minus-header">
       {/* Mobile header with menu buttons */}
       <div className="fixed top-16 left-0 right-0 z-40 lg:hidden flex items-center justify-between p-2 bg-gigaviz-surface border-b border-gigaviz-border">
         <Sheet open={leftOpen} onOpenChange={setLeftOpen}>

@@ -11,7 +11,8 @@ export const config = {
   matcher: ["/:path*"],
 };
 
-export async function middleware(req: NextRequest) {
+// Next.js 16 proxy entrypoint (renamed from middleware)
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // ✅ Skip Next internals & static assets early

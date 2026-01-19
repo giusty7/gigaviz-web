@@ -825,6 +825,7 @@ export function WhatsappInboxClient({
               <select
                 className="rounded-lg border border-border bg-background px-2 py-1"
                 value={statusFilter}
+                title="Filter by status"
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   pushFiltersToUrl({ status: e.target.value });
@@ -838,6 +839,7 @@ export function WhatsappInboxClient({
               <select
                 className="rounded-lg border border-border bg-background px-2 py-1"
                 value={assignFilter}
+                title="Filter by assignment"
                 onChange={(e) => {
                   setAssignFilter(e.target.value);
                   pushFiltersToUrl({ assigned: e.target.value });
@@ -908,6 +910,7 @@ export function WhatsappInboxClient({
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteView(view.id); }}
                         className="text-muted-foreground hover:text-destructive"
+                        title="Delete saved view"
                       >
                         <XIcon className="h-3 w-3" />
                       </button>
@@ -1017,6 +1020,7 @@ export function WhatsappInboxClient({
                         type="checkbox"
                         className="h-4 w-4"
                         checked={selected}
+                        title="Select conversation"
                         onChange={() => toggleBulkSelection(thread.id)}
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -1162,6 +1166,7 @@ export function WhatsappInboxClient({
                 <Label htmlFor="tpl-name">Template</Label>
                 <select
                   id="tpl-name"
+                  title="Select a message template"
                   className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
                   value={`${replyTemplate.name}::${replyTemplate.language}`}
                   onChange={(e) => {
@@ -1225,6 +1230,7 @@ export function WhatsappInboxClient({
             <select
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               value={status}
+              title="Set conversation status"
               onChange={(e) => setStatus(e.target.value)}
               disabled={!canSend}
             >
@@ -1240,6 +1246,7 @@ export function WhatsappInboxClient({
             <select
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               value={assignedTo || ""}
+              title="Assign conversation"
               onChange={(e) => setAssignedTo(e.target.value || null)}
               disabled={!canSend}
             >

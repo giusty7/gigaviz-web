@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Terminal,
   RefreshCw,
+  Lock,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -71,8 +72,8 @@ export function WABAStatusHero({
   wabaIdMasked,
   phoneIdMasked,
   tokenConfigured,
-  qualityRating = "GREEN",
-  verificationStatus = "verified",
+  qualityRating = null,
+  verificationStatus = "none",
 }: WABAStatusHeroProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
@@ -80,9 +81,10 @@ export function WABAStatusHero({
     GREEN: { bg: "bg-emerald-500/15", text: "text-emerald-400", border: "border-emerald-500/30" },
     YELLOW: { bg: "bg-amber-500/15", text: "text-amber-400", border: "border-amber-500/30" },
     RED: { bg: "bg-red-500/15", text: "text-red-400", border: "border-red-500/30" },
+    NEUTRAL: { bg: "bg-[#f5f5dc]/10", text: "text-[#f5f5dc]/60", border: "border-[#f5f5dc]/10" },
   };
 
-  const quality = qualityRating ? qualityColors[qualityRating] : qualityColors.GREEN;
+  const quality = qualityRating ? qualityColors[qualityRating] : qualityColors.NEUTRAL;
 
   if (!mounted) {
     return (
@@ -191,7 +193,7 @@ export function WABAStatusHero({
               Quality Rating
             </p>
             <p className={`mt-1 text-sm font-semibold ${quality.text}`}>
-              {qualityRating || "—"}
+              {qualityRating ?? "Not available"}
             </p>
           </div>
         </div>
@@ -208,7 +210,7 @@ type AnalyticsPulseProps = {
   inbound24h: number | null;
   outbound24h: number | null;
   events24h: number | null;
-  latencyMs?: number;
+  latencyMs?: number | null;
 };
 
 function MagentaSparkline() {
@@ -254,8 +256,17 @@ function HeartbeatWave() {
   );
 }
 
-function CircularProgress({ value, max, color }: { value: number; max: number; color: string }) {
-  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+function CircularProgress({
+  value,
+  max,
+  color,
+}: {
+  value: number | null;
+  max: number;
+  color: string;
+}) {
+  const hasValue = value !== null && Number.isFinite(value);
+  const percentage = hasValue && max > 0 ? Math.min((value / max) * 100, 100) : 0;
   const circumference = 2 * Math.PI * 36;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
@@ -286,20 +297,42 @@ function CircularProgress({ value, max, color }: { value: number; max: number; c
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-lg font-bold text-[#f5f5dc]">{Math.round(percentage)}%</span>
+        <span className="text-lg font-bold text-[#f5f5dc]">
+          {hasValue ? `${Math.round(percentage)}%` : "--"}
+        </span>
       </div>
     </div>
   );
 }
 
-export function AnalyticsPulseSection({ inbound24h, outbound24h, latencyMs = 180 }: AnalyticsPulseProps) {
+export function AnalyticsPulseSection({
+  inbound24h,
+  outbound24h,
+  events24h,
+  latencyMs = null,
+}: AnalyticsPulseProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const formatCount = (value: number | null) => {
-    if (value === null || Number.isNaN(value)) return "—";
+    if (value === null || Number.isNaN(value)) return "--";
     if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
     return value.toString();
   };
+
+  const hasTraffic = inbound24h !== null || outbound24h !== null;
+  const throughput = hasTraffic ? (inbound24h ?? 0) + (outbound24h ?? 0) : null;
+  const hasEvents = events24h !== null;
+  const deliveryValue = hasEvents && (events24h ?? 0) > 0 ? 0 : null;
+  const deliveryLabel = !hasEvents
+    ? "No data yet"
+    : (events24h ?? 0) === 0
+      ? "No events yet"
+      : "Delivery stats not available";
+  const latencyBadgeLabel = latencyMs === null ? "No data" : "Healthy";
+  const latencyBadgeClass =
+    latencyMs === null
+      ? "rounded-full bg-[#f5f5dc]/10 px-2 py-1 text-[9px] font-bold uppercase text-[#f5f5dc]/60"
+      : "rounded-full bg-emerald-500/15 px-2 py-1 text-[9px] font-bold uppercase text-emerald-400";
 
   if (!mounted) {
     return (
@@ -333,12 +366,16 @@ export function AnalyticsPulseSection({ inbound24h, outbound24h, latencyMs = 180
           API Throughput
         </p>
         <p className="mt-1 text-2xl font-bold text-[#f5f5dc]">
-          {formatCount((inbound24h ?? 0) + (outbound24h ?? 0))}
+          {formatCount(throughput)}
         </p>
-        <p className="text-xs text-[#f5f5dc]/40">requests / 24h</p>
-        <div className="mt-3">
-          <MagentaSparkline />
-        </div>
+        <p className="text-xs text-[#f5f5dc]/40">
+          {throughput === null ? "No data yet" : "requests / 24h"}
+        </p>
+        {throughput !== null && (
+          <div className="mt-3">
+            <MagentaSparkline />
+          </div>
+        )}
       </motion.div>
 
       {/* Message Delivery Rate */}
@@ -354,9 +391,9 @@ export function AnalyticsPulseSection({ inbound24h, outbound24h, latencyMs = 180
             <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
               Delivery Rate
             </p>
-            <p className="mt-1 text-xs text-[#f5f5dc]/40">Message success</p>
+            <p className="mt-1 text-xs text-[#f5f5dc]/40">{deliveryLabel}</p>
           </div>
-          <CircularProgress value={98} max={100} color="#d4af37" />
+          <CircularProgress value={deliveryValue} max={100} color="#d4af37" />
         </div>
       </motion.div>
 
@@ -386,7 +423,9 @@ export function AnalyticsPulseSection({ inbound24h, outbound24h, latencyMs = 180
             <p className="mt-1 text-xl font-bold text-[#d4af37]">{formatCount(outbound24h)}</p>
           </div>
         </div>
-        <p className="mt-2 text-xs text-[#f5f5dc]/40">Messages in last 24h</p>
+        <p className="mt-2 text-xs text-[#f5f5dc]/40">
+          {hasTraffic ? "Messages in last 24h" : "No data yet"}
+        </p>
       </motion.div>
 
       {/* Latency Monitor */}
@@ -398,22 +437,23 @@ export function AnalyticsPulseSection({ inbound24h, outbound24h, latencyMs = 180
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10">
             <Clock className="h-5 w-5 text-[#d4af37]" />
           </div>
-          <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[9px] font-bold uppercase text-emerald-400">
-            Healthy
-          </span>
+          <span className={latencyBadgeClass}>{latencyBadgeLabel}</span>
         </div>
         <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
           API Latency
         </p>
-        <p className="mt-1 text-2xl font-bold text-[#f5f5dc]">{latencyMs}ms</p>
-        <div className="mt-3">
-          <HeartbeatWave />
-        </div>
+        <p className="mt-1 text-2xl font-bold text-[#f5f5dc]">
+          {latencyMs === null ? "--" : `${latencyMs}ms`}
+        </p>
+        {latencyMs !== null && (
+          <div className="mt-3">
+            <HeartbeatWave />
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
 }
-
 /* ═══════════════════════════════════════════════════════════════════════════
    QUICK ACTIONS GRID
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -425,43 +465,63 @@ type QuickAction = {
   variant?: "primary" | "secondary";
 };
 
-export function QuickActionsGrid({ basePath, allowTemplates, allowSend }: { 
-  basePath: string; 
+export function QuickActionsGrid({
+  basePath,
+  allowTemplates,
+  allowSend,
+  whatsappConnected,
+}: {
+  basePath: string;
   allowTemplates: boolean;
   allowSend: boolean;
+  whatsappConnected: boolean;
 }) {
-  const actions: QuickAction[] = [
-    ...(allowTemplates ? [{
-      label: "Sync Templates",
-      href: `${basePath}/messaging/whatsapp`,
-      icon: <RefreshCw className="h-4 w-4" />,
-      variant: "primary" as const,
-    }] : []),
-    {
+  const actions: QuickAction[] = [];
+
+  if (!whatsappConnected) {
+    actions.push({
+      label: "Connect WhatsApp",
+      href: `${basePath}/connections`,
+      icon: <Settings className="h-4 w-4" />,
+      variant: "primary",
+    });
+  } else {
+    if (allowTemplates) {
+      actions.push({
+        label: "Sync Templates",
+        href: `${basePath}/messaging/whatsapp`,
+        icon: <RefreshCw className="h-4 w-4" />,
+        variant: "primary",
+      });
+    }
+    actions.push({
       label: "Open Inbox",
       href: `${basePath}/messaging/whatsapp/inbox`,
       icon: <Inbox className="h-4 w-4" />,
-      variant: "primary" as const,
-    },
-    ...(allowSend ? [{
-      label: "Test Send",
-      href: `${basePath}/messaging/whatsapp`,
-      icon: <Send className="h-4 w-4" />,
-      variant: "secondary" as const,
-    }] : []),
-    {
+      variant: "primary",
+    });
+    if (allowSend) {
+      actions.push({
+        label: "Test Send",
+        href: `${basePath}/messaging/whatsapp`,
+        icon: <Send className="h-4 w-4" />,
+        variant: "secondary",
+      });
+    }
+    actions.push({
       label: "Connections",
       href: `${basePath}/connections`,
       icon: <Settings className="h-4 w-4" />,
-      variant: "secondary" as const,
-    },
-    {
-      label: "View Events",
-      href: `${basePath}/webhooks`,
-      icon: <Eye className="h-4 w-4" />,
-      variant: "secondary" as const,
-    },
-  ];
+      variant: "secondary",
+    });
+  }
+
+  actions.push({
+    label: "View Events",
+    href: `${basePath}/webhooks`,
+    icon: <Eye className="h-4 w-4" />,
+    variant: "secondary",
+  });
 
   return (
     <motion.div
@@ -500,36 +560,18 @@ export function QuickActionsGrid({ basePath, allowTemplates, allowSend }: {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CYBER-LOG CONSOLE (SIMULATED TERMINAL)
+   CYBER-LOG CONSOLE
    ═══════════════════════════════════════════════════════════════════════════ */
-
-type LogEntry = {
-  id: string;
-  timestamp: string;
-  type: string;
-  payload: string;
-};
-
-const SIMULATED_LOGS: LogEntry[] = [
-  { id: "1", timestamp: "2026-01-16T10:23:45Z", type: "webhook.message.received", payload: '{"from":"628123456789","type":"text"}' },
-  { id: "2", timestamp: "2026-01-16T10:23:46Z", type: "webhook.message.status", payload: '{"status":"delivered","message_id":"wamid.xxx"}' },
-  { id: "3", timestamp: "2026-01-16T10:23:47Z", type: "template.send.success", payload: '{"template":"order_confirm","to":"628987654321"}' },
-  { id: "4", timestamp: "2026-01-16T10:23:48Z", type: "webhook.message.received", payload: '{"from":"628555123456","type":"image"}' },
-  { id: "5", timestamp: "2026-01-16T10:23:49Z", type: "webhook.message.status", payload: '{"status":"read","message_id":"wamid.yyy"}' },
-];
 
 export function CyberLogConsole({ recentEvents }: { recentEvents: Array<{ id: string; type: string; receivedAt: string | null }> }) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
-  // Use real events if available, otherwise use simulated logs
-  const logs = recentEvents.length > 0 
-    ? recentEvents.map((evt) => ({
-        id: evt.id,
-        timestamp: evt.receivedAt || new Date().toISOString(),
-        type: evt.type || "event",
-        payload: "{ ... }",
-      }))
-    : SIMULATED_LOGS;
+  const logs = recentEvents.map((evt) => ({
+    id: evt.id,
+    timestamp: evt.receivedAt || new Date().toISOString(),
+    type: evt.type || "event",
+    payload: "View details in Webhooks",
+  }));
 
   if (!mounted) {
     return (
@@ -584,7 +626,7 @@ export function CyberLogConsole({ recentEvents }: { recentEvents: Array<{ id: st
           </motion.div>
         ))}
         <div className="flex items-center gap-2 text-[#d4af37]">
-          <span className="animate-pulse">▋</span>
+          <span className="animate-pulse">{">>"}</span>
           <span className="text-[#f5f5dc]/30">Awaiting next event...</span>
         </div>
       </div>
@@ -614,11 +656,11 @@ export function TemplateGridPreview({ approved, pending, rejected, basePath }: T
     rejected: "bg-red-500/15 text-red-400 border-red-500/30",
   };
 
-  const templates = [
-    { name: "order_confirmation", status: "approved" as TemplateStatus },
-    { name: "shipping_update", status: "approved" as TemplateStatus },
-    { name: "welcome_message", status: "pending" as TemplateStatus },
-    { name: "promo_campaign", status: "rejected" as TemplateStatus },
+  const total = (approved ?? 0) + (pending ?? 0) + (rejected ?? 0);
+  const summary = [
+    { label: "Approved", count: approved ?? 0, status: "approved" as TemplateStatus },
+    { label: "Pending", count: pending ?? 0, status: "pending" as TemplateStatus },
+    { label: "Rejected", count: rejected ?? 0, status: "rejected" as TemplateStatus },
   ];
 
   if (!mounted) {
@@ -640,7 +682,7 @@ export function TemplateGridPreview({ approved, pending, rejected, basePath }: T
             Template Explorer
           </h3>
           <p className="mt-1 text-xs text-[#f5f5dc]/40">
-            {approved ?? 0} approved • {pending ?? 0} pending • {rejected ?? 0} rejected
+            {approved ?? 0} approved / {pending ?? 0} pending / {rejected ?? 0} rejected
           </p>
         </div>
         <Link
@@ -652,54 +694,41 @@ export function TemplateGridPreview({ approved, pending, rejected, basePath }: T
         </Link>
       </div>
 
-      {/* Phone-Style Preview Grid */}
-      <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        {templates.map((template) => (
-          <div
-            key={template.name}
-            className="group relative rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4 transition-all duration-300 hover:border-[#d4af37]/40 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] cursor-pointer"
-          >
-            {/* Phone Frame */}
-            <div className="mx-auto h-24 w-14 rounded-lg border border-[#f5f5dc]/20 bg-[#0a1229] p-1.5">
-              <div className="h-full w-full rounded bg-gradient-to-b from-[#f5f5dc]/5 to-transparent">
-                <div className="flex flex-col gap-1 p-1.5">
-                  <div className="h-1.5 w-6 rounded bg-[#f5f5dc]/20" />
-                  <div className="h-1 w-8 rounded bg-[#f5f5dc]/10" />
-                  <div className="h-1 w-5 rounded bg-[#f5f5dc]/10" />
-                </div>
-              </div>
-            </div>
-
-            {/* Template Info */}
-            <p className="mt-3 text-center text-[10px] font-semibold text-[#f5f5dc] truncate">
-              {template.name}
-            </p>
-            <div className="mt-2 flex justify-center">
-              <span className={`rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase ${statusStyles[template.status]}`}>
-                {template.status}
+      {total === 0 ? (
+        <div className="mt-4 rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4">
+          <p className="text-sm font-semibold text-[#f5f5dc]">No templates yet</p>
+          <p className="mt-1 text-xs text-[#f5f5dc]/50">
+            Sync templates from Meta to populate this view.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {summary.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4 text-center"
+            >
+              <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">{item.label}</p>
+              <p className="mt-2 text-2xl font-bold text-[#f5f5dc]">{item.count}</p>
+              <span
+                className={`mt-3 inline-flex rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase ${statusStyles[item.status]}`}
+              >
+                {item.status}
               </span>
             </div>
-
-            {/* Hover Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#050a18]/80 opacity-0 transition-opacity group-hover:opacity-100">
-              <span className="rounded-lg bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-3 py-1.5 text-[10px] font-bold text-[#050a18]">
-                Quick Edit
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }
-
 /* ═══════════════════════════════════════════════════════════════════════════
    CHANNELS GRID
    ═══════════════════════════════════════════════════════════════════════════ */
 
 type Channel = {
   name: string;
-  status: "live" | "beta" | "soon";
+  status: "live" | "beta" | "soon" | "locked";
   desc: string;
   stats: string[];
   href: string;
@@ -712,6 +741,7 @@ export function ChannelsGrid({ channels }: { channels: Channel[] }) {
     live: <CheckCircle2 className="h-4 w-4 text-emerald-400" />,
     beta: <Activity className="h-4 w-4 text-[#d4af37]" />,
     soon: <Clock className="h-4 w-4 text-[#f5f5dc]/40" />,
+    locked: <Lock className="h-4 w-4 text-red-300" />,
   };
 
   if (!mounted) {
@@ -740,7 +770,7 @@ export function ChannelsGrid({ channels }: { channels: Channel[] }) {
             <Link
               href={channel.href}
               className={`group block rounded-xl border p-4 transition-all duration-300 ${
-                channel.status === "soon"
+                channel.status === "soon" || channel.status === "locked"
                   ? "border-[#f5f5dc]/10 bg-[#050a18]/40 grayscale-[30%]"
                   : "border-[#f5f5dc]/10 bg-[#050a18]/60 hover:border-[#d4af37]/40 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)]"
               }`}
@@ -750,7 +780,7 @@ export function ChannelsGrid({ channels }: { channels: Channel[] }) {
                 {statusIcons[channel.status]}
               </div>
               <p className="mt-2 text-xs text-[#f5f5dc]/50">{channel.desc}</p>
-              <p className="mt-1 text-[10px] text-[#f5f5dc]/30">{channel.stats.join(" • ")}</p>
+              <p className="mt-1 text-[10px] text-[#f5f5dc]/30">{channel.stats.join(" / ")}</p>
             </Link>
           </motion.div>
         ))}

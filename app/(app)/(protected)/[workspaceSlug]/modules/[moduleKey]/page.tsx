@@ -67,7 +67,11 @@ export default async function ModuleDetailPage({ params }: ModuleDetailPageProps
   const isAdmin = Boolean(ctx.profile?.is_admin);
   const allowed = moduleConfig.feature
     ? canAccess(
-        { plan_id: plan.plan_id, is_admin: isAdmin },
+        {
+          plan_id: plan.plan_id,
+          is_admin: isAdmin,
+          effectiveEntitlements: ctx.effectiveEntitlements,
+        },
         moduleConfig.feature
       )
     : true;

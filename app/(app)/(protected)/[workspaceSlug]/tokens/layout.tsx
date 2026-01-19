@@ -25,7 +25,14 @@ export default async function TokensLayout({ children, params }: TokensLayoutPro
 
   const planInfo = await getWorkspacePlan(ctx.currentWorkspace.id);
   const isAdmin = Boolean(ctx.profile?.is_admin);
-  const allowed = canAccess({ plan_id: planInfo.planId, is_admin: isAdmin }, "tokens_view");
+  const allowed = canAccess(
+    {
+      plan_id: planInfo.planId,
+      is_admin: isAdmin,
+      effectiveEntitlements: ctx.effectiveEntitlements,
+    },
+    "tokens_view"
+  );
   const baseHref = `/${ctx.currentWorkspace.slug}/tokens`;
 
   if (!allowed) {

@@ -212,8 +212,8 @@ export function RadarHeader({ isListening, webhookUrl, lastEventAt, onCopy }: Ra
    ═══════════════════════════════════════════════════════════════════════════ */
 
 interface MetricsCardsProps {
-  successRate: number;
-  avgLatencyMs: number;
+  successRate: number | null;
+  avgLatencyMs: number | null;
   total24h: number;
   errors24h: number;
 }
@@ -224,7 +224,12 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
   // Circular gauge for success rate
   const radius = 45;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (successRate / 100) * circumference;
+  const hasSuccessRate = typeof successRate === "number";
+  const successRateValue = hasSuccessRate ? successRate : 0;
+  const strokeDashoffset = circumference - (successRateValue / 100) * circumference;
+  const successRateLabel = hasSuccessRate ? `${successRate.toFixed(1)}%` : "--";
+  const latencyLabel = avgLatencyMs === null ? "--" : `${avgLatencyMs}ms`;
+  const latencyHint = avgLatencyMs === null ? "No data yet" : "Target: < 200ms";
 
   if (!mounted) {
     return (
@@ -251,7 +256,10 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold tracking-wider text-emerald-400">SUCCESS RATE</p>
-            <p className="mt-1 text-3xl font-bold text-[#f5f5dc]">{successRate.toFixed(1)}%</p>
+            <p className="mt-1 text-3xl font-bold text-[#f5f5dc]">{successRateLabel}</p>
+            <p className="mt-1 text-xs text-[#f5f5dc]/50">
+              {hasSuccessRate ? "Last 24h" : "No data yet"}
+            </p>
           </div>
           <div className="relative h-20 w-20">
             <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
@@ -278,7 +286,9 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+              <CheckCircle2
+                className={cn("h-6 w-6", hasSuccessRate ? "text-emerald-400" : "text-[#f5f5dc]/40")}
+              />
             </div>
           </div>
         </div>
@@ -290,7 +300,7 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
         className="relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#050a18] via-[#0a1229] to-[#0d1a2a] p-5"
       >
         <p className="text-xs font-semibold tracking-wider text-[#d4af37]">AVG LATENCY</p>
-        <p className="mt-1 text-3xl font-bold text-[#f5f5dc]">{avgLatencyMs}ms</p>
+        <p className="mt-1 text-3xl font-bold text-[#f5f5dc]">{latencyLabel}</p>
         <div className="mt-3">
           {/* Mini latency chart */}
           <svg className="h-10 w-full" viewBox="0 0 100 30" preserveAspectRatio="none">
@@ -301,18 +311,27 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
                 <stop offset="100%" stopColor="#d4af37" stopOpacity="0.1" />
               </linearGradient>
             </defs>
-            <motion.path
-              d="M0,20 Q10,15 20,18 T40,12 T60,20 T80,8 T100,15"
-              fill="none"
-              stroke="url(#latencyGradient)"
-              strokeWidth="2"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1.5 }}
-            />
+            {avgLatencyMs === null ? (
+              <path
+                d="M0,15 L100,15"
+                fill="none"
+                stroke="rgba(245, 245, 220, 0.2)"
+                strokeWidth="2"
+              />
+            ) : (
+              <motion.path
+                d="M0,20 Q10,15 20,18 T40,12 T60,20 T80,8 T100,15"
+                fill="none"
+                stroke="url(#latencyGradient)"
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.5 }}
+              />
+            )}
           </svg>
         </div>
-        <p className="mt-1 text-xs text-[#f5f5dc]/50">Target: &lt; 200ms</p>
+        <p className="mt-1 text-xs text-[#f5f5dc]/50">{latencyHint}</p>
       </motion.div>
 
       {/* Events 24h */}
@@ -411,13 +430,14 @@ export function FilterPills({ activeFilter, onFilterChange }: FilterPillsProps) 
 interface TestWebhookButtonProps {
   onTest: () => Promise<void>;
   loading: boolean;
+  disabled?: boolean;
 }
 
-export function TestWebhookButton({ onTest, loading }: TestWebhookButtonProps) {
+export function TestWebhookButton({ onTest, loading, disabled = false }: TestWebhookButtonProps) {
   return (
     <motion.button
       onClick={onTest}
-      disabled={loading}
+      disabled={loading || disabled}
       className={cn(
         "relative overflow-hidden rounded-xl border-2 border-[#d4af37] bg-gradient-to-r from-[#d4af37]/10 via-[#f9d976]/10 to-[#d4af37]/10 px-6 py-3 font-semibold text-[#f9d976] transition-all",
         "hover:from-[#d4af37]/20 hover:via-[#f9d976]/20 hover:to-[#d4af37]/20 hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]",

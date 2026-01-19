@@ -18,6 +18,7 @@ import {
   Activity,
 } from "lucide-react";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
+import type { MetaHubAccess, MetaHubSetup } from "@/lib/meta-hub/access";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HYDRATION-SAFE MOUNT CHECK
@@ -31,18 +32,20 @@ const getServerSnapshot = () => false;
    IMPERIUM STATUS BADGE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-type BadgeStatus = "live" | "beta" | "soon";
+type BadgeStatus = "live" | "beta" | "soon" | "locked";
 
 function ImperiumStatusBadge({ status }: { status: BadgeStatus }) {
   const styles: Record<BadgeStatus, string> = {
     live: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
     beta: "bg-[#d4af37]/15 text-[#d4af37] border-[#d4af37]/30",
     soon: "bg-[#f5f5dc]/10 text-[#f5f5dc]/50 border-[#f5f5dc]/10",
+    locked: "bg-red-500/10 text-red-300 border-red-500/30",
   };
   const labels: Record<BadgeStatus, string> = {
     live: "LIVE",
     beta: "BETA",
     soon: "SOON",
+    locked: "LOCKED",
   };
 
   return (
@@ -88,35 +91,83 @@ type NavItem = {
   children?: NavItem[];
 };
 
-function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
+function buildNav(
+  flags: MetaHubFlags,
+  base: string,
+  access: MetaHubAccess,
+  setup: MetaHubSetup
+): NavItem[] {
+  const metaHubStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+  const connectionsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+  const whatsappStatus: BadgeStatus = access.metaHub
+    ? setup.whatsappConfigured
+      ? "live"
+      : "beta"
+    : "locked";
+  const templatesStatus: BadgeStatus = !access.templates
+    ? "locked"
+    : setup.whatsappConfigured
+      ? "live"
+      : "beta";
+  const inboxStatus: BadgeStatus = !access.send
+    ? "locked"
+    : setup.whatsappConfigured
+      ? "live"
+      : "beta";
+  const webhooksStatus: BadgeStatus = !access.webhooks
+    ? "locked"
+    : setup.whatsappConfigured
+      ? "live"
+      : "beta";
+  const instagramStatus: BadgeStatus = flags.igEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+  const messengerStatus: BadgeStatus = flags.msEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+  const adsStatus: BadgeStatus = flags.adsEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+  const insightsStatus: BadgeStatus = flags.insightsEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+
   return [
-    { label: "Overview", href: `${base}`, status: "live" },
-    { label: "Connections", href: `${base}/connections`, status: "live" },
-    { label: "Webhooks", href: `${base}/webhooks`, status: "live" },
+    { label: "Overview", href: `${base}`, status: metaHubStatus },
+    { label: "Connections", href: `${base}/connections`, status: connectionsStatus },
+    { label: "Webhooks", href: `${base}/webhooks`, status: webhooksStatus },
     {
       label: "Messaging - WhatsApp",
       href: `${base}/messaging/whatsapp`,
-      status: flags.waEnabled ? "live" : "beta",
+      status: whatsappStatus,
       children: [
-        { label: "Templates", href: `${base}/messaging/whatsapp`, status: "live" },
-        { label: "Inbox", href: `${base}/messaging/whatsapp/inbox`, status: "live" },
+        { label: "Templates", href: `${base}/messaging/whatsapp`, status: templatesStatus },
+        { label: "Inbox", href: `${base}/messaging/whatsapp/inbox`, status: inboxStatus },
       ],
     },
     {
       label: "Messaging - Instagram",
       href: `${base}/messaging/instagram`,
-      status: flags.igEnabled ? "live" : "soon",
+      status: instagramStatus,
     },
     {
       label: "Messaging - Messenger",
       href: `${base}/messaging/messenger`,
-      status: flags.msEnabled ? "beta" : "soon",
+      status: messengerStatus,
     },
-    { label: "Ads", href: `${base}/ads`, status: flags.adsEnabled ? "beta" : "soon" },
+    { label: "Ads", href: `${base}/ads`, status: adsStatus },
     {
       label: "Insights",
       href: `${base}/insights`,
-      status: flags.insightsEnabled ? "beta" : "soon",
+      status: insightsStatus,
     },
   ];
 }
@@ -148,14 +199,29 @@ const containerVariants: Variants = {
 
 export function ImperiumMetaHubSidebar({ 
   basePath, 
-  flags 
+  flags,
+  access,
+  setup,
 }: { 
   basePath: string; 
   flags: MetaHubFlags;
+  access: MetaHubAccess;
+  setup: MetaHubSetup;
 }) {
   const pathname = usePathname();
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
-  const items = buildNav(flags, basePath);
+  const items = buildNav(flags, basePath, access, setup);
+  const channelItems = items.filter((item) =>
+    [
+      "Messaging - WhatsApp",
+      "Messaging - Instagram",
+      "Messaging - Messenger",
+      "Ads",
+      "Insights",
+    ].includes(item.label)
+  );
+  const totalChannels = channelItems.length;
+  const activeChannels = channelItems.filter((item) => item.status === "live").length;
 
   if (!mounted) {
     return (
@@ -289,11 +355,11 @@ export function ImperiumMetaHubSidebar({
         </p>
         <div className="mt-2 grid grid-cols-2 gap-2 text-center">
           <div className="rounded-lg bg-[#f5f5dc]/5 p-2">
-            <p className="text-lg font-bold text-[#d4af37]">5</p>
+            <p className="text-lg font-bold text-[#d4af37]">{totalChannels}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Channels</p>
           </div>
           <div className="rounded-lg bg-[#f5f5dc]/5 p-2">
-            <p className="text-lg font-bold text-emerald-400">1</p>
+            <p className="text-lg font-bold text-emerald-400">{activeChannels}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Active</p>
           </div>
         </div>
@@ -310,9 +376,19 @@ type ImperiumMetaHubLayoutProps = {
   children: ReactNode;
   basePath: string;
   flags: MetaHubFlags;
+  access: MetaHubAccess;
+  setup: MetaHubSetup;
+  ownerGrantActive?: boolean;
 };
 
-export function ImperiumMetaHubLayout({ children, basePath, flags }: ImperiumMetaHubLayoutProps) {
+export function ImperiumMetaHubLayout({
+  children,
+  basePath,
+  flags,
+  access,
+  setup,
+  ownerGrantActive = false,
+}: ImperiumMetaHubLayoutProps) {
   return (
     <div className="relative min-h-[600px]">
       {/* Cyber-Batik Pattern Background */}
@@ -322,8 +398,15 @@ export function ImperiumMetaHubLayout({ children, basePath, flags }: ImperiumMet
       />
 
       <div className="relative grid gap-6 lg:grid-cols-[280px_1fr]">
-        <ImperiumMetaHubSidebar basePath={basePath} flags={flags} />
-        <section className="space-y-6">{children}</section>
+        <ImperiumMetaHubSidebar basePath={basePath} flags={flags} access={access} setup={setup} />
+        <section className="space-y-6">
+          {ownerGrantActive && (
+            <div className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+              Unlocked by owner grant
+            </div>
+          )}
+          {children}
+        </section>
       </div>
     </div>
   );

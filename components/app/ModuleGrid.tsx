@@ -14,6 +14,7 @@ export type ModuleItem = {
   description: string;
   status: ModuleStatus;
   href?: string;
+  accessLabel?: string;
   previewHref?: string;
   previewLabel?: string;
   notifyLabel?: string;
@@ -95,13 +96,16 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
               router.push(module.previewHref);
             }
           }}
-          role={module.status === "coming_soon" && module.previewHref ? "button" : undefined}
+          {...(module.status === "coming_soon" && module.previewHref ? { role: "button" } : {})}
           tabIndex={module.status === "coming_soon" && module.previewHref ? 0 : -1}
         >
           <div className="flex items-start justify-between">
             <div>
               <h3 className="text-lg font-semibold">{module.name}</h3>
               <p className="text-sm text-muted-foreground mt-1">{module.description}</p>
+              {module.accessLabel && (
+                <p className="mt-1 text-xs text-muted-foreground">{module.accessLabel}</p>
+              )}
             </div>
             <span
               className={`rounded-full px-2 py-1 text-[11px] uppercase tracking-wide ${statusClass[module.status]}`}

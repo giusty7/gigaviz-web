@@ -5,6 +5,7 @@ import { validatePayload } from "@/lib/entitlements/payload-spec";
 import { recordOwnerAudit } from "@/lib/owner/audit";
 import { requireOwner } from "@/lib/owner/requireOwner";
 import { assertOwnerRateLimit } from "@/lib/owner/rate-limit";
+import { supabaseServer } from "@/lib/supabase/server";
 
 type OwnerOpResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -30,8 +31,11 @@ export type WorkspaceEntitlementRow = {
   key: string;
   enabled: boolean;
   payload: unknown;
+  expires_at?: string | null;
+  reason?: string | null;
   updated_at?: string | null;
   updated_by?: string | null;
+  granted_by?: string | null;
 };
 
 export async function setWorkspaceEntitlement(
@@ -76,21 +80,30 @@ export async function setWorkspaceEntitlement(
     .eq("key", key)
     .maybeSingle();
 
-  const { data: after, error } = await db
-    .from("workspace_entitlements")
-    .upsert(
-      {
-        workspace_id: workspaceId,
-        key,
-        enabled,
-        payload: validatedPayload,
-        updated_at: new Date().toISOString(),
-        updated_by: user.id,
-      },
-      { onConflict: "workspace_id,key" }
-    )
-    .select("workspace_id, key, enabled, payload, updated_at, updated_by")
-    .single();
+  const supabase = await supabaseServer();
+  const { data: rpcData, error } = await supabase.rpc("set_workspace_entitlement_payload", {
+    p_workspace_id: workspaceId,
+    p_entitlement_key: key,
+    p_enabled: enabled,
+    p_payload: validatedPayload,
+    p_expires_at: null,
+    p_reason: reason ?? null,
+  });
+
+  const result = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+  const after: WorkspaceEntitlementRow | null = result
+    ? {
+        workspace_id: result.workspace_id,
+        key: result.entitlement_key,
+        enabled: result.enabled,
+        payload: result.payload,
+        expires_at: result.expires_at ?? null,
+        reason: result.reason ?? null,
+        updated_at: result.updated_at ?? null,
+        updated_by: result.granted_by ?? null,
+        granted_by: result.granted_by ?? null,
+      }
+    : null;
 
   if (error || !after) {
     // Log structured error for debugging
@@ -128,7 +141,7 @@ export async function setWorkspaceEntitlement(
     meta: { key, reason: reason ?? null },
   });
 
-  return { ok: true, data: after as WorkspaceEntitlementRow };
+  return { ok: true, data: after };
 }
 
 async function applyTokenDelta(

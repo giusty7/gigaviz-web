@@ -143,12 +143,13 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="plan">Plan</Label>
+              <Label htmlFor="plan-inline">Plan</Label>
               {currentPlan ? (
                 <div className="text-xs text-muted-foreground">Current plan: {currentPlan.name}</div>
               ) : null}
               <select
-                id="plan"
+                id="plan-inline"
+                title="Select a plan"
                 value={planId}
                 onChange={(e) => setPlanId(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
@@ -224,6 +225,7 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
               ) : null}
               <select
                 id="plan"
+                title="Select a plan"
                 value={planId}
                 onChange={(e) => setPlanId(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"

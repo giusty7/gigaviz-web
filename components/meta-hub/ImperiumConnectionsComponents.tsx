@@ -123,11 +123,7 @@ export function NeuralLinkHero({
     >
       {/* Cyber-Batik Overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L55 30L30 55L5 30Z' fill='none' stroke='%23d4af37' stroke-width='0.5'/%3E%3Ccircle cx='30' cy='30' r='8' fill='none' stroke='%23d4af37' stroke-width='0.3'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23d4af37' stroke-width='0.2'/%3E%3C/svg%3E")`,
-          backgroundSize: "60px 60px",
-        }}
+        className="pointer-events-none absolute inset-0 opacity-[0.04] batik-overlay"
       />
 
       <div className="relative z-10 flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-between">
@@ -321,9 +317,22 @@ interface VaultCardProps {
   wabaId?: string | null;
   phoneNumberId?: string | null;
   onCopy: (text: string, label: string) => void;
+  onTestConnection?: () => void;
+  testing?: boolean;
+  testDisabled?: boolean;
+  testDisabledReason?: string;
 }
 
-export function VaultCard({ tokenSet, wabaId, phoneNumberId, onCopy }: VaultCardProps) {
+export function VaultCard({
+  tokenSet,
+  wabaId,
+  phoneNumberId,
+  onCopy,
+  onTestConnection,
+  testing = false,
+  testDisabled = false,
+  testDisabledReason,
+}: VaultCardProps) {
   const [showWaba, setShowWaba] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
 
@@ -354,6 +363,7 @@ export function VaultCard({ tokenSet, wabaId, phoneNumberId, onCopy }: VaultCard
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowWaba(!showWaba)}
+                  title="Toggle visibility"
                   className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                 >
                   {showWaba ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -361,6 +371,7 @@ export function VaultCard({ tokenSet, wabaId, phoneNumberId, onCopy }: VaultCard
                 {wabaId && (
                   <button
                     onClick={() => onCopy(wabaId, "WABA ID")}
+                    title="Copy WABA ID"
                     className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                   >
                     <Copy className="h-3.5 w-3.5" />
@@ -380,6 +391,7 @@ export function VaultCard({ tokenSet, wabaId, phoneNumberId, onCopy }: VaultCard
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowPhone(!showPhone)}
+                  title="Toggle visibility"
                   className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                 >
                   {showPhone ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -387,6 +399,7 @@ export function VaultCard({ tokenSet, wabaId, phoneNumberId, onCopy }: VaultCard
                 {phoneNumberId && (
                   <button
                     onClick={() => onCopy(phoneNumberId, "Phone Number ID")}
+                    title="Copy Phone Number ID"
                     className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                   >
                     <Copy className="h-3.5 w-3.5" />
@@ -421,6 +434,21 @@ export function VaultCard({ tokenSet, wabaId, phoneNumberId, onCopy }: VaultCard
               {tokenSet ? "SECURED" : "MISSING"}
             </span>
           </div>
+          {onTestConnection && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onTestConnection}
+              disabled={testDisabled || testing}
+              className="w-full border-[#d4af37]/40 text-[#f9d976] hover:bg-[#d4af37]/10"
+            >
+              {testing ? "Testing..." : "Test connection"}
+            </Button>
+          )}
+          {testDisabledReason && (
+            <p className="mt-2 text-xs text-[#f5f5dc]/50">{testDisabledReason}</p>
+          )}
         </div>
       </div>
     </motion.div>
@@ -437,21 +465,29 @@ interface BusinessAssetVaultProps {
   businessName?: string | null;
   verificationStatus?: "verified" | "pending" | "not_verified" | null;
   linkedAssets?: {
-    facebookPages?: number;
-    instagramAccounts?: number;
-    systemUsers?: number;
-  };
+    facebookPages?: number | null;
+    instagramAccounts?: number | null;
+    systemUsers?: number | null;
+  } | null;
   onCopy: (text: string, label: string) => void;
 }
 
 export function BusinessAssetVault({
   businessManagerId,
   businessName,
-  verificationStatus = "pending",
-  linkedAssets = {},
+  verificationStatus = null,
+  linkedAssets = null,
   onCopy,
 }: BusinessAssetVaultProps) {
   const [showBmId, setShowBmId] = useState(false);
+  const hasLinkedAssets = linkedAssets !== null && linkedAssets !== undefined;
+  const getAssetCount = (value?: number | null) => (hasLinkedAssets ? String(value ?? 0) : "--");
+  const statusKey =
+    verificationStatus === "verified" ||
+    verificationStatus === "pending" ||
+    verificationStatus === "not_verified"
+      ? verificationStatus
+      : null;
 
   const verificationStyles = {
     verified: {
@@ -477,9 +513,15 @@ export function BusinessAssetVault({
     },
   };
 
-  const status = verificationStatus && verificationStyles[verificationStatus] 
-    ? verificationStyles[verificationStatus] 
-    : verificationStyles.pending;
+  const status = statusKey
+    ? verificationStyles[statusKey]
+    : {
+        bg: "bg-[#0a1229]/60",
+        border: "border-[#f5f5dc]/20",
+        text: "text-[#f5f5dc]/60",
+        icon: <AlertTriangle className="h-4 w-4" />,
+        label: "Not configured",
+      };
 
   return (
     <motion.div
@@ -507,6 +549,7 @@ export function BusinessAssetVault({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowBmId(!showBmId)}
+                title="Toggle visibility"
                 className="rounded p-1 text-[#f5f5dc]/60 hover:bg-blue-500/10 hover:text-blue-400"
               >
                 {showBmId ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -514,6 +557,7 @@ export function BusinessAssetVault({
               {businessManagerId && (
                 <button
                   onClick={() => onCopy(businessManagerId, "Business Manager ID")}
+                  title="Copy Business Manager ID"
                   className="rounded p-1 text-[#f5f5dc]/60 hover:bg-blue-500/10 hover:text-blue-400"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -523,7 +567,7 @@ export function BusinessAssetVault({
           </div>
           <div className="flex items-center gap-2">
             <p className="font-mono text-sm text-[#f5f5dc]">
-              {businessManagerId ? (showBmId ? businessManagerId : "••••••••••••") : "Not linked"}
+              {businessManagerId ? (showBmId ? businessManagerId : "************") : "Not linked"}
             </p>
             {businessManagerId && (
               <div className="rounded-full bg-emerald-500/20 p-1">
@@ -547,7 +591,7 @@ export function BusinessAssetVault({
               {status.label.toUpperCase()}
             </span>
           </div>
-          {verificationStatus !== "verified" && (
+          {verificationStatus && verificationStatus !== "verified" && (
             <p className="mt-2 text-xs text-[#f5f5dc]/50">
               Complete Meta business verification to unlock full API access.
             </p>
@@ -564,24 +608,33 @@ export function BusinessAssetVault({
             <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
               <Globe className="h-4 w-4 text-blue-400" />
             </div>
-            <p className="text-lg font-bold text-blue-400">{linkedAssets.facebookPages ?? 0}</p>
+            <p className="text-lg font-bold text-blue-400">
+              {getAssetCount(linkedAssets?.facebookPages ?? null)}
+            </p>
             <p className="text-[10px] text-[#f5f5dc]/50">FB Pages</p>
           </div>
           <div className="flex flex-col items-center rounded-xl border border-pink-500/20 bg-[#050a18]/60 p-3 text-center">
             <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-pink-500/10">
               <Instagram className="h-4 w-4 text-pink-400" />
             </div>
-            <p className="text-lg font-bold text-pink-400">{linkedAssets.instagramAccounts ?? 0}</p>
+            <p className="text-lg font-bold text-pink-400">
+              {getAssetCount(linkedAssets?.instagramAccounts ?? null)}
+            </p>
             <p className="text-[10px] text-[#f5f5dc]/50">IG Accounts</p>
           </div>
           <div className="flex flex-col items-center rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-3 text-center">
             <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4af37]/10">
               <Users className="h-4 w-4 text-[#f9d976]" />
             </div>
-            <p className="text-lg font-bold text-[#f9d976]">{linkedAssets.systemUsers ?? 0}</p>
+            <p className="text-lg font-bold text-[#f9d976]">
+              {getAssetCount(linkedAssets?.systemUsers ?? null)}
+            </p>
             <p className="text-[10px] text-[#f5f5dc]/50">Sys Users</p>
           </div>
         </div>
+        {!hasLinkedAssets && (
+          <p className="mt-2 text-xs text-[#f5f5dc]/40">No linked assets synced yet.</p>
+        )}
       </div>
     </motion.div>
   );
@@ -598,16 +651,26 @@ interface EventRadarProps {
     messageDelivered?: number;
     messageRead?: number;
     linkClicked?: number;
-  };
+  } | null;
+  eventsLast24h?: number | null;
   conversionTrackingEnabled?: boolean;
   onToggleConversionTracking?: () => void;
 }
 
 export function EventRadar({
-  eventStats = {},
+  eventStats,
+  eventsLast24h,
   conversionTrackingEnabled = false,
   onToggleConversionTracking,
 }: EventRadarProps) {
+  const stats = eventStats ?? {};
+  const hasStats = Object.values(stats).some((value) => (value ?? 0) > 0);
+  const hasEvents = (eventsLast24h ?? 0) > 0;
+  const showData = hasStats || hasEvents;
+  const statusLabel = showData ? "LIVE" : "NO DATA";
+  const statusClass = showData ? "text-[#e11d48]" : "text-[#f5f5dc]/50";
+  const getCount = (value?: number) => (showData ? String(value ?? 0) : "--");
+
   // Simulated pulse points for the radar
   const pulsePoints = [
     { x: 30, y: 20, delay: 0, type: "sent" },
@@ -644,12 +707,16 @@ export function EventRadar({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <motion.div
-              className="h-2 w-2 rounded-full bg-[#e11d48]"
-              animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-            <span className="text-xs text-[#e11d48]">LIVE</span>
+            {showData ? (
+              <motion.div
+                className="h-2 w-2 rounded-full bg-[#e11d48]"
+                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+            ) : (
+              <span className="h-2 w-2 rounded-full bg-[#f5f5dc]/30" />
+            )}
+            <span className={cn("text-xs", statusClass)}>{statusLabel}</span>
           </div>
         </div>
 
@@ -678,32 +745,33 @@ export function EventRadar({
           </svg>
 
           {/* Pulse Points */}
-          {pulsePoints.map((point, idx) => (
-            <motion.div
-              key={idx}
-              className="absolute"
-              style={{ left: `${point.x}%`, top: `${point.y}%` }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ 
-                scale: [0, 1.5, 1], 
-                opacity: [0, 1, 0.7] 
-              }}
-              transition={{ 
-                duration: 2, 
-                repeat: Infinity, 
-                delay: point.delay,
-                repeatDelay: 2 
-              }}
-            >
-              <div
-                className="h-3 w-3 rounded-full"
-                style={{ 
-                  backgroundColor: typeColors[point.type as keyof typeof typeColors],
-                  boxShadow: `0 0 10px ${typeColors[point.type as keyof typeof typeColors]}` 
+          {showData &&
+            pulsePoints.map((point, idx) => (
+              <motion.div
+                key={idx}
+                className="absolute"
+                style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: [0, 1.5, 1],
+                  opacity: [0, 1, 0.7],
                 }}
-              />
-            </motion.div>
-          ))}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: point.delay,
+                  repeatDelay: 2,
+                }}
+              >
+                <div
+                  className="h-3 w-3 rounded-full"
+                  style={{
+                    backgroundColor: typeColors[point.type as keyof typeof typeColors],
+                    boxShadow: `0 0 10px ${typeColors[point.type as keyof typeof typeColors]}`,
+                  }}
+                />
+              </motion.div>
+            ))}
 
           {/* Legend */}
           <div className="absolute bottom-2 left-2 flex gap-3 text-[10px]">
@@ -722,26 +790,32 @@ export function EventRadar({
           </div>
         </div>
 
+        {!showData && (
+          <div className="mb-4 rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-3 text-xs text-[#f5f5dc]/50">
+            No events yet. Configure your connection and wait for incoming messages.
+          </div>
+        )}
+
         {/* Event Stats Grid */}
         <div className="grid grid-cols-4 gap-2 mb-4">
           <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/60 p-2 text-center">
             <Send className="mx-auto mb-1 h-3.5 w-3.5 text-[#d4af37]" />
-            <p className="text-sm font-bold text-[#d4af37]">{eventStats.messageSent ?? 0}</p>
+            <p className="text-sm font-bold text-[#d4af37]">{getCount(stats.messageSent)}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Sent</p>
           </div>
           <div className="rounded-lg border border-emerald-500/20 bg-[#050a18]/60 p-2 text-center">
             <CheckCheck className="mx-auto mb-1 h-3.5 w-3.5 text-emerald-400" />
-            <p className="text-sm font-bold text-emerald-400">{eventStats.messageDelivered ?? 0}</p>
+            <p className="text-sm font-bold text-emerald-400">{getCount(stats.messageDelivered)}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Delivered</p>
           </div>
           <div className="rounded-lg border border-blue-500/20 bg-[#050a18]/60 p-2 text-center">
             <Eye className="mx-auto mb-1 h-3.5 w-3.5 text-blue-400" />
-            <p className="text-sm font-bold text-blue-400">{eventStats.messageRead ?? 0}</p>
+            <p className="text-sm font-bold text-blue-400">{getCount(stats.messageRead)}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Read</p>
           </div>
           <div className="rounded-lg border border-[#e11d48]/20 bg-[#050a18]/60 p-2 text-center">
             <MousePointerClick className="mx-auto mb-1 h-3.5 w-3.5 text-[#e11d48]" />
-            <p className="text-sm font-bold text-[#e11d48]">{eventStats.linkClicked ?? 0}</p>
+            <p className="text-sm font-bold text-[#e11d48]">{getCount(stats.linkClicked)}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Clicked</p>
           </div>
         </div>
@@ -754,9 +828,12 @@ export function EventRadar({
           </div>
           <button
             onClick={onToggleConversionTracking}
+            disabled={!showData}
+            title="Toggle conversion tracking"
             className={cn(
               "relative h-6 w-11 rounded-full transition-colors",
-              conversionTrackingEnabled ? "bg-[#e11d48]" : "bg-[#f5f5dc]/20"
+              conversionTrackingEnabled ? "bg-[#e11d48]" : "bg-[#f5f5dc]/20",
+              !showData && "cursor-not-allowed opacity-60"
             )}
           >
             <motion.div
@@ -770,7 +847,6 @@ export function EventRadar({
     </motion.div>
   );
 }
-
 /* ═══════════════════════════════════════════════════════════════════════════
    WEBHOOK STATUS CARD - Technical Vault with Ping Test
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -780,6 +856,7 @@ interface WebhookStatusCardProps {
   isVerified?: boolean;
   onPingTest?: () => Promise<boolean>;
   onCopy: (text: string, label: string) => void;
+  pingDisabledReason?: string;
 }
 
 export function WebhookStatusCard({
@@ -787,6 +864,7 @@ export function WebhookStatusCard({
   isVerified = false,
   onPingTest,
   onCopy,
+  pingDisabledReason,
 }: WebhookStatusCardProps) {
   const [isPinging, setIsPinging] = useState(false);
   const [pingResult, setPingResult] = useState<"success" | "error" | null>(null);
@@ -831,6 +909,7 @@ export function WebhookStatusCard({
             {webhookUrl && (
               <button
                 onClick={() => onCopy(webhookUrl, "Webhook URL")}
+                title="Copy Webhook URL"
                 className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -866,7 +945,7 @@ export function WebhookStatusCard({
           {/* Ping Test Button */}
           <motion.button
             onClick={handlePing}
-            disabled={isPinging || !webhookUrl}
+            disabled={isPinging || !webhookUrl || !onPingTest}
             className={cn(
               "relative flex h-11 items-center gap-2 rounded-xl border-2 px-4 text-sm font-semibold transition-all",
               "border-[#d4af37] bg-[#d4af37]/10 text-[#f9d976]",
@@ -903,6 +982,9 @@ export function WebhookStatusCard({
             <span className="relative z-10">Ping Test</span>
           </motion.button>
         </div>
+        {pingDisabledReason && (
+          <p className="mt-3 text-xs text-[#f5f5dc]/50">{pingDisabledReason}</p>
+        )}
       </div>
     </motion.div>
   );
@@ -913,12 +995,22 @@ export function WebhookStatusCard({
    ═══════════════════════════════════════════════════════════════════════════ */
 
 interface MonitorCardProps {
-  latencyMs?: number;
-  uptime?: number;
-  eventsLast24h?: number;
+  latencyMs?: number | null;
+  uptime?: number | null;
+  eventsLast24h?: number | null;
 }
 
-export function MonitorCard({ latencyMs = 180, uptime = 99.99, eventsLast24h = 0 }: MonitorCardProps) {
+export function MonitorCard({
+  latencyMs = null,
+  uptime = null,
+  eventsLast24h = null,
+}: MonitorCardProps) {
+  const latencyValue = latencyMs === null ? "--" : `${latencyMs}ms`;
+  const latencyValueClass = latencyMs === null ? "text-[#f5f5dc]/60" : "text-emerald-400";
+  const uptimeValue = uptime === null ? "--" : `${uptime}%`;
+  const uptimeValueClass = uptime === null ? "text-[#f5f5dc]/60" : "text-emerald-400";
+  const eventsValue = eventsLast24h === null ? "--" : String(eventsLast24h);
+
   return (
     <motion.div
       variants={cardVariants}
@@ -950,31 +1042,41 @@ export function MonitorCard({ latencyMs = 180, uptime = 99.99, eventsLast24h = 0
               </linearGradient>
             </defs>
             {/* EKG line */}
-            <motion.path
-              d="M0,20 L20,20 L25,20 L30,5 L35,35 L40,20 L60,20 L80,20 L85,20 L90,8 L95,32 L100,20 L120,20 L140,20 L145,20 L150,5 L155,35 L160,20 L180,20 L200,20"
-              fill="none"
-              stroke="url(#ekgGradient)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            />
+            {latencyMs === null ? (
+              <path
+                d="M0,20 L200,20"
+                fill="none"
+                stroke="rgba(245, 245, 220, 0.2)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            ) : (
+              <motion.path
+                d="M0,20 L20,20 L25,20 L30,5 L35,35 L40,20 L60,20 L80,20 L85,20 L90,8 L95,32 L100,20 L120,20 L140,20 L145,20 L150,5 L155,35 L160,20 L180,20 L200,20"
+                fill="none"
+                stroke="url(#ekgGradient)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              />
+            )}
           </svg>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-[#f5f5dc]/60">Current</span>
-            <span className="font-mono text-lg font-bold text-emerald-400">{latencyMs}ms</span>
+            <span className={`font-mono text-lg font-bold ${latencyValueClass}`}>{latencyValue}</span>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-emerald-500/20 bg-[#050a18]/80 p-3 text-center">
-            <p className="text-3xl font-bold text-emerald-400">{uptime}%</p>
+            <p className={`text-3xl font-bold ${uptimeValueClass}`}>{uptimeValue}</p>
             <p className="text-xs text-[#f5f5dc]/60">Uptime</p>
           </div>
           <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/80 p-3 text-center">
-            <p className="text-3xl font-bold text-[#f9d976]">{eventsLast24h}</p>
+            <p className="text-3xl font-bold text-[#f9d976]">{eventsValue}</p>
             <p className="text-xs text-[#f5f5dc]/60">Events 24h</p>
           </div>
         </div>
@@ -994,18 +1096,10 @@ interface WebhookTerminalCardProps {
 
 export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: WebhookTerminalCardProps) {
   // Transform events to logs format - using useMemo instead of useState+useEffect
-  const logs = recentEvents.length > 0
-    ? recentEvents.slice(0, 6).map((e) => ({
-        type: e.type,
-        time: new Date(e.timestamp).toLocaleTimeString(),
-      }))
-    : [
-        // Simulated logs for demo
-        { type: "message.received", time: "14:32:01" },
-        { type: "message.status", time: "14:31:58" },
-        { type: "template.status", time: "14:30:22" },
-        { type: "message.received", time: "14:29:15" },
-      ];
+  const logs = recentEvents.slice(0, 6).map((e) => ({
+    type: e.type,
+    time: new Date(e.timestamp).toLocaleTimeString(),
+  }));
 
   return (
     <motion.div
@@ -1058,7 +1152,7 @@ export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: Webhoo
                   className="flex items-center gap-2 py-1"
                 >
                   <span className="text-[#f5f5dc]/40">[{log.time}]</span>
-                  <span className="text-emerald-400">→</span>
+                  <span className="text-emerald-400">{">>"}</span>
                   <span className="text-[#f9d976]">{log.type}</span>
                 </motion.div>
               ))}

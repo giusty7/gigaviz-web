@@ -354,6 +354,7 @@ export default function MetaConnectPage() {
               <select
                 value={selectedWaba}
                 onChange={(e) => setSelectedWaba(e.target.value)}
+                title="Select WhatsApp Business Account"
                 className="min-w-[240px] rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
               >
                 {wabas.length === 0 && <option value="">No WABA loaded</option>}
@@ -366,6 +367,7 @@ export default function MetaConnectPage() {
               <select
                 value={selectedPhone}
                 onChange={(e) => setSelectedPhone(e.target.value)}
+                title="Select phone number"
                 className="min-w-[240px] rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
               >
                 {phones.length === 0 && <option value="">No phone numbers</option>}
@@ -401,6 +403,7 @@ export default function MetaConnectPage() {
               <select
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
+                title="Select template"
                 className="min-w-[220px] rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
               >
                 {approvedTemplates.length === 0 && <option value="">No approved templates</option>}
@@ -413,6 +416,7 @@ export default function MetaConnectPage() {
               <select
                 value={selectedContact}
                 onChange={(e) => setSelectedContact(e.target.value)}
+                title="Select contact"
                 className="min-w-[220px] rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm"
               >
                 {contacts.length === 0 && <option value="">No opted-in contacts</option>}

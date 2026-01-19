@@ -51,9 +51,14 @@ WhatsApp:
 - `WA_ACCESS_TOKEN` or `WA_CLOUD_API_TOKEN`
 - `WA_PHONE_NUMBER_ID`
 - `WA_WABA_ID` (for template management)
-- `WA_VERIFY_TOKEN`
+- `META_WEBHOOK_VERIFY_TOKEN` or `WA_WEBHOOK_VERIFY_TOKEN` or `WEBHOOK_VERIFY_TOKEN`
 - `WA_ADMIN_PHONE`
 - `WA_GRAPH_VERSION`
+
+Meta Hub (testing):
+- `META_APP_ID`
+- `META_APP_SECRET`
+- `META_HUB_WA_TEST_DRY_RUN` (optional, set true to avoid live Graph calls)
 
 Template sync note:
 - `POST /api/admin/templates/sync` only. Do not open in browser.
@@ -75,6 +80,22 @@ Feature flags:
 - `SUPERVISOR_TAKEOVER_ENABLED`
 - `ATTACHMENTS_BUCKET`
 - `ATTACHMENTS_SIGNED_URL_TTL`
+
+## Local testing Meta Hub
+
+1) Set Meta Hub env vars in `.env.local`:
+   - `META_APP_ID`, `META_APP_SECRET`
+   - one of `META_WEBHOOK_VERIFY_TOKEN`, `WA_WEBHOOK_VERIFY_TOKEN`, or `WEBHOOK_VERIFY_TOKEN`
+2) Run `npm run dev`.
+3) Open `/{workspaceSlug}/meta-hub/connections` to use **Test connection** and **Ping Test**.
+4) Open `/{workspaceSlug}/meta-hub/webhooks` to use **Test Webhook Ping**.
+
+## Owner grants / Platform admin panel
+
+1) Add `GIGAVIZ_OWNER_EMAILS` and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` (owner allowlist for bootstrap).
+2) Visit `/ops/platform-admin` (requires login). If not a platform admin yet and your email is allowlisted, click **Claim Platform Admin**.
+3) Search any workspace by slug/name, select it, and toggle entitlements (meta_hub, platform, etc.). Optional: set expiry, reason, or payload JSON.
+4) Changes write via RPCs (`set_workspace_entitlement*`) and appear immediately across the app (Meta Hub unlocks without the locked banner; module cards show `Granted (owner)`).
 
 ## Database Migrations
 

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAppContext } from "@/lib/app-context";
+import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { ImperiumWebhooksClient } from "@/components/meta-hub/ImperiumWebhooksClient";
 import type { WebhookEvent, WebhookStats } from "@/components/meta-hub/ImperiumWebhooksComponents";
@@ -17,6 +18,15 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
+
+  const devEmails = (process.env.DEV_FULL_ACCESS_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  const isDevOverride = devEmails.includes((ctx.user.email || "").toLowerCase());
+  const isAdminOverride = Boolean(ctx.profile?.is_admin) || isDevOverride;
+  const canTest = ["owner", "admin"].includes(ctx.currentRole ?? "") || isAdminOverride;
+  const envStatus = getMetaHubTestEnvStatus();
 
   const db = supabaseAdmin();
   const workspaceId = ctx.currentWorkspace.id;
@@ -96,7 +106,8 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
       initialEvents={mappedEvents}
       initialStats={stats}
       webhookUrl={webhookUrl}
+      canTest={canTest}
+      webhookTestEnvMissing={envStatus.webhookPingMissing}
     />
   );
 }
-

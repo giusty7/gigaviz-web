@@ -555,6 +555,7 @@ function ImperiumComposer({
         <select
           value={mode}
           onChange={(e) => onModeChange(e.target.value as HelperMode)}
+          title="Select mode"
           className="h-8 rounded-lg border border-[#d4af37]/20 bg-[#050a18] px-3 text-xs text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30"
         >
           <option value="chat">💬 Chat</option>
@@ -565,6 +566,7 @@ function ImperiumComposer({
         <select
           value={provider}
           onChange={(e) => onProviderChange(e.target.value as HelperProvider)}
+          title="Select AI provider"
           className="h-8 rounded-lg border border-[#d4af37]/20 bg-[#050a18] px-3 text-xs text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30"
         >
           <option value="auto">✨ Auto</option>
@@ -1040,7 +1042,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
 
   if (!mounted) {
     return (
-      <div className="flex h-full w-full bg-[#050a18] -mx-4 -mt-6 md:-mx-6 lg:-mx-8" style={{ minHeight: "calc(100vh - 80px)" }}>
+      <div className="flex h-full w-full bg-[#050a18] -mx-4 -mt-6 md:-mx-6 lg:-mx-8 min-h-screen-minus-header">
         <div className="flex-1 flex items-center justify-center">
           <Loader2Icon className="h-8 w-8 animate-spin text-[#d4af37]" />
         </div>
@@ -1075,7 +1077,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
   );
 
   return (
-    <div className="flex h-full w-full bg-[#050a18] -mx-4 -mt-6 md:-mx-6 lg:-mx-8" style={{ minHeight: "calc(100vh - 80px)" }}>
+    <div className="flex h-full w-full bg-[#050a18] -mx-4 -mt-6 md:-mx-6 lg:-mx-8 min-h-screen-minus-header">
       {/* Cyber-Batik Background */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"

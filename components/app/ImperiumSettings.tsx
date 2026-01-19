@@ -293,6 +293,7 @@ export function ImperiumToggle({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
+        title={label || "Toggle switch"}
         className={`relative h-6 w-11 rounded-full transition-all duration-200 ${
           checked
             ? "bg-gradient-to-r from-[#d4af37] to-[#f9d976] shadow-[0_0_12px_rgba(212,175,55,0.4)]"

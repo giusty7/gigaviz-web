@@ -4,16 +4,15 @@ import { useState, useSyncExternalStore } from "react";
 import { motion, type Variants } from "framer-motion";
 import {
   NeuralLinkHero,
-  VaultCard,
   MonitorCard,
   WebhookTerminalCard,
-  ImperiumEmbeddedSignup,
   ImperiumHealthCheck,
   ImperiumConnectionsFooter,
   BusinessAssetVault,
   EventRadar,
   WebhookStatusCard,
 } from "./ImperiumConnectionsComponents";
+import { WhatsappConnectionForm } from "./WhatsappConnectionForm";
 import { useToast } from "@/components/ui/use-toast";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -49,15 +48,21 @@ interface ImperiumConnectionsClientProps {
   workspaceId: string;
   workspaceSlug: string;
   canEdit: boolean;
+  canTest: boolean;
   connection: {
     phoneNumberId: string | null;
     wabaId: string | null;
     displayName: string | null;
     status: string | null;
+    lastTestedAt: string | null;
+    lastTestResult: string | null;
   } | null;
   tokenSet: boolean;
   recentEvents?: Array<{ type: string; timestamp: string }>;
   eventsLast24h?: number;
+  webhookUrl: string;
+  connectionTestEnvMissing?: string[];
+  webhookTestEnvMissing?: string[];
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -68,10 +73,14 @@ export function ImperiumConnectionsClient({
   workspaceId,
   workspaceSlug,
   canEdit,
+  canTest,
   connection,
   tokenSet,
   recentEvents = [],
   eventsLast24h = 0,
+  webhookUrl,
+  connectionTestEnvMissing = [],
+  webhookTestEnvMissing = [],
 }: ImperiumConnectionsClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
@@ -90,9 +99,39 @@ export function ImperiumConnectionsClient({
   };
 
   const handlePingTest = async (): Promise<boolean> => {
-    // Simulate ping test - in production, call actual API
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    return true;
+    if (webhookTestEnvMissing.length > 0) {
+      toast({
+        title: "Missing environment variables",
+        description: `Set one of ${webhookTestEnvMissing.join(", ")} to enable webhook tests.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!canTest) {
+      toast({
+        title: "Access denied",
+        description: "Admin access is required to run webhook tests.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    try {
+      const res = await fetch("/api/meta/whatsapp/webhooks/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.message || data?.reason || "Webhook test failed");
+      }
+      toast({ title: "Webhook ping successful", description: "Endpoint verified." });
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Webhook test failed";
+      toast({ title: "Webhook ping failed", description: msg, variant: "destructive" });
+      return false;
+    }
   };
 
   if (!mounted) {
@@ -151,24 +190,31 @@ export function ImperiumConnectionsClient({
           />
         </motion.div>
 
-        {/* THE GATEWAY - Embedded Signup (Prominent when disconnected) */}
-        {!isConnected && (
-          <motion.div variants={itemVariants}>
-            <div className="mb-4 flex items-center gap-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
-              <span className="text-xs font-semibold tracking-wider text-[#d4af37]">
-                THE GATEWAY
-              </span>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
-            </div>
+        {/* THE GATEWAY - Connection Form */}
+        <motion.div variants={itemVariants}>
+          <div className="mb-4 flex items-center gap-2">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
+            <span className="text-xs font-semibold tracking-wider text-[#d4af37]">
+              THE GATEWAY
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
+          </div>
 
-            <ImperiumEmbeddedSignup
-              workspaceSlug={workspaceSlug}
-              canEdit={canEdit}
-              isConnected={isConnected}
-            />
-          </motion.div>
-        )}
+          <WhatsappConnectionForm
+            workspaceId={workspaceId}
+            workspaceSlug={workspaceSlug}
+            canEdit={canEdit}
+            canRunTests={canTest}
+            connectionTestEnvMissing={connectionTestEnvMissing}
+            initialPhoneNumberId={connection?.phoneNumberId ?? null}
+            initialWabaId={connection?.wabaId ?? null}
+            initialDisplayName={connection?.displayName ?? null}
+            status={connection?.status ?? null}
+            lastTestedAt={connection?.lastTestedAt ?? null}
+            lastTestResult={connection?.lastTestResult ?? null}
+            tokenSet={tokenSet}
+          />
+        </motion.div>
 
         {/* BUSINESS ASSET VAULT - Meta Business Intelligence */}
         <motion.div variants={itemVariants}>
@@ -183,25 +229,16 @@ export function ImperiumConnectionsClient({
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Business Asset Vault */}
             <BusinessAssetVault
-              businessManagerId={isConnected ? "123456789012345" : null}
-              businessName={isConnected ? "PT Glorious Victorious" : null}
-              verificationStatus={isConnected ? "verified" : "pending"}
-              linkedAssets={{
-                facebookPages: isConnected ? 3 : 0,
-                instagramAccounts: isConnected ? 2 : 0,
-                systemUsers: isConnected ? 5 : 0,
-              }}
+              businessManagerId={null}
+              businessName={null}
+              verificationStatus={null}
+              linkedAssets={null}
               onCopy={handleCopy}
             />
 
             {/* Event Radar */}
             <EventRadar
-              eventStats={{
-                messageSent: isConnected ? 1247 : 0,
-                messageDelivered: isConnected ? 1189 : 0,
-                messageRead: isConnected ? 892 : 0,
-                linkClicked: isConnected ? 156 : 0,
-              }}
+              eventsLast24h={eventsLast24h}
               conversionTrackingEnabled={conversionTracking}
               onToggleConversionTracking={() => setConversionTracking(!conversionTracking)}
             />
@@ -218,28 +255,24 @@ export function ImperiumConnectionsClient({
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Secure Vault Card */}
-            <VaultCard
-              tokenSet={tokenSet}
-              wabaId={connection?.wabaId}
-              phoneNumberId={connection?.phoneNumberId}
-              onCopy={handleCopy}
-            />
-
-            {/* Monitor Card */}
+          <div className="grid gap-6 lg:grid-cols-2">
             <MonitorCard
-              latencyMs={isConnected ? 142 : 0}
-              uptime={isConnected ? 99.99 : 0}
+              latencyMs={null}
+              uptime={null}
               eventsLast24h={eventsLast24h}
             />
-
-            {/* Webhook Status Card */}
             <WebhookStatusCard
-              webhookUrl={isConnected ? `https://api.gigaviz.com/webhooks/${workspaceSlug}` : null}
-              isVerified={isConnected}
-              onPingTest={handlePingTest}
+              webhookUrl={webhookUrl}
+              isVerified={eventsLast24h > 0}
+              onPingTest={isConnected ? handlePingTest : undefined}
               onCopy={handleCopy}
+              pingDisabledReason={
+                webhookTestEnvMissing.length > 0
+                  ? `Missing env: ${webhookTestEnvMissing.join(", ")}`
+                  : !canTest
+                    ? "Admin access required"
+                    : undefined
+              }
             />
           </div>
         </motion.div>
@@ -275,17 +308,6 @@ export function ImperiumConnectionsClient({
             workspaceSlug={workspaceSlug}
           />
         </motion.div>
-
-        {/* Connected State - Small Gateway Link */}
-        {isConnected && (
-          <motion.div variants={itemVariants}>
-            <ImperiumEmbeddedSignup
-              workspaceSlug={workspaceSlug}
-              canEdit={canEdit}
-              isConnected={isConnected}
-            />
-          </motion.div>
-        )}
 
         {/* Footer */}
         <ImperiumConnectionsFooter />

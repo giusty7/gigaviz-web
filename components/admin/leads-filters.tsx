@@ -67,6 +67,7 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
           <select
             value={need}
             onChange={(e) => setParam("need", e.target.value)}
+            title="Filter by need"
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
             <option value="">All needs</option>
@@ -83,6 +84,7 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
           <select
             value={source}
             onChange={(e) => setParam("source", e.target.value)}
+            title="Filter by source"
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
             <option value="">All sources</option>
@@ -100,6 +102,7 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
             <select
               value={status}
               onChange={(e) => setParam("status", e.target.value)}
+              title="Filter by status"
               className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
             >
               <option value="">All statuses</option>

@@ -186,6 +186,7 @@ export default function LeadForm() {
               className={fieldClass}
               value={form.need}
               onChange={(e) => setForm((s) => ({ ...s, need: e.target.value }))}
+              title="Select need"
             >
               {NEED_OPTIONS.map((n) => (
                 <option key={n} value={n} className="bg-slate-950 text-slate-100">

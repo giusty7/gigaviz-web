@@ -48,6 +48,7 @@ export default function TokenEstimator() {
               onChange={(event) =>
                 setMode(event.target.value as EstimatorMode)
               }
+              title="Select input mode"
               className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
             >
               <option value="messages_per_day">Messages / day</option>

@@ -56,6 +56,8 @@ interface ImperiumWebhooksClientProps {
   initialEvents: WebhookEvent[];
   initialStats: WebhookStats;
   webhookUrl: string;
+  canTest: boolean;
+  webhookTestEnvMissing?: string[];
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -83,6 +85,8 @@ export function ImperiumWebhooksClient({
   initialEvents,
   initialStats,
   webhookUrl,
+  canTest,
+  webhookTestEnvMissing = [],
 }: ImperiumWebhooksClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
@@ -99,13 +103,18 @@ export function ImperiumWebhooksClient({
 
   // Computed values
   const successRate = useMemo(() => {
-    if (stats.total24h === 0) return 100;
-    return ((stats.total24h - stats.errors24h) / stats.total24h) * 100;
+    if (stats.total24h === 0) return null;
+    const rate = ((stats.total24h - stats.errors24h) / stats.total24h) * 100;
+    return Number.isFinite(rate) ? Math.max(0, Math.min(100, rate)) : null;
   }, [stats]);
 
-  const avgLatency = 180; // Placeholder - would come from real data
+  const avgLatency: number | null = null;
 
   const isListening = hasToken && Boolean(phoneNumberId);
+  const alertTitle = hasToken ? "Connection Missing" : "Token Missing";
+  const alertDescription = hasToken
+    ? "Add a WhatsApp phone number connection to start listening for events."
+    : "Configure your WhatsApp connection to receive webhook events.";
 
   // Filter events
   const filteredEvents = useMemo(() => {
@@ -174,24 +183,47 @@ export function ImperiumWebhooksClient({
 
   // Test webhook ping
   const handleTestPing = useCallback(async () => {
+    if (webhookTestEnvMissing.length > 0) {
+      toast({
+        title: "Missing environment variables",
+        description: `Set one of ${webhookTestEnvMissing.join(", ")} to enable webhook tests.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!canTest) {
+      toast({
+        title: "Access denied",
+        description: "Admin access is required to run webhook tests.",
+        variant: "destructive",
+      });
+      return;
+    }
     setTestingPing(true);
     try {
-      // Simulate a test ping
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast({
-        title: "Ping Successful!",
-        description: "Webhook endpoint is responding correctly.",
+      const res = await fetch("/api/meta/whatsapp/webhooks/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId }),
       });
-    } catch {
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.message || data?.reason || "Webhook test failed");
+      }
       toast({
-        title: "Ping Failed",
-        description: "Could not reach webhook endpoint.",
+        title: "Ping successful",
+        description: "Webhook endpoint verified.",
+      });
+    } catch (err) {
+      toast({
+        title: "Ping failed",
+        description: err instanceof Error ? err.message : "Could not reach webhook endpoint.",
         variant: "destructive",
       });
     } finally {
       setTestingPing(false);
     }
-  }, [toast]);
+  }, [toast, workspaceId, canTest, webhookTestEnvMissing]);
 
   // Copy handler
   const handleCopy = useCallback(
@@ -245,7 +277,7 @@ export function ImperiumWebhooksClient({
               Webhook Monitor
             </h1>
             <p className="mt-2 text-sm text-[#f5f5dc]/60">
-              {displayName ?? "WhatsApp"} • Real-time event monitoring and debugging
+              {displayName ?? "WhatsApp"} - Real-time event monitoring and debugging
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -267,17 +299,15 @@ export function ImperiumWebhooksClient({
         </motion.div>
 
         {/* Alerts */}
-        {!hasToken && (
+        {!isListening && (
           <motion.div
             variants={itemVariants}
             className="flex items-center gap-3 rounded-xl border border-[#e11d48]/40 bg-[#e11d48]/10 px-4 py-3 text-sm"
           >
             <AlertTriangle className="h-5 w-5 text-[#e11d48]" />
             <div className="flex-1">
-              <p className="font-semibold text-[#e11d48]">Token Missing</p>
-              <p className="text-[#e11d48]/70">
-                Configure your WhatsApp connection to receive webhook events.
-              </p>
+              <p className="font-semibold text-[#e11d48]">{alertTitle}</p>
+              <p className="text-[#e11d48]/70">{alertDescription}</p>
             </div>
             <Link href={`/${workspaceSlug}/meta-hub/connections`}>
               <Button
@@ -323,7 +353,21 @@ export function ImperiumWebhooksClient({
         <motion.div variants={itemVariants}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <FilterPills activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-            <TestWebhookButton onTest={handleTestPing} loading={testingPing} />
+            <div className="flex flex-col items-end gap-2">
+              <TestWebhookButton
+                onTest={handleTestPing}
+                loading={testingPing}
+                disabled={!isListening || !canTest || webhookTestEnvMissing.length > 0}
+              />
+              {webhookTestEnvMissing.length > 0 && (
+                <p className="text-xs text-[#f5f5dc]/50">
+                  Missing env: {webhookTestEnvMissing.join(", ")}
+                </p>
+              )}
+              {!canTest && (
+                <p className="text-xs text-[#f5f5dc]/50">Admin access required</p>
+              )}
+            </div>
           </div>
         </motion.div>
 

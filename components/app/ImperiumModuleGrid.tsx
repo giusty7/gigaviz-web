@@ -35,6 +35,7 @@ export type ModuleItem = {
   description: string;
   status: ModuleStatus;
   href?: string;
+  accessLabel?: string;
   previewHref?: string;
   previewLabel?: string;
   notifyLabel?: string;
@@ -297,6 +298,11 @@ export default function ImperiumModuleGrid({
                   <p className="mt-1 text-sm text-[#f5f5dc]/60 line-clamp-2">
                     {module.description}
                   </p>
+                  {module.accessLabel && (
+                    <p className="mt-1 text-xs text-[#f5f5dc]/50">
+                      {module.accessLabel}
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -63,7 +63,7 @@ type Conversation = {
 
 type Channel = {
   name: string;
-  status: "live" | "beta" | "soon";
+  status: "live" | "beta" | "soon" | "locked";
   desc: string;
   stats: string[];
   href: string;
@@ -170,8 +170,8 @@ export function ImperiumMetaHubOverviewClient({
         wabaIdMasked={health.whatsapp.wabaIdMasked}
         phoneIdMasked={health.whatsapp.phoneIdMasked}
         tokenConfigured={health.whatsapp.tokenConfigured}
-        qualityRating="GREEN"
-        verificationStatus="verified"
+        qualityRating={null}
+        verificationStatus="none"
       />
 
       {/* Analytics Pulse Section */}
@@ -179,7 +179,6 @@ export function ImperiumMetaHubOverviewClient({
         inbound24h={kpis.inboundCount24h}
         outbound24h={kpis.outboundCount24h}
         events24h={kpis.totalEvents24h}
-        latencyMs={180}
       />
 
       {/* Template Grid Preview */}
@@ -195,6 +194,7 @@ export function ImperiumMetaHubOverviewClient({
         basePath={basePath} 
         allowTemplates={allowTemplates}
         allowSend={allowSend}
+        whatsappConnected={health.whatsapp.connected}
       />
 
       {/* Alerts Section */}
@@ -205,7 +205,7 @@ export function ImperiumMetaHubOverviewClient({
           transition={{ delay: 0.3 }}
           className="rounded-2xl border border-amber-500/20 bg-[#0a1229]/80 p-5 backdrop-blur-3xl"
         >
-          <h3 className="text-sm font-semibold text-amber-400">⚠️ Needs Attention</h3>
+          <h3 className="text-sm font-semibold text-amber-400">Needs Attention</h3>
           <div className="mt-3 space-y-2">
             {alerts.map((alert) => (
               <div

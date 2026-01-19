@@ -50,6 +50,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     workspaceSlug: workspace.slug,
     planId: plan.plan_id,
     isAdmin,
+    effectiveEntitlements: ctx.effectiveEntitlements,
   });
 
   const wallet = await getWallet(ctx.currentWorkspace.id);
@@ -71,6 +72,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     description: module.description,
     status: module.status,
     href: module.href,
+    accessLabel: module.accessLabel,
   }));
 
   return (
@@ -89,7 +91,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
       
       <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at top right, rgba(212, 175, 55, 0.08) 0%, transparent 50%)" }} aria-hidden />
+          <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-tr" aria-hidden />
           <div className="relative">
             <div className="flex items-center gap-2 mb-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4af37]/10 text-[#d4af37]">
@@ -129,7 +131,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
           </div>
         </div>
         <div className="relative overflow-hidden rounded-2xl border border-[#e11d48]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0 rounded-2xl" style={{ background: "radial-gradient(ellipse at bottom left, rgba(225, 29, 72, 0.08) 0%, transparent 50%)" }} aria-hidden />
+          <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-magenta-bl" aria-hidden />
           <div className="relative">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[#e11d48]">⚡</span>

@@ -6,7 +6,7 @@ import {
   deductWorkspaceTokensAction,
   grantWorkspaceTokensAction,
   setWorkspaceEntitlementAction,
-} from "@/app/owner/actions";
+} from "@/app/ops/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,8 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import type { WorkspaceEntitlementRow } from "@/lib/owner/ops";
-
-const EMPTY_RESULT = { ok: false } as const;
 
 // 10 Hub entitlements (modules)
 const HUB_ENTITLEMENT_KEYS = [
@@ -52,9 +50,11 @@ const CAPABILITY_ENTITLEMENT_KEYS = [
 export function OwnerEntitlementsPanel({
   workspaceId,
   entitlements,
+  readOnly = false,
 }: {
   workspaceId: string;
   entitlements: WorkspaceEntitlementRow[];
+  readOnly?: boolean;
 }) {
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
@@ -75,6 +75,7 @@ export function OwnerEntitlementsPanel({
     payload?: unknown;
     reason?: string;
   }) => {
+    if (readOnly) return;
     if (!workspaceId) {
       toast({
         title: "Missing workspace",
@@ -97,7 +98,7 @@ export function OwnerEntitlementsPanel({
     }
 
     startTransition(async () => {
-      const result = await setWorkspaceEntitlementAction(EMPTY_RESULT, formData);
+      const result = await setWorkspaceEntitlementAction(formData);
       if (result.ok) {
         toast({ title: "Entitlement updated" });
         setPayloadOpen(false);
@@ -114,6 +115,7 @@ export function OwnerEntitlementsPanel({
   };
 
   const openPayloadEditor = (key: string) => {
+    if (readOnly) return;
     const row = entitlementMap.get(key);
     setPayloadKey(key);
     setPayloadValue(JSON.stringify(row?.payload ?? {}, null, 2));
@@ -121,6 +123,7 @@ export function OwnerEntitlementsPanel({
   };
 
   const openDisableDialog = (key: string) => {
+    if (readOnly) return;
     setDisableKey(key);
     setDisableReason("");
     setDisableOpen(true);
@@ -145,44 +148,50 @@ export function OwnerEntitlementsPanel({
             </div>
             <p className="text-xs text-muted-foreground">{entry.key}</p>
           </div>
-          <div className="flex items-center gap-2">
-            {enabled ? (
+          {readOnly ? (
+            <div className="text-xs text-muted-foreground">
+              Managed in Sovereign Command
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {enabled ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => openDisableDialog(entry.key)}
+                  disabled={pending}
+                >
+                  <ShieldOff className="h-4 w-4" />
+                  Disable
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    submitEntitlement({
+                      key: entry.key,
+                      enabled: true,
+                      payload,
+                    })
+                  }
+                  disabled={pending}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Enable
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant="outline"
-                onClick={() => openDisableDialog(entry.key)}
+                variant="ghost"
+                onClick={() => openPayloadEditor(entry.key)}
                 disabled={pending}
               >
-                <ShieldOff className="h-4 w-4" />
-                Disable
+                <Settings2 className="h-4 w-4" />
+                Payload
               </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() =>
-                  submitEntitlement({
-                    key: entry.key,
-                    enabled: true,
-                    payload,
-                  })
-                }
-                disabled={pending}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Enable
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => openPayloadEditor(entry.key)}
-              disabled={pending}
-            >
-              <Settings2 className="h-4 w-4" />
-              Payload
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
         <div className="mt-2 rounded-md bg-muted/50 p-2 text-xs text-foreground">
           <pre className="whitespace-pre-wrap break-words">
@@ -215,6 +224,7 @@ export function OwnerEntitlementsPanel({
         </div>
       </div>
 
+      {!readOnly ? (
       <Dialog open={payloadOpen} onOpenChange={setPayloadOpen}>
         <DialogContent>
           <DialogHeader>
@@ -264,7 +274,9 @@ export function OwnerEntitlementsPanel({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      ) : null}
 
+      {!readOnly ? (
       <Dialog open={disableOpen} onOpenChange={setDisableOpen}>
         <DialogContent>
           <DialogHeader>
@@ -305,6 +317,7 @@ export function OwnerEntitlementsPanel({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      ) : null}
     </div>
   );
 }
@@ -354,8 +367,8 @@ export function OwnerTokensPanel({
     startTokenTransition(async () => {
       const result =
         action === "grant"
-          ? await grantWorkspaceTokensAction(EMPTY_RESULT, formData)
-          : await deductWorkspaceTokensAction(EMPTY_RESULT, formData);
+          ? await grantWorkspaceTokensAction(formData)
+          : await deductWorkspaceTokensAction(formData);
 
       if (result.ok) {
         toast({

@@ -3,6 +3,7 @@ import "server-only";
 import type { User } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
+import { isPlatformAdminById } from "@/lib/platform-admin/server";
 
 type OwnerMember = {
   user_id: string;
@@ -32,6 +33,24 @@ export async function requireOwner(): Promise<OwnerContext> {
   }
 
   const db = supabaseAdmin();
+  const isPlatformAdmin = await isPlatformAdminById(user.id);
+
+  if (isPlatformAdmin) {
+    return {
+      ok: true,
+      user,
+      member: {
+        user_id: user.id,
+        email: user.email ?? null,
+        role: "platform_admin",
+        active: true,
+      },
+      actorEmail: user.email ?? null,
+      actorRole: "platform_admin",
+      db,
+    };
+  }
+
   const { data: member } = await db
     .from("owner_members")
     .select("user_id, email, role, active")

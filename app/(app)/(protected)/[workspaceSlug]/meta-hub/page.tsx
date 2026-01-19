@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 import { ImperiumMetaHubOverviewClient } from "@/components/meta-hub/ImperiumMetaHubOverviewClient";
-import { FeatureGate } from "@/components/gates/feature-gate";
 import { getMetaHubFlags } from "@/lib/meta-hub/config";
+import { getMetaHubAccess } from "@/lib/meta-hub/access";
 import { getMetaHubOverview } from "@/lib/meta/overview-data";
 import { getAppContext } from "@/lib/app-context";
-import { canAccess } from "@/lib/entitlements";
-import { requireEntitlement } from "@/lib/entitlements/server";
 import { getWorkspacePlan } from "@/lib/plans";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
@@ -14,6 +12,8 @@ export const dynamic = "force-dynamic";
 type PageProps = {
   params: Promise<{ workspaceSlug: string }>;
 };
+
+type ChannelStatus = "live" | "beta" | "soon" | "locked";
 
 export default async function MetaHubOverviewPage({ params }: PageProps) {
   const { workspaceSlug } = await params;
@@ -31,74 +31,109 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   const planInfo = await getWorkspacePlan(workspace.id);
   const isDevOverride = Boolean(planInfo.devOverride);
   const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
-  const isAdmin = Boolean(ctx.profile?.is_admin);
-  const entitlementCtx = { plan_id: planInfo.planId, is_admin: isAdmin || isDevOverride };
-  const allowTemplates = canAccess(entitlementCtx, "meta_templates");
-  const allowSend = canAccess(entitlementCtx, "meta_send");
-  const metaHubEntitlement = await requireEntitlement(workspace.id, "meta_hub");
+  const isAdmin = Boolean(ctx.profile?.is_admin) || isDevOverride;
+  const access = getMetaHubAccess({ planId: planInfo.planId, isAdmin });
+  const allowTemplates = access.templates;
+  const allowSend = access.send;
+
+  if (!access.metaHub) {
+    return null;
+  }
 
   const overview = await getMetaHubOverview(workspace.id);
   const flags = getMetaHubFlags();
   const basePath = `/${workspace.slug}/meta-hub`;
   const planLabel = isDevOverride ? "DEV (Full Access)" : planInfo.displayName;
 
+  const templateTotal =
+    (overview.kpis.templates.approved ?? 0) +
+    (overview.kpis.templates.pending ?? 0) +
+    (overview.kpis.templates.rejected ?? 0);
+  const templateStat =
+    templateTotal > 0
+      ? `${overview.kpis.templates.approved ?? 0} approved templates`
+      : "No templates yet";
+  const whatsappStatus: ChannelStatus = access.metaHub
+    ? overview.health.whatsapp.connected
+      ? "live"
+      : "beta"
+    : "locked";
+  const instagramStatus: ChannelStatus = flags.igEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+  const messengerStatus: ChannelStatus = flags.msEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+  const adsStatus: ChannelStatus = flags.adsEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+  const insightsStatus: ChannelStatus = flags.insightsEnabled
+    ? access.metaHub
+      ? "beta"
+      : "locked"
+    : "soon";
+
   const channels = [
     {
       name: "WhatsApp",
-      status: (flags.waEnabled ? "live" : "beta") as "live" | "beta" | "soon",
+      status: whatsappStatus,
       desc: "Template, inbox, scheduler.",
       stats: [
         overview.health.whatsapp.connected ? "Connected" : "Not connected",
-        `${overview.kpis.templates.approved ?? "—"} approved templates`,
+        templateStat,
       ],
       href: `${basePath}/messaging/whatsapp`,
     },
     {
       name: "Instagram",
-      status: (flags.igEnabled ? "beta" : "soon") as "live" | "beta" | "soon",
-      desc: "DM API, webhook events.",
-      stats: ["Preview", "DM & mention"],
+      status: instagramStatus,
+      desc: "DM API and webhook events.",
+      stats: ["Coming soon", "Notify me"],
       href: `${basePath}/messaging/instagram`,
     },
     {
       name: "Messenger",
-      status: (flags.msEnabled ? "beta" : "soon") as "live" | "beta" | "soon",
+      status: messengerStatus,
       desc: "Send/receive messages.",
-      stats: ["Preview", "Inbox"],
+      stats: ["Coming soon", "Notify me"],
       href: `${basePath}/messaging/messenger`,
     },
     {
       name: "Ads",
-      status: (flags.adsEnabled ? "beta" : "soon") as "live" | "beta" | "soon",
-      desc: "Campaign management & audiences.",
-      stats: ["Preview", "Campaigns"],
+      status: adsStatus,
+      desc: "Campaign management and audiences.",
+      stats: ["Coming soon", "Notify me"],
       href: `${basePath}/ads`,
     },
     {
       name: "Insights",
-      status: (flags.insightsEnabled ? "beta" : "soon") as "live" | "beta" | "soon",
+      status: insightsStatus,
       desc: "Performance and alerts.",
-      stats: ["Preview", "Analytics"],
+      stats: ["Coming soon", "Notify me"],
       href: `${basePath}/insights`,
     },
   ];
 
   return (
-    <FeatureGate allowed={metaHubEntitlement.allowed}>
-      <ImperiumMetaHubOverviewClient
-        basePath={basePath}
-        planLabel={planLabel}
-        isDevOverride={isDevOverride}
-        isPreview={isPreview}
-        allowTemplates={allowTemplates}
-        allowSend={allowSend}
-        health={overview.health}
-        kpis={overview.kpis}
-        alerts={overview.alerts}
-        recentEvents={overview.recentEvents}
-        recentConversations={overview.recentConversations}
-        channels={channels}
-      />
-    </FeatureGate>
+    <ImperiumMetaHubOverviewClient
+      basePath={basePath}
+      planLabel={planLabel}
+      isDevOverride={isDevOverride}
+      isPreview={isPreview}
+      allowTemplates={allowTemplates}
+      allowSend={allowSend}
+      health={overview.health}
+      kpis={overview.kpis}
+      alerts={overview.alerts}
+      recentEvents={overview.recentEvents}
+      recentConversations={overview.recentConversations}
+      channels={channels}
+    />
   );
 }

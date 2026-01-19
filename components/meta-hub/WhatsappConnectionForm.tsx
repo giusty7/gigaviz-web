@@ -31,6 +31,8 @@ type Props = {
   workspaceId: string;
   workspaceSlug: string;
   canEdit: boolean;
+  canRunTests?: boolean;
+  connectionTestEnvMissing?: string[];
   initialPhoneNumberId?: string | null;
   initialWabaId?: string | null;
   initialDisplayName?: string | null;
@@ -43,6 +45,8 @@ type Props = {
 export function WhatsappConnectionForm({
   workspaceId,
   canEdit,
+  canRunTests,
+  connectionTestEnvMissing,
   initialDisplayName,
   initialPhoneNumberId,
   initialWabaId,
@@ -72,6 +76,9 @@ export function WhatsappConnectionForm({
   });
 
   const readOnly = !canEdit;
+  const testPermission = typeof canRunTests === "boolean" ? canRunTests : canEdit;
+  const missingEnvKeys = connectionTestEnvMissing ?? [];
+  const hasMissingEnv = missingEnvKeys.length > 0;
 
   async function onSubmit(values: FormValues) {
     if (readOnly) return;
@@ -119,7 +126,22 @@ export function WhatsappConnectionForm({
   }
 
   async function onTest() {
-    if (readOnly) return;
+    if (hasMissingEnv) {
+      toast({
+        title: "Missing environment variables",
+        description: `Set ${missingEnvKeys.join(", ")} to enable tests.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!testPermission) {
+      toast({
+        title: "Access denied",
+        description: "Admin access is required to run connection tests.",
+        variant: "destructive",
+      });
+      return;
+    }
     const phoneNumberId = form.getValues("phoneNumberId") || initialPhoneNumberId;
     if (!phoneNumberId) {
       toast({
@@ -270,17 +292,25 @@ export function WhatsappConnectionForm({
             <Button type="submit" disabled={readOnly || saving}>
               {saving ? "Saving..." : "Save connection"}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onTest}
-              disabled={readOnly || testing}
-            >
-              {testing ? "Testing..." : "Test connection"}
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Only owners/admins can save or test the token.
-            </p>
+            <div className="flex flex-col items-start gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onTest}
+                disabled={testing || hasMissingEnv || !testPermission}
+              >
+                {testing ? "Testing..." : "Test connection"}
+              </Button>
+              {hasMissingEnv && (
+                <p className="text-xs text-muted-foreground">
+                  Missing env: {missingEnvKeys.join(", ")}
+                </p>
+              )}
+              {!testPermission && (
+                <p className="text-xs text-muted-foreground">Admin access required</p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Saving requires owner/admin access.</p>
           </div>
         </form>
       </Form>
@@ -293,7 +323,7 @@ export function WhatsappConnectionForm({
             : "Never tested"}
         </p>
         <p className="mt-1">
-          Result: {currentTestResult ? <span className="text-foreground">{currentTestResult}</span> : "—"}
+          Result: {currentTestResult ? <span className="text-foreground">{currentTestResult}</span> : "--"}
         </p>
       </div>
     </div>

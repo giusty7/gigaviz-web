@@ -66,6 +66,7 @@ export default function WorkspaceSwitcher({
         <select
           className="rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
           value={currentWorkspaceId}
+          title="Switch workspace"
           onChange={(e) => onChange(e.target.value)}
           disabled={isPending || isLoggingOut}
         >

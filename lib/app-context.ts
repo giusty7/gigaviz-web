@@ -3,6 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/profiles";
+import { getWorkspaceEffectiveEntitlements } from "@/lib/entitlements/effective";
 import {
   getUserWorkspaces,
   resolveCurrentWorkspace,
@@ -29,6 +30,9 @@ export async function getAppContext(workspaceSlug?: string | null) {
   const currentRole = currentWorkspace
     ? workspaces.find((ws) => ws.id === currentWorkspace.id)?.role ?? null
     : null;
+  const effectiveEntitlements = currentWorkspace
+    ? await getWorkspaceEffectiveEntitlements(currentWorkspace.id)
+    : [];
 
   return {
     user,
@@ -36,5 +40,6 @@ export async function getAppContext(workspaceSlug?: string | null) {
     workspaces,
     currentWorkspace,
     currentRole,
+    effectiveEntitlements,
   };
 }
