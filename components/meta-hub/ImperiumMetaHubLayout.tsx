@@ -16,6 +16,8 @@ import {
   Zap,
   Shield,
   Activity,
+  Layers,
+  CloudLightning,
 } from "lucide-react";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
 import type { MetaHubAccess, MetaHubSetup } from "@/lib/meta-hub/access";
@@ -78,6 +80,8 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Insights: BarChart3,
   Templates: MessageSquare,
   Inbox: MessagesSquare,
+  Assets: Layers,
+  Events: CloudLightning,
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -143,6 +147,8 @@ function buildNav(
   return [
     { label: "Overview", href: `${base}`, status: metaHubStatus },
     { label: "Connections", href: `${base}/connections`, status: connectionsStatus },
+    { label: "Assets", href: `${base}/assets`, status: connectionsStatus },
+    { label: "Events", href: `${base}/events`, status: connectionsStatus },
     { label: "Webhooks", href: `${base}/webhooks`, status: webhooksStatus },
     {
       label: "Messaging - WhatsApp",

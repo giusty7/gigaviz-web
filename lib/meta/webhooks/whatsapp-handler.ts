@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
+import { storeMetaEventLog } from "@/lib/meta/events";
 
 type WaPayload = {
   object?: string;
@@ -12,7 +13,16 @@ type WaPayload = {
       field?: string;
       value?: {
         metadata?: { phone_number_id?: string };
-        messages?: Array<{ id?: string; type?: string; timestamp?: string }>;
+        messages?: Array<{
+          id?: string;
+          type?: string;
+          timestamp?: string;
+          referral?: {
+            ctwa_clid?: string;
+            source_id?: string;
+            source_type?: string;
+          };
+        }>;
         statuses?: Array<{ id?: string; status?: string; timestamp?: string }>;
       };
     }>;
@@ -34,6 +44,32 @@ function extractEventInfo(payload: WaPayload) {
   const statusId = change?.value?.statuses?.[0]?.id ?? null;
   const externalId = messageId || statusId || entry?.id || null;
   return { object, eventType, externalId };
+}
+
+function sanitizePayloadAndReferral(payload: WaPayload) {
+  let referralHash: string | null = null;
+  let referralSourceId: string | null = null;
+  let referralSourceType: string | null = null;
+  const clone = JSON.parse(JSON.stringify(payload)) as WaPayload;
+
+  const changes = clone.entry?.[0]?.changes?.[0];
+  const messages = changes?.value?.messages ?? [];
+
+  messages.forEach((msg) => {
+    const referral = msg?.referral;
+    if (!referral) return;
+    if (referral.ctwa_clid) {
+      referralHash = createHash("sha256").update(referral.ctwa_clid.trim()).digest("hex");
+    }
+    referralSourceId = referral.source_id ?? referralSourceId;
+    referralSourceType = referral.source_type ?? referralSourceType;
+    delete referral.ctwa_clid;
+    if (referralHash) {
+      (referral as Record<string, unknown>).ctwa_clid_hash = referralHash;
+    }
+  });
+
+  return { sanitized: clone, referralHash, referralSourceId, referralSourceType };
 }
 
 function getVerifyToken() {
@@ -115,13 +151,26 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
   const { object, eventType, externalId } = extractEventInfo(payload);
   const channel = "whatsapp";
 
+  const { sanitized, referralHash, referralSourceId, referralSourceType } =
+    sanitizePayloadAndReferral(payload);
+
+  let lastMessageAt: string | null = null;
+  const maybeTimestamp = payload?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.timestamp;
+  if (maybeTimestamp) {
+    const tsNum = Number(maybeTimestamp);
+    if (!Number.isNaN(tsNum)) {
+      lastMessageAt = new Date(tsNum * 1000).toISOString();
+    }
+  }
+
   const db = supabaseAdmin();
   let workspaceId: string | null = null;
+  let phoneRow: { workspace_id: string; waba_id?: string | null; display_name?: string | null } | null = null;
 
   if (phoneNumberId) {
     const { data, error } = await db
       .from("wa_phone_numbers")
-      .select("workspace_id")
+      .select("workspace_id, waba_id, display_name")
       .eq("phone_number_id", phoneNumberId)
       .eq("status", "active")
       .maybeSingle();
@@ -129,6 +178,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
       logger.error("[meta-webhook] lookup phone failed", { message: error.message });
     }
     workspaceId = data?.workspace_id ?? null;
+    phoneRow = data ?? null;
   }
 
   if (!workspaceId) {
@@ -146,7 +196,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
     event_type: eventType,
     external_event_id: externalId,
     event_key: eventKey,
-    payload_json: payload,
+    payload_json: sanitized,
     received_at: new Date().toISOString(),
   };
 
@@ -181,12 +231,79 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
   }
 
   try {
+    await storeMetaEventLog({
+      workspaceId,
+      eventType: eventType ?? "wa_webhook",
+      source: "webhook",
+      payload: sanitized,
+      referralHash,
+    });
+  } catch (err) {
+    logger.warn("[meta-webhook] meta_events_log insert failed", {
+      workspaceId,
+      message: err instanceof Error ? err.message : "unknown",
+    });
+  }
+
+  try {
     const { processWhatsappEvents } = await import("@/lib/meta/wa-inbox");
     await processWhatsappEvents(workspaceId, 5);
   } catch (err) {
     logger.dev("[meta-webhook] inline processing skipped", {
       message: err instanceof Error ? err.message : String(err),
     });
+  }
+
+  if (referralHash) {
+    const waId = externalId ?? eventKey;
+    const { error: convoError } = await db.from("meta_conversations").upsert(
+      {
+        workspace_id: workspaceId,
+        wa_id: waId,
+        last_message_at: lastMessageAt,
+        ctwa_clid_hash: referralHash,
+        referral_source_id: referralSourceId,
+        referral_source_type: referralSourceType,
+      },
+      { onConflict: "workspace_id,wa_id" }
+    );
+    if (convoError) {
+      logger.warn("[meta-webhook] meta_conversations upsert failed", {
+        message: convoError.message,
+        workspaceId,
+      });
+    }
+  }
+
+  if (phoneNumberId) {
+    try {
+      const { data: connection } = await db
+        .from("meta_whatsapp_connections")
+        .select("waba_id, phone_number_id, display_phone_number, verified_name")
+        .eq("workspace_id", workspaceId)
+        .eq("phone_number_id", phoneNumberId)
+        .maybeSingle();
+
+      await db
+        .from("meta_assets_cache")
+        .upsert(
+          {
+            workspace_id: workspaceId,
+            phone_number_id: phoneNumberId,
+            waba_id: connection?.waba_id ?? phoneRow?.waba_id ?? null,
+            display_phone_number: connection?.display_phone_number ?? phoneRow?.display_name ?? null,
+            verified_name: connection?.verified_name ?? phoneRow?.display_name ?? null,
+            quality_rating: null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "workspace_id,phone_number_id" }
+        );
+    } catch (cacheErr) {
+      logger.warn("[meta-webhook] meta_assets_cache upsert failed", {
+        workspaceId,
+        message: cacheErr instanceof Error ? cacheErr.message : "unknown",
+      });
+    }
   }
 
   return NextResponse.json({

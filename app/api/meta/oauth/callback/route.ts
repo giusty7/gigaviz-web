@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { storeMetaEventLog } from "@/lib/meta/events";
 
 export const runtime = "nodejs";
 
@@ -140,6 +141,30 @@ export async function GET(req: NextRequest) {
   const workspaceId = payload?.workspaceId;
   const workspaceSlug = payload?.workspaceSlug;
 
+  const utm: Record<string, string> = {};
+  const utmKeys = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "ref",
+    "referrer",
+    "campaign_id",
+    "ad_id",
+    "adset_id",
+    "clickid",
+    "gclid",
+    "fbclid",
+  ];
+  utmKeys.forEach((key) => {
+    const fromQuery = requestUrl.searchParams.get(key);
+    const fromNext = payload?.next ? new URL(payload.next, requestUrl.origin).searchParams.get(key) : null;
+    const value = fromQuery || fromNext;
+    if (value) utm[key] = value;
+  });
+  const stateHash = state ? createHash("sha256").update(state).digest("hex") : null;
+
   try {
     const db = supabaseAdmin();
     let resolvedWorkspaceId = workspaceId ?? null;
@@ -184,6 +209,24 @@ export async function GET(req: NextRequest) {
         });
       }
       stored = true;
+
+      const hasUtm = Object.keys(utm).length > 0;
+      if (hasUtm || stateHash || payload?.next) {
+        await storeMetaEventLog({
+          workspaceId: resolvedWorkspaceId,
+          eventType: "meta_oauth_callback",
+          source: "api",
+          referralHash: null,
+          payload: {
+            utm,
+            state_hash: stateHash,
+            next: payload?.next ?? null,
+            workspaceSlug,
+            workspaceId: resolvedWorkspaceId,
+          },
+          utm: hasUtm ? utm : null,
+        });
+      }
     }
   } catch (err) {
     logger.warn("[meta-oauth] token store failed", {

@@ -1,3 +1,6 @@
+import { logger } from "@/lib/logging";
+import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
+
 export type MetaGraphError = {
   message?: string;
   code?: number;
@@ -35,9 +38,14 @@ export function getMetaAccessToken() {
   );
 }
 
+export async function getWorkspaceMetaAccessToken(workspaceId: string) {
+  const { token } = await resolveWorkspaceMetaToken(workspaceId);
+  return token;
+}
+
 export function normalizeGraphVersion(raw?: string) {
   const cleaned = (raw || "").trim();
-  if (!cleaned) return "v22.0";
+  if (!cleaned) return "v24.0";
   return cleaned.startsWith("v") ? cleaned : `v${cleaned}`;
 }
 
@@ -71,4 +79,45 @@ export async function fetchGraph<T>(url: string, token: string, opts?: { method?
   }
 
   return data as T;
+}
+
+type MetaGraphFetchOptions = {
+  method?: string;
+  query?: Record<string, string | number | undefined | null>;
+  body?: unknown;
+};
+
+export async function metaGraphFetch<T = unknown>(
+  path: string,
+  token: string,
+  opts?: MetaGraphFetchOptions
+) {
+  const baseVersion = normalizeGraphVersion(process.env.META_GRAPH_VERSION);
+  const cleanedPath = path.startsWith("/") ? path.slice(1) : path;
+  const url = new URL(`https://graph.facebook.com/${baseVersion}/${cleanedPath}`);
+
+  if (opts?.query) {
+    Object.entries(opts.query).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      url.searchParams.set(key, String(value));
+    });
+  }
+
+  try {
+    return await fetchGraph<T>(url.toString(), token, {
+      method: opts?.method,
+      body: opts?.body,
+    });
+  } catch (err) {
+    const metaErr = err as MetaGraphError & { status?: number };
+    logger.error("[meta-graph] request failed", {
+      path: cleanedPath,
+      status: metaErr?.status,
+      code: metaErr?.code,
+      subcode: metaErr?.error_subcode,
+      fbtrace_id: metaErr?.fbtrace_id,
+      message: metaErr?.message,
+    });
+    throw err;
+  }
 }
