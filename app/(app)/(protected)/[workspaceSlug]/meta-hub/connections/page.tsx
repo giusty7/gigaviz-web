@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ImperiumConnectionsClient } from "@/components/meta-hub/ImperiumConnectionsClient";
+import { FacebookSdkProvider } from "@/components/meta/FacebookSdkProvider";
 import { getAppContext } from "@/lib/app-context";
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
@@ -68,18 +69,20 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
   const webhookUrl = `${baseUrl}/api/webhooks/meta/whatsapp`;
 
   return (
-    <ImperiumConnectionsClient
-      workspaceId={workspaceId}
-      workspaceSlug={workspaceSlug}
-      canEdit={canEdit}
-      canTest={canTest}
-      connection={connection}
-      tokenSet={tokenSet}
-      recentEvents={recentEvents}
-      eventsLast24h={events.total24h}
-      webhookUrl={webhookUrl}
-      connectionTestEnvMissing={envStatus.connectionTestMissing}
-      webhookTestEnvMissing={envStatus.webhookPingMissing}
-    />
+    <FacebookSdkProvider>
+      <ImperiumConnectionsClient
+        workspaceId={workspaceId}
+        workspaceSlug={workspaceSlug}
+        canEdit={canEdit}
+        canTest={canTest}
+        connection={connection}
+        tokenSet={tokenSet}
+        recentEvents={recentEvents}
+        eventsLast24h={events.total24h}
+        webhookUrl={webhookUrl}
+        connectionTestEnvMissing={envStatus.connectionTestMissing}
+        webhookTestEnvMissing={envStatus.webhookPingMissing}
+      />
+    </FacebookSdkProvider>
   );
 }

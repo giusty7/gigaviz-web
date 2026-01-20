@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,9 +45,6 @@ declare global {
     fbAsyncInit?: () => void;
   }
 }
-
-const SDK_URL = "https://connect.facebook.net/en_US/sdk.js";
-const DEFAULT_GRAPH_VERSION = "v22.0";
 
 export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, docsHref, onResult }: Props) {
   const { toast } = useToast();
@@ -111,20 +107,16 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
     if (!appId) return;
     if (typeof window === "undefined") return;
 
-    window.fbAsyncInit = () => {
-      if (!window.FB) return;
-      window.FB.init({
-        appId,
-        cookie: true,
-        xfbml: false,
-        version: DEFAULT_GRAPH_VERSION,
-      });
-      setSdkReady(true);
-    };
-
-    if (window.FB) {
-      window.fbAsyncInit?.();
+    function markReady() {
+      if (window.FB) {
+        setSdkReady(true);
+      }
     }
+
+    markReady();
+    window.addEventListener("fb-sdk-ready", markReady);
+
+    return () => window.removeEventListener("fb-sdk-ready", markReady);
   }, [appId]);
 
   useEffect(() => {
@@ -259,7 +251,6 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
 
   return (
     <Card className="border-border bg-card">
-      <Script src={SDK_URL} strategy="afterInteractive" />
       <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle className="text-base font-semibold text-foreground">
