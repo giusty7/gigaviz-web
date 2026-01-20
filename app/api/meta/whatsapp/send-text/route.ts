@@ -11,7 +11,8 @@ import {
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
-import { findTokenForConnection } from "@/lib/meta/wa-connections";
+import { getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
+import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -75,18 +76,26 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
-  const phoneNumberId = thread.phone_number_id || process.env.WA_PHONE_NUMBER_ID || "unknown";
 
-  const { data: tokenRow } = await findTokenForConnection(
-    db,
+  const connection = await getWorkspaceWhatsappConnectionOrThrow({
     workspaceId,
-    thread.phone_number_id ?? null,
-    null
-  );
-  const accessToken = tokenRow?.token_encrypted ?? process.env.WA_ACCESS_TOKEN ?? null;
-  if (!accessToken) {
+    phoneNumberId: thread.phone_number_id ?? null,
+  });
+
+  if (!connection.ok) {
     return withCookies(
-      NextResponse.json({ error: "server_error", reason: "wa_token_missing" }, { status: 500 })
+      NextResponse.json({ error: connection.code, reason: connection.message }, { status: 400 })
+    );
+  }
+
+  const sandbox = await getWhatsappSandboxSettings(workspaceId);
+  const toPhone = thread.contact_wa_id ?? thread.phone_number_id;
+  if (sandbox.sandboxEnabled && toPhone && !sandbox.whitelist.includes(toPhone)) {
+    return withCookies(
+      NextResponse.json(
+        { error: "forbidden", reason: "not_whitelisted", whitelist: sandbox.whitelist },
+        { status: 403 }
+      )
     );
   }
 
@@ -101,12 +110,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v20.0/${encodeURIComponent(phoneNumberId)}/messages`,
+      `https://graph.facebook.com/v20.0/${encodeURIComponent(connection.connection.phoneNumberId)}/messages`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${connection.connection.token}`,
         },
         body: JSON.stringify(requestPayload),
       }
@@ -142,7 +151,7 @@ export async function POST(req: NextRequest) {
   const insertPayload = {
     workspace_id: workspaceId,
     thread_id: threadId,
-    phone_number_id: phoneNumberId,
+    phone_number_id: connection.connection.phoneNumberId,
     wa_message_id: waMessageId,
     direction: "outbound",
     type: "text",
@@ -152,7 +161,7 @@ export async function POST(req: NextRequest) {
     wa_timestamp: now,
     created_at: now,
     sent_at: now,
-    from_wa_id: phoneNumberId,
+    from_wa_id: connection.connection.phoneNumberId,
     to_wa_id: thread.contact_wa_id ?? null,
   };
 

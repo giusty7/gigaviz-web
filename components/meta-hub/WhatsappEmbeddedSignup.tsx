@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,9 @@ import { cn } from "@/lib/utils";
 type Props = {
   workspaceSlug: string;
   canEdit: boolean;
+  isConnected: boolean;
+  docsHref?: string;
+  onResult?: (result: "success" | "error") => void;
 };
 
 type FinishPayload = {
@@ -46,7 +50,7 @@ declare global {
 const SDK_URL = "https://connect.facebook.net/en_US/sdk.js";
 const DEFAULT_GRAPH_VERSION = "v22.0";
 
-export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
+export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, docsHref, onResult }: Props) {
   const { toast } = useToast();
   const router = useRouter();
   const appId = process.env.NEXT_PUBLIC_META_APP_ID ?? "";
@@ -63,6 +67,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
   const pendingFinishRef = useRef<FinishPayload | null>(null);
 
   const isConfigured = Boolean(appId && configId);
+  const statusLabel = isConnected ? "Connected" : "Not connected";
 
   const saveConnection = useCallback(
     async (code: string, payload: FinishPayload) => {
@@ -85,16 +90,21 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
           throw new Error(data?.message || data?.reason || "Failed to save connection.");
         }
         setStatus("done");
-        toast({ title: "Embedded Signup succeeded", description: "WhatsApp connection saved." });
-        router.refresh();
+        if (onResult) {
+          onResult("success");
+        } else {
+          toast({ title: "Embedded signup succeeded", description: "WhatsApp connection saved." });
+          router.refresh();
+        }
       } catch (err) {
         setStatus("error");
         const msg = err instanceof Error ? err.message : "Failed to save connection.";
         setErrorText(msg);
         toast({ title: "Signup failed", description: msg, variant: "destructive" });
+        onResult?.("error");
       }
     },
-    [label, router, toast, workspaceSlug]
+    [label, onResult, router, toast, workspaceSlug]
   );
 
   useEffect(() => {
@@ -253,17 +263,42 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
       <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle className="text-base font-semibold text-foreground">
-            Embedded Signup (WhatsApp)
+            Embedded Sign Up (Recommended)
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Connect customer WhatsApp numbers directly through Embedded Signup.
+            Connect client&apos;s WhatsApp Business in minutes via Meta.
           </p>
         </div>
-        <Badge variant="outline" className={cn("border-border bg-background text-xs", sdkReady ? "text-emerald-200" : "text-muted-foreground")}>
-          {sdkReady ? "SDK ready" : "SDK not ready"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {docsHref ? (
+            <Button asChild variant="ghost" size="sm" className="h-8 px-3 text-xs">
+              <Link href={docsHref}>Learn</Link>
+            </Button>
+          ) : null}
+          <Badge
+            variant="outline"
+            className={cn(
+              "border-border bg-background text-xs",
+              sdkReady ? "text-emerald-200" : "text-muted-foreground"
+            )}
+          >
+            {sdkReady ? "SDK ready" : "SDK not ready"}
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Badge
+            variant="outline"
+            className={cn(
+              "border-border bg-background text-xs",
+              isConnected ? "text-emerald-200" : "text-muted-foreground"
+            )}
+          >
+            Status: {statusLabel}
+          </Badge>
+          {!canEdit ? <span className="text-xs">Owner/Admin only</span> : null}
+        </div>
         {!isConfigured ? (
           <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground">
             Add NEXT_PUBLIC_META_APP_ID & NEXT_PUBLIC_META_CONFIG_ID env vars to use Embedded Signup.
@@ -282,7 +317,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
             />
           </div>
           <Button onClick={() => setDialogOpen(true)} disabled={!canEdit || !isConfigured}>
-            Connect via Embedded Signup
+            Start Embedded Sign Up
           </Button>
         </div>
         {!canEdit ? (
@@ -334,7 +369,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit }: Props) {
               onClick={launchSignup}
               disabled={!sdkReady || status === "saving"}
             >
-              {status === "saving" ? "Saving..." : "Launch Embedded Signup"}
+              {status === "saving" ? "Saving..." : "Start Embedded Sign Up"}
             </Button>
           </DialogFooter>
         </DialogContent>

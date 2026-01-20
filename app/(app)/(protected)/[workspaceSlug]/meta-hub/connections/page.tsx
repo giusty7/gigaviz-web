@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ImperiumConnectionsClient } from "@/components/meta-hub/ImperiumConnectionsClient";
 import { getAppContext } from "@/lib/app-context";
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
+import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type Props = {
@@ -40,20 +41,12 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     .eq("provider", "meta_whatsapp")
     .maybeSingle();
 
-  // Fetch recent webhook events for the terminal display
-  const { data: recentEventsData } = await db
-    .from("wa_webhook_events")
-    .select("event_type, received_at")
-    .eq("workspace_id", workspaceId)
-    .order("received_at", { ascending: false })
-    .limit(10);
-
-  // Count events in last 24 hours using PostgreSQL interval
-  const { count: eventsLast24h } = await db
-    .from("wa_webhook_events")
-    .select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspaceId)
-    .gte("received_at", new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString());
+  const events = await getWebhookEventsSummary({
+    workspaceId,
+    limit: 10,
+    includeLegacy: true,
+    fallbackChannel: "unknown",
+  });
 
   const tokenSet = Boolean(tokenRow);
   const connection = phone
@@ -67,7 +60,7 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
       }
     : null;
 
-  const recentEvents = (recentEventsData ?? []).map((e) => ({
+  const recentEvents = (events.events ?? []).map((e) => ({
     type: e.event_type ?? "unknown",
     timestamp: e.received_at ?? new Date().toISOString(),
   }));
@@ -83,7 +76,7 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
       connection={connection}
       tokenSet={tokenSet}
       recentEvents={recentEvents}
-      eventsLast24h={eventsLast24h ?? 0}
+      eventsLast24h={events.total24h}
       webhookUrl={webhookUrl}
       connectionTestEnvMissing={envStatus.connectionTestMissing}
       webhookTestEnvMissing={envStatus.webhookPingMissing}

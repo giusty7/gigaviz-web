@@ -12,7 +12,8 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
-import { findTokenForConnection } from "@/lib/meta/wa-connections";
+import { getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
+import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -104,18 +105,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const phoneNumberId = thread.phone_number_id;
-
-  const { data: tokenRow } = await findTokenForConnection(
-    adminDb,
+  const connection = await getWorkspaceWhatsappConnectionOrThrow({
     workspaceId,
-    phoneNumberId,
-    null
-  );
+    phoneNumberId: thread.phone_number_id ?? null,
+  });
 
-  if (!phoneNumberId || !tokenRow?.token_encrypted) {
+  if (!connection.ok) {
     return withCookies(
-      NextResponse.json({ error: "bad_request", reason: "phone_or_token_missing" }, { status: 400 })
+      NextResponse.json({ error: connection.code, reason: connection.message }, { status: 400 })
+    );
+  }
+
+  const sandbox = await getWhatsappSandboxSettings(workspaceId);
+  if (sandbox.sandboxEnabled && !sandbox.whitelist.includes(thread.contact_wa_id)) {
+    return withCookies(
+      NextResponse.json(
+        { error: "forbidden", reason: "not_whitelisted", whitelist: sandbox.whitelist },
+        { status: 403 }
+      )
     );
   }
 
@@ -143,11 +150,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
+      `https://graph.facebook.com/v19.0/${connection.connection.phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${tokenRow.token_encrypted}`,
+          Authorization: `Bearer ${connection.connection.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -194,8 +201,8 @@ export async function POST(req: NextRequest) {
     created_at: now,
     sent_at: now,
     wa_timestamp: now,
-    phone_number_id: phoneNumberId,
-    from_wa_id: phoneNumberId,
+    phone_number_id: connection.connection.phoneNumberId,
+    from_wa_id: connection.connection.phoneNumberId,
     to_wa_id: thread.contact_wa_id ?? null,
   };
 

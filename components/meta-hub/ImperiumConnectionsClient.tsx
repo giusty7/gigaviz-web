@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, type Variants } from "framer-motion";
 import {
   NeuralLinkHero,
@@ -13,6 +14,7 @@ import {
   WebhookStatusCard,
 } from "./ImperiumConnectionsComponents";
 import { WhatsappConnectionForm } from "./WhatsappConnectionForm";
+import { WhatsappEmbeddedSignup } from "./WhatsappEmbeddedSignup";
 import { useToast } from "@/components/ui/use-toast";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -84,6 +86,8 @@ export function ImperiumConnectionsClient({
 }: ImperiumConnectionsClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [conversionTracking, setConversionTracking] = useState(true);
 
   const isConnected = Boolean(connection?.phoneNumberId && tokenSet);
@@ -92,6 +96,51 @@ export function ImperiumConnectionsClient({
     : connection?.phoneNumberId
       ? "syncing"
       : "disconnected";
+
+  const searchParamsString = searchParams?.toString() ?? "";
+  const embeddedToastHandledRef = useRef(false);
+
+  useEffect(() => {
+    const embedded = searchParams?.get("embedded");
+    if (!embedded) return;
+
+    const skipToast = embeddedToastHandledRef.current && embedded === "error";
+    if (skipToast) {
+      embeddedToastHandledRef.current = false;
+    }
+
+    if (!skipToast && embedded === "success") {
+      toast({
+        title: "Embedded Sign Up completed",
+        description: "WhatsApp Business connection saved.",
+      });
+    } else if (!skipToast && embedded === "error") {
+      toast({
+        title: "Embedded Sign Up failed",
+        description: "Retry or use manual connection.",
+        variant: "destructive",
+      });
+    }
+
+    const nextParams = new URLSearchParams(searchParamsString);
+    nextParams.delete("embedded");
+    const suffix = nextParams.toString();
+    router.replace(
+      `/${workspaceSlug}/meta-hub/connections${suffix ? `?${suffix}` : ""}`
+    );
+  }, [router, searchParams, searchParamsString, toast, workspaceSlug]);
+
+  const handleEmbeddedResult = useCallback(
+    (result: "success" | "error") => {
+      embeddedToastHandledRef.current = result === "error";
+      const nextParams = new URLSearchParams(searchParamsString);
+      nextParams.set("embedded", result);
+      const suffix = nextParams.toString();
+      router.replace(`/${workspaceSlug}/meta-hub/connections?${suffix}`);
+      router.refresh();
+    },
+    [router, searchParamsString, workspaceSlug]
+  );
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -187,6 +236,23 @@ export function ImperiumConnectionsClient({
             phoneNumberId={connection?.phoneNumberId}
             displayName={connection?.displayName}
             tokenSet={tokenSet}
+          />
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <div className="mb-4 flex items-center gap-2">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+            <span className="text-xs font-semibold tracking-wider text-emerald-300">
+              EMBEDDED SIGN UP
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+          </div>
+
+          <WhatsappEmbeddedSignup
+            workspaceSlug={workspaceSlug}
+            canEdit={canEdit}
+            isConnected={isConnected}
+            onResult={handleEmbeddedResult}
           />
         </motion.div>
 

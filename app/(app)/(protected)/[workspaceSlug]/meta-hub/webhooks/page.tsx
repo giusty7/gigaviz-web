@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAppContext } from "@/lib/app-context";
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { ImperiumWebhooksClient } from "@/components/meta-hub/ImperiumWebhooksClient";
 import type { WebhookEvent, WebhookStats } from "@/components/meta-hub/ImperiumWebhooksComponents";
+import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -28,58 +29,42 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
   const canTest = ["owner", "admin"].includes(ctx.currentRole ?? "") || isAdminOverride;
   const envStatus = getMetaHubTestEnvStatus();
 
-  const db = supabaseAdmin();
   const workspaceId = ctx.currentWorkspace.id;
 
-  // Fetch recent events
-  const { data: events } = await db
-    .from("meta_webhook_events")
-    .select("id, channel, event_type, received_at, processed_at, error_text, payload_json")
-    .eq("workspace_id", workspaceId)
-    .order("received_at", { ascending: false })
-    .limit(100);
+  const eventsSummary = await getWebhookEventsSummary({
+    workspaceId,
+    limit: 100,
+    includeLegacy: true,
+    fallbackChannel: "unknown",
+  });
 
-  // Fetch 24h stats - compute date at request time (not render)
-  const now = new Date();
-  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-
-  const [{ count: total24h }, { count: errors24h }, { data: lastEventRow }] = await Promise.all([
-    db
-      .from("meta_webhook_events")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .gte("received_at", dayAgo),
-    db
-      .from("meta_webhook_events")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .gte("received_at", dayAgo)
-      .not("error_text", "is", null),
-    db
-      .from("meta_webhook_events")
-      .select("received_at")
-      .eq("workspace_id", workspaceId)
-      .order("received_at", { ascending: false })
-      .limit(1),
-  ]);
-
-  // Check for token
+  // Check for token/connection from canonical tables
+  const db = supabaseAdmin();
   const { data: tokenRow } = await db
-    .from("whatsapp_tokens")
+    .from("meta_tokens")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("provider", "meta_whatsapp")
+    .maybeSingle();
+
+  const { data: phoneRow } = await db
+    .from("wa_phone_numbers")
     .select("phone_number_id, display_name")
     .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const hasToken = Boolean(tokenRow);
-  const phoneNumberId = tokenRow?.phone_number_id ?? null;
-  const displayName = tokenRow?.display_name ?? null;
+  const phoneNumberId = phoneRow?.phone_number_id ?? null;
+  const displayName = phoneRow?.display_name ?? null;
 
   // Construct webhook URL
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gigaviz.id";
   const webhookUrl = `${baseUrl}/api/webhooks/meta/whatsapp`;
 
   // Map events to WebhookEvent type
-  const mappedEvents: WebhookEvent[] = (events ?? []).map((e) => ({
+  const mappedEvents: WebhookEvent[] = (eventsSummary.events ?? []).map((e) => ({
     id: e.id,
     channel: e.channel,
     event_type: e.event_type,
@@ -91,9 +76,9 @@ export default async function MetaHubWebhooksPage({ params }: Props) {
   }));
 
   const stats: WebhookStats = {
-    total24h: total24h ?? 0,
-    errors24h: errors24h ?? 0,
-    lastEventAt: lastEventRow?.[0]?.received_at ?? null,
+    total24h: eventsSummary.total24h ?? 0,
+    errors24h: eventsSummary.errors24h ?? 0,
+    lastEventAt: eventsSummary.lastEventAt,
   };
 
   return (

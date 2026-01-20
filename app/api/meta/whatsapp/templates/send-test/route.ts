@@ -13,7 +13,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
-import { findConnectionById, findTokenForConnection } from "@/lib/meta/wa-connections";
+import { findConnectionById, getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
+import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -75,22 +76,12 @@ export async function POST(req: NextRequest) {
   }
 
   const adminDb = supabaseAdmin();
+  const sandbox = await getWhatsappSandboxSettings(workspaceId);
 
-  const { data: settings } = await adminDb
-    .from("wa_settings")
-    .select("sandbox_enabled, test_whitelist")
-    .eq("workspace_id", workspaceId)
-    .maybeSingle();
-
-  const whitelist: string[] = Array.isArray(settings?.test_whitelist)
-    ? settings?.test_whitelist
-    : [];
-  const sandboxEnabled = settings?.sandbox_enabled !== false; // default true
-
-  if (sandboxEnabled && !whitelist.includes(toPhone)) {
+  if (sandbox.sandboxEnabled && !sandbox.whitelist.includes(toPhone)) {
     return withCookies(
       NextResponse.json(
-        { error: "forbidden", reason: "not_whitelisted", whitelist },
+        { error: "forbidden", reason: "not_whitelisted", whitelist: sandbox.whitelist },
         { status: 403 }
       )
     );
@@ -123,46 +114,27 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const connection = connectionId
-    ? await findConnectionById(adminDb, connectionId)
-    : { data: null, error: null };
-
-  if (connectionId && (!connection.data || connection.error)) {
-    return withCookies(
-      NextResponse.json(
-        { error: "not_found", reason: "connection_not_found" },
-        { status: 404 }
-      )
-    );
+  if (connectionId) {
+    const connection = await findConnectionById(adminDb, connectionId);
+    if (connection.error || !connection.data) {
+      return withCookies(
+        NextResponse.json(
+          { error: "not_found", reason: "connection_not_found" },
+          { status: 404 }
+        )
+      );
+    }
   }
 
-  let phoneNumberId: string | null = connection.data?.phone_number_id ?? null;
-  if (!phoneNumberId) {
-    const { data } = await adminDb
-      .from("wa_phone_numbers")
-      .select("phone_number_id")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .maybeSingle();
-    phoneNumberId = data?.phone_number_id ?? null;
-  }
-
-  if (!phoneNumberId) {
-    return withCookies(
-      NextResponse.json({ error: "bad_request", reason: "phone_not_found" }, { status: 400 })
-    );
-  }
-
-  const { data: tokenRow } = await findTokenForConnection(
-    adminDb,
+  const connection = await getWorkspaceWhatsappConnectionOrThrow({
     workspaceId,
-    phoneNumberId,
-    null
-  );
+    connectionId: connectionId ?? null,
+    requireActive: true,
+  });
 
-  if (!tokenRow?.token_encrypted) {
+  if (!connection.ok) {
     return withCookies(
-      NextResponse.json({ error: "bad_request", reason: "token_missing" }, { status: 400 })
+      NextResponse.json({ error: connection.code, reason: connection.message }, { status: 400 })
     );
   }
 
@@ -194,11 +166,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
+      `https://graph.facebook.com/v19.0/${connection.connection.phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${tokenRow.token_encrypted}`,
+          Authorization: `Bearer ${connection.connection.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),

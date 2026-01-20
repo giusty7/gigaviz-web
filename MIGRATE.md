@@ -62,6 +62,12 @@ Ensure these are set for production deployments:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
+### Meta WhatsApp Embedded Signup envs
+Set these to enable the Meta Hub embedded signup entrypoint:
+- `NEXT_PUBLIC_META_APP_ID`
+- `NEXT_PUBLIC_META_CONFIG_ID`
+- `META_OAUTH_REDIRECT_URI` (defaults to `/api/meta/oauth/callback`)
+
 ## Common failure patterns
 - **Missing SUPABASE_DB_URL**: export it in your shell or .env.local before running scripts.
 - **supabase CLI not found**: install from https://supabase.com/docs/guides/cli.

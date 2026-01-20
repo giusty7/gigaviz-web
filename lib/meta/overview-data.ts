@@ -83,9 +83,23 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
     }
   }
 
-  const tokenConfigured = Boolean(
-    process.env.META_WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN
-  );
+  let tokenConfigured = false;
+
+  try {
+    const { data: token } = await db
+      .from("meta_tokens")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("provider", "meta_whatsapp")
+      .maybeSingle();
+    tokenConfigured = Boolean(token?.id);
+  } catch {
+    tokenConfigured = false;
+  }
+
+  if (!tokenConfigured) {
+    tokenConfigured = Boolean(process.env.META_WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN);
+  }
 
   let webhookStatus: HealthStatus = "none";
   let lastEventAt: string | null = null;

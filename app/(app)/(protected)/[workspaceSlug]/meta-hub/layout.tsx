@@ -15,9 +15,9 @@ import { ensureWorkspaceCookie } from "@/lib/workspaces";
 //   -> getMetaHubOverview (wa_settings, wa_phone_numbers, meta_webhook_events, wa_messages, wa_templates, wa_threads)
 //   -> lock: meta_hub
 // Connections -> /[workspaceSlug]/meta-hub/connections -> ImperiumConnectionsClient
-//   -> wa_phone_numbers, meta_tokens, wa_webhook_events -> lock: meta_hub
+//   -> wa_phone_numbers, meta_tokens, meta_webhook_events -> lock: meta_hub
 // Webhooks -> /[workspaceSlug]/meta-hub/webhooks -> ImperiumWebhooksClient
-//   -> meta_webhook_events, whatsapp_tokens -> lock: meta_webhooks
+//   -> meta_webhook_events, meta_tokens -> lock: meta_webhooks
 // Messaging - WhatsApp -> /[workspaceSlug]/meta-hub/messaging/whatsapp -> ImperiumTemplateForgeClient
 //   -> wa_phone_numbers, wa_templates -> lock: meta_templates
 // Messaging - WhatsApp Inbox -> /[workspaceSlug]/meta-hub/messaging/whatsapp/inbox -> ImperiumInboxClient
