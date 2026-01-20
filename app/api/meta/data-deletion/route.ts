@@ -6,6 +6,44 @@ import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 
+export async function GET() {
+  const html = `<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Permintaan Penghapusan Data</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 720px; margin: 32px auto; padding: 0 20px; color: #0f172a; line-height: 1.6; }
+      h1 { font-size: 28px; margin-bottom: 12px; }
+      p { margin: 12px 0; }
+      ul { margin: 8px 0 12px 20px; }
+      li { margin: 6px 0; }
+      .card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; background: #f8fafc; }
+      .muted { color: #475569; }
+    </style>
+  </head>
+  <body>
+    <h1>Permintaan Penghapusan Data</h1>
+    <div class="card">
+      <p>Kami memproses permintaan penghapusan data sesuai kebijakan privasi kami.</p>
+      <p>Kirim email ke <strong>support@gigaviz.id</strong> dengan menyertakan:</p>
+      <ul>
+        <li>Alamat email akun Anda</li>
+        <li>ID workspace (jika ada)</li>
+        <li>Deskripsi data yang ingin dihapus</li>
+      </ul>
+      <p class="muted">Kami akan meninjau dan memproses permintaan Anda sesuai ketentuan yang berlaku.</p>
+    </div>
+  </body>
+</html>`;
+
+  return new NextResponse(html, {
+    status: 200,
+    headers: { "content-type": "text/html; charset=utf-8" },
+  });
+}
+
 async function readSignedRequest(req: NextRequest) {
   const raw = await req.text();
   if (!raw) return null;

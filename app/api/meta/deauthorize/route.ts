@@ -6,6 +6,16 @@ import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 
+export async function GET() {
+  return new NextResponse(
+    "OK - deauthorize endpoint ready (expects POST from Meta).",
+    {
+      status: 200,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    }
+  );
+}
+
 async function readSignedRequest(req: NextRequest) {
   const raw = await req.text();
   if (!raw) return null;
