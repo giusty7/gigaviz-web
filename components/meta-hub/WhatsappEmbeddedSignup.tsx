@@ -33,6 +33,19 @@ type FinishPayload = {
   businessId?: string | null;
 };
 
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M22.675 0h-21.35C.595 0 0 .593 0 1.326v21.348C0 23.408.595 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.796.715-1.796 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.325-.592 1.325-1.326V1.326C24 .593 23.405 0 22.675 0z" />
+    </svg>
+  );
+}
+
 declare global {
   interface Window {
     FB?: {
@@ -253,8 +266,11 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
     <Card className="border-border bg-card">
       <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <CardTitle className="text-base font-semibold text-foreground">
-            Embedded Sign Up (Recommended)
+          <CardTitle className="flex items-center gap-3 text-base font-semibold text-foreground">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-background/70 text-foreground ring-1 ring-[#d4af37]/25">
+              <FacebookIcon className="h-6 w-6" />
+            </span>
+            <span>Embedded Sign Up (Recommended)</span>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Connect client&apos;s WhatsApp Business in minutes via Meta.
@@ -308,7 +324,10 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
             />
           </div>
           <Button onClick={() => setDialogOpen(true)} disabled={!canEdit || !isConfigured}>
-            Start Embedded Sign Up
+            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#d4af37]/15 text-[#f9d976]">
+              <FacebookIcon className="h-3 w-3" />
+            </span>
+            <span>Start Embedded Sign Up</span>
           </Button>
         </div>
         {!canEdit ? (
