@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 function parseAdminEmails() {
   const raw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "";
@@ -17,15 +18,15 @@ export async function requireAdmin() {
   const supabase = createServerClient(url, anon, {
     cookies: {
       getAll: () => cookieStore.getAll(),
-      setAll: () => {
-        // route handler: kita dak perlu set cookie balik di sini,
-        // middleware sudah ngurus refresh session
+      setAll(cookies) {
+        cookies.forEach((cookie) => {
+          cookieStore.set(cookie.name, cookie.value, cookie.options);
+        });
       },
     },
   });
 
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
+  const { user } = await getSafeUser(supabase);
   if (!user) return { ok: false as const, reason: "not_logged_in" };
 
   const adminEmails = parseAdminEmails();

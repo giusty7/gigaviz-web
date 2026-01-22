@@ -24,7 +24,7 @@ type HealthData = {
     tokenConfigured: boolean;
   };
   webhook: {
-    status: "ok" | "stale" | "none";
+    status: "ok" | "stale" | "none" | "unknown";
     lastEventAt: string | null;
     events24h: number | null;
   };
@@ -76,6 +76,7 @@ type ImperiumMetaHubOverviewProps = {
   isPreview: boolean;
   allowTemplates: boolean;
   allowSend: boolean;
+  allowWebhooks: boolean;
   health: HealthData;
   kpis: KPIData;
   alerts: Alert[];
@@ -95,6 +96,7 @@ export function ImperiumMetaHubOverviewClient({
   isPreview,
   allowTemplates,
   allowSend,
+  allowWebhooks,
   health,
   kpis,
   alerts,
@@ -194,6 +196,7 @@ export function ImperiumMetaHubOverviewClient({
         basePath={basePath} 
         allowTemplates={allowTemplates}
         allowSend={allowSend}
+        allowWebhooks={allowWebhooks}
         whatsappConnected={health.whatsapp.connected}
       />
 
@@ -233,7 +236,7 @@ export function ImperiumMetaHubOverviewClient({
       )}
 
       {/* Cyber-Log Console */}
-      <CyberLogConsole recentEvents={recentEvents} />
+      <CyberLogConsole recentEvents={recentEvents} basePath={basePath} />
 
       {/* Channels Grid */}
       <ChannelsGrid channels={channels} />

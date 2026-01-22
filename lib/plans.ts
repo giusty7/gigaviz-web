@@ -3,6 +3,7 @@ import "server-only";
 import { getPlanMeta, type PlanId } from "@/lib/entitlements";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 export type WorkspacePlan = {
   planId: PlanId;
@@ -25,8 +26,8 @@ export async function getWorkspacePlan(workspaceId: string): Promise<WorkspacePl
   if (devEmails.length > 0) {
     try {
       const supabase = await supabaseServer();
-      const { data } = await supabase.auth.getUser();
-      const email = (data.user?.email || "").toLowerCase();
+      const { user } = await getSafeUser(supabase);
+      const email = (user?.email || "").toLowerCase();
       if (email && devEmails.includes(email)) {
         devEmail = email;
       }

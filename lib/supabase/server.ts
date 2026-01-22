@@ -14,8 +14,10 @@ export async function supabaseServer() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll() {
-        // Middleware handles refresh for app routes.
+      setAll(cookies) {
+        cookies.forEach((cookie) => {
+          cookieStore.set(cookie.name, cookie.value, cookie.options);
+        });
       },
     },
   });

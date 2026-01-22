@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin"; // <- tambah ini
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
 
@@ -45,10 +46,9 @@ function createSupabaseRouteClient(req: NextRequest) {
 export async function requireAdminWorkspace(req: NextRequest) {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
 
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  const user = userData?.user;
+  const { user } = await getSafeUser(supabase);
 
-  if (userErr || !user) {
+  if (!user) {
     return {
       ok: false as const,
       res: withCookies(
@@ -102,10 +102,9 @@ export async function requireAdminWorkspace(req: NextRequest) {
 export async function requireAdminOrSupervisorWorkspace(req: NextRequest) {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
 
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  const user = userData?.user;
+  const { user } = await getSafeUser(supabase);
 
-  if (userErr || !user) {
+  if (!user) {
     return {
       ok: false as const,
       res: withCookies(

@@ -2,6 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 import { ensureProfile } from "@/lib/profiles";
 import { getWorkspaceEffectiveEntitlements } from "@/lib/entitlements/effective";
 import {
@@ -12,12 +13,10 @@ import {
 
 export async function getAppContext(workspaceSlug?: string | null) {
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) {
+  const { user } = await getSafeUser(supabase);
+  if (!user) {
     return { user: null };
   }
-
-  const user = data.user;
   const profile = await ensureProfile(user);
   const workspaces = await getUserWorkspaces(user.id);
   const cookieStore = await cookies();

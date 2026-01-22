@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { parseAdminEmails } from "@/lib/admin";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 function buildNextParam(request: NextRequest) {
   const next = request.nextUrl.pathname + request.nextUrl.search;
@@ -87,8 +88,7 @@ export async function withSupabaseAuth(request: NextRequest) {
   });
 
   // penting: trigger refresh session jika perlu
-  const { data } = await supabase.auth.getUser();
-  const user = data.user;
+  const { user } = await getSafeUser(supabase);
 
   // Paths
   const isLoginPath =

@@ -3,7 +3,7 @@ import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { maskId } from "@/lib/time";
 
-type HealthStatus = "ok" | "stale" | "none";
+type HealthStatus = "ok" | "stale" | "none" | "unknown";
 
 export type MetaHubOverview = {
   health: {
@@ -106,28 +106,55 @@ export async function getMetaHubOverview(workspaceId: string): Promise<MetaHubOv
   let events24h: number | null = null;
 
   try {
-    const { data: lastEvent } = await db
-      .from("meta_webhook_events")
-      .select("received_at")
-      .eq("workspace_id", workspaceId)
-      .order("received_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (lastEvent?.received_at) {
-      lastEventAt = lastEvent.received_at;
-      const lastDate = new Date(lastEvent.received_at);
-      const diff = now.getTime() - lastDate.getTime();
+    const dayIso = dayAgo.toISOString();
+    const [eventsLogLatest, webhookLatest] = await Promise.all([
+      db
+        .from("meta_events_log")
+        .select("received_at")
+        .eq("workspace_id", workspaceId)
+        .order("received_at", { ascending: false })
+        .limit(1),
+      db
+        .from("meta_webhook_events")
+        .select("received_at")
+        .eq("workspace_id", workspaceId)
+        .order("received_at", { ascending: false })
+        .limit(1),
+    ]);
+
+    const latestCandidates = [
+      ...(eventsLogLatest.data ?? []),
+      ...(webhookLatest.data ?? []),
+    ].filter((row) => row.received_at);
+
+    if (latestCandidates.length > 0) {
+      latestCandidates.sort((a, b) =>
+        new Date(b.received_at).getTime() - new Date(a.received_at).getTime()
+      );
+      const newest = latestCandidates[0].received_at;
+      lastEventAt = newest;
+      const diff = now.getTime() - new Date(newest).getTime();
       webhookStatus = diff <= DAY_MS ? "ok" : "stale";
     }
-    const { count: events24hCount } = await db
-      .from("meta_webhook_events")
-      .select("id", { head: true, count: "exact" })
-      .eq("workspace_id", workspaceId)
-      .gte("received_at", dayAgo.toISOString());
-    events24h = events24hCount ?? 0;
+
+    const [{ count: log24h }, { count: webhook24h }] = await Promise.all([
+      db
+        .from("meta_events_log")
+        .select("id", { head: true, count: "exact" })
+        .eq("workspace_id", workspaceId)
+        .gte("received_at", dayIso),
+      db
+        .from("meta_webhook_events")
+        .select("id", { head: true, count: "exact" })
+        .eq("workspace_id", workspaceId)
+        .gte("received_at", dayIso),
+    ]);
+
+    events24h = (log24h ?? 0) + (webhook24h ?? 0);
     if (!lastEventAt && (events24h ?? 0) === 0) webhookStatus = "none";
   } catch {
-    webhookStatus = "none";
+    webhookStatus = "unknown";
+    events24h = null;
   }
 
   let inboundCount24h: number | null = null;

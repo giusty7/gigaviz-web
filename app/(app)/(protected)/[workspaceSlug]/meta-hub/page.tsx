@@ -35,6 +35,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   const access = getMetaHubAccess({ planId: planInfo.planId, isAdmin });
   const allowTemplates = access.templates;
   const allowSend = access.send;
+  const allowWebhooks = access.webhooks;
 
   if (!access.metaHub) {
     return null;
@@ -128,6 +129,7 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
       isPreview={isPreview}
       allowTemplates={allowTemplates}
       allowSend={allowSend}
+      allowWebhooks={allowWebhooks}
       health={overview.health}
       kpis={overview.kpis}
       alerts={overview.alerts}

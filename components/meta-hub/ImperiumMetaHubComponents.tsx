@@ -322,12 +322,12 @@ export function AnalyticsPulseSection({
   const hasTraffic = inbound24h !== null || outbound24h !== null;
   const throughput = hasTraffic ? (inbound24h ?? 0) + (outbound24h ?? 0) : null;
   const hasEvents = events24h !== null;
-  const deliveryValue = hasEvents && (events24h ?? 0) > 0 ? 0 : null;
+  const deliveryValue = null; // no reliable numerator/denominator available yet
   const deliveryLabel = !hasEvents
-    ? "No data yet"
+    ? "No data"
     : (events24h ?? 0) === 0
       ? "No events yet"
-      : "Delivery stats not available";
+      : "Delivery data not available";
   const latencyBadgeLabel = latencyMs === null ? "No data" : "Healthy";
   const latencyBadgeClass =
     latencyMs === null
@@ -463,20 +463,26 @@ type QuickAction = {
   href: string;
   icon: React.ReactNode;
   variant?: "primary" | "secondary";
+  disabled?: boolean;
+  helper?: string;
+  ctaHref?: string;
 };
 
 export function QuickActionsGrid({
   basePath,
   allowTemplates,
   allowSend,
+  allowWebhooks,
   whatsappConnected,
 }: {
   basePath: string;
   allowTemplates: boolean;
   allowSend: boolean;
+  allowWebhooks: boolean;
   whatsappConnected: boolean;
 }) {
   const actions: QuickAction[] = [];
+  const upgradeHref = "/pricing";
 
   if (!whatsappConnected) {
     actions.push({
@@ -484,6 +490,15 @@ export function QuickActionsGrid({
       href: `${basePath}/connections`,
       icon: <Settings className="h-4 w-4" />,
       variant: "primary",
+    });
+    actions.push({
+      label: "View Events",
+      href: `${basePath}/webhooks`,
+      icon: <Eye className="h-4 w-4" />,
+      variant: "secondary",
+      disabled: !allowWebhooks,
+      helper: !allowWebhooks ? "Upgrade to unlock" : undefined,
+      ctaHref: upgradeHref,
     });
   } else {
     if (allowTemplates) {
@@ -493,6 +508,16 @@ export function QuickActionsGrid({
         icon: <RefreshCw className="h-4 w-4" />,
         variant: "primary",
       });
+    } else {
+      actions.push({
+        label: "Sync Templates",
+        href: `${basePath}/messaging/whatsapp`,
+        icon: <RefreshCw className="h-4 w-4" />,
+        variant: "primary",
+        disabled: true,
+        helper: "Upgrade required",
+        ctaHref: upgradeHref,
+      });
     }
     actions.push({
       label: "Open Inbox",
@@ -500,28 +525,31 @@ export function QuickActionsGrid({
       icon: <Inbox className="h-4 w-4" />,
       variant: "primary",
     });
-    if (allowSend) {
-      actions.push({
-        label: "Test Send",
-        href: `${basePath}/messaging/whatsapp`,
-        icon: <Send className="h-4 w-4" />,
-        variant: "secondary",
-      });
-    }
+    actions.push({
+      label: "Test Send",
+      href: `${basePath}/messaging/whatsapp`,
+      icon: <Send className="h-4 w-4" />,
+      variant: "secondary",
+      disabled: !allowSend,
+      helper: !allowSend ? "Upgrade required" : undefined,
+      ctaHref: upgradeHref,
+    });
     actions.push({
       label: "Connections",
       href: `${basePath}/connections`,
       icon: <Settings className="h-4 w-4" />,
       variant: "secondary",
     });
+    actions.push({
+      label: "View Events",
+      href: `${basePath}/webhooks`,
+      icon: <Eye className="h-4 w-4" />,
+      variant: "secondary",
+      disabled: !allowWebhooks,
+      helper: !allowWebhooks ? "Upgrade to unlock" : undefined,
+      ctaHref: upgradeHref,
+    });
   }
-
-  actions.push({
-    label: "View Events",
-    href: `${basePath}/webhooks`,
-    icon: <Eye className="h-4 w-4" />,
-    variant: "secondary",
-  });
 
   return (
     <motion.div
@@ -540,16 +568,22 @@ export function QuickActionsGrid({
         {actions.map((action) => (
           <Link
             key={action.label}
-            href={action.href}
+            href={action.disabled ? action.ctaHref ?? upgradeHref : action.href}
+            aria-disabled={action.disabled}
             className={`group flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
               action.variant === "primary"
                 ? "bg-gradient-to-r from-[#d4af37]/15 to-[#f9d976]/5 text-[#d4af37] hover:from-[#d4af37]/25 hover:to-[#f9d976]/10"
                 : "border border-[#f5f5dc]/10 text-[#f5f5dc]/70 hover:border-[#d4af37]/30 hover:text-[#f5f5dc]"
-            }`}
+            } ${action.disabled ? "pointer-events-auto opacity-60" : ""}`}
           >
             <span className="flex items-center gap-3">
               {action.icon}
-              {action.label}
+              <span className="flex flex-col">
+                <span>{action.label}</span>
+                {action.helper && (
+                  <span className="text-[11px] font-normal text-[#f5f5dc]/50">{action.helper}</span>
+                )}
+              </span>
             </span>
             <ChevronRight className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
           </Link>
@@ -563,15 +597,34 @@ export function QuickActionsGrid({
    CYBER-LOG CONSOLE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-export function CyberLogConsole({ recentEvents }: { recentEvents: Array<{ id: string; type: string; receivedAt: string | null }> }) {
+export function CyberLogConsole({
+  recentEvents,
+  basePath,
+}: {
+  recentEvents: Array<{ id: string; type: string; receivedAt: string | null }>;
+  basePath: string;
+}) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
-  const logs = recentEvents.map((evt) => ({
+  const uniqueEvents = recentEvents.filter(
+    (evt, index, arr) => arr.findIndex((candidate) => candidate.id === evt.id) === index,
+  );
+
+  const logs = uniqueEvents.map((evt) => ({
     id: evt.id,
-    timestamp: evt.receivedAt || new Date().toISOString(),
+    timestamp: evt.receivedAt,
     type: evt.type || "event",
     payload: "View details in Webhooks",
   }));
+
+  const formatTimestamp = (timestamp: string | null) => {
+    if (!timestamp) return "No timestamp";
+    const parsed = new Date(timestamp);
+    if (Number.isNaN(parsed.getTime())) return "No timestamp";
+    return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const hasLogs = logs.length > 0;
 
   if (!mounted) {
     return (
@@ -599,36 +652,42 @@ export function CyberLogConsole({ recentEvents }: { recentEvents: Array<{ id: st
             <span className="text-xs font-semibold text-[#f5f5dc]/60">CYBER-LOG CONSOLE</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2">
-            <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="text-[10px] font-semibold uppercase text-emerald-400">Live Stream</span>
-        </div>
       </div>
 
       {/* Terminal Body */}
       <div className="h-48 overflow-y-auto p-4 font-mono text-xs">
-        {logs.map((log, index) => (
-          <motion.div
-            key={log.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="mb-2 flex gap-3"
-          >
-            <span className="text-[#f5f5dc]/30">
-              {new Date(log.timestamp).toLocaleTimeString()}
-            </span>
-            <span className="text-[#e11d48]">{log.type}</span>
-            <span className="text-[#f5f5dc]/50 truncate">{log.payload}</span>
-          </motion.div>
-        ))}
-        <div className="flex items-center gap-2 text-[#d4af37]">
-          <span className="animate-pulse">{">>"}</span>
-          <span className="text-[#f5f5dc]/30">Awaiting next event...</span>
-        </div>
+        {hasLogs ? (
+          <>
+            {logs.map((log, index) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="mb-2 flex gap-3"
+              >
+                <span className="text-[#f5f5dc]/30">{formatTimestamp(log.timestamp)}</span>
+                <span className="text-[#e11d48]">{log.type}</span>
+                <span className="text-[#f5f5dc]/50 truncate">{log.payload}</span>
+              </motion.div>
+            ))}
+            <div className="flex items-center gap-2 text-[#d4af37]">
+              <span className="animate-pulse">{">>"}</span>
+              <span className="text-[#f5f5dc]/30">Awaiting next event...</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex h-full flex-col items-start justify-center gap-3 text-[#f5f5dc]/60">
+            <p>No webhook events yet.</p>
+            <Link
+              href={`${basePath}/webhooks`}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#d4af37]/30 px-3 py-1.5 text-[11px] font-semibold text-[#d4af37] hover:border-[#d4af37]/50"
+            >
+              Open Webhook Events
+              <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+        )}
       </div>
     </motion.div>
   );

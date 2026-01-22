@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabaseClient } from "@/lib/supabase/client";
+import { isRefreshTokenError } from "@/lib/supabase/safe-user";
 
 type SessionContextValue = {
   session: Session | null;
@@ -30,19 +31,30 @@ function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
+    const loadSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!active) return;
+        setSession(data.session ?? null);
+      } catch (err) {
+        if (isRefreshTokenError(err)) {
+          try {
+            await supabase.auth.signOut();
+          } catch {
+            // ignore sign-out failures during cleanup
+          }
+        }
         if (active) {
-          setSession(data.session ?? null);
+          setSession(null);
+        }
+      } finally {
+        if (active) {
           setIsLoading(false);
         }
-      })
-      .catch(() => {
-        if (active) {
-          setIsLoading(false);
-        }
-      });
+      }
+    };
+
+    loadSession();
 
     const {
       data: { subscription },
