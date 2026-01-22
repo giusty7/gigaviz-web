@@ -14,10 +14,17 @@ export async function supabaseServer() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(cookies) {
-        cookies.forEach((cookie) => {
-          cookieStore.set(cookie.name, cookie.value, cookie.options);
-        });
+      setAll(cookiesToSet) {
+        // Cookie mutations are only allowed in Route Handlers / Server Actions.
+        // In RSC contexts Next.js throws; we catch and ignore since middleware
+        // handles token refresh for page routes.
+        try {
+          cookiesToSet.forEach((cookie) => {
+            cookieStore.set(cookie.name, cookie.value, cookie.options);
+          });
+        } catch {
+          // Next.js forbids cookie mutations in RSC – best-effort no-op
+        }
       },
     },
   });
