@@ -1,0 +1,219 @@
+---
+title: "The Day Our WhatsApp Inbox Broke (and What We Changed Forever)"
+description: "A founder's diary about the night our WhatsApp inbox failed, the 7 fixes that made us safer, and a short checklist teams can copy."
+date: "2026-01-23"
+tags: ["WhatsApp", "Inbox", "Reliability", "Meta Hub", "Operations", "Postmortem"]
+published: true
+---
+
+## The day our WhatsApp inbox broke
+
+It wasn’t a dramatic outage.
+
+No “systems down” banner.  
+No scary red alerts.
+
+It was worse than that: everything looked normal… and it wasn’t.
+
+A message came in. We replied.  
+Then another message came in — but the UI didn’t show it.  
+Someone refreshed the page and suddenly the “missing” message appeared.
+
+We thought it was a small bug.
+
+Then we replied to another number and got a blunt error:
+
+**Forbidden.**
+
+That’s when it hit me:  
+We didn’t have a real WhatsApp CRM yet.
+
+We had a **chat viewer**.
+
+And if you’ve ever run support or sales on WhatsApp, you know the cost of that illusion:
+- a lead that “never got the reply”
+- an angry customer who got ignored (because the message didn’t appear)
+- a teammate who double-replied because the thread ownership was unclear
+- a “STOP” message that gets lost in noise
+
+So we stopped building features for a moment and did the unsexy work:
+
+We made the inbox **truthful**.
+
+This is what we changed — and what I’d recommend to anyone building WhatsApp CRM on the WhatsApp Business Platform.
+
+---
+
+## What went wrong (in plain terms)
+
+### 1) Real-time wasn’t real
+New messages didn’t consistently appear unless someone refreshed the page.
+
+### 2) Status didn’t mean anything
+We showed “Sent” — but we couldn’t tell:
+- is it still sending?
+- did it fail?
+- was it delivered?
+- was it read?
+
+When a system can’t explain reality, your team starts guessing.
+
+### 3) IDs got messy
+We discovered a mismatch between what we assumed was the “correct” phone number ID and what was actually active in the environment.
+
+It wasn’t a logic problem only.  
+It was a **safety problem**.
+
+Because if this can happen to us, it can happen to a client — and suddenly replies go to the wrong connection, or fail in ways that look random.
+
+---
+
+## What we changed (the 7 fixes that made it solid)
+
+These aren’t “nice-to-haves.”  
+These are the difference between “works in a demo” and “works in a team.”
+
+### 1) We made “real-time” reliable (even if it’s not perfect)
+We started with a simple rule: **the inbox must update without reload**.
+
+Polling (with smart pausing) is not glamorous, but it works:
+- refresh every few seconds
+- pause when the tab is inactive
+- keep UI responsive
+
+Later, we can upgrade to true realtime streaming.  
+But first, we needed trust.
+
+**If your inbox requires refresh, it will fail under pressure.**
+
+---
+
+### 2) We treated message status as a timeline (not a label)
+Status isn’t a badge. It’s a **sequence**.
+
+So we made it impossible for old events to overwrite newer ones.
+
+The idea is simple:
+- “read” should never go back to “sent”
+- “delivered” shouldn’t disappear
+- “failed” must stay visible
+
+We also stored timestamps for key moments:
+- when it was sent
+- delivered
+- read
+- failed (with error details)
+
+Now status is not “a guess.”  
+It’s an audit trail.
+
+---
+
+### 3) We added a visible “sandbox mode” switch
+This one hurt us — because it’s the kind of thing you forget exists.
+
+When sandbox mode is on, messaging behavior can change.
+Some messages may work. Some won’t.
+It can look like a random bug.
+
+So we made sandbox mode explicit in the UI:
+- a toggle
+- a whitelist box
+- a “save” action
+- and a clear label that tells you what it means
+
+If a setting can break messaging, it should never be hidden.
+
+---
+
+### 4) We stopped hardcoding IDs in our heads
+A WhatsApp connection is not “one ID forever.”
+
+Clients will have different:
+- phone number IDs
+- WABA IDs
+- tokens
+- environments
+
+So we moved toward an approach where the system always picks the correct connection based on the current workspace and its stored settings.
+
+You don’t want a future where every new client onboarding turns into “why is this one forbidden?”
+
+---
+
+### 5) We built guardrails for opt-out (because “STOP” is real)
+When someone asks to stop receiving messages, the system must respect it.
+
+Not by “remembering to be careful.”  
+But by enforcing it.
+
+We added a guard that can block sending when opt-out is detected, with a visible warning.
+
+This protects:
+- the customer experience
+- the team (from accidental mistakes)
+- the business (from risky behavior)
+
+---
+
+### 6) We made diagnostics first-class
+You don’t want to debug WhatsApp issues through guesswork.
+
+So we added:
+- webhook gateway visibility
+- event stream logs
+- “verify now” checks
+- connection test actions
+
+A healthy system tells you when it’s unhealthy.
+
+---
+
+### 7) We standardized our Graph calls
+This is one of those changes that feels boring — until it saves you.
+
+Instead of scattering version strings and URL formats across route files, we used shared helpers so:
+- Graph API version is consistent
+- URLs are constructed in one place
+- upgrades don’t become whack-a-mole
+
+Less chaos now means fewer “why did this break?” later.
+
+---
+
+## A 5-minute checklist to see if your WhatsApp CRM is ready
+
+Answer YES/NO:
+
+- Do new inbound messages appear without refreshing the page?
+- Can you see “sending / sent / delivered / read / failed” clearly?
+- If a message fails, do you see the reason (even briefly)?
+- Is sandbox mode visible and controllable (if you use it)?
+- Can your team tell who owns the thread (assigned / open / closed)?
+- Do you have an opt-out guard that blocks accidental replies?
+- Can you inspect webhook health and recent events quickly?
+
+If you have more than two NOs, your CRM might work in a demo — but it won’t survive real operations.
+
+---
+
+## Closing: the goal isn’t features — it’s trust
+
+Building Gigaviz Meta Hub taught me something simple:
+
+People don’t need a “cool inbox.”
+
+They need an inbox they can trust when things get busy.
+
+Because the real enemy isn’t complexity.  
+It’s uncertainty.
+
+If your team is unsure whether a message was delivered, unsure whether a reply is allowed, unsure whether the inbox is up to date — your “CRM” becomes a source of stress, not leverage.
+
+We’re still improving it.  
+But after that “forbidden” moment, we decided our inbox must do one thing above all:
+
+**tell the truth, consistently.**
+
+If you’re building something similar, steal these fixes.  
+They’re not trendy — but they’ll save you.
