@@ -14,7 +14,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { findConnectionById, getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
-import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
+import { getWaSettings } from "@/lib/meta/wa-settings";
+import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -76,12 +77,17 @@ export async function POST(req: NextRequest) {
   }
 
   const adminDb = supabaseAdmin();
-  const sandbox = await getWhatsappSandboxSettings(workspaceId);
+  const sandbox = await getWaSettings(workspaceId);
 
   if (sandbox.sandboxEnabled && !sandbox.whitelist.includes(toPhone)) {
     return withCookies(
       NextResponse.json(
-        { error: "forbidden", reason: "not_whitelisted", whitelist: sandbox.whitelist },
+        {
+          error: "sandbox_blocked",
+          reason: "not_whitelisted",
+          message: "Sandbox enabled. Add recipient to whitelist or disable sandbox.",
+          whitelist: sandbox.whitelist,
+        },
         { status: 403 }
       )
     );
@@ -164,27 +170,17 @@ export async function POST(req: NextRequest) {
   let messageId: string | null = null;
   let errorText: string | null = null;
 
-  try {
-    const res = await fetch(
-      `https://graph.facebook.com/v19.0/${connection.connection.phoneNumberId}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${connection.connection.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-    const json = await res.json().catch(() => null);
-    if (res.ok) {
-      success = true;
-      messageId = json?.messages?.[0]?.id ?? null;
-    } else {
-      errorText = json?.error?.message ?? `send_failed_${res.status}`;
-    }
-  } catch (err) {
-    errorText = err instanceof Error ? err.message : "unknown_error";
+  const sendResult = await sendWhatsappMessage({
+    phoneNumberId: connection.connection.phoneNumberId,
+    token: connection.connection.token,
+    payload,
+  });
+
+  if (sendResult.ok) {
+    success = true;
+    messageId = sendResult.messageId ?? null;
+  } else {
+    errorText = sendResult.errorMessage ?? "send_failed";
   }
 
   await logMetaAdminAudit({

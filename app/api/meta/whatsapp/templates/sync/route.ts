@@ -12,6 +12,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { findTokenForConnection } from "@/lib/meta/wa-connections";
+import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 
 type MetaTemplate = {
   name?: string;
@@ -139,16 +140,17 @@ export async function POST(req: NextRequest) {
 
   let templates: MetaTemplate[] = [];
   let fetchError: string | null = null;
+  const graphVersion = getGraphApiVersion();
 
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/v19.0/${phone.waba_id}/message_templates?limit=256`,
-      {
-        headers: {
-          Authorization: `Bearer ${tokenRow.token_encrypted}`,
-        },
-      }
-    );
+    const url = new URL(graphUrl(`${phone.waba_id}/message_templates`, graphVersion));
+    url.searchParams.set("limit", "256");
+
+    const res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${tokenRow.token_encrypted}`,
+      },
+    });
     const json = await res.json().catch(() => null);
     if (!res.ok) {
       fetchError = json?.error?.message ?? `sync_failed_${res.status}`;

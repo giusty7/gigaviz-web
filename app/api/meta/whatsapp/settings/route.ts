@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+import { getWaSettings } from "@/lib/meta/wa-settings";
 
 const patchSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -37,18 +38,13 @@ export async function GET(req: NextRequest) {
     return forbiddenResponse(withCookies);
   }
 
-  const db = supabaseAdmin();
-  const { data } = await db
-    .from("wa_settings")
-    .select("sandbox_enabled, test_whitelist")
-    .eq("workspace_id", workspaceId)
-    .maybeSingle();
+  const settings = await getWaSettings(workspaceId);
 
   return withCookies(
     NextResponse.json({
       workspaceId,
-      sandboxEnabled: data?.sandbox_enabled ?? true,
-      whitelist: Array.isArray(data?.test_whitelist) ? data?.test_whitelist : [],
+      sandboxEnabled: settings.sandboxEnabled,
+      whitelist: settings.whitelist,
     })
   );
 }
@@ -93,10 +89,11 @@ export async function PATCH(req: NextRequest) {
   }
 
   const db = supabaseAdmin();
+  const sanitizedWhitelist = whitelist.map((entry) => entry.trim()).filter(Boolean);
   const payload = {
     workspace_id: workspaceId,
-    sandbox_enabled: sandboxEnabled ?? true,
-    test_whitelist: whitelist,
+    sandbox_enabled: sandboxEnabled ?? false,
+    test_whitelist: sanitizedWhitelist,
     updated_at: new Date().toISOString(),
   };
 
@@ -111,7 +108,7 @@ export async function PATCH(req: NextRequest) {
     NextResponse.json({
       workspaceId,
       sandboxEnabled: payload.sandbox_enabled,
-      whitelist,
+      whitelist: sanitizedWhitelist,
     })
   );
 }

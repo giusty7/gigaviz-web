@@ -1089,6 +1089,173 @@ export function MonitorCard({
    WEBHOOK TERMINAL CARD - Live Event Logs
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SANDBOX SETTINGS CARD - Toggle + Whitelist Editor
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+interface SandboxSettingsCardProps {
+  workspaceId: string;
+  sandboxEnabled: boolean;
+  whitelist: string[];
+  canEdit: boolean;
+  onUpdate?: (sandboxEnabled: boolean, whitelist: string[]) => void;
+}
+
+export function SandboxSettingsCard({
+  workspaceId,
+  sandboxEnabled,
+  whitelist,
+  canEdit,
+  onUpdate,
+}: SandboxSettingsCardProps) {
+  const { toast } = useToast();
+  const [enabled, setEnabled] = useState(sandboxEnabled);
+  const [whitelistText, setWhitelistText] = useState(whitelist.join("\n"));
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!canEdit) return;
+    setSaving(true);
+    try {
+      const parsed = whitelistText
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const res = await fetch("/api/meta/whatsapp/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId,
+          sandboxEnabled: enabled,
+          whitelist: parsed,
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json?.message ?? json?.error ?? "Save failed");
+      }
+
+      toast({ title: "Sandbox settings saved", description: enabled ? "Sandbox mode ON" : "Sandbox mode OFF" });
+      onUpdate?.(enabled, parsed);
+    } catch (err) {
+      toast({
+        title: "Failed to save sandbox settings",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#050a18] via-[#0a1229] to-[#1a1505] p-6"
+    >
+      {/* Amber corner glow */}
+      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-amber-500/10 blur-2xl" />
+
+      <div className="relative z-10">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10">
+            <Shield className="h-5 w-5 text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-bold tracking-wider text-amber-400">SANDBOX MODE</h3>
+            <p className="text-xs text-[#f5f5dc]/50">Test Environment Control</p>
+          </div>
+          {enabled && (
+            <span className="rounded-full border border-amber-500/40 bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-300">
+              ACTIVE
+            </span>
+          )}
+        </div>
+
+        {/* Toggle */}
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-500/20 bg-[#050a18]/80 p-3">
+          <div>
+            <p className="text-sm font-medium text-[#f5f5dc]">Sandbox Mode</p>
+            <p className="text-xs text-[#f5f5dc]/60">
+              {enabled ? "Only whitelist numbers can receive messages" : "All numbers can receive messages"}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            disabled={!canEdit}
+            onClick={() => setEnabled(!enabled)}
+            className={cn(
+              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-[#0a1229]",
+              enabled ? "bg-amber-500" : "bg-[#1e293b]",
+              !canEdit && "cursor-not-allowed opacity-50"
+            )}
+          >
+            <span
+              className={cn(
+                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                enabled ? "translate-x-5" : "translate-x-0"
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Whitelist Editor */}
+        <div className="mb-4 rounded-xl border border-amber-500/20 bg-[#050a18]/80 p-3">
+          <Label htmlFor="sandbox-whitelist" className="mb-2 block text-xs text-[#f5f5dc]/60">
+            Whitelist Numbers (one per line, e.g. 628123456789)
+          </Label>
+          <textarea
+            id="sandbox-whitelist"
+            rows={4}
+            disabled={!canEdit}
+            value={whitelistText}
+            onChange={(e) => setWhitelistText(e.target.value)}
+            placeholder="628123456789&#10;6281234567890"
+            className={cn(
+              "w-full resize-none rounded-lg border border-amber-500/20 bg-[#0a1229] p-2 font-mono text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50",
+              !canEdit && "cursor-not-allowed opacity-50"
+            )}
+          />
+          <p className="mt-1 text-xs text-[#f5f5dc]/40">
+            {whitelistText.split("\n").filter((l) => l.trim()).length} numbers in whitelist
+          </p>
+        </div>
+
+        {/* Save Button */}
+        {canEdit && (
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full border border-amber-500/40 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Save Sandbox Settings
+              </>
+            )}
+          </Button>
+        )}
+
+        {!canEdit && (
+          <p className="text-center text-xs text-[#f5f5dc]/40">
+            Admin access required to modify sandbox settings
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 interface WebhookTerminalCardProps {
   recentEvents?: Array<{ type: string; timestamp: string }>;
   workspaceSlug: string;

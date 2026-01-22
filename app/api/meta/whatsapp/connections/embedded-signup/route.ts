@@ -11,6 +11,7 @@ import {
 import { rateLimit } from "@/lib/rate-limit";
 import { findWorkspaceBySlug } from "@/lib/meta/wa-connections";
 import { logger } from "@/lib/logging";
+import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 
 export const runtime = "nodejs";
 
@@ -22,12 +23,6 @@ const schema = z.object({
   businessId: z.string().optional().nullable(),
   code: z.string().min(4),
 });
-
-function normalizeGraphVersion(raw?: string | null) {
-  const value = (raw || "").trim();
-  if (!value) return "v22.0";
-  return value.startsWith("v") ? value : `v${value}`;
-}
 
 export async function POST(req: NextRequest) {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
@@ -88,25 +83,22 @@ export async function POST(req: NextRequest) {
 
   const redirectUri =
     process.env.META_OAUTH_REDIRECT_URI ?? `${req.nextUrl.origin}/api/meta/oauth/callback`;
-  const graphVersion = normalizeGraphVersion(process.env.META_GRAPH_VERSION);
+  const graphVersion = getGraphApiVersion();
 
   let accessToken: string | undefined;
   let expiresAt: string | null = null;
 
   try {
-    const tokenRes = await fetch(
-      `https://graph.facebook.com/${graphVersion}/oauth/access_token`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: appId,
-          client_secret: appSecret,
-          redirect_uri: redirectUri,
-          code,
-        }).toString(),
-      }
-    );
+    const tokenRes = await fetch(`${graphUrl(graphVersion)}/oauth/access_token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: appId,
+        client_secret: appSecret,
+        redirect_uri: redirectUri,
+        code,
+      }).toString(),
+    });
     const tokenJson = (await tokenRes.json().catch(() => ({}))) as {
       access_token?: string;
       expires_in?: number;

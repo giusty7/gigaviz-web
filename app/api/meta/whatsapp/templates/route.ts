@@ -17,6 +17,7 @@ import {
   findWorkspaceBySlug,
 } from "@/lib/meta/wa-connections";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
+import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 
 export const runtime = "nodejs";
 
@@ -87,12 +88,6 @@ type MetaTemplateResponse = {
   rejection_reason?: string | null;
   components?: unknown[];
 };
-
-function normalizeGraphVersion(raw?: string) {
-  const cleaned = (raw || "").trim();
-  if (!cleaned) return "v19.0";
-  return cleaned.startsWith("v") ? cleaned : `v${cleaned}`;
-}
 
 function buildMetaPayload(input: z.infer<typeof createSchema>) {
   const components: MetaTemplateComponent[] = [];
@@ -365,24 +360,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const version = normalizeGraphVersion(process.env.WA_GRAPH_VERSION);
+  const version = getGraphApiVersion();
   const metaPayload = buildMetaPayload(parsed.data);
 
   let metaResponse: MetaTemplateResponse | null = null;
   let metaError: string | null = null;
 
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/${version}/${connection.waba_id}/message_templates`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenRow.token_encrypted}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(metaPayload),
-      }
-    );
+    const res = await fetch(`${graphUrl(version)}/${connection.waba_id}/message_templates`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenRow.token_encrypted}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(metaPayload),
+    });
     const json = (await res.json().catch(() => ({}))) as MetaTemplateResponse & {
       error?: { message?: string };
     };

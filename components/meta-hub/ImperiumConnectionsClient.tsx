@@ -12,6 +12,7 @@ import {
   BusinessAssetVault,
   EventRadar,
   WebhookStatusCard,
+  SandboxSettingsCard,
 } from "./ImperiumConnectionsComponents";
 import { WhatsappConnectionForm } from "./WhatsappConnectionForm";
 import { WhatsappEmbeddedSignup } from "./WhatsappEmbeddedSignup";
@@ -65,6 +66,8 @@ interface ImperiumConnectionsClientProps {
   webhookUrl: string;
   connectionTestEnvMissing?: string[];
   webhookTestEnvMissing?: string[];
+  sandboxEnabled?: boolean;
+  sandboxWhitelist?: string[];
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -83,12 +86,16 @@ export function ImperiumConnectionsClient({
   webhookUrl,
   connectionTestEnvMissing = [],
   webhookTestEnvMissing = [],
+  sandboxEnabled = false,
+  sandboxWhitelist = [],
 }: ImperiumConnectionsClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [conversionTracking, setConversionTracking] = useState(true);
+  const [localSandboxEnabled, setLocalSandboxEnabled] = useState(sandboxEnabled);
+  const [localWhitelist, setLocalWhitelist] = useState(sandboxWhitelist);
 
   const isConnected = Boolean(connection?.phoneNumberId && tokenSet);
   const connectionStatus = isConnected
@@ -327,20 +334,42 @@ export function ImperiumConnectionsClient({
               uptime={null}
               eventsLast24h={eventsLast24h}
             />
-            <WebhookStatusCard
-              webhookUrl={webhookUrl}
-              isVerified={eventsLast24h > 0}
-              onPingTest={isConnected ? handlePingTest : undefined}
-              onCopy={handleCopy}
-              pingDisabledReason={
-                webhookTestEnvMissing.length > 0
-                  ? `Missing env: ${webhookTestEnvMissing.join(", ")}`
-                  : !canTest
-                    ? "Admin access required"
-                    : undefined
-              }
+            <SandboxSettingsCard
+              workspaceId={workspaceId}
+              sandboxEnabled={localSandboxEnabled}
+              whitelist={localWhitelist}
+              canEdit={canEdit}
+              onUpdate={(enabled, wl) => {
+                setLocalSandboxEnabled(enabled);
+                setLocalWhitelist(wl);
+              }}
             />
           </div>
+        </motion.div>
+
+        {/* WEBHOOK VAULT */}
+        <motion.div variants={itemVariants}>
+          <div className="mb-4 flex items-center gap-2">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+            <span className="text-xs font-semibold tracking-wider text-cyan-400">
+              WEBHOOK VAULT
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+          </div>
+
+          <WebhookStatusCard
+            webhookUrl={webhookUrl}
+            isVerified={eventsLast24h > 0}
+            onPingTest={isConnected ? handlePingTest : undefined}
+            onCopy={handleCopy}
+            pingDisabledReason={
+              webhookTestEnvMissing.length > 0
+                ? `Missing env: ${webhookTestEnvMissing.join(", ")}`
+                : !canTest
+                  ? "Admin access required"
+                  : undefined
+            }
+          />
         </motion.div>
 
         {/* Webhook Terminal - Live Events */}

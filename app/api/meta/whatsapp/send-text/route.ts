@@ -10,7 +10,8 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
-import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
+import { getWaSettings } from "@/lib/meta/wa-settings";
+import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
@@ -189,12 +190,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const sandbox = await getWhatsappSandboxSettings(workspaceId);
+  const sandbox = await getWaSettings(workspaceId);
   const toPhone = thread.contact_wa_id ?? thread.phone_number_id;
   if (sandbox.sandboxEnabled && toPhone && !sandbox.whitelist.includes(toPhone)) {
     return withCookies(
       NextResponse.json(
-        { error: "forbidden", reason: "not_whitelisted", whitelist: sandbox.whitelist },
+        {
+          error: "sandbox_blocked",
+          reason: "not_whitelisted",
+          message: "Sandbox enabled. Add recipient to whitelist or disable sandbox.",
+          whitelist: sandbox.whitelist,
+        },
         { status: 403 }
       )
     );
@@ -209,45 +215,27 @@ export async function POST(req: NextRequest) {
     text: { body: text },
   };
 
-  try {
-    const res = await fetch(
-      `https://graph.facebook.com/v20.0/${encodeURIComponent(resolvedConnection.phone_number_id!)}/messages`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resolvedToken}`,
-        },
-        body: JSON.stringify(requestPayload),
-      }
-    );
+  const sendResult = await sendWhatsappMessage({
+    phoneNumberId: resolvedConnection.phone_number_id!,
+    token: resolvedToken,
+    payload: requestPayload,
+  });
 
-    const payload = await res.json().catch(() => ({}));
-    waResponse = payload as Record<string, unknown>;
-    if (!res.ok) {
-      return withCookies(
-        NextResponse.json(
-          {
-            error: "wa_send_failed",
-            reason: payload?.error?.message ?? "Graph API error",
-            details: payload?.error ?? null,
-          },
-          { status: 502 }
-        )
-      );
-    }
-    waMessageId = payload?.messages?.[0]?.id ?? null;
-  } catch (err) {
+  waResponse = sendResult.response ?? {};
+  if (!sendResult.ok) {
     return withCookies(
       NextResponse.json(
         {
           error: "wa_send_failed",
-          reason: err instanceof Error ? err.message : "unknown_error",
+          reason: sendResult.errorMessage ?? "Graph API error",
+          details: sendResult.response ?? null,
         },
         { status: 502 }
       )
     );
   }
+
+  waMessageId = sendResult.messageId;
 
   const statusValue = waMessageId ? "sent" : "pending";
 

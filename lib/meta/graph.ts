@@ -45,8 +45,20 @@ export async function getWorkspaceMetaAccessToken(workspaceId: string) {
 
 export function normalizeGraphVersion(raw?: string) {
   const cleaned = (raw || "").trim();
-  if (!cleaned) return "v24.0";
+  if (!cleaned) return "v20.0";
   return cleaned.startsWith("v") ? cleaned : `v${cleaned}`;
+}
+
+export function getGraphApiVersion() {
+  return normalizeGraphVersion(
+    process.env.META_GRAPH_API_VERSION || process.env.WA_GRAPH_VERSION || "v20.0"
+  );
+}
+
+export function graphUrl(path: string, version?: string) {
+  const baseVersion = normalizeGraphVersion(version ?? process.env.META_GRAPH_API_VERSION ?? process.env.WA_GRAPH_VERSION);
+  const cleanedPath = path.startsWith("/") ? path.slice(1) : path;
+  return `https://graph.facebook.com/${baseVersion}/${cleanedPath}`;
 }
 
 export async function fetchGraph<T>(url: string, token: string, opts?: { method?: string; body?: unknown }) {

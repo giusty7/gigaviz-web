@@ -13,6 +13,7 @@ import {
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -120,15 +121,14 @@ export async function POST(req: NextRequest) {
   let statusCode = 200;
 
   if (!dryRun) {
+    const version = getGraphApiVersion();
     try {
-      const res = await fetch(
-        `https://graph.facebook.com/v19.0/${phone.phone_number_id}?fields=id`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const url = graphUrl(`${phone.phone_number_id}?fields=id`, version);
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json = await res.json().catch(() => null);
       if (!res.ok) {
         ok = false;

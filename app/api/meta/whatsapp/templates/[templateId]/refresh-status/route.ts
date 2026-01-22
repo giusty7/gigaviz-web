@@ -16,6 +16,7 @@ import {
   findWorkspaceBySlug,
 } from "@/lib/meta/wa-connections";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
+import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 
 export const runtime = "nodejs";
 
@@ -30,12 +31,6 @@ type MetaTemplateResponse = {
   components?: unknown[];
   error?: { message?: string };
 };
-
-function normalizeGraphVersion(raw?: string) {
-  const cleaned = (raw || "").trim();
-  if (!cleaned) return "v19.0";
-  return cleaned.startsWith("v") ? cleaned : `v${cleaned}`;
-}
 
 function isUuid(value: string) {
   return /^[0-9a-f-]{36}$/i.test(value);
@@ -221,19 +216,21 @@ export async function POST(
     );
   }
 
-  const version = normalizeGraphVersion(process.env.WA_GRAPH_VERSION);
+  const version = getGraphApiVersion();
   let metaResponse: MetaTemplateResponse | null = null;
   let metaError: string | null = null;
 
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/${version}/${metaId}?fields=id,name,status,category,language,quality_score,components,rejection_reason`,
-      {
-        headers: {
-          Authorization: `Bearer ${tokenRow.token_encrypted}`,
-        },
-      }
+    const url = graphUrl(
+      `${metaId}?fields=id,name,status,category,language,quality_score,components,rejection_reason`,
+      version
     );
+
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${tokenRow.token_encrypted}`,
+      },
+    });
     const json = (await res.json().catch(() => ({}))) as MetaTemplateResponse;
     if (!res.ok) {
       metaError = json?.error?.message ?? `meta_refresh_failed_${res.status}`;

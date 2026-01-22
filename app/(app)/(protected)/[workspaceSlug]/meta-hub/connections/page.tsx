@@ -5,6 +5,7 @@ import { getAppContext } from "@/lib/app-context";
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getWaSettings } from "@/lib/meta/wa-settings";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -49,6 +50,9 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     fallbackChannel: "unknown",
   });
 
+  // Fetch per-workspace sandbox settings
+  const sandboxSettings = await getWaSettings(workspaceId);
+
   const tokenSet = Boolean(tokenRow);
   const connection = phone
     ? {
@@ -82,6 +86,8 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
         webhookUrl={webhookUrl}
         connectionTestEnvMissing={envStatus.connectionTestMissing}
         webhookTestEnvMissing={envStatus.webhookPingMissing}
+        sandboxEnabled={sandboxSettings.sandboxEnabled}
+        sandboxWhitelist={sandboxSettings.whitelist}
       />
     </FacebookSdkProvider>
   );
