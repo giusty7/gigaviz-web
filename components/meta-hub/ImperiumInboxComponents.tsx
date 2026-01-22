@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSyncExternalStore, useState, useRef } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
@@ -41,17 +41,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    HYDRATION-SAFE MOUNT CHECK
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    ANIMATION VARIANTS
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 const listVariants: Variants = {
   hidden: { opacity: 0 },
@@ -82,9 +82,9 @@ const sidebarVariants: Variants = {
   exit: { x: "100%", opacity: 0, transition: { duration: 0.2 } },
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    TYPES
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 export type Thread = {
   id: string;
@@ -111,12 +111,22 @@ export type Message = {
   content_json?: Record<string, unknown>;
   text_body?: string | null;
   status?: string | null;
+  status_at?: string | null;
+  status_updated_at?: string | null;
+  delivered_at?: string | null;
+  read_at?: string | null;
+  failed_at?: string | null;
+  error_code?: string | null;
+  error_message?: string | null;
+  sent_at?: string | null;
   created_at?: string | null;
   external_message_id?: string | null;
   wa_message_id?: string | null;
   wa_timestamp?: string | null;
   media_url?: string | null;
   media_type?: "image" | "video" | "audio" | "document" | null;
+  msg_type?: string | null;
+  error_reason?: string | null;
 };
 
 export type Note = {
@@ -173,9 +183,18 @@ export type MediaItem = {
 
 export type ConnectionStatus = "connected" | "connecting" | "disconnected" | "error";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+export type SessionInfo = {
+  state: "active" | "expired" | "unknown";
+  active?: boolean | null;
+  remainingMinutes?: number | null;
+  lastInboundAt?: string | null;
+  lastOutboundAt?: string | null;
+  expiresAt?: string | null;
+};
+
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    INBOX HEADER with Connection Status
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface InboxHeaderProps {
   connectionName?: string;
@@ -269,9 +288,9 @@ export function InboxHeader({ connectionName, unreadCount, connectionStatus = "c
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    COLUMN 1: CONTACT LIST with Smart Filter Tabs
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface ContactListProps {
   threads: Thread[];
@@ -300,13 +319,15 @@ export function ContactList({
     ? threads.filter((t) => t.assigned_to === currentUserId).length
     : 0;
 
+/* CONTACT CARD */
+  
   // Filter threads based on quick tab
   const quickTabFiltered = threads.filter((thread) => {
     if (filter.quickTab === "unread") return (thread.unread_count ?? 0) > 0;
     if (filter.quickTab === "assigned" && currentUserId) return thread.assigned_to === currentUserId;
     return true;
   });
-
+  
   if (!mounted) {
     return (
       <div className="flex h-full flex-col border-r border-[#d4af37]/10 bg-[#0a1229]/90">
@@ -321,7 +342,7 @@ export function ContactList({
       </div>
     );
   }
-
+  
   return (
     <div className="flex h-full w-full flex-col border-r border-[#d4af37]/10 bg-gradient-to-b from-[#0a1229] to-[#050a18]">
       {/* Smart Filter Tabs */}
@@ -375,7 +396,7 @@ export function ContactList({
           </button>
         </div>
       </div>
-
+  
       {/* Search & Filters */}
       <div className="space-y-3 border-b border-[#d4af37]/10 p-4">
         <div className="relative">
@@ -417,7 +438,7 @@ export function ContactList({
           </button>
         </div>
       </div>
-
+  
       {/* Thread List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
@@ -451,9 +472,7 @@ export function ContactList({
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   CONTACT CARD
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* CONTACT CARD */
 
 interface ContactCardProps {
   thread: Thread;
@@ -535,14 +554,15 @@ function ContactCard({ thread, isSelected, onClick }: ContactCardProps) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    COLUMN 2: CHAT TERMINAL with Enhanced Composer
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface ChatTerminalProps {
   thread: Thread | null;
   messages: Message[];
   loading?: boolean;
+  error?: string | null;
   composerValue: string;
   onComposerChange: (value: string) => void;
   onSend: () => void;
@@ -556,12 +576,19 @@ interface ChatTerminalProps {
   aiDraftLoading?: boolean;
   viewingAgents?: { id: string; name: string; avatar?: string }[];
   cannedResponses?: CannedResponse[];
+  allowSend: boolean;
+  sessionInfo: SessionInfo | null;
+  optOutDetected?: boolean;
+  onEscalate?: () => void;
+  escalating?: boolean;
+  threadStatus?: string | null;
 }
 
 export function ChatTerminal({
   thread,
   messages,
   loading,
+  error,
   composerValue,
   onComposerChange,
   onSend,
@@ -575,20 +602,34 @@ export function ChatTerminal({
   aiDraftLoading,
   viewingAgents,
   cannedResponses = [],
+  allowSend,
+  sessionInfo,
+  optOutDetected,
+  onEscalate,
+  escalating,
+  threadStatus,
 }: ChatTerminalProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Detect slash command - derived state
   const showSlashMenu = composerValue.startsWith("/");
   const slashFilter = showSlashMenu ? composerValue.slice(1).toLowerCase() : "";
 
-  // Filter canned responses
   const filteredCanned = cannedResponses.filter(
-    (r) =>
-      r.shortcut.toLowerCase().includes(slashFilter) ||
-      r.body.toLowerCase().includes(slashFilter)
+    (r) => r.shortcut.toLowerCase().includes(slashFilter) || r.body.toLowerCase().includes(slashFilter)
   );
+
+  const sessionState = sessionInfo?.state ?? "unknown";
+  const isExpired = sessionState === "expired";
+  const composerDisabled = isExpired;
+  const sendGate = !allowSend
+    ? "Workspace is read-only for messaging."
+    : optOutDetected
+      ? "Recipient requested opt-out; sending is blocked."
+      : isExpired
+        ? "24h session window expired. Send an approved template to continue."
+        : null;
+  const sendBlocked = Boolean(sendGate);
 
   const handleSelectCanned = (response: CannedResponse) => {
     onComposerChange(response.body);
@@ -611,12 +652,8 @@ export function ChatTerminal({
 
   return (
     <div className="relative flex flex-1 flex-col bg-gradient-to-b from-[#0a1229] to-[#050a18]">
-      {/* Cyber-Batik Parang Overlay - subtle pattern backdrop */}
-      <div 
-        className="pointer-events-none absolute inset-0 batik-pattern opacity-[0.03]" 
-        aria-hidden="true" 
-      />
-      
+      <div className="pointer-events-none absolute inset-0 batik-pattern opacity-[0.03]" aria-hidden="true" />
+
       {/* Chat Header */}
       <div className="relative z-10 flex items-center justify-between border-b border-[#d4af37]/10 px-4 py-3">
         <div className="flex items-center gap-3">
@@ -631,30 +668,74 @@ export function ChatTerminal({
             {thread.contact?.display_name?.charAt(0).toUpperCase() ?? "?"}
           </div>
           <div>
-            <p className="font-semibold text-[#f5f5dc]">
-              {thread.contact?.display_name ?? thread.external_thread_id}
-            </p>
+            <p className="font-semibold text-[#f5f5dc]">{thread.contact?.display_name ?? thread.external_thread_id}</p>
             <p className="text-xs text-[#f5f5dc]/40">{thread.contact?.phone ?? "No phone"}</p>
           </div>
         </div>
-
-        {/* Multi-Agent Presence */}
-        {viewingAgents && viewingAgents.length > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="mr-2 text-xs text-[#f5f5dc]/40">Viewing:</span>
-            <div className="flex -space-x-2">
-              {viewingAgents.slice(0, 3).map((agent) => (
-                <div
-                  key={agent.id}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#050a18] bg-[#d4af37] text-[10px] font-bold text-[#050a18]"
-                  title={agent.name}
-                >
-                  {agent.name.charAt(0)}
-                </div>
-              ))}
+        <div className="flex items-center gap-2">
+          {sessionInfo && (
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                sessionInfo.state === "active"
+                  ? "bg-[#10b981]/20 text-[#10b981]"
+                  : sessionInfo.state === "expired"
+                    ? "bg-[#e11d48]/20 text-[#e11d48]"
+                    : "bg-[#6b7280]/20 text-[#e5e7eb]"
+              )}
+            >
+              {sessionInfo.state === "active"
+                ? "Session Active"
+                : sessionInfo.state === "expired"
+                  ? "Session Expired"
+                  : "Session Unknown"}
+            </span>
+          )}
+          {threadStatus && (
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                threadStatus === "escalated"
+                  ? "bg-[#e11d48]/20 text-[#e11d48]"
+                  : "bg-[#d4af37]/10 text-[#d4af37]"
+              )}
+            >
+              {threadStatus}
+            </span>
+          )}
+          {onEscalate && (
+            <button
+              onClick={onEscalate}
+              disabled={escalating}
+              className="flex items-center gap-1 rounded-lg border border-[#e11d48]/40 bg-[#e11d48]/10 px-3 py-1.5 text-xs font-semibold text-[#e11d48] transition-all hover:border-[#e11d48]/70 hover:bg-[#e11d48]/20 disabled:opacity-60"
+            >
+              {escalating ? (
+                <div className="h-3 w-3 animate-spin rounded-full border border-[#e11d48] border-t-transparent" />
+              ) : (
+                <>
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  Escalate
+                </>
+              )}
+            </button>
+          )}
+          {viewingAgents && viewingAgents.length > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="mr-1 text-xs text-[#f5f5dc]/40">Viewing:</span>
+              <div className="flex -space-x-2">
+                {viewingAgents.slice(0, 3).map((agent) => (
+                  <div
+                    key={agent.id}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#050a18] bg-[#d4af37] text-[10px] font-bold text-[#050a18]"
+                    title={agent.name}
+                  >
+                    {agent.name.charAt(0)}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Messages Area */}
@@ -662,6 +743,11 @@ export function ChatTerminal({
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#d4af37] border-t-transparent" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#e11d48]/30 bg-[#e11d48]/10 p-4 text-center text-xs text-[#fecdd3]">
+            <AlertCircle className="h-5 w-5" />
+            <span>{error}</span>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -672,13 +758,7 @@ export function ChatTerminal({
         ) : (
           <div className="space-y-3">
             {messages.map((msg) => (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                onReply={onReply}
-                onStar={onStar}
-                onForward={onForward}
-              />
+              <MessageBubble key={msg.id} message={msg} onReply={onReply} onStar={onStar} onForward={onForward} />
             ))}
           </div>
         )}
@@ -686,7 +766,45 @@ export function ChatTerminal({
 
       {/* Composer */}
       <div className="border-t border-[#d4af37]/10 p-4">
-        {/* Slash Command Dropdown */}
+        <div className="mb-3 grid gap-2 md:grid-cols-2">
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-xl border px-3 py-2 text-xs",
+              sessionInfo?.active
+                ? "border-[#10b981]/30 bg-[#10b981]/10 text-[#d1fae5]"
+                : "border-[#e11d48]/30 bg-[#e11d48]/10 text-[#fecdd3]"
+            )}
+          >
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide">Session Window</p>
+              <p className="text-[11px] opacity-80">
+                {sessionInfo?.active
+                  ? `${sessionInfo.remainingMinutes ?? 0}m left • last inbound ${sessionInfo.lastInboundAt ? formatTime(sessionInfo.lastInboundAt) : "unknown"}`
+                  : "Expired • send an approved template"}
+              </p>
+            </div>
+            <Clock className="h-4 w-4 flex-shrink-0" />
+          </div>
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-xl border px-3 py-2 text-xs",
+              optOutDetected
+                ? "border-[#e11d48]/30 bg-[#e11d48]/10 text-[#fecdd3]"
+                : "border-[#d4af37]/30 bg-[#d4af37]/10 text-[#f5f5dc]"
+            )}
+          >
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide">Opt-Out Guard</p>
+              <p className="text-[11px] opacity-80">
+                {optOutDetected
+                  ? "Customer asked to stop. Do not message."
+                  : "No opt-out detected. Keep responses compliant."}
+              </p>
+            </div>
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          </div>
+        </div>
+
         <AnimatePresence>
           {showSlashMenu && cannedResponses.length > 0 && (
             <motion.div
@@ -706,22 +824,31 @@ export function ChatTerminal({
                     onClick={() => handleSelectCanned(r)}
                     className="flex w-full items-start gap-3 rounded-lg p-2 text-left transition-all hover:bg-[#d4af37]/10"
                   >
-                    <div className="flex-shrink-0 rounded bg-[#d4af37]/20 px-1.5 py-0.5 font-mono text-[10px] text-[#d4af37]">
-                      /{r.shortcut}
-                    </div>
+                    <div className="flex-shrink-0 rounded bg-[#d4af37]/20 px-1.5 py-0.5 font-mono text-[10px] text-[#d4af37]">/{r.shortcut}</div>
                     <p className="line-clamp-2 flex-1 text-xs text-[#f5f5dc]/70">{r.body}</p>
                   </button>
                 ))
               ) : (
-                <p className="px-2 py-4 text-center text-xs text-[#f5f5dc]/30">
-                  No matching responses
-                </p>
+                <p className="px-2 py-4 text-center text-xs text-[#f5f5dc]/30">No matching responses</p>
               )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Quick Actions */}
+        {sendGate && (
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2 text-xs text-[#f5f5dc]">
+            <span className="flex-1">{sendGate}</span>
+            {isExpired && onOpenTemplates && (
+              <button
+                onClick={onOpenTemplates}
+                className="rounded-lg border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-[11px] font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20"
+              >
+                Send Template
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="mb-3 flex items-center gap-2">
           {onOpenTemplates && (
             <button
@@ -736,7 +863,7 @@ export function ChatTerminal({
             <button
               onClick={onGenerateAIDraft ?? onOpenHelper}
               disabled={aiDraftLoading}
-              className="flex items-center gap-1.5 rounded-lg border border-[#e11d48]/30 bg-gradient-to-r from-[#e11d48]/10 to-[#d4af37]/10 px-3 py-1.5 text-xs font-semibold text-[#e11d48] transition-all hover:from-[#e11d48]/20 hover:to-[#d4af37]/20"
+              className="flex items-center gap-1.5 rounded-lg border border-[#e11d48]/30 bg-gradient-to-r from-[#e11d48]/10 to-[#d4af37]/10 px-3 py-1.5 text-xs font-semibold text-[#e11d48] transition-all hover:from-[#e11d48]/20 hover:to-[#d4af37]/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {aiDraftLoading ? (
                 <>
@@ -757,7 +884,6 @@ export function ChatTerminal({
           </span>
         </div>
 
-        {/* Input Row */}
         <div className="relative z-10 flex items-end gap-3">
           <div className="flex gap-1">
             <button title="Attach file" className="rounded-lg p-2 text-[#f5f5dc]/40 hover:bg-[#f5f5dc]/10 hover:text-[#f5f5dc]">
@@ -768,12 +894,11 @@ export function ChatTerminal({
             </button>
           </div>
           <div className="relative flex-1">
-            {/* Magic Wand AI Draft - Inside Input */}
             <button
               onClick={onGenerateAIDraft}
               disabled={aiDraftLoading}
               title="Draft with Gigaviz AI"
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 rounded-lg p-1.5 text-[#e11d48] transition-all hover:bg-[#e11d48]/10 hover:shadow-[0_0_12px_rgba(225,29,72,0.4)] disabled:opacity-50"
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-lg p-1.5 text-[#e11d48] transition-all hover:bg-[#e11d48]/10 hover:shadow-[0_0_12px_rgba(225,29,72,0.4)] disabled:opacity-50"
             >
               <Wand2 className={cn("h-4 w-4", aiDraftLoading && "animate-pulse")} />
             </button>
@@ -781,13 +906,20 @@ export function ChatTerminal({
               ref={textareaRef}
               value={composerValue}
               onChange={(e) => onComposerChange(e.target.value)}
-              placeholder="Type a message or / for quick responses..."
+              disabled={composerDisabled}
+              placeholder={
+                optOutDetected
+                  ? "Opt-out detected. Do not message this contact."
+                  : isExpired
+                    ? "Session expired. Send a template to resume."
+                    : "Type a message, use / for canned responses"
+              }
               rows={1}
-              className="w-full resize-none rounded-2xl border border-[#d4af37]/20 bg-[#0a1229] pl-10 pr-12 py-3 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
+              className="w-full resize-none rounded-2xl border border-[#d4af37]/20 bg-[#0a1229] pl-10 pr-12 py-3 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 disabled:cursor-not-allowed disabled:border-[#e11d48]/40 disabled:bg-[#0a1229]/60"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && !showSlashMenu) {
                   e.preventDefault();
-                  onSend();
+                  if (!sendBlocked) onSend();
                 }
                 if (e.key === "Escape" && showSlashMenu) {
                   onComposerChange("");
@@ -800,10 +932,10 @@ export function ChatTerminal({
           </div>
           <button
             onClick={onSend}
-            disabled={!composerValue.trim() || sending || showSlashMenu}
+            disabled={!composerValue.trim() || sending || showSlashMenu || sendBlocked || composerDisabled}
             className={cn(
               "flex h-11 w-11 items-center justify-center rounded-xl transition-all",
-              composerValue.trim() && !showSlashMenu
+              composerValue.trim() && !showSlashMenu && !sendBlocked && !composerDisabled
                 ? "bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:shadow-lg hover:shadow-[#d4af37]/30"
                 : "bg-[#f5f5dc]/10 text-[#f5f5dc]/30"
             )}
@@ -820,9 +952,9 @@ export function ChatTerminal({
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    MESSAGE BUBBLE - Enhanced Imperium Aesthetics
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface MessageBubbleProps {
   message: Message;
@@ -834,28 +966,67 @@ interface MessageBubbleProps {
 function MessageBubble({ message, onReply, onStar, onForward }: MessageBubbleProps) {
   const isOutbound = ["out", "outbound", "outgoing"].includes(message.direction);
   const text = message.text_body ?? (message.content_json as { text?: string })?.text ?? "";
-  const status = message.status?.toLowerCase();
+  // Derive status: if null but outbound with sent_at, treat as 'sent'
+  const rawStatus = message.status?.toLowerCase() ?? null;
+  const derivedStatus = rawStatus ?? (isOutbound && message.sent_at ? "sent" : null);
+  const statusUpdatedAt = message.status_updated_at ?? message.sent_at ?? message.created_at ?? null;
   const timestamp = message.created_at ?? message.wa_timestamp;
+  const isTemplate = message.msg_type === "template";
+  const errorReason = message.error_reason;
 
-  // Status indicator styling
-  const getStatusIndicator = () => {
+  const statusMeta = (() => {
     if (!isOutbound) return null;
+    const updatedAtLabel = statusUpdatedAt ? new Date(statusUpdatedAt).toLocaleString() : null;
 
-    switch (status) {
+    switch (derivedStatus) {
       case "sending":
-        return <Clock className="h-3 w-3 animate-pulse text-[#050a18]/40" />;
+      case "pending":
+      case "queued":
+        return {
+          label: derivedStatus === "queued" ? "Queued" : "Sending",
+          icon: <Clock className="h-3 w-3 animate-pulse text-[#9ca3af]" />,
+          tooltip: updatedAtLabel ? `${derivedStatus === "queued" ? "Queued" : "Sending"} · ${updatedAtLabel}` : "Queued for delivery",
+        } as const;
       case "sent":
-        return <Check className="h-3 w-3 text-[#050a18]/60" />;
+        return {
+          label: "Sent",
+          icon: <Check className="h-3 w-3 text-[#9ca3af]" />,
+          tooltip: updatedAtLabel ? `Sent · ${updatedAtLabel}` : "Sent to WhatsApp",
+        } as const;
       case "delivered":
-        return <CheckCheck className="h-3 w-3 text-[#d4af37]" />;
+        return {
+          label: "Delivered",
+          icon: <CheckCheck className="h-3 w-3 text-[#e5e7eb]" />,
+          tooltip: updatedAtLabel ? `Delivered · ${updatedAtLabel}` : "Delivered to device",
+        } as const;
       case "read":
-        return <CheckCheck className="h-3 w-3 text-[#10b981]" />;
+      case "seen":
+        return {
+          label: "Read",
+          icon: <CheckCheck className="h-3 w-3 text-[#38bdf8]" />,
+          tooltip: updatedAtLabel ? `Read · ${updatedAtLabel}` : "Read by recipient",
+        } as const;
       case "failed":
-        return <AlertCircle className="h-3 w-3 text-[#e11d48]" />;
+      case "undelivered":
+      case "error":
+        return {
+          label: "Failed",
+          icon: <AlertCircle className="h-3 w-3 text-[#e11d48]" />,
+          tooltip: errorReason
+            ? `Failed: ${errorReason}`
+            : updatedAtLabel
+              ? `Failed · ${updatedAtLabel}`
+              : "Delivery failed",
+        } as const;
       default:
-        return <Check className="h-3 w-3 text-[#050a18]/40" />;
+        // If still no status, show pending clock for outbound
+        return {
+          label: derivedStatus ? derivedStatus : "Pending",
+          icon: derivedStatus ? <Check className="h-3 w-3 text-[#9ca3af]" /> : <Clock className="h-3 w-3 text-[#9ca3af]" />,
+          tooltip: updatedAtLabel ? `Status: ${derivedStatus ?? "pending"} · ${updatedAtLabel}` : "Awaiting delivery status",
+        } as const;
     }
-  };
+  })();
 
   return (
     <motion.div
@@ -934,7 +1105,18 @@ function MessageBubble({ message, onReply, onStar, onForward }: MessageBubblePro
           )}
         >
           {timestamp && <span>{formatTime(timestamp)}</span>}
-          {getStatusIndicator()}
+          {isTemplate && <span className="rounded-full border border-current px-2 py-[2px] text-[9px] uppercase">Template</span>}
+          {statusMeta && (
+            <span className="inline-flex items-center gap-1" title={statusMeta.tooltip}>
+              <span className="opacity-70">{statusMeta.label}</span>
+              {statusMeta.icon}
+            </span>
+          )}
+          {statusMeta?.label === "Failed" && errorReason && (
+            <span className="truncate text-[#fca5a5]" title={errorReason}>
+              {errorReason}
+            </span>
+          )}
         </div>
 
         {/* Hover Actions */}
@@ -979,9 +1161,9 @@ function MessageBubble({ message, onReply, onStar, onForward }: MessageBubblePro
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    COLUMN 3: CRM SIDEBAR with Team Notes & Media Gallery
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface CRMSidebarProps {
   contact: ContactDetails | null;
@@ -1280,7 +1462,7 @@ export function CRMSidebar({
                           >
                             <p className="text-xs text-[#f5f5dc]/70">{note.body}</p>
                             <p className="mt-1 text-[10px] text-[#f5f5dc]/30">
-                              {note.author_name ?? "Team"} • {formatTime(note.created_at)}
+                              {note.author_name ?? "Team"} ΓÇó {formatTime(note.created_at)}
                             </p>
                           </div>
                         ))
@@ -1389,9 +1571,150 @@ export function CRMSidebar({
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+interface DemoChecklistPanelProps {
+  sessionInfo: SessionInfo | null;
+  optOutDetected?: boolean;
+  allowSend: boolean;
+  threadStatus?: string | null;
+}
+
+export function DemoChecklistPanel({ sessionInfo, optOutDetected, allowSend, threadStatus }: DemoChecklistPanelProps) {
+  const items = [
+    { label: "24h session active", ok: sessionInfo?.state === "active" },
+    { label: "No opt-out detected", ok: !optOutDetected },
+    { label: "Workspace can send", ok: allowSend },
+    { label: "Thread not escalated", ok: threadStatus !== "escalated" },
+  ];
+
+  return (
+    <div className="fixed bottom-4 right-4 z-40 w-72 rounded-2xl border border-[#d4af37]/20 bg-[#050a18]/95 p-4 shadow-2xl backdrop-blur">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold text-[#f5f5dc]">Demo Checklist</p>
+        <span className="text-[10px] uppercase tracking-wide text-[#f5f5dc]/40">Compliance</span>
+      </div>
+      <div className="space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2 text-xs text-[#f5f5dc]/80">
+            <div
+              className={cn(
+                "flex h-5 w-5 items-center justify-center rounded-full border",
+                item.ok
+                  ? "border-[#10b981]/40 bg-[#10b981]/10 text-[#10b981]"
+                  : "border-[#e11d48]/40 bg-[#e11d48]/10 text-[#e11d48]"
+              )}
+            >
+              {item.ok ? <Check className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+            </div>
+            <span className={item.ok ? "" : "text-[#fca5a5]"}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface TemplateVariableModalProps {
+  isOpen: boolean;
+  template: ApprovedTemplate | null;
+  variables: string[];
+  onChange: (index: number, value: string) => void;
+  onSend: () => void;
+  onClose: () => void;
+  sending?: boolean;
+  preview?: string;
+}
+
+export function TemplateVariableModal({
+  isOpen,
+  template,
+  variables,
+  onChange,
+  onSend,
+  onClose,
+  sending,
+  preview,
+}: TemplateVariableModalProps) {
+  if (!isOpen || !template) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-[#050a18]/90 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative z-10 w-full max-w-lg rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#0a1229] to-[#050a18] p-6 shadow-2xl"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-[#f5f5dc]/50">Template</p>
+            <h3 className="text-lg font-bold text-[#f5f5dc]">{template.name}</h3>
+          </div>
+          <button title="Close" onClick={onClose} className="rounded-lg p-1 text-[#f5f5dc]/40 hover:text-[#f5f5dc]">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {variables.length === 0 ? (
+            <p className="text-sm text-[#f5f5dc]/60">No variables required for this template.</p>
+          ) : (
+            variables.map((value, idx) => (
+              <div key={idx} className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-wide text-[#f5f5dc]/50">
+                  Variable {idx + 1}
+                </label>
+                <input
+                  value={value}
+                  onChange={(e) => onChange(idx, e.target.value)}
+                  className="w-full rounded-lg border border-[#d4af37]/30 bg-[#050a18]/60 px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-[#d4af37]/60 focus:outline-none"
+                  placeholder="Enter value"
+                />
+              </div>
+            ))
+          )}
+        </div>
+
+        {preview && (
+          <div className="mt-4 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-3">
+            <p className="mb-2 text-[11px] uppercase tracking-wide text-[#f5f5dc]/50">Preview</p>
+            <p className="whitespace-pre-wrap text-sm text-[#f5f5dc]/80">{preview}</p>
+          </div>
+        )}
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg px-3 py-2 text-xs font-semibold text-[#f5f5dc]/60 hover:text-[#f5f5dc]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSend}
+            disabled={sending}
+            className={cn(
+              "flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all",
+              sending
+                ? "bg-[#f5f5dc]/10 text-[#f5f5dc]/40"
+                : "bg-gradient-to-r from-[#d4af37] to-[#b8962e] text-[#050a18] hover:shadow-lg hover:shadow-[#d4af37]/30"
+            )}
+          >
+            {sending ? (
+              <div className="h-4 w-4 animate-spin rounded-full border border-[#050a18] border-t-transparent" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            Send Template
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    TEMPLATE SHORTCUT MODAL
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface TemplateShortcutModalProps {
   isOpen: boolean;
@@ -1435,23 +1758,23 @@ export function TemplateShortcutModal({ isOpen, onClose, templates, onSelect }: 
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    FOOTER
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 export function ImperiumInboxFooter() {
   return (
     <footer className="border-t border-[#d4af37]/10 bg-[#050a18] py-3 text-center">
       <p className="text-[10px] tracking-widest text-[#f5f5dc]/20">
-        UNIFIED COMMUNICATION ENGINE — GIGAVIZ IMPERIUM BY PT GLORIOUS VICTORIOUS
+        UNIFIED COMMUNICATION ENGINE ΓÇö GIGAVIZ IMPERIUM BY PT GLORIOUS VICTORIOUS
       </p>
     </footer>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    HELPERS
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 function formatTime(dateString: string): string {
   const date = new Date(dateString);
@@ -1475,3 +1798,4 @@ function formatDate(dateString: string): string {
     year: "numeric",
   });
 }
+

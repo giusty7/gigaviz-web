@@ -163,3 +163,74 @@ select * from public.set_workspace_entitlement('coba-gigaviz','meta_hub',true,nu
 select * from public.set_workspace_entitlement_payload('<workspace_uuid>','core_os',true,'{}'::jsonb,null,'owner grant');
 ```
 Both should return rows without ambiguity errors.
+
+---
+
+## WhatsApp Multi-Connection Routing (20260123090000)
+
+### Problem Summary
+- **403 Forbidden** when replying to certain threads due to `phone_number_id` mismatch with token
+- Outbound routing relied on `wa_messages.phone_number_id` (which can be stale/backfilled) instead of deterministic FK
+- No guard rails for orphan webhook events (phone_number_id not registered)
+
+### Fix Applied
+1. Added `connection_id` FK column to `wa_threads` and `wa_messages`
+2. Created `orphan_webhook_events` table for unmatched webhooks
+3. Updated webhook handler to use `resolveConnectionForWebhook()` and store orphans
+4. Updated outbound send endpoints to use `resolveConnectionForThread()` which:
+   - First uses `thread.connection_id` (deterministic)
+   - Falls back to `phone_number_id` lookup and backfills `connection_id`
+5. All message inserts now include `connection_id` for audit trail
+
+### Migration File
+`supabase/migrations/20260123090000_wa_connection_id_routing.sql`
+
+### Testing Checklist
+
+#### Multi-Connection Scenario
+1. **Setup**: Ensure workspace has 2+ connections in `wa_phone_numbers` (e.g., Connection A and Connection B)
+2. **Inbound A**: Send inbound message to Connection A's phone number
+   - Verify thread created with `connection_id = A.id`
+   - Verify message has `connection_id = A.id`
+3. **Reply A**: Reply to thread A from inbox
+   - Should use Connection A's token and phone_number_id
+   - Should NOT get 403 Forbidden
+4. **Inbound B**: Send inbound message to Connection B's phone number
+   - Verify NEW thread created with `connection_id = B.id`
+5. **Reply B**: Reply to thread B from inbox
+   - Should use Connection B's token and phone_number_id
+   - Should NOT get 403 Forbidden
+
+#### Orphan Event Handling
+1. **Simulate**: Send webhook with `phone_number_id` not in `wa_phone_numbers`
+2. **Verify**: Event stored in `orphan_webhook_events` table
+3. **Verify**: Response is 200 OK (not 5xx, to prevent Meta retry spam)
+4. **Verify**: Log message contains "orphan event"
+
+#### Backfill Verification
+1. **Query**: Check existing threads now have `connection_id` populated
+```sql
+SELECT t.id, t.phone_number_id, t.connection_id, c.phone_number_id as conn_phone
+FROM wa_threads t
+LEFT JOIN wa_phone_numbers c ON t.connection_id = c.id
+WHERE t.connection_id IS NOT NULL
+LIMIT 10;
+```
+2. **Verify**: `t.phone_number_id` matches `c.phone_number_id`
+
+#### Connection Error Handling
+1. Delete a connection from `wa_phone_numbers` (or set status='inactive')
+2. Try to reply to a thread that used that connection
+3. Should return 409 with `code: "connection_not_found"` or `"connection_inactive"`
+
+### Manual Verification Commands
+```bash
+# Check connection_id populated in threads
+psql "$SUPABASE_DB_URL" -c "SELECT COUNT(*) FROM wa_threads WHERE connection_id IS NOT NULL;"
+
+# Check orphan events table exists and is empty
+psql "$SUPABASE_DB_URL" -c "SELECT COUNT(*) FROM orphan_webhook_events;"
+
+# Verify indexes exist
+psql "$SUPABASE_DB_URL" -c "SELECT indexname FROM pg_indexes WHERE tablename IN ('wa_threads','wa_messages','orphan_webhook_events') AND indexname LIKE '%connection%' OR indexname LIKE '%orphan%';"
+```

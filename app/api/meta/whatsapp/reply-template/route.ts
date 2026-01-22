@@ -3,25 +3,46 @@ import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import {
   forbiddenResponse,
-  getWorkspaceId,
   requireWorkspaceMember,
   requireWorkspaceRole,
   unauthorizedResponse,
-  workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
-import { getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
+import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
 
 const schema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceSlug: z.string().min(1),
   threadId: z.string().uuid(),
   templateName: z.string().min(1),
   language: z.string().min(2),
   variables: z.array(z.string()).default([]),
 });
+
+const placeholderRegex = /{{\s*(\d+)\s*}}/g;
+
+function countPlaceholders(body?: string | null) {
+  if (!body) return 0;
+  const regex = new RegExp(placeholderRegex.source, "g");
+  const matches = Array.from(body.matchAll(regex));
+  if (!matches.length) return 0;
+  return matches.reduce((max, match) => {
+    const idx = Number(match[1]);
+    return Number.isFinite(idx) ? Math.max(max, idx) : max;
+  }, 0);
+}
+
+function renderTemplateBody(body: string | null | undefined, variables: string[]) {
+  if (!body) return "";
+  const regex = new RegExp(placeholderRegex.source, "g");
+  return body.replace(regex, (_, rawIdx) => {
+    const idx = Number(rawIdx) - 1;
+    const value = variables[idx];
+    return typeof value === "string" && value.trim().length > 0 ? value : `{{${rawIdx}}}`;
+  });
+}
 
 export const runtime = "nodejs";
 
@@ -43,11 +64,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId: bodyWorkspaceId, threadId, templateName, language, variables } = parsed.data;
-  const workspaceId = getWorkspaceId(req, undefined, bodyWorkspaceId);
-  if (!workspaceId) {
-    return workspaceRequiredResponse(withCookies);
+  const { workspaceSlug, threadId, templateName, language, variables } = parsed.data;
+
+  const adminDb = supabaseAdmin();
+
+  const { data: workspaceRow, error: workspaceError } = await adminDb
+    .from("workspaces")
+    .select("id")
+    .eq("slug", workspaceSlug)
+    .maybeSingle();
+
+  if (workspaceError) {
+    return withCookies(
+      NextResponse.json(
+        { error: "db_error", reason: "workspace_lookup_failed", message: workspaceError.message },
+        { status: 500 }
+      )
+    );
   }
+
+  if (!workspaceRow?.id) {
+    return withCookies(NextResponse.json({ error: "not_found", reason: "workspace_not_found" }, { status: 404 }));
+  }
+
+  const workspaceId = workspaceRow.id;
 
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
   if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin", "member"])) {
@@ -60,8 +100,6 @@ export async function POST(req: NextRequest) {
       NextResponse.json({ error: "rate_limited", resetAt: limiter.resetAt }, { status: 429 })
     );
   }
-
-  const adminDb = supabaseAdmin();
 
   const { data: thread, error: threadError } = await adminDb
     .from("wa_threads")
@@ -84,7 +122,7 @@ export async function POST(req: NextRequest) {
 
   const { data: template } = await adminDb
     .from("wa_templates")
-    .select("name, language, status")
+    .select("name, language, status, body")
     .eq("workspace_id", workspaceId)
     .eq("name", templateName)
     .eq("language", language)
@@ -105,16 +143,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const connection = await getWorkspaceWhatsappConnectionOrThrow({
-    workspaceId,
-    phoneNumberId: thread.phone_number_id ?? null,
-  });
-
-  if (!connection.ok) {
+  // Resolve connection deterministically from thread.connection_id
+  const connectionResult = await resolveConnectionForThread(threadId, workspaceId);
+  if (!connectionResult.ok || !connectionResult.connection || !connectionResult.token) {
     return withCookies(
-      NextResponse.json({ error: connection.code, reason: connection.message }, { status: 400 })
+      NextResponse.json(
+        {
+          error: connectionResult.code ?? "connection_error",
+          reason: connectionResult.error ?? "No connection for thread",
+        },
+        { status: 409 }
+      )
     );
   }
+
+  const resolvedConnection = connectionResult.connection;
+  const resolvedToken = connectionResult.token;
 
   const sandbox = await getWhatsappSandboxSettings(workspaceId);
   if (sandbox.sandboxEnabled && !sandbox.whitelist.includes(thread.contact_wa_id)) {
@@ -126,7 +170,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const parameters = (variables || []).map((text) => ({ type: "text", text }));
+  const cleanedVars = (variables || []).map((text) => text.trim());
+  const placeholderCount = countPlaceholders(template.body);
+  const missingRequired = placeholderCount > 0 && cleanedVars.slice(0, placeholderCount).some((v) => !v);
+
+  if (missingRequired) {
+    return withCookies(
+      NextResponse.json(
+        { error: "bad_request", reason: "missing_template_variables", placeholderCount },
+        { status: 400 }
+      )
+    );
+  }
+
+  const parameters = cleanedVars
+    .slice(0, Math.max(placeholderCount, cleanedVars.length))
+    .map((text) => ({ type: "text", text }));
+  const renderedText = renderTemplateBody(template.body, cleanedVars);
   const payload = {
     messaging_product: "whatsapp",
     to: thread.contact_wa_id,
@@ -150,11 +210,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v19.0/${connection.connection.phoneNumberId}/messages`,
+      `https://graph.facebook.com/v19.0/${resolvedConnection.phone_number_id}/messages`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${connection.connection.token}`,
+          Authorization: `Bearer ${resolvedToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -189,6 +249,8 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
+  const statusValue = messageId ? "sent" : "pending";
+
   const insertPayload = {
     workspace_id: workspaceId,
     thread_id: threadId,
@@ -196,13 +258,22 @@ export async function POST(req: NextRequest) {
     direction: "outbound",
     type: "template",
     msg_type: "template",
-    text_body: `Template: ${template.name}`,
-    payload_json: { request: payload, response: waResponse ?? {} },
+    status: statusValue,
+    status_at: now,
+    status_updated_at: now,
+    delivered_at: null as string | null,
+    read_at: null as string | null,
+    failed_at: null as string | null,
+    error_code: null as string | null,
+    error_message: null as string | null,
+    text_body: renderedText || `Template: ${template.name}`,
+    payload_json: { request: payload, response: waResponse ?? {}, template_variables: cleanedVars, rendered_text: renderedText },
     created_at: now,
     sent_at: now,
     wa_timestamp: now,
-    phone_number_id: connection.connection.phoneNumberId,
-    from_wa_id: connection.connection.phoneNumberId,
+    phone_number_id: resolvedConnection.phone_number_id,
+    connection_id: resolvedConnection.id, // FK to wa_phone_numbers for deterministic routing
+    from_wa_id: resolvedConnection.phone_number_id,
     to_wa_id: thread.contact_wa_id ?? null,
   };
 

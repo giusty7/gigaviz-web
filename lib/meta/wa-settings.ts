@@ -21,8 +21,9 @@ export async function getWhatsappSandboxSettings(
     ? (data?.test_whitelist as string[])
     : [];
 
+  // Sandbox is DISABLED by default - only enable if explicitly set to true
   return {
-    sandboxEnabled: data?.sandbox_enabled !== false,
+    sandboxEnabled: data?.sandbox_enabled === true,
     whitelist,
   };
 }

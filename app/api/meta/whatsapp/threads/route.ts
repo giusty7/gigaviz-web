@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  getWorkspaceId,
-  requireWorkspaceMember,
-  unauthorizedResponse,
-  workspaceRequiredResponse,
-} from "@/lib/auth/guard";
+import { forbiddenResponse, requireWorkspaceMember, unauthorizedResponse, workspaceRequiredResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -31,11 +26,56 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const workspaceParam = url.searchParams.get("workspaceId") ?? undefined;
-  const workspaceId = getWorkspaceId(req, { workspaceId: workspaceParam });
-  if (!workspaceId) {
+  const paramsSchema = z.object({
+    workspaceSlug: z.string().min(1),
+  });
+
+  const parsed = paramsSchema.safeParse({
+    workspaceSlug: url.searchParams.get("workspaceSlug"),
+  });
+
+  const isDev = process.env.NODE_ENV !== "production";
+
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: "bad_request",
+          reason: "invalid_workspace",
+          ...(isDev ? { issues: parsed.error.flatten() } : {}),
+        },
+        { status: 400 }
+      )
+    );
+  }
+
+  const { workspaceSlug } = parsed.data;
+
+  const db = supabaseAdmin();
+  const { data: workspaceRow, error: workspaceError } = await db
+    .from("workspaces")
+    .select("id, slug")
+    .eq("slug", workspaceSlug)
+    .maybeSingle();
+
+  if (workspaceError) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: "db_error",
+          reason: "workspace_lookup_failed",
+          ...(isDev ? { message: workspaceError.message } : {}),
+        },
+        { status: 500 }
+      )
+    );
+  }
+
+  if (!workspaceRow?.id) {
     return workspaceRequiredResponse(withCookies);
   }
+
+  const workspaceId = workspaceRow.id;
 
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
   if (!membership.ok) {
@@ -47,7 +87,6 @@ export async function GET(req: NextRequest) {
   const assigned = url.searchParams.get("assigned")?.trim() ?? "all";
   const unread = url.searchParams.get("unread")?.trim() ?? "all";
 
-  const db = supabaseAdmin();
   let query = db
     .from("wa_threads")
     .select(

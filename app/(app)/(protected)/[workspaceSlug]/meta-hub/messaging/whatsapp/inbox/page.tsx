@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
 import { getWorkspacePlan } from "@/lib/plans";
+import type { SessionInfo } from "@/components/meta-hub/ImperiumInboxComponents";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -72,13 +73,59 @@ export default async function WhatsappInboxPage({ params }: Props) {
     ? await supabase
         .from("wa_messages")
         .select(
-          "id, direction, status, created_at, wa_message_id, msg_type, text_body, wa_timestamp, payload_json"
+          `id, direction, status, status_at, status_updated_at, delivered_at, read_at, failed_at, error_code, error_message, created_at, sent_at, wa_message_id, msg_type, text_body, wa_timestamp, payload_json`
         )
         .eq("workspace_id", workspaceId)
         .eq("thread_id", firstThread.id)
         .order("wa_timestamp", { ascending: true })
         .order("created_at", { ascending: true })
     : { data: [] };
+  const deriveSession = (nowTs: number): SessionInfo => {
+    let lastInboundAt: string | null = null;
+    let lastOutboundAt: string | null = null;
+    const setLatest = (current: string | null, candidate?: string | null) => {
+      if (!candidate) return current;
+      if (!current) return candidate;
+      return Date.parse(candidate) > Date.parse(current) ? candidate : current;
+    };
+
+    (messages ?? []).forEach((m) => {
+      const ts = m.wa_timestamp ?? m.sent_at ?? m.created_at;
+      if (!ts) return;
+      if (["in", "inbound"].includes((m.direction ?? "").toLowerCase())) {
+        lastInboundAt = setLatest(lastInboundAt, ts);
+      } else {
+        lastOutboundAt = setLatest(lastOutboundAt, ts);
+      }
+    });
+
+    // If no inbound messages, session state is unknown
+    if (!lastInboundAt) {
+      return {
+        state: "unknown",
+        active: null,
+        lastInboundAt: null,
+        lastOutboundAt,
+        expiresAt: null,
+        remainingMinutes: null,
+      };
+    }
+
+    const expiresAt = new Date(Date.parse(lastInboundAt) + 24 * 60 * 60 * 1000).toISOString();
+    const remainingMinutes = Math.max(0, Math.floor((Date.parse(expiresAt) - nowTs) / 60000));
+    const active = Date.parse(expiresAt) > nowTs;
+
+    return {
+      state: active ? "active" : "expired",
+      active,
+      lastInboundAt,
+      lastOutboundAt,
+      expiresAt,
+      remainingMinutes,
+    };
+  };
+
+  const initialSession = deriveSession(Date.parse(new Date().toISOString()));
 
   const { data: tags } = firstThread
     ? await supabase
@@ -128,6 +175,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
       userId={ctx.user.id}
       canEdit={canEdit}
       allowWrite={allowWrite}
+      demoMode={process.env.NEXT_PUBLIC_DEMO_UI === "true"}
       connectionName={phoneRow?.display_name ?? "WhatsApp"}
       initialThreads={threads ?? []}
       initialMessages={
@@ -137,6 +185,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
           content_json: m.payload_json ?? {},
         })) ?? []
       }
+      initialSession={initialSession}
       initialTags={tags?.map((t) => t.tag) ?? []}
       initialNotes={notes ?? []}
       templates={approvedTemplates}

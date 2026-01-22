@@ -11,7 +11,9 @@ import {
   ChatTerminal,
   CRMSidebar,
   TemplateShortcutModal,
+  TemplateVariableModal,
   ImperiumInboxFooter,
+  DemoChecklistPanel,
   type Thread,
   type Message,
   type Note,
@@ -21,6 +23,7 @@ import {
   type ConnectionStatus,
   type CannedResponse,
   type MediaItem,
+  type SessionInfo,
 } from "./ImperiumInboxComponents";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -43,6 +46,29 @@ const containerVariants: Variants = {
   },
 };
 
+const placeholderRegex = /{{\s*(\d+)\s*}}/g;
+
+function getPlaceholderCount(body?: string | null) {
+  if (!body) return 0;
+  const regex = new RegExp(placeholderRegex.source, "g");
+  const matches = Array.from(body.matchAll(regex));
+  if (!matches.length) return 0;
+  return matches.reduce((max, match) => {
+    const idx = Number(match[1]);
+    return Number.isFinite(idx) ? Math.max(max, idx) : max;
+  }, 0);
+}
+
+function renderTemplateBody(body: string | null | undefined, variables: string[]) {
+  if (!body) return "";
+  const regex = new RegExp(placeholderRegex.source, "g");
+  return body.replace(regex, (_, rawIdx) => {
+    const idx = Number(rawIdx) - 1;
+    const value = variables[idx];
+    return typeof value === "string" && value.trim().length > 0 ? value : `{{${rawIdx}}}`;
+  });
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -53,9 +79,11 @@ interface ImperiumInboxClientProps {
   userId: string;
   canEdit: boolean;
   allowWrite: boolean;
+  demoMode?: boolean;
   connectionName?: string;
   initialThreads: Thread[];
   initialMessages: Message[];
+  initialSession: SessionInfo;
   initialTags: string[];
   initialNotes: Note[];
   templates: ApprovedTemplate[];
@@ -66,20 +94,23 @@ interface ImperiumInboxClientProps {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function ImperiumInboxClient({
-  workspaceId,
-  // workspaceSlug - reserved for future routing
+  workspaceId: _workspaceId,
+  workspaceSlug,
   userId,
   canEdit,
   allowWrite,
+  demoMode = false,
   connectionName,
   initialThreads,
   initialMessages,
+  initialSession,
   // initialTags - reserved for tag filtering
   initialNotes,
   templates,
 }: ImperiumInboxClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
+  void _workspaceId;
 
   // Thread state
   const [threads, setThreads] = useState<Thread[]>(initialThreads);
@@ -89,6 +120,9 @@ export function ImperiumInboxClient({
   // Messages state
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState<string | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo>(initialSession);
+  const [showDemoChecklist, setShowDemoChecklist] = useState(false);
 
   // CRM state
   const [contactDetails, setContactDetails] = useState<ContactDetails | null>(null);
@@ -97,6 +131,7 @@ export function ImperiumInboxClient({
   // Composer state
   const [composerValue, setComposerValue] = useState("");
   const [sending, setSending] = useState(false);
+  const [escalating, setEscalating] = useState(false);
 
   // Filter state
   const [filter, setFilter] = useState<FilterState>({
@@ -124,9 +159,12 @@ export function ImperiumInboxClient({
 
   // Template modal state
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [activeTemplate, setActiveTemplate] = useState<ApprovedTemplate | null>(null);
+  const [templateVariables, setTemplateVariables] = useState<string[]>([]);
 
   // Auto-refresh
   const refreshInterval = useRef<NodeJS.Timeout | null>(null);
+  const templatePlaceholderWarned = useRef(false);
 
   // Filtered threads
   const filteredThreads = useMemo(() => {
@@ -155,12 +193,23 @@ export function ImperiumInboxClient({
     return threads.reduce((sum, t) => sum + (t.unread_count ?? 0), 0);
   }, [threads]);
 
+  // Determine demo checklist visibility (only demoMode or URL ?demo=1)
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      setShowDemoChecklist(Boolean(demoMode));
+      return;
+    }
+    const urlFlag = new URLSearchParams(window.location.search).get("demo");
+    const enabledByUrl = urlFlag === "1" || urlFlag === "true";
+    setShowDemoChecklist(Boolean(demoMode) || enabledByUrl);
+  }, [demoMode]);
+
   // Fetch threads
   const fetchThreads = useCallback(async () => {
     setThreadsLoading(true);
     setConnectionStatus("connecting");
     try {
-      const params = new URLSearchParams({ workspaceId });
+      const params = new URLSearchParams({ workspaceSlug });
       const res = await fetch(`/api/meta/whatsapp/threads?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -179,29 +228,52 @@ export function ImperiumInboxClient({
     } finally {
       setThreadsLoading(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceSlug, toast]);
 
   // Fetch messages for selected thread
   const fetchMessages = useCallback(async (threadId: string) => {
     setMessagesLoading(true);
+    setMessagesError(null);
     try {
-      const params = new URLSearchParams({ threadId });
+      const params = new URLSearchParams({ threadId, workspaceSlug });
       const res = await fetch(`/api/meta/whatsapp/thread/messages?${params.toString()}`, { cache: "no-store" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "Failed to load messages");
+        const baseError =
+          (data?.details?.message as string | undefined) ||
+          (data?.error as string | undefined) ||
+          "Failed to load messages";
+        const requestId = data?.requestId as string | undefined;
+        const message = requestId ? `${baseError} (requestId ${requestId})` : baseError;
+        throw new Error(message);
       }
       setMessages(data.messages ?? []);
+      if (data.session) {
+        const state = data.session.state ?? (data.session.active ? "active" : "expired");
+        setSessionInfo({
+          state,
+          active: data.session.active ?? (state === "active" ? true : state === "expired" ? false : null),
+          lastInboundAt: data.session.lastInboundAt ?? null,
+          lastOutboundAt: data.session.lastOutboundAt ?? null,
+          expiresAt: data.session.expiresAt ?? null,
+          remainingMinutes: data.session.remainingMinutes ?? null,
+        });
+      } else {
+        setSessionInfo({ state: "unknown", active: null });
+      }
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setMessagesError(message);
+      setSessionInfo({ state: "unknown", active: null });
       toast({
         title: "Failed to load messages",
-        description: err instanceof Error ? err.message : "Unknown error",
+        description: message,
         variant: "destructive",
       });
     } finally {
       setMessagesLoading(false);
     }
-  }, [toast]);
+  }, [toast, workspaceSlug]);
 
   // Build contact details from thread
   const buildContactDetails = useCallback(
@@ -233,6 +305,48 @@ export function ImperiumInboxClient({
       }));
   }, [messages]);
 
+  const optOutDetected = useMemo(() => {
+    const inboundMessages = messages.filter((m) => ["in", "inbound"].includes(m.direction));
+    const latestInbound = inboundMessages.reduce<Message | null>((latest, msg) => {
+      const ts = Date.parse(msg.wa_timestamp ?? msg.sent_at ?? msg.created_at ?? "");
+      const latestTs = latest ? Date.parse(latest.wa_timestamp ?? latest.sent_at ?? latest.created_at ?? "") : 0;
+      return ts > latestTs ? msg : latest;
+    }, null);
+
+    const rawBody = (latestInbound?.text_body ?? "") ||
+      (typeof latestInbound?.content_json === "object"
+        ? (latestInbound?.content_json as { text?: string })?.text ?? ""
+        : "");
+    const body = rawBody.toString().trim().toLowerCase();
+    if (!body) return false;
+
+    const keywords = ["stop", "unsubscribe", "cancel", "end", "quit"];
+    return keywords.some((kw) => body === kw || body.startsWith(`${kw} `) || body.includes(` ${kw} `));
+  }, [messages]);
+
+  const planAllowsSend = allowWrite;
+  const sessionState = sessionInfo?.state ?? "unknown";
+
+  const handleComposerChange = useCallback(
+    (value: string) => {
+      const hasPlaceholder = /{{\s*\d+\s*}}/.test(value);
+      if (hasPlaceholder) {
+        if (!templatePlaceholderWarned.current) {
+          toast({
+            title: "Use template parameters",
+            description: "Fill placeholders via Send Template. Free-text cannot include {{1}} style tokens.",
+            variant: "destructive",
+          });
+          templatePlaceholderWarned.current = true;
+        }
+      } else {
+        templatePlaceholderWarned.current = false;
+      }
+      setComposerValue(value);
+    },
+    [toast]
+  );
+
   // Handle add note
   const handleAddNote = useCallback(
     async (body: string) => {
@@ -242,7 +356,7 @@ export function ImperiumInboxClient({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            workspaceId,
+            workspaceSlug,
             threadId: selectedThread.id,
             body,
           }),
@@ -276,7 +390,7 @@ export function ImperiumInboxClient({
         });
       }
     },
-    [selectedThread, workspaceId, userId, contactDetails, toast]
+    [selectedThread, workspaceSlug, userId, contactDetails, toast]
   );
 
   // Handle thread selection
@@ -291,7 +405,7 @@ export function ImperiumInboxClient({
         fetch("/api/meta/whatsapp/thread/mark-read", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ threadId: thread.id }),
+          body: JSON.stringify({ threadId: thread.id, workspaceSlug }),
         }).catch(() => {});
 
         // Optimistic update
@@ -300,12 +414,38 @@ export function ImperiumInboxClient({
         );
       }
     },
-    [buildContactDetails, fetchMessages]
+    [buildContactDetails, fetchMessages, workspaceSlug]
   );
 
   // Handle send message
   const handleSend = useCallback(async () => {
-    if (!composerValue.trim() || !selectedThread || !allowWrite) return;
+    if (!composerValue.trim() || !selectedThread) return;
+    if (!allowWrite) {
+      toast({
+        title: "Messaging disabled",
+        description: "Upgrade plan or enable demo override to send WhatsApp messages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (optOutDetected) {
+      toast({
+        title: "Respect opt-out",
+        description: "Recipient asked to stop. Do not send additional messages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (sessionState === "expired") {
+      toast({
+        title: "Session window expired",
+        description: "WhatsApp requires an approved template outside the 24h window.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSending(true);
     const text = composerValue.trim();
@@ -326,7 +466,7 @@ export function ImperiumInboxClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workspaceId,
+          workspaceSlug,
           threadId: selectedThread.id,
           text,
         }),
@@ -341,7 +481,11 @@ export function ImperiumInboxClient({
       setMessages((prev) =>
         prev.map((m) =>
           m.id === tempMessage.id
-            ? { ...m, id: data.messageId ?? m.id, status: "sent" }
+            ? {
+                ...m,
+                id: data.insertedMessage?.id ?? m.id,
+                status: (data.status as string | undefined) ?? "pending",
+              }
             : m
         )
       );
@@ -358,13 +502,140 @@ export function ImperiumInboxClient({
     } finally {
       setSending(false);
     }
-  }, [composerValue, selectedThread, workspaceId, allowWrite, toast]);
+  }, [composerValue, selectedThread, allowWrite, optOutDetected, sessionState, workspaceSlug, toast]);
 
-  // Handle template select
-  const handleTemplateSelect = useCallback((template: ApprovedTemplate) => {
-    setComposerValue(template.body ?? template.name);
+  const handleSendTemplate = useCallback(
+    async (template: ApprovedTemplate, variables: string[] = []) => {
+      if (!selectedThread) return;
+      if (!allowWrite) {
+        toast({
+          title: "Messaging disabled",
+          description: "Upgrade plan or enable demo override to send WhatsApp messages.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (optOutDetected) {
+        toast({
+          title: "Respect opt-out",
+          description: "Recipient asked to stop. Do not send additional messages.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const cleanedVars = variables.map((v) => v.trim());
+      const expectedCount = getPlaceholderCount(template.body);
+      const hasPlaceholders = expectedCount > 0;
+      const missing = hasPlaceholders && cleanedVars.slice(0, expectedCount).some((v) => !v);
+      if (missing) {
+        toast({
+          title: "Fill all template variables",
+          description: "Please provide values for each placeholder before sending.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSending(true);
+      try {
+        const res = await fetch("/api/meta/whatsapp/reply-template", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workspaceSlug,
+            threadId: selectedThread.id,
+            templateName: template.name,
+            language: template.language,
+            variables: cleanedVars,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Failed to send template");
+        }
+        await fetchMessages(selectedThread.id);
+        setTemplateModalOpen(false);
+        setActiveTemplate(null);
+        setTemplateVariables([]);
+        toast({ title: "Template sent" });
+      } catch (err) {
+        toast({
+          title: "Send template failed",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        });
+      } finally {
+        setSending(false);
+      }
+    },
+    [allowWrite, fetchMessages, optOutDetected, selectedThread, toast, workspaceSlug]
+  );
+
+  const handleEscalate = useCallback(async () => {
+    if (!selectedThread) return;
+    setEscalating(true);
+    try {
+      const res = await fetch("/api/meta/whatsapp/thread/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceSlug, threadId: selectedThread.id, status: "escalated" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to escalate thread");
+      }
+      setThreads((prev) => prev.map((t) => (t.id === selectedThread.id ? { ...t, status: "escalated" } : t)));
+      setSelectedThread((prev) => (prev ? { ...prev, status: "escalated" } : prev));
+      toast({ title: "Escalated", description: "Thread marked for human follow-up." });
+    } catch (err) {
+      toast({
+        title: "Escalation failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setEscalating(false);
+    }
+  }, [selectedThread, toast, workspaceSlug]);
+
+  const handleTemplatePicked = useCallback((template: ApprovedTemplate) => {
+    const count = getPlaceholderCount(template.body);
+    setTemplateVariables(Array.from({ length: count }, () => ""));
+    setActiveTemplate(template);
     setTemplateModalOpen(false);
   }, []);
+
+  const handleTemplateVariableChange = useCallback((index: number, value: string) => {
+    setTemplateVariables((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }, []);
+
+  const renderedTemplatePreview = useMemo(() => {
+    if (!activeTemplate) return "";
+    return renderTemplateBody(activeTemplate.body ?? activeTemplate.name ?? "", templateVariables);
+  }, [activeTemplate, templateVariables]);
+
+  const handleTemplateSubmit = useCallback(async () => {
+    if (!activeTemplate) return;
+    const count = getPlaceholderCount(activeTemplate.body);
+    const normalized = templateVariables.slice(0, Math.max(count, templateVariables.length)).map((v) => v.trim());
+    if (count > 0 && normalized.some((v) => !v)) {
+      toast({
+        title: "Fill all template variables",
+        description: "Provide values for each placeholder before sending.",
+        variant: "destructive",
+      });
+      return;
+    }
+    await handleSendTemplate(activeTemplate, normalized);
+    setActiveTemplate(null);
+    setTemplateVariables([]);
+  }, [activeTemplate, handleSendTemplate, templateVariables, toast]);
 
   // Handle filter change
   const handleFilterChange = useCallback((updates: Partial<FilterState>) => {
@@ -387,6 +658,55 @@ export function ImperiumInboxClient({
       }
     };
   }, [fetchThreads]);
+
+  // Realtime polling for messages (2.5s interval, pause when tab hidden)
+  useEffect(() => {
+    if (!selectedThread) return;
+
+    let pollTimer: NodeJS.Timeout | null = null;
+    let isVisible = true;
+
+    const poll = async () => {
+      if (!isVisible || !selectedThread) return;
+      try {
+        const params = new URLSearchParams({ threadId: selectedThread.id, workspaceSlug });
+        const res = await fetch(`/api/meta/whatsapp/thread/messages?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok && data.messages) {
+          setMessages(data.messages);
+          if (data.session) {
+            const state = data.session.state ?? (data.session.active ? "active" : "expired");
+            setSessionInfo({
+              state,
+              active: data.session.active ?? (state === "active" ? true : state === "expired" ? false : null),
+              lastInboundAt: data.session.lastInboundAt ?? null,
+              lastOutboundAt: data.session.lastOutboundAt ?? null,
+              expiresAt: data.session.expiresAt ?? null,
+              remainingMinutes: data.session.remainingMinutes ?? null,
+            });
+          }
+        }
+      } catch {
+        // Silently ignore polling errors
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      isVisible = document.visibilityState === "visible";
+      if (isVisible) {
+        // Immediately poll when tab becomes visible
+        poll();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    pollTimer = setInterval(poll, 2500);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (pollTimer) clearInterval(pollTimer);
+    };
+  }, [selectedThread, workspaceSlug]);
 
   if (!mounted) {
     return (
@@ -440,12 +760,19 @@ export function ImperiumInboxClient({
             thread={selectedThread}
             messages={messages}
             loading={messagesLoading}
+            error={messagesError}
             composerValue={composerValue}
-            onComposerChange={setComposerValue}
+            onComposerChange={handleComposerChange}
             onSend={handleSend}
             onOpenTemplates={() => setTemplateModalOpen(true)}
             sending={sending}
             cannedResponses={cannedResponses}
+            allowSend={planAllowsSend}
+            sessionInfo={sessionInfo}
+            optOutDetected={optOutDetected}
+            onEscalate={handleEscalate}
+            escalating={escalating}
+            threadStatus={selectedThread?.status ?? null}
           />
 
           {/* Column 3: CRM Sidebar Toggle */}
@@ -479,12 +806,35 @@ export function ImperiumInboxClient({
         <ImperiumInboxFooter />
       </motion.div>
 
+      {showDemoChecklist && (
+        <DemoChecklistPanel
+          sessionInfo={sessionInfo}
+          optOutDetected={optOutDetected}
+          allowSend={planAllowsSend}
+          threadStatus={selectedThread?.status ?? null}
+        />
+      )}
+
       {/* Template Shortcut Modal */}
       <TemplateShortcutModal
         isOpen={templateModalOpen}
         onClose={() => setTemplateModalOpen(false)}
         templates={templates.filter((t) => t.body)}
-        onSelect={handleTemplateSelect}
+        onSelect={handleTemplatePicked}
+      />
+
+      <TemplateVariableModal
+        isOpen={Boolean(activeTemplate)}
+        template={activeTemplate}
+        variables={templateVariables}
+        onChange={handleTemplateVariableChange}
+        onSend={handleTemplateSubmit}
+        onClose={() => {
+          setActiveTemplate(null);
+          setTemplateVariables([]);
+        }}
+        sending={sending}
+        preview={renderedTemplatePreview}
       />
     </div>
   );

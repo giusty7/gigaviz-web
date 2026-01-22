@@ -4,6 +4,11 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { storeMetaEventLog } from "@/lib/meta/events";
+import {
+  resolveConnectionForWebhook,
+  storeOrphanWebhookEvent,
+  type WaConnectionRow,
+} from "@/lib/meta/wa-connections";
 
 type WaPayload = {
   object?: string;
@@ -165,27 +170,35 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
 
   const db = supabaseAdmin();
   let workspaceId: string | null = null;
-  let phoneRow: { workspace_id: string; waba_id?: string | null; display_name?: string | null } | null = null;
+  let connectionRow: WaConnectionRow | null = null;
 
+  // Use deterministic connection lookup by phone_number_id
   if (phoneNumberId) {
-    const { data, error } = await db
-      .from("wa_phone_numbers")
-      .select("workspace_id, waba_id, display_name")
-      .eq("phone_number_id", phoneNumberId)
-      .eq("status", "active")
-      .maybeSingle();
-    if (error) {
-      logger.error("[meta-webhook] lookup phone failed", { message: error.message });
+    const { connection, error: connErr } = await resolveConnectionForWebhook(phoneNumberId);
+    if (connErr) {
+      logger.error("[meta-webhook] connection lookup failed", { phoneNumberId, message: connErr.message });
     }
-    workspaceId = data?.workspace_id ?? null;
-    phoneRow = data ?? null;
+    if (connection) {
+      workspaceId = connection.workspace_id;
+      connectionRow = connection;
+    }
   }
 
-  if (!workspaceId) {
-    logger.warn("[meta-webhook] workspace not mapped", { phoneNumberId, externalId });
+  // If no connection found, store as orphan event and return 200 (don't retry)
+  if (!workspaceId || !connectionRow) {
+    logger.warn("[meta-webhook] orphan event - phone_number_id not registered", {
+      phoneNumberId,
+      externalId,
+    });
+    await storeOrphanWebhookEvent({
+      phoneNumberId: phoneNumberId ?? "unknown",
+      eventKey,
+      payload: sanitized,
+      error: "phone_number_id not registered to any active connection",
+    });
     return NextResponse.json(
-      { ok: true, stored: false, code: "workspace_not_found" },
-      { status: 202 }
+      { ok: true, stored: false, code: "orphan_event", phoneNumberId },
+      { status: 200 }
     );
   }
 
@@ -290,9 +303,9 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
           {
             workspace_id: workspaceId,
             phone_number_id: phoneNumberId,
-            waba_id: connection?.waba_id ?? phoneRow?.waba_id ?? null,
-            display_phone_number: connection?.display_phone_number ?? phoneRow?.display_name ?? null,
-            verified_name: connection?.verified_name ?? phoneRow?.display_name ?? null,
+            waba_id: connection?.waba_id ?? connectionRow?.waba_id ?? null,
+            display_phone_number: connection?.display_phone_number ?? connectionRow?.display_name ?? null,
+            verified_name: connection?.verified_name ?? connectionRow?.display_name ?? null,
             quality_rating: null,
             updated_at: new Date().toISOString(),
           },

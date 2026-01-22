@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { resolveConnectionForWebhook } from "@/lib/meta/wa-connections";
 
 type WaMessage = {
   id?: string;
@@ -18,6 +19,7 @@ type WaStatus = {
   id?: string;
   status?: string;
   timestamp?: string;
+  errors?: Array<{ code?: string | number; title?: string; message?: string }>;
 };
 
 type WaWebhookPayload = {
@@ -166,6 +168,13 @@ async function handlePayload(
       const contactName = contactProfile?.profile?.name ?? null;
       const contactWaId = contactProfile?.wa_id ?? null;
 
+      // Resolve connection_id from phone_number_id for deterministic routing
+      let connectionId: string | null = null;
+      if (phoneNumberId) {
+        const { connection } = await resolveConnectionForWebhook(phoneNumberId);
+        connectionId = connection?.id ?? null;
+      }
+
       if (messages.length > 0) {
         for (const msg of messages) {
           const result = await ingestMessage(
@@ -175,7 +184,8 @@ async function handlePayload(
             phoneNumberId,
             displayPhone,
             contactWaId ?? msg.from ?? null,
-            contactName
+            contactName,
+            connectionId
           );
           messagesCreated += result.inserted ? 1 : 0;
           if (result.newThread) threadsTouched += 1;
@@ -200,7 +210,8 @@ async function ingestMessage(
   phoneNumberId: string | null,
   displayPhone: string | null,
   contactWaId: string | null,
-  contactName: string | null
+  contactName: string | null,
+  connectionId: string | null
 ) {
   const contactId = contactWaId ?? msg.from ?? "unknown";
   const threadKey = contactId;
@@ -213,24 +224,37 @@ async function ingestMessage(
   const phoneId = phoneNumberId ?? "unknown";
   const receivedAt = toDate(msg.timestamp) ?? new Date().toISOString();
 
+  // Upsert thread with connection_id for deterministic outbound routing
+  const threadUpsertData: Record<string, unknown> = {
+    workspace_id: workspaceId,
+    phone_number_id: phoneId,
+    contact_wa_id: threadKey,
+    contact_name: contactName,
+    status: "open",
+  };
+  // Always set connection_id if available (ensures correct routing)
+  if (connectionId) {
+    threadUpsertData.connection_id = connectionId;
+  }
+
   const { data: thread, error: threadError } = await db
     .from("wa_threads")
-    .upsert(
-      {
-        workspace_id: workspaceId,
-        phone_number_id: phoneId,
-        contact_wa_id: threadKey,
-        contact_name: contactName,
-        status: "open",
-      },
-      { onConflict: "workspace_id,phone_number_id,contact_wa_id" }
-    )
-    .select("id, unread_count, created_at, updated_at")
+    .upsert(threadUpsertData, { onConflict: "workspace_id,phone_number_id,contact_wa_id" })
+    .select("id, unread_count, created_at, updated_at, connection_id")
     .single();
 
   if (threadError || !thread) {
     throw new Error(threadError?.message ?? "thread_upsert_failed");
   }
+
+  // If thread didn't have connection_id but we have one now, update it
+  if (connectionId && !thread.connection_id) {
+    await db
+      .from("wa_threads")
+      .update({ connection_id: connectionId })
+      .eq("id", thread.id);
+  }
+
   const newThread = thread.created_at === thread.updated_at;
 
   const { data: existingMessage, error: existingError } = await db
@@ -252,14 +276,23 @@ async function ingestMessage(
 
   const mediaId =
     msg.image?.id ?? msg.document?.id ?? msg.audio?.id ?? msg.video?.id ?? null;
-  const insertMessage = {
+  const insertMessage: Record<string, unknown> = {
     workspace_id: workspaceId,
     thread_id: thread.id,
     phone_number_id: phoneId,
+    connection_id: connectionId, // FK to wa_phone_numbers for audit
     wa_message_id: msg.id ?? null,
     direction: "inbound",
     type: msg.type ?? "text",
     msg_type: msg.type ?? null,
+    status: "received" as const,
+    status_at: receivedAt,
+    status_updated_at: receivedAt,
+    delivered_at: null as string | null,
+    read_at: null as string | null,
+    failed_at: null as string | null,
+    error_code: null as string | null,
+    error_message: null as string | null,
     text_body: textBody,
     media_id: mediaId,
     media_url: null as string | null,
@@ -298,22 +331,87 @@ async function updateStatus(
   status: WaStatus
 ) {
   if (!status.id) return;
-  const payload = {
+  const statusTime = toDate(status.timestamp) ?? new Date().toISOString();
+  const normalizedStatus = status.status?.toLowerCase() ?? null;
+  const firstError = status.errors?.[0];
+  const errorCode = firstError?.code ? String(firstError.code) : null;
+  const errorMessage = firstError?.message ?? firstError?.title ?? null;
+
+  // Log to status events table for audit
+  const eventPayload = {
     workspace_id: workspaceId,
     external_message_id: status.id,
-    status: status.status ?? null,
+    status: normalizedStatus,
     payload_json: status,
   };
 
   try {
-    await db.from("wa_message_status_events").insert(payload);
+    await db.from("wa_message_status_events").insert(eventPayload);
   } catch {
     // ignore duplicates
   }
 
+  // Fetch existing message to check status_updated_at for idempotency
+  const { data: existingRow } = await db
+    .from("wa_messages")
+    .select("id, status, status_updated_at")
+    .eq("workspace_id", workspaceId)
+    .eq("wa_message_id", status.id)
+    .maybeSingle();
+
+  if (!existingRow) {
+    // Message not found, nothing to update
+    return;
+  }
+
+  // Idempotency: only update if incoming timestamp is newer
+  const existingUpdatedAt = existingRow.status_updated_at
+    ? Date.parse(existingRow.status_updated_at)
+    : 0;
+  const incomingTs = Date.parse(statusTime);
+  if (incomingTs <= existingUpdatedAt) {
+    // Skip stale update
+    return;
+  }
+
+  // Status priority: read > delivered > sent > pending
+  const statusPriority: Record<string, number> = {
+    pending: 1,
+    sent: 2,
+    delivered: 3,
+    read: 4,
+    failed: 5,
+  };
+  const existingPriority = statusPriority[existingRow.status ?? ""] ?? 0;
+  const incomingPriority = statusPriority[normalizedStatus ?? ""] ?? 0;
+
+  // Don't downgrade status (except to failed which can happen anytime)
+  if (normalizedStatus !== "failed" && incomingPriority < existingPriority) {
+    return;
+  }
+
+  const updatePayload: Record<string, unknown> = {
+    status: normalizedStatus,
+    status_updated_at: statusTime,
+  };
+
+  if (normalizedStatus === "sent") {
+    updatePayload.status_at = statusTime;
+  }
+  if (normalizedStatus === "delivered") {
+    updatePayload.delivered_at = statusTime;
+  }
+  if (normalizedStatus === "read") {
+    updatePayload.read_at = statusTime;
+  }
+  if (normalizedStatus === "failed" || normalizedStatus === "undelivered") {
+    updatePayload.failed_at = statusTime;
+    updatePayload.error_code = errorCode;
+    updatePayload.error_message = errorMessage ?? "delivery_failed";
+  }
+
   await db
     .from("wa_messages")
-    .update({ status: status.status ?? null })
-    .eq("workspace_id", workspaceId)
-    .eq("wa_message_id", status.id);
+    .update(updatePayload)
+    .eq("id", existingRow.id);
 }

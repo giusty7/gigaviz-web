@@ -3,19 +3,17 @@ import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import {
   forbiddenResponse,
-  getWorkspaceId,
   requireWorkspaceMember,
   requireWorkspaceRole,
   unauthorizedResponse,
-  workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
-import { getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
+import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWhatsappSandboxSettings } from "@/lib/meta/wa-settings";
 
 const schema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceSlug: z.string().min(1),
   threadId: z.string().uuid(),
   text: z.string().min(1),
 });
@@ -40,15 +38,61 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId: bodyWorkspaceId, threadId, text } = parsed.data;
-  const workspaceId = getWorkspaceId(req, undefined, bodyWorkspaceId);
-  if (!workspaceId) {
-    return workspaceRequiredResponse(withCookies);
+  const { workspaceSlug, threadId, text } = parsed.data;
+
+  const db = supabaseAdmin();
+
+  const { data: workspaceRow, error: workspaceError } = await db
+    .from("workspaces")
+    .select("id")
+    .eq("slug", workspaceSlug)
+    .maybeSingle();
+
+  if (workspaceError) {
+    return withCookies(
+      NextResponse.json(
+        { error: "db_error", reason: "workspace_lookup_failed", message: workspaceError.message },
+        { status: 500 }
+      )
+    );
   }
+
+  if (!workspaceRow?.id) {
+    return withCookies(NextResponse.json({ error: "not_found", reason: "workspace_not_found" }, { status: 404 }));
+  }
+
+  const workspaceId = workspaceRow.id;
 
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
   if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin", "member"])) {
     return forbiddenResponse(withCookies);
+  }
+
+  // Enforce plan gating and demo override
+  const devEmails = (process.env.DEV_FULL_ACCESS_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const devOverride = devEmails.includes((userData.user.email || "").toLowerCase());
+
+  const { data: subscription } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  const planId = (subscription?.plan_id as string | null) ?? "free_locked";
+  if (planId === "free_locked" && !devOverride) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: "write_disabled",
+          reason: "plan_locked",
+          message: "Upgrade plan or request demo override to send messages.",
+        },
+        { status: 403 }
+      )
+    );
   }
 
   const limiter = rateLimit(`wa-send-text:${workspaceId}:${userData.user.id}`, {
@@ -61,10 +105,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const db = supabaseAdmin();
   const { data: thread } = await db
     .from("wa_threads")
-    .select("id, phone_number_id, contact_wa_id")
+    .select("id, phone_number_id, contact_wa_id, connection_id")
     .eq("workspace_id", workspaceId)
     .eq("id", threadId)
     .maybeSingle();
@@ -75,16 +118,74 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Resolve connection deterministically from thread.connection_id
+  const connectionResult = await resolveConnectionForThread(threadId, workspaceId);
+  if (!connectionResult.ok || !connectionResult.connection || !connectionResult.token) {
+    return withCookies(
+      NextResponse.json(
+        {
+          error: connectionResult.code ?? "connection_error",
+          reason: connectionResult.error ?? "No connection for thread",
+        },
+        { status: 409 }
+      )
+    );
+  }
+
+  const resolvedConnection = connectionResult.connection;
+  const resolvedToken = connectionResult.token;
+
   const now = new Date().toISOString();
 
-  const connection = await getWorkspaceWhatsappConnectionOrThrow({
-    workspaceId,
-    phoneNumberId: thread.phone_number_id ?? null,
-  });
+  // Enforce WhatsApp 24h session window and opt-out handling
+  const { data: lastInbound } = await db
+    .from("wa_messages")
+    .select("text_body, wa_timestamp, created_at")
+    .eq("workspace_id", workspaceId)
+    .eq("thread_id", threadId)
+    .eq("direction", "inbound")
+    .order("wa_timestamp", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (!connection.ok) {
+  const lastInboundAt = lastInbound?.wa_timestamp ?? lastInbound?.created_at;
+  const lastInboundMs = lastInboundAt ? Date.parse(lastInboundAt) : null;
+  const sessionActive = lastInboundMs ? Date.now() - lastInboundMs < 24 * 60 * 60 * 1000 : false;
+
+  if (!sessionActive) {
     return withCookies(
-      NextResponse.json({ error: connection.code, reason: connection.message }, { status: 400 })
+      NextResponse.json(
+        {
+          error: "session_expired",
+          reason: "outside_24h_window",
+          lastInboundAt,
+        },
+        { status: 403 }
+      )
+    );
+  }
+
+  const inboundText = (lastInbound?.text_body ?? "").trim().toLowerCase();
+  const optOutKeywords = ["stop", "unsubscribe", "cancel", "end", "quit"];
+  const optedOut = inboundText
+    ? optOutKeywords.some((kw) =>
+        inboundText === kw || inboundText.startsWith(`${kw} `) || inboundText.includes(` ${kw} `)
+      )
+    : false;
+
+  if (optedOut) {
+    await db
+      .from("wa_threads")
+      .update({ status: "opt_out", updated_at: now })
+      .eq("workspace_id", workspaceId)
+      .eq("id", threadId);
+
+    return withCookies(
+      NextResponse.json(
+        { error: "opt_out", reason: "recipient_opted_out", lastInboundAt },
+        { status: 403 }
+      )
     );
   }
 
@@ -110,12 +211,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v20.0/${encodeURIComponent(connection.connection.phoneNumberId)}/messages`,
+      `https://graph.facebook.com/v20.0/${encodeURIComponent(resolvedConnection.phone_number_id!)}/messages`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${connection.connection.token}`,
+          Authorization: `Bearer ${resolvedToken}`,
         },
         body: JSON.stringify(requestPayload),
       }
@@ -148,20 +249,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const statusValue = waMessageId ? "sent" : "pending";
+
   const insertPayload = {
     workspace_id: workspaceId,
     thread_id: threadId,
-    phone_number_id: connection.connection.phoneNumberId,
+    phone_number_id: resolvedConnection.phone_number_id,
+    connection_id: resolvedConnection.id, // FK to wa_phone_numbers for deterministic routing
     wa_message_id: waMessageId,
     direction: "outbound",
     type: "text",
     msg_type: "text",
+    status: statusValue,
+    status_at: now,
+    status_updated_at: now,
+    delivered_at: null as string | null,
+    read_at: null as string | null,
+    failed_at: null as string | null,
+    error_code: null as string | null,
+    error_message: null as string | null,
     text_body: text,
     payload_json: { request: requestPayload, response: waResponse ?? {} },
     wa_timestamp: now,
     created_at: now,
     sent_at: now,
-    from_wa_id: connection.connection.phoneNumberId,
+    from_wa_id: resolvedConnection.phone_number_id,
     to_wa_id: thread.contact_wa_id ?? null,
   };
 
@@ -210,7 +322,7 @@ export async function POST(req: NextRequest) {
     return withCookies(
       NextResponse.json({
         ok: true,
-        status: "sent",
+        status: "pending",
         waMessageId,
         insertedMessage,
       })

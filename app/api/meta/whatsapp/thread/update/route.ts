@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  getWorkspaceId,
-  requireWorkspaceMember,
-  requireWorkspaceRole,
-  unauthorizedResponse,
-  workspaceRequiredResponse,
-} from "@/lib/auth/guard";
+import { forbiddenResponse, requireWorkspaceMember, requireWorkspaceRole, unauthorizedResponse, workspaceRequiredResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const schema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceSlug: z.string().min(1),
   threadId: z.string().uuid(),
   assignedTo: z.string().uuid().nullable().optional(),
   status: z.string().optional(),
@@ -38,18 +31,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId: bodyWorkspaceId, threadId, assignedTo, status } = parsed.data;
-  const workspaceId = getWorkspaceId(req, undefined, bodyWorkspaceId);
-  if (!workspaceId) {
+  const { workspaceSlug, threadId, assignedTo, status } = parsed.data;
+  const db = supabaseAdmin();
+  const { data: workspaceRow, error: workspaceError } = await db
+    .from("workspaces")
+    .select("id")
+    .eq("slug", workspaceSlug)
+    .maybeSingle();
+
+  if (workspaceError || !workspaceRow?.id) {
     return workspaceRequiredResponse(withCookies);
   }
+
+  const workspaceId = workspaceRow.id;
 
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
   if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin", "member"])) {
     return forbiddenResponse(withCookies);
   }
 
-  const db = supabaseAdmin();
   const updatePayload: Record<string, unknown> = {};
   if (status) updatePayload.status = status;
   if (assignedTo !== undefined) updatePayload.assigned_to = assignedTo;
