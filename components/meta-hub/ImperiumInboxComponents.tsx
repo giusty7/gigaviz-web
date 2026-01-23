@@ -40,6 +40,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    HYDRATION-SAFE MOUNT CHECK
@@ -577,6 +578,9 @@ interface ChatTerminalProps {
   viewingAgents?: { id: string; name: string; avatar?: string }[];
   cannedResponses?: CannedResponse[];
   allowSend: boolean;
+  sendDisabledReason?: string | null;
+  sendDisabledCtaHref?: string | null;
+  sendDisabledCtaLabel?: string | null;
   sessionInfo: SessionInfo | null;
   optOutDetected?: boolean;
   onEscalate?: () => void;
@@ -603,6 +607,9 @@ export function ChatTerminal({
   viewingAgents,
   cannedResponses = [],
   allowSend,
+  sendDisabledReason,
+  sendDisabledCtaHref,
+  sendDisabledCtaLabel,
   sessionInfo,
   optOutDetected,
   onEscalate,
@@ -622,13 +629,15 @@ export function ChatTerminal({
   const sessionState = sessionInfo?.state ?? "unknown";
   const isExpired = sessionState === "expired";
   const composerDisabled = isExpired;
-  const sendGate = !allowSend
-    ? "Workspace is read-only for messaging."
-    : optOutDetected
-      ? "Recipient requested opt-out; sending is blocked."
-      : isExpired
-        ? "24h session window expired. Send an approved template to continue."
-        : null;
+  const sendGate = sendDisabledReason
+    ? sendDisabledReason
+    : !allowSend
+      ? "Workspace is read-only for messaging."
+      : optOutDetected
+        ? "Recipient requested opt-out; sending is blocked."
+        : isExpired
+          ? "24h session window expired. Send an approved template to continue."
+          : null;
   const sendBlocked = Boolean(sendGate);
 
   const handleSelectCanned = (response: CannedResponse) => {
@@ -838,6 +847,14 @@ export function ChatTerminal({
         {sendGate && (
           <div className="mb-3 flex items-center gap-2 rounded-xl border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2 text-xs text-[#f5f5dc]">
             <span className="flex-1">{sendGate}</span>
+            {sendDisabledCtaHref && (
+              <Link
+                href={sendDisabledCtaHref}
+                className="rounded-lg border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-[11px] font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20"
+              >
+                {sendDisabledCtaLabel ?? "Fix in Connections"}
+              </Link>
+            )}
             {isExpired && onOpenTemplates && (
               <button
                 onClick={onOpenTemplates}

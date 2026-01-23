@@ -89,6 +89,22 @@ interface ImperiumInboxClientProps {
   templates: ApprovedTemplate[];
 }
 
+type CapabilityReasonCode =
+  | "PLAN_LOCKED"
+  | "NO_CONNECTION"
+  | "CONNECTION_INACTIVE"
+  | "PHONE_NUMBER_MISSING"
+  | "TOKEN_MISSING"
+  | "TOKEN_EXPIRED"
+  | "CAPABILITY_API_ERROR";
+
+type CapabilityState = {
+  loading: boolean;
+  canSend: boolean;
+  reasonCode: CapabilityReasonCode | null;
+  reason: string | null;
+};
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN CLIENT COMPONENT
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -144,6 +160,13 @@ export function ImperiumInboxClient({
 
   // Connection status (simulate real-time check)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connected");
+
+  const [capability, setCapability] = useState<CapabilityState>({
+    loading: true,
+    canSend: allowWrite,
+    reasonCode: allowWrite ? null : "PLAN_LOCKED",
+    reason: allowWrite ? null : "Messaging is disabled for the current plan.",
+  });
 
   // Canned responses (for slash commands)
   const cannedResponses: CannedResponse[] = useMemo(() => {
@@ -324,8 +347,92 @@ export function ImperiumInboxClient({
     return keywords.some((kw) => body === kw || body.startsWith(`${kw} `) || body.includes(` ${kw} `));
   }, [messages]);
 
-  const planAllowsSend = allowWrite;
+  const refreshCapabilities = useCallback(async () => {
+    setCapability((prev) => ({ ...prev, loading: true }));
+    try {
+      const params = new URLSearchParams({ workspaceSlug });
+      const res = await fetch(`/api/meta/whatsapp/inbox/capabilities?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const baseError = (data?.error as string | undefined) ?? "Capability check failed";
+        throw new Error(baseError);
+      }
+
+      const canSend = data?.canSendText !== false;
+      const reasonCode = (data?.reasonCode as CapabilityReasonCode | null | undefined) ?? (canSend ? null : "CAPABILITY_API_ERROR");
+      const reason = (data?.reason as string | null | undefined) ?? (canSend ? null : "Messaging is currently blocked.");
+
+      setCapability({
+        loading: false,
+        canSend,
+        reasonCode,
+        reason,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Capability check failed";
+      setCapability({
+        loading: false,
+        canSend: false,
+        reasonCode: "CAPABILITY_API_ERROR",
+        reason: "Unable to verify messaging capability.",
+      });
+      toast({
+        title: "Messaging unavailable",
+        description: message,
+        variant: "destructive",
+      });
+    }
+  }, [toast, workspaceSlug]);
+
+  useEffect(() => {
+    void refreshCapabilities();
+  }, [refreshCapabilities]);
+
+  const planAllowsSend = capability.canSend && allowWrite;
   const sessionState = sessionInfo?.state ?? "unknown";
+
+  const capabilityNotice = useMemo(() => {
+    const connectionCodes: CapabilityReasonCode[] = [
+      "NO_CONNECTION",
+      "CONNECTION_INACTIVE",
+      "PHONE_NUMBER_MISSING",
+      "TOKEN_MISSING",
+      "TOKEN_EXPIRED",
+    ];
+
+    if (!capability.reasonCode && !capability.reason) {
+      return { message: null, ctaHref: null, ctaLabel: null } as const;
+    }
+
+    const message = capability.reason ?? "Messaging is currently blocked.";
+
+    if (capability.reasonCode === "PLAN_LOCKED") {
+      return {
+        message,
+        ctaHref: `/${workspaceSlug}/billing`,
+        ctaLabel: "Open Billing",
+      } as const;
+    }
+
+    if (capability.reasonCode && connectionCodes.includes(capability.reasonCode)) {
+      return {
+        message,
+        ctaHref: `/${workspaceSlug}/meta-hub/connections`,
+        ctaLabel: "Fix in Connections",
+      } as const;
+    }
+
+    if (capability.reasonCode === "CAPABILITY_API_ERROR") {
+      return {
+        message,
+        ctaHref: `/${workspaceSlug}/meta-hub/connections`,
+        ctaLabel: "Open Connections",
+      } as const;
+    }
+
+    return { message, ctaHref: null, ctaLabel: null } as const;
+  }, [capability.reason, capability.reasonCode, workspaceSlug]);
 
   const handleComposerChange = useCallback(
     (value: string) => {
@@ -768,6 +875,9 @@ export function ImperiumInboxClient({
             sending={sending}
             cannedResponses={cannedResponses}
             allowSend={planAllowsSend}
+            sendDisabledReason={capabilityNotice.message}
+            sendDisabledCtaHref={capabilityNotice.ctaHref}
+            sendDisabledCtaLabel={capabilityNotice.ctaLabel}
             sessionInfo={sessionInfo}
             optOutDetected={optOutDetected}
             onEscalate={handleEscalate}
