@@ -1,6 +1,4 @@
 "use client";
-
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -24,7 +22,6 @@ interface VerificationModalProps {
 
 export function VerificationModal({ children }: VerificationModalProps) {
   const [open, setOpen] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -45,48 +42,31 @@ export function VerificationModal({ children }: VerificationModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Proof Image */}
+        {/* Proof Placeholder (static to avoid hydration swaps) */}
         <div className="mt-2 overflow-hidden rounded-xl border border-gigaviz-border bg-gigaviz-surface">
-          {imageError ? (
-            <div className="flex aspect-video flex-col items-center justify-center gap-3 p-8 text-center">
-              <div className="grid h-12 w-12 place-items-center rounded-xl bg-gigaviz-gold/15">
-                <svg
-                  className="h-6 w-6 text-gigaviz-gold"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                  />
-                </svg>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gigaviz-cream">Verification proof pending</p>
-                <p className="text-xs text-gigaviz-muted">
-                  Add your sanitized screenshot to:
-                  <br />
-                  <code className="mt-1 inline-block rounded bg-gigaviz-surface px-1.5 py-0.5 text-[10px]">
-                    /public/trust/technology-provider-proof-1.png
-                  </code>
-                </p>
-              </div>
+          <div className="flex aspect-video flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-gigaviz-gold/15">
+              <svg
+                className="h-6 w-6 text-gigaviz-gold"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6l2.121 2.121M12 6L9.879 8.121M12 6v12m0 0l2.121-2.121M12 18l-2.121-2.121M6 12l2.121 2.121M6 12l2.121-2.121M6 12h12m0 0l-2.121-2.121M18 12l-2.121 2.121"
+                />
+              </svg>
             </div>
-          ) : (
-            <div className="relative aspect-video">
-              <Image
-                src="/trust/technology-provider-proof-1.png"
-                alt="Technology Provider verification proof showing onboarding completion status"
-                fill
-                className="object-cover"
-                onError={() => setImageError(true)}
-                priority
-              />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gigaviz-cream">Verification screenshot available on request</p>
+              <p className="text-xs text-gigaviz-muted">
+                Ask our team for the sanitized proof. Verified status and evidence also live on the trust page.
+              </p>
             </div>
-          )}
+          </div>
         </div>
 
         {/* View all evidence link */}

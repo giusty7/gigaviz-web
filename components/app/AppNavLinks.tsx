@@ -7,7 +7,6 @@ import {
   Boxes,
   Sparkles,
   Coins,
-  Bell,
   CreditCard,
   Settings,
   type LucideIcon,
@@ -25,11 +24,10 @@ export type AppNavLink = {
 // Icon map for default labels
 const iconMap: Record<string, LucideIcon> = {
   Dashboard: LayoutDashboard,
-  Modules: Boxes,
-  Helper: Sparkles,
-  Tokens: Coins,
-  Notifications: Bell,
-  Billing: CreditCard,
+  Products: Boxes,
+  "AI Assistant": Sparkles,
+  "Usage Credits": Coins,
+  Subscription: CreditCard,
   Settings: Settings,
 };
 

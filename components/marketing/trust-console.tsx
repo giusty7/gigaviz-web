@@ -87,7 +87,7 @@ export function TrustConsole() {
         </div>
 
         <p className="mt-4 text-[10px] text-muted-foreground/80">
-          WhatsApp, Meta, and other trademarks are the property of their respective owners. Integrations do not imply affiliation or endorsement.
+          Logos belong to their owners. Integrations do not imply affiliation or endorsement.
         </p>
       </div>
     </section>

@@ -13,41 +13,49 @@ import { getAppContext } from "@/lib/app-context";
 export const metadata: Metadata = {
   title: "Gigaviz Ecosystem — Technology Provider for WhatsApp Business Platform",
   description:
-    "Technology Provider — WhatsApp Business Platform. Built on the official Cloud API with Gigaviz Ecosystem modules for messaging, AI, and operations.",
+    "A verified control plane for Growth, Build, and Community rooms. Workspace isolation, billing, audit, AI, and operations on one surface.",
 };
 
-const steps = [
-  { title: "Create", desc: "Build content, templates, and brand assets at scale." },
-  { title: "Automate", desc: "Automate workflows, messaging, and approvals." },
-  { title: "Monetize", desc: "Manage Billing, invoices, payments, and subscriptions." },
-  { title: "Manage", desc: "Control Audit Logs, Roles, and Token Usage in one place." },
+const suites = [
+  {
+    title: "Growth Room",
+    desc: "Run campaigns, offers, and payments through Meta Hub, Pay, Trade, and Marketplace.",
+  },
+  {
+    title: "Build Room",
+    desc: "Create, design, and automate with Studio, Helper, Apps, all on the Platform control plane.",
+  },
+  {
+    title: "Community Room",
+    desc: "Host communities and engagement drops with Community and Arena in one place.",
+  },
 ];
 
 const moduleShortOverrides: Record<string, string> = {
-  platform: "Core OS for accounts, Workspaces, Billing, Roles, and Audit Logs.",
-  meta_hub: "Live: WhatsApp Business Platform onboarding, templates, inbox, delivery checks.",
-  helper: "AI assistant for chat, copy, and summaries.",
-  studio: "Parent suite for Office, Graph, and Tracks.",
-  apps: "App catalog, requests, ticketing, and roadmap.",
-  marketplace: "Marketplace for templates, prompt packs, assets, and mini-apps.",
-  arena: "Engagement games for brands and communities.",
-  pay: "Wallet and billing: invoices, payment links, subscriptions.",
-  community: "Community hub for feedback, showcases, and events.",
-  trade: "Market insights and trading workflows.",
+  platform: "The control plane with auth, roles, billing, audit, and token governance.",
+  meta_hub: "Official WhatsApp Cloud API onboarding with templates, inbox, and delivery checks.",
+  helper: "AI co-pilot for replies, briefs, and summaries with guardrails.",
+  studio: "Create docs, stories, and tracks with shared context and permissions.",
+  apps: "Requests, roadmap, and catalog to launch what your team needs next.",
+  marketplace: "Templates, prompt packs, assets, and mini-apps you can publish or use.",
+  arena: "Interactive drops and engagement utilities for your campaigns.",
+  pay: "Invoices, payment links, and subscriptions on one ledger.",
+  community: "Feedback, showcases, and events with clear membership visibility.",
+  trade: "Partner and market workflows with shared guardrails and audit.",
 };
 
 const complianceItems = [
   {
-    title: "Official API Foundation",
-    desc: "Built on WhatsApp Business Platform (Cloud API) for structured messaging workflows.",
+    title: "Official Meta Cloud API",
+    desc: "All messaging runs through the verified Technology Provider flow with delivery checks.",
   },
   {
-    title: "Onboarding Flow for Customers",
-    desc: "Streamline onboarding to WhatsApp Business Platform through our Technology Provider flow.",
+    title: "Policy-aligned templates",
+    desc: "Template creation, review, approvals, and delivery tracking live in one workspace.",
   },
   {
-    title: "Team-Ready by Design",
-    desc: "Workspaces, access control, and activity visibility designed for operational clarity.",
+    title: "Operational clarity",
+    desc: "Membership, roles, and audit ensure teams know who sent what and why.",
   },
 ];
 
@@ -76,27 +84,27 @@ const integrationCategories = [
 
 const timelineItems = [
   {
-    title: "Meta Hub Technology Provider Gateway",
+    title: "Meta Hub Technology Provider",
     status: "Live",
-    detail: "Technology Provider onboarding, templates, inbox, and delivery status.",
+    detail: "Official onboarding, template submission, inbox, and delivery status.",
     accent: "emerald",
   },
   {
     title: "Helper AI",
     status: "In progress",
-    detail: "AI assistance and orchestration aligned with workspace controls.",
+    detail: "Workspace-aware assistance for replies, briefs, and summaries.",
     accent: "cyan",
   },
   {
     title: "Studio (Office / Graph / Tracks)",
     status: "Planned",
-    detail: "Creative and data workflows on the same control plane.",
+    detail: "Content, analytics, and runbooks on the same operating system.",
     accent: "violet",
   },
   {
     title: "Community & Advanced RBAC",
     status: "Planned",
-    detail: "Deeper roles, community modules, and governance upgrades.",
+    detail: "Deeper roles, collaboration, and governance upgrades.",
     accent: "amber",
   },
 ];
@@ -141,37 +149,37 @@ export default async function HomePage() {
 
               <div className="space-y-5">
                 <h1 className="max-w-xl text-balance text-3xl font-gvDisplay font-semibold leading-tight tracking-tight bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent md:text-4xl lg:text-[2.85rem]">
-                  The Unified Digital Infrastructure for Enterprise Growth.
+                  One verified control plane for Growth, Build, and Community.
                 </h1>
                 <p className="max-w-lg text-pretty text-sm leading-relaxed text-[#f5f5dc]/75 md:text-base">
-                  One secure identity to rule 10 interconnected powerhouses—from official Meta messaging hubs to AI workflows and creative studios. Centralized auth, billing, and control for your entire operation.
+                  Activate the official Meta Cloud API, keep every workspace isolated, and run campaigns, creation, and community in one place with billing and audit already wired.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
                   href="/get-started"
-                  label="Explore the Imperium"
+                  label="Request onboarding"
                   location="homepage_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-7 py-3.5 text-sm font-semibold text-[#050a18] shadow-[0_8px_32px_-8px_rgba(212,175,55,0.5)] transition hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.7)] focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050a18]"
                 >
-                  Explore the Imperium
+                  Request onboarding
                 </TrackedLink>
                 <Link
-                  href="#ecosystem"
+                  href="#how-it-works"
                   className="inline-flex items-center justify-center rounded-2xl border border-[#d4af37]/30 bg-[#0a1229]/60 px-7 py-3.5 text-sm font-semibold text-[#d4af37] backdrop-blur-lg transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/10 focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050a18]"
                 >
-                  View Ecosystem Demo
+                  See product overview
                 </Link>
               </div>
 
               {/* Feature tags - subtle Gold pills */}
               <div className="flex flex-wrap gap-2 text-xs">
                 {[
-                  "10 Unified Pillars",
                   "Meta Verified",
-                  "AI Workflows",
-                  "Centralized Billing",
+                  "Growth / Build / Community",
+                  "Workspace isolation",
+                  "Audit + billing ready",
                 ].map((tag) => (
                   <span
                     key={tag}
@@ -197,21 +205,24 @@ export default async function HomePage() {
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Workflow</p>
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Rooms</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  How It Works
+                  Three rooms to run your business
                 </h2>
+                <p className="mt-2 max-w-xl text-sm text-[#f5f5dc]/65">
+                  Growth, Build, and Community all ride the same verified control plane with workspace isolation, billing, and audit baked in.
+                </p>
               </div>
               <Link
                 href="/products"
                 className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
-                View all modules
+                View all products
               </Link>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {steps.map((step, index) => (
+            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {suites.map((step, index) => (
                 <div
                   key={step.title}
                   className="glass-imperium rounded-2xl p-5"
@@ -234,22 +245,20 @@ export default async function HomePage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">
-                  Ecosystem Modules
+                  Ecosystem Products
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Modules ready for your team
+                  Products ready to launch
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-[#f5f5dc]/65">
-                  Core OS (Live), Meta Hub (Technology Provider, Live), Helper (in progress), Studio
-                  and Office/Graph/Tracks (coming soon) run on the same workspace, billing, and audit
-                  foundation.
+                  Each product sits in the Growth, Build, or Community room and inherits the same identity, billing, and audit controls from the verified Platform.
                 </p>
               </div>
               <Link
                 href="/products"
                 className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
-                View all modules
+                View all products
               </Link>
             </div>
 
@@ -294,23 +303,26 @@ export default async function HomePage() {
                 Security by design
               </p>
               <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                Built for workspace isolation and governance
+                Security and tenancy by default
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {[
-                { title: "RLS & Isolation", desc: "Row-level security per workspace for all data." },
                 {
-                  title: "Audit Logs",
-                  desc: "Critical events are recorded for review and compliance.",
+                  title: "RLS everywhere",
+                  desc: "Row-level security per workspace for data, tokens, and billing events.",
                 },
                 {
-                  title: "Rate limiting",
-                  desc: "Built-in abuse protection for sensitive endpoints.",
+                  title: "Least privilege",
+                  desc: "Roles, approvals, and audit trails on every sensitive workflow.",
                 },
                 {
-                  title: "Workspace isolation",
-                  desc: "Token Usage, Billing, and entitlements are scoped per workspace.",
+                  title: "Rate limits",
+                  desc: "Per-workspace and per-tenant throttles to prevent abuse.",
+                },
+                {
+                  title: "Isolation by design",
+                  desc: "Contacts, templates, and entitlements stay scoped to the right workspace.",
                 },
               ].map((item) => (
                 <div key={item.title} className="glass-imperium rounded-2xl p-5">
@@ -330,7 +342,7 @@ export default async function HomePage() {
                   Compliance Standards
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Designed for policy-aligned messaging workflows
+                  Compliance for regulated messaging
                 </h2>
               </div>
               <Link href="/trust" className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors">
@@ -355,10 +367,10 @@ export default async function HomePage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Integrations</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Connected tools for teams
+                  Integrations teams expect
                 </h2>
                 <p className="mt-2 max-w-lg text-sm text-[#f5f5dc]/65">
-                  Works with your messaging stack, AI providers, data, and deployment tooling. No implied partnerships — just integrations.
+                  Connect messaging, AI, data, and deployment tooling to the same control plane. No implied partnerships—just integrations that work.
                 </p>
               </div>
               <Link
@@ -390,7 +402,7 @@ export default async function HomePage() {
             </div>
 
             <p className="mt-4 text-[10px] text-[#f5f5dc]/50">
-              WhatsApp, Meta, and other trademarks are the property of their respective owners. Integrations do not imply affiliation or endorsement.
+              Logos belong to their respective owners. Integrations do not imply affiliation or endorsement.
             </p>
           </div>
         </section>
@@ -401,7 +413,7 @@ export default async function HomePage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Roadmap</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Delivery timeline
+                  Roadmap you can track
                 </h2>
               </div>
               <Link href="/roadmap" className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors">
@@ -439,7 +451,7 @@ export default async function HomePage() {
               </div>
             </div>
             <p className="mt-4 text-[10px] text-[#f5f5dc]/50">
-              BSP/Partner listing remains planned. No guarantees are implied; timelines may change.
+              Timelines may change. BSP/Partner listing remains in planning.
             </p>
           </div>
         </section>
@@ -450,7 +462,7 @@ export default async function HomePage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Pricing</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Plans plus usage-based tokens
+                  Pricing built for control
                 </h2>
               </div>
               <Link
@@ -466,21 +478,21 @@ export default async function HomePage() {
                 {
                   name: "Free Locked",
                   price: "Rp0",
-                  desc: "Limited access for internal evaluation.",
+                  desc: "Restricted access for internal evaluation and validation.",
                   badge: "AVAILABLE",
                   featured: false,
                 },
                 {
                   name: "Individual",
                   price: "Contact sales",
-                  desc: "Solo operators with pay-as-you-go Token Usage.",
+                  desc: "Single owner with pay-as-you-go token usage and add-ons.",
                   badge: "COMING SOON",
                   featured: true,
                 },
                 {
                   name: "Team",
                   price: "Contact sales",
-                  desc: "Collaborative teams with entitlements, seats, and custom token caps.",
+                  desc: "Workspaces, seats, entitlements, and governed token caps for teams.",
                   badge: "COMING SOON",
                   featured: false,
                 },
@@ -534,15 +546,15 @@ export default async function HomePage() {
                 aria-hidden
               />
               <div className="relative space-y-2">
-                <h2 className="text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">Ready for onboarding</h2>
+                <h2 className="text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">Ready to launch with Gigaviz</h2>
                 <p className="max-w-md text-sm text-[#f5f5dc]/65">
-                  Technology Provider — WhatsApp Business Platform. Unlock modules with subscriptions; power AI and API actions with token usage.
+                  We are an official Technology Provider for the WhatsApp Cloud API. Request onboarding to activate your rooms and products; use token usage for AI and API actions with governance in place.
                 </p>
               </div>
               <div className="relative mt-6 flex flex-wrap gap-3 md:mt-0">
                 <TrackedLink
                   href="/get-started"
-                  label="Get Started"
+                  label="Request onboarding"
                   location="homepage_footer"
                   className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-6 py-3 text-sm font-semibold text-[#050a18] shadow-[0_8px_32px_-8px_#d4af37] transition hover:shadow-[0_12px_40px_-8px_#d4af37]"
                 >

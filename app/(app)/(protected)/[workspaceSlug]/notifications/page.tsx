@@ -36,7 +36,7 @@ export default async function NotificationsPage({ params }: NotificationsPagePro
         </div>
         <h1 className="text-2xl font-bold md:text-3xl">
           <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
-            Imperial Notifications
+            Notifications
           </span>
         </h1>
         <p className="mt-2 text-sm text-[#f5f5dc]/60">

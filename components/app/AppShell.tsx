@@ -69,16 +69,14 @@ export default function AppShell({
   const modulesHref = workspaceSlug ? `/${workspaceSlug}/modules` : "/modules";
   const helperHref = workspaceSlug ? `/${workspaceSlug}/helper` : "/helper";
   const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
-  const notificationsHref = workspaceSlug ? `/${workspaceSlug}/notifications` : "/notifications";
   const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
   const settingsHref = workspaceSlug ? `/${workspaceSlug}/settings` : "/settings";
   const navLinks = [
     { href: dashboardHref, label: "Dashboard" },
-    { href: modulesHref, label: "Modules" },
-    { href: helperHref, label: "Helper" },
-    { href: tokensHref, label: "Tokens" },
-    { href: notificationsHref, label: "Notifications" },
-    { href: billingHref, label: "Billing" },
+    { href: modulesHref, label: "Products" },
+    { href: helperHref, label: "AI Assistant" },
+    { href: tokensHref, label: "Usage Credits" },
+    { href: billingHref, label: "Subscription" },
     { href: settingsHref, label: "Settings" },
   ];
 
@@ -101,7 +99,7 @@ export default function AppShell({
                 >
                   {isCollapsed ? "G" : "Gigaviz"}
                 </Link>
-                {!isCollapsed && <p className="mt-1 text-xs text-[#f5f5dc]/40">Imperium Console</p>}
+                {!isCollapsed && <p className="mt-1 text-xs text-[#f5f5dc]/40">Management Console</p>}
               </div>
               {!isCollapsed && (
                 <button
@@ -132,7 +130,7 @@ export default function AppShell({
 
             {isAdmin && !isCollapsed && (
               <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-                Admin override active
+                Admin Mode Enabled
               </div>
             )}
 
