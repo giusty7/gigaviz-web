@@ -25,11 +25,27 @@ const modules: ModuleNode[] = [
   { id: "community", label: "Community", sub: "Feedback", href: "/products/community", accent: "neutral" },
 ];
 
+const CORE_COORDS = { x: 220, y: 220 };
+
+// Precomputed node positions (pixels on 440x440 view) and percentages to avoid runtime floating differences
+const NODE_POSITIONS: Record<ModuleNode["id"], { x: number; y: number; leftPct: number; topPct: number }> = {
+  meta_hub: { x: 220, y: 45, leftPct: 50, topPct: 10.2273 },
+  helper: { x: 322.8624, y: 78.422, leftPct: 73.3778, topPct: 17.8232 },
+  studio: { x: 386.4349, y: 165.922, leftPct: 87.8261, topPct: 37.7095 },
+  office: { x: 386.4349, y: 274.078, leftPct: 87.8261, topPct: 62.2905 },
+  marketplace: { x: 322.8624, y: 361.578, leftPct: 73.3778, topPct: 82.1768 },
+  apps: { x: 220, y: 395, leftPct: 50, topPct: 89.7727 },
+  pay: { x: 117.1376, y: 361.578, leftPct: 26.6222, topPct: 82.1768 },
+  trade: { x: 53.5651, y: 274.078, leftPct: 12.1739, topPct: 62.2905 },
+  arena: { x: 53.5651, y: 165.922, leftPct: 12.1739, topPct: 37.7095 },
+  community: { x: 117.1376, y: 78.422, leftPct: 26.6222, topPct: 17.8232 },
+};
+
 // Secondary mesh connections (subtle inter-node lines)
-const meshConnections: [string, string][] = [
-  ["meta_hub", "apps"],
-  ["studio", "marketplace"],
-  ["helper", "office"],
+const meshLines = [
+  { key: "meta_hub-apps", x1: 220, y1: 45, x2: 220, y2: 395 },
+  { key: "studio-marketplace", x1: 386.4349, y1: 165.922, x2: 322.8624, y2: 361.578 },
+  { key: "helper-office", x1: 322.8624, y1: 78.422, x2: 386.4349, y2: 274.078 },
 ];
 
 // Get accent classes - enhanced with glow filters
@@ -60,33 +76,6 @@ function getAccentClasses(accent: NodeAccent) {
 }
 
 export function EcosystemGraph() {
-  const nodeCount = modules.length;
-  const cx = 220; // center x
-  const cy = 220; // center y
-  const radius = 175; // ring radius - slightly larger for breathing room
-
-  // Calculate node positions
-  const nodePositions = modules.map((_, i) => {
-    const angle = (i * 2 * Math.PI) / nodeCount - Math.PI / 2; // Start from top
-    return {
-      x: cx + radius * Math.cos(angle),
-      y: cy + radius * Math.sin(angle),
-    };
-  });
-
-  // Get mesh connection coordinates
-  const meshLines = meshConnections.map(([fromId, toId]) => {
-    const fromIdx = modules.findIndex((m) => m.id === fromId);
-    const toIdx = modules.findIndex((m) => m.id === toId);
-    if (fromIdx === -1 || toIdx === -1) return null;
-    return {
-      x1: nodePositions[fromIdx].x,
-      y1: nodePositions[fromIdx].y,
-      x2: nodePositions[toIdx].x,
-      y2: nodePositions[toIdx].y,
-    };
-  }).filter(Boolean);
-
   return (
     <div className="relative mx-auto w-full max-w-[500px] lg:max-w-[550px]">
       {/* Container maintains aspect ratio */}
@@ -128,25 +117,24 @@ export function EcosystemGraph() {
           </defs>
 
           {/* Mesh connections (secondary, subtle) */}
-          {meshLines.map((line, i) => (
-            line && (
-              <line
-                key={`mesh-${i}`}
-                x1={line.x1}
-                y1={line.y1}
-                x2={line.x2}
-                y2={line.y2}
-                stroke="url(#meshLine)"
-                strokeWidth="1"
-                strokeDasharray="4 4"
-                opacity="0.6"
-              />
-            )
+          {meshLines.map((line) => (
+            <line
+              key={line.key}
+              x1={line.x1}
+              y1={line.y1}
+              x2={line.x2}
+              y2={line.y2}
+              stroke="url(#meshLine)"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+              opacity="0.6"
+            />
           ))}
 
           {/* Core to node connections - thicker with glow */}
-          {modules.map((mod, i) => {
-            const pos = nodePositions[i];
+          {modules.map((mod) => {
+            const pos = NODE_POSITIONS[mod.id];
+            if (!pos) return null;
             const gradId =
               mod.accent === "gold"
                 ? "url(#lineGold)"
@@ -157,8 +145,8 @@ export function EcosystemGraph() {
             return (
               <line
                 key={mod.id}
-                x1={cx}
-                y1={cy}
+                x1={CORE_COORDS.x}
+                y1={CORE_COORDS.y}
                 x2={pos.x}
                 y2={pos.y}
                 stroke={gradId}
@@ -172,12 +160,10 @@ export function EcosystemGraph() {
 
         {/* Module nodes - Desktop ring layout (larger nodes) */}
         <div className="hidden md:block">
-          {modules.map((mod, i) => {
-            const pos = nodePositions[i];
+          {modules.map((mod) => {
+            const pos = NODE_POSITIONS[mod.id];
+            if (!pos) return null;
             const accentStyles = getAccentClasses(mod.accent);
-            // Convert SVG coords to percentage
-            const left = (pos.x / 440) * 100;
-            const top = (pos.y / 440) * 100;
 
             return (
               <Link
@@ -191,7 +177,7 @@ export function EcosystemGraph() {
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold focus-visible:ring-offset-2 focus-visible:ring-offset-gigaviz-bg
                   ${accentStyles.border} ${accentStyles.glow}
                 `}
-                style={{ left: `${left}%`, top: `${top}%` }}
+                style={{ left: `${pos.leftPct}%`, top: `${pos.topPct}%` }}
               >
                 <span className={`text-[11px] font-extrabold uppercase tracking-[-0.02em] ${accentStyles.text}`}>
                   {mod.label}

@@ -48,12 +48,20 @@ export function getWorkspaceId(
   params?: Record<string, string | undefined>,
   bodyWorkspaceId?: unknown
 ) {
+  // 1. Route params (highest priority for dynamic routes)
   const paramId =
     params?.workspaceId ||
     params?.workspace_id ||
     params?.workspaceSlug || // some routes might still use slug; treat as id string
     undefined;
+  // 2. Query string (for GET requests like ?workspaceId=...)
+  const queryId =
+    req.nextUrl.searchParams.get("workspaceId")?.trim() ||
+    req.nextUrl.searchParams.get("workspace_id")?.trim() ||
+    undefined;
+  // 3. Header
   const headerId = req.headers.get("x-workspace-id")?.trim() || undefined;
+  // 4. Body (discouraged for GET, acceptable for POST/PUT)
   let bodyId: string | undefined;
   if (typeof bodyWorkspaceId === "string") {
     bodyId = bodyWorkspaceId;
@@ -61,7 +69,7 @@ export function getWorkspaceId(
       console.warn("[guard] workspaceId supplied from body (discouraged)");
     }
   }
-  return paramId || headerId || bodyId;
+  return paramId || queryId || headerId || bodyId;
 }
 
 export async function requireWorkspaceMember(userId: string, workspaceId: string) {
