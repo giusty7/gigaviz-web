@@ -54,3 +54,9 @@ supabase/.temp/
 
 # local
 .vscode/
+
+# build fix script
+fix-build.ps1
+
+# realtime test log
+REALTIME_TEST.md

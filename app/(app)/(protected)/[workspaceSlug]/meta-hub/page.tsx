@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { ImperiumMetaHubOverviewClient } from "@/components/meta-hub/ImperiumMetaHubOverviewClient";
+import { MetaHubStatusCard } from "@/components/meta-hub/MetaHubStatusCard";
 import { getMetaHubFlags } from "@/lib/meta-hub/config";
 import { getMetaHubAccess } from "@/lib/meta-hub/access";
 import { getMetaHubOverview } from "@/lib/meta/overview-data";
+import { getMetaHubStatus } from "@/lib/meta-hub/getMetaHubStatus";
 import { getAppContext } from "@/lib/app-context";
 import { getWorkspacePlan } from "@/lib/plans";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
@@ -32,7 +34,11 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   const isDevOverride = Boolean(planInfo.devOverride);
   const isPreview = planInfo.planId === "free_locked" && !isDevOverride;
   const isAdmin = Boolean(ctx.profile?.is_admin) || isDevOverride;
-  const access = getMetaHubAccess({ planId: planInfo.planId, isAdmin });
+  const access = getMetaHubAccess({ 
+    planId: planInfo.planId, 
+    isAdmin,
+    effectiveEntitlements: ctx.effectiveEntitlements,
+  });
   const allowTemplates = access.templates;
   const allowSend = access.send;
   const allowWebhooks = access.webhooks;
@@ -40,6 +46,9 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   if (!access.metaHub) {
     return null;
   }
+
+  // Fetch real-time integration status
+  const integrationStatus = await getMetaHubStatus(workspace.id);
 
   const overview = await getMetaHubOverview(workspace.id);
   const flags = getMetaHubFlags();
@@ -122,20 +131,30 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   ];
 
   return (
-    <ImperiumMetaHubOverviewClient
-      basePath={basePath}
-      planLabel={planLabel}
-      isDevOverride={isDevOverride}
-      isPreview={isPreview}
-      allowTemplates={allowTemplates}
-      allowSend={allowSend}
-      allowWebhooks={allowWebhooks}
-      health={overview.health}
-      kpis={overview.kpis}
-      alerts={overview.alerts}
-      recentEvents={overview.recentEvents}
-      recentConversations={overview.recentConversations}
-      channels={channels}
-    />
+    <div className="space-y-6">
+      {/* Real-time Integration Status Card */}
+      <MetaHubStatusCard
+        workspaceId={workspace.id}
+        workspaceSlug={workspace.slug}
+        initialStatus={integrationStatus}
+      />
+
+      {/* Existing Overview Client */}
+      <ImperiumMetaHubOverviewClient
+        basePath={basePath}
+        planLabel={planLabel}
+        isDevOverride={isDevOverride}
+        isPreview={isPreview}
+        allowTemplates={allowTemplates}
+        allowSend={allowSend}
+        allowWebhooks={allowWebhooks}
+        health={overview.health}
+        kpis={overview.kpis}
+        alerts={overview.alerts}
+        recentEvents={overview.recentEvents}
+        recentConversations={overview.recentConversations}
+        channels={channels}
+      />
+    </div>
   );
 }
