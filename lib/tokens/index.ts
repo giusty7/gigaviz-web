@@ -346,6 +346,16 @@ export async function consumeTokens(
   });
 
   if (error) throw error;
+
+  // Record metric for dashboard trend
+  try {
+    const { incrementQuotaUsage, recordMetric } = await import("@/lib/quotas");
+    await incrementQuotaUsage(workspaceId, "ai_tokens_monthly", cost);
+    await recordMetric(workspaceId, "ai_tokens_consumed", cost, { feature_key: metadata.feature_key });
+  } catch {
+    // Best effort - don't fail token consumption if metrics fail
+  }
+
   return data;
 }
 

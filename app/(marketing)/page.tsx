@@ -6,6 +6,7 @@ import { EcosystemGraph } from "@/components/marketing/ecosystem-graph";
 import { TrustConsole } from "@/components/marketing/trust-console";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
+import { LatestUpdates } from "@/components/marketing/LatestUpdates";
 import { moduleStatusLabel, topLevelModules } from "@/lib/modules/catalog";
 import TrackedLink from "@/components/analytics/tracked-link";
 import { getAppContext } from "@/lib/app-context";
@@ -531,6 +532,11 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Latest Updates Section */}
+        <section className="mb-32">
+          <LatestUpdates />
         </section>
 
         {/* Footer CTA */}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { workspaceCreateSchema } from "@/lib/validation/auth";
 import { recordAuditEvent } from "@/lib/audit";
+import { seedWorkspaceQuotas } from "@/lib/quotas";
 import { requireUser } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -71,6 +72,9 @@ export async function POST(req: NextRequest) {
     action: "workspace.created",
     meta: { slug, workspaceType },
   }).catch(() => null);
+
+  // Seed default quotas for the new workspace
+  seedWorkspaceQuotas(data.id, "free_locked").catch(() => null);
 
   return withCookies(NextResponse.json({ ok: true, workspace: data }));
 }

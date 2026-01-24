@@ -89,10 +89,10 @@ begin
       and t.relname = 'wa_settings'
       and c.contype in ('p', 'u')
       and (
-        select array_agg(att.attname order by att.attnum)
+        select array_agg(att.attname::text order by att.attnum)
         from unnest(c.conkey) as colnum
         join pg_attribute att on att.attrelid = t.oid and att.attnum = colnum
-      ) = array['workspace_id']
+      ) = array['workspace_id']::text[]
   ) then
     alter table public.wa_settings add constraint wa_settings_workspace_id_key unique (workspace_id);
   end if;

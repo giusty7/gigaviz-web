@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Blog" },
+  { href: "/changelog", label: "Changelog" },
   { href: "/status", label: "Status" },
   { href: "/roadmap", label: "Roadmap" },
   { href: "/policies", label: "Policies" },

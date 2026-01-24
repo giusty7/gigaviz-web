@@ -20,6 +20,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     "pricing",
     "products",
     "blog",
+    "changelog",
     "contact",
     "get-started",
     "login",

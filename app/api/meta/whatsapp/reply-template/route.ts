@@ -307,6 +307,15 @@ export async function POST(req: NextRequest) {
     .eq("workspace_id", workspaceId)
     .eq("id", threadId);
 
+  // Record metric for dashboard
+  try {
+    const { incrementQuotaUsage, recordMetric } = await import("@/lib/quotas");
+    await incrementQuotaUsage(workspaceId, "wa_messages_monthly", 1);
+    await recordMetric(workspaceId, "wa_messages_sent", 1, { thread_id: threadId, template: templateName });
+  } catch {
+    // Best effort
+  }
+
   return withCookies(
     NextResponse.json({
       success: true,
