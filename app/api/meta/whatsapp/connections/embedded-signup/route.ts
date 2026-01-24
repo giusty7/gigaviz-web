@@ -158,6 +158,98 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ─────────────────────────────────────────────────────────
+  // ENRICHMENT: Fetch official metadata from Graph API
+  // ─────────────────────────────────────────────────────────
+  let enrichedData: {
+    display_phone_number?: string;
+    verified_name?: string;
+    quality_rating?: string;
+  } = {};
+
+  try {
+    const enrichUrl = `${graphUrl(graphVersion)}/${phone_number_id}?fields=id,display_phone_number,verified_name,quality_rating`;
+    const enrichRes = await fetch(enrichUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (enrichRes.ok) {
+      const phoneDetails = (await enrichRes.json()) as {
+        display_phone_number?: string;
+        verified_name?: string;
+        quality_rating?: string;
+      };
+      
+      enrichedData = {
+        display_phone_number: phoneDetails.display_phone_number,
+        verified_name: phoneDetails.verified_name,
+        quality_rating: phoneDetails.quality_rating,
+      };
+
+      // Update wa_phone_numbers display_name if user didn't provide label
+      if (!label && (phoneDetails.verified_name || phoneDetails.display_phone_number)) {
+        const autoName = phoneDetails.verified_name ?? phoneDetails.display_phone_number ?? "WhatsApp Line";
+        await db
+          .from("wa_phone_numbers")
+          .update({ display_name: autoName })
+          .eq("id", phone.id);
+        phone.display_name = autoName;
+      }
+
+      // Cache in meta_assets_cache for quick lookup
+      await db
+        .from("meta_assets_cache")
+        .upsert(
+          {
+            workspace_id: workspace.id,
+            phone_number_id,
+            waba_id,
+            display_phone_number: phoneDetails.display_phone_number ?? null,
+            verified_name: phoneDetails.verified_name ?? null,
+            quality_rating: phoneDetails.quality_rating ?? null,
+            last_synced_at: new Date().toISOString(),
+            last_error: null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "workspace_id,phone_number_id" }
+        );
+    } else {
+      // Cache error state
+      const errorText = await enrichRes.text();
+      await db.from("meta_assets_cache").upsert(
+        {
+          workspace_id: workspace.id,
+          phone_number_id,
+          waba_id,
+          last_error: `HTTP ${enrichRes.status}: ${errorText.substring(0, 200)}`,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "workspace_id,phone_number_id" }
+      );
+    }
+  } catch (enrichErr) {
+    // Log but don't fail the whole signup
+    logger.warn("[meta-embedded-signup] enrichment failed", {
+      phoneNumberId: phone_number_id,
+      message: enrichErr instanceof Error ? enrichErr.message : "unknown",
+    });
+    // Cache error state (silent fail if cache unavailable)
+    try {
+      await db.from("meta_assets_cache").upsert(
+        {
+          workspace_id: workspace.id,
+          phone_number_id,
+          waba_id,
+          last_error: enrichErr instanceof Error ? enrichErr.message : "Enrichment failed",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "workspace_id,phone_number_id" }
+      );
+    } catch {
+      // Silent fail on cache error logging
+    }
+  }
+
   const scopes = {
     phone_number_id,
     waba_id,
@@ -221,6 +313,9 @@ export async function POST(req: NextRequest) {
       phoneNumberId: phone.phone_number_id,
       wabaId: phone.waba_id,
       displayName: phone.display_name,
+      displayPhoneNumber: enrichedData.display_phone_number ?? null,
+      verifiedName: enrichedData.verified_name ?? null,
+      qualityRating: enrichedData.quality_rating ?? null,
       status: phone.status ?? "active",
       tokenSet: true,
     })
