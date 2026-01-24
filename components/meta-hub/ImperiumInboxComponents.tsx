@@ -198,12 +198,11 @@ export type SessionInfo = {
    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 interface InboxHeaderProps {
-  connectionName?: string;
   unreadCount: number;
   connectionStatus?: ConnectionStatus;
 }
 
-export function InboxHeader({ connectionName, unreadCount, connectionStatus = "connected" }: InboxHeaderProps) {
+export function InboxHeader({ unreadCount, connectionStatus = "connected" }: InboxHeaderProps) {
   const statusConfig = {
     connected: {
       icon: Wifi,
@@ -252,7 +251,7 @@ export function InboxHeader({ connectionName, unreadCount, connectionStatus = "c
           <span className="text-xs text-[#f5f5dc]/50">Imperial Inbox</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-[#f5f5dc]">
-          {connectionName ?? "WhatsApp"} Messages
+          Gigaviz Messages
         </h1>
       </div>
 

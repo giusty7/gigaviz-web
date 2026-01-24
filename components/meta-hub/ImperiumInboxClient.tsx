@@ -87,6 +87,8 @@ interface ImperiumInboxClientProps {
   initialTags: string[];
   initialNotes: Note[];
   templates: ApprovedTemplate[];
+  fullMode?: boolean;
+  overviewMode?: boolean;
 }
 
 type CapabilityReasonCode =
@@ -123,10 +125,21 @@ export function ImperiumInboxClient({
   // initialTags - reserved for tag filtering
   initialNotes,
   templates,
+  fullMode = false,
+  overviewMode = false,
 }: ImperiumInboxClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
   void _workspaceId;
+
+  // Preference redirect for overview mode
+  useEffect(() => {
+    if (!overviewMode || !mounted) return;
+    const preference = localStorage.getItem("gigaviz.metaHub.whatsapp.fullInboxDefault");
+    if (preference === "true") {
+      window.location.href = `/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox/full`;
+    }
+  }, [overviewMode, workspaceSlug, mounted]);
 
   // Thread state
   const [threads, setThreads] = useState<Thread[]>(initialThreads);
@@ -840,12 +853,60 @@ export function ImperiumInboxClient({
         animate="visible"
         className="relative z-10 flex h-full flex-col"
       >
+        {/* Full Mode Header with Back Link */}
+        {fullMode && (
+          <div className="flex items-center gap-3 border-b border-[#d4af37]/10 bg-[#0a1229] px-4 py-2">
+            <a
+              href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
+              className="flex items-center gap-2 text-sm text-[#f5f5dc]/60 hover:text-[#d4af37] transition-colors"
+            >
+              ← Back to Overview
+            </a>
+          </div>
+        )}
+
         {/* Header */}
         <InboxHeader
-          connectionName={connectionName}
           unreadCount={unreadCount}
           connectionStatus={connectionStatus}
         />
+
+        {/* Overview Mode CTA */}
+        {overviewMode && (
+          <div className="border-b border-[#d4af37]/10 bg-[#0a1229]/50 px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-[#f5f5dc]/60">Lite view · 5 threads</span>
+                <label className="flex items-center gap-2 text-sm text-[#f5f5dc]/70 cursor-pointer hover:text-[#d4af37] transition-colors">
+                  <input
+                    type="checkbox"
+                    className="h-3.5 w-3.5 rounded border-[#d4af37]/40 bg-[#050a18] text-[#d4af37] focus:ring-[#d4af37]/50"
+                    onChange={(e) => {
+                      localStorage.setItem("gigaviz.metaHub.whatsapp.fullInboxDefault", String(e.target.checked));
+                    }}
+                    defaultChecked={typeof window !== "undefined" && localStorage.getItem("gigaviz.metaHub.whatsapp.fullInboxDefault") === "true"}
+                  />
+                  Always open full workspace
+                </label>
+              </div>
+              <a
+                href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox/full`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.open(`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox/full`, '_blank', 'noopener,noreferrer');
+                }}
+                className="flex items-center gap-2 rounded-md border border-[#d4af37]/40 bg-[#d4af37]/10 px-4 py-1.5 text-sm font-medium text-[#f9d976] transition-all hover:border-[#d4af37] hover:bg-[#d4af37]/20 hover:shadow-[0_0_12px_rgba(212,175,55,0.3)]"
+              >
+                Open Full Inbox
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Three-Column Layout */}
         <div className="flex flex-1 overflow-hidden">

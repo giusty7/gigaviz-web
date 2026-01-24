@@ -13,7 +13,7 @@ type Props = {
 
 export const dynamic = "force-dynamic";
 
-export default async function WhatsappInboxPage({ params }: Props) {
+export default async function FullWhatsappInboxPage({ params }: Props) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
@@ -28,7 +28,6 @@ export default async function WhatsappInboxPage({ params }: Props) {
   const planInfo = await getWorkspacePlan(workspaceId);
   const allowWrite = planInfo.planId !== "free_locked" || Boolean(planInfo.devOverride);
 
-  // Fetch only 5 threads for overview mode
   const { data: rawThreads } = await supabase
     .from("wa_threads")
     .select(
@@ -36,7 +35,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
     )
     .eq("workspace_id", workspaceId)
     .order("last_message_at", { ascending: false })
-    .limit(5);
+    .limit(30);
 
   type RawThread = {
     id: string;
@@ -81,7 +80,6 @@ export default async function WhatsappInboxPage({ params }: Props) {
         .order("wa_timestamp", { ascending: true })
         .order("created_at", { ascending: true })
     : { data: [] };
-
   const deriveSession = (nowTs: number): SessionInfo => {
     let lastInboundAt: string | null = null;
     let lastOutboundAt: string | null = null;
@@ -191,8 +189,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
       initialTags={tags?.map((t) => t.tag) ?? []}
       initialNotes={notes ?? []}
       templates={approvedTemplates}
-      overviewMode={true}
+      fullMode={true}
     />
   );
 }
-
