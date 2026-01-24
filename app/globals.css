@@ -371,46 +371,6 @@ a:hover {
   background: radial-gradient(ellipse at center top, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
 }
 
-/* GIGAVIZ ECOSYSTEM - Batik-filled futuristic text with glow */
-.ecosystem-batik-title {
-  /* Base text styling */
-  color: transparent;
-  background: 
-    /* Batik pattern layer - Parang + Kawung Indonesian motif */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cdefs%3E%3ClinearGradient id='batikFill' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23d4af37'/%3E%3Cstop offset='50%25' stop-color='%23f9d976'/%3E%3Cstop offset='100%25' stop-color='%23d4af37'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='url(%23batikFill)' stroke-width='1' opacity='0.7'%3E%3Cpath d='M0 15 Q7.5 7.5 15 15 T30 15 T45 15 T60 15'/%3E%3Cpath d='M0 30 Q7.5 22.5 15 30 T30 30 T45 30 T60 30'/%3E%3Cpath d='M0 45 Q7.5 37.5 15 45 T30 45 T45 45 T60 45'/%3E%3Cellipse cx='15' cy='15' rx='5' ry='2.5' transform='rotate(45 15 15)' stroke='%23f9d976'/%3E%3Cellipse cx='15' cy='15' rx='5' ry='2.5' transform='rotate(-45 15 15)' stroke='%23f9d976'/%3E%3Cellipse cx='45' cy='15' rx='5' ry='2.5' transform='rotate(45 45 15)' stroke='%23d4af37'/%3E%3Cellipse cx='45' cy='15' rx='5' ry='2.5' transform='rotate(-45 45 15)' stroke='%23d4af37'/%3E%3Cellipse cx='30' cy='30' rx='4' ry='2' transform='rotate(45 30 30)' stroke='%23e8c55a'/%3E%3Cellipse cx='30' cy='30' rx='4' ry='2' transform='rotate(-45 30 30)' stroke='%23e8c55a'/%3E%3Cellipse cx='15' cy='45' rx='5' ry='2.5' transform='rotate(45 15 45)' stroke='%23d4af37'/%3E%3Cellipse cx='15' cy='45' rx='5' ry='2.5' transform='rotate(-45 15 45)' stroke='%23d4af37'/%3E%3Cellipse cx='45' cy='45' rx='5' ry='2.5' transform='rotate(45 45 45)' stroke='%23f9d976'/%3E%3Cellipse cx='45' cy='45' rx='5' ry='2.5' transform='rotate(-45 45 45)' stroke='%23f9d976'/%3E%3Ccircle cx='15' cy='15' r='1' fill='%23f9d976'/%3E%3Ccircle cx='45' cy='15' r='1' fill='%23d4af37'/%3E%3Ccircle cx='30' cy='30' r='0.8' fill='%23e8c55a'/%3E%3Ccircle cx='15' cy='45' r='1' fill='%23d4af37'/%3E%3Ccircle cx='45' cy='45' r='1' fill='%23f9d976'/%3E%3C/g%3E%3C/svg%3E"),
-    /* Gold gradient base */
-    linear-gradient(135deg, #d4af37 0%, #f9d976 25%, #d4af37 50%, #f9d976 75%, #d4af37 100%);
-  background-size: 60px 60px, 100% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  
-  /* Glow effect - futuristic but not norak */
-  text-shadow: 
-    0 0 20px rgba(212, 175, 55, 0.4),
-    0 0 40px rgba(212, 175, 55, 0.2),
-    0 0 60px rgba(249, 217, 118, 0.15);
-  
-  /* Subtle animation */
-  animation: batikTextShimmer 8s ease-in-out infinite;
-}
-
-@keyframes batikTextShimmer {
-  0%, 100% {
-    background-position: 0px 0px, 0% 0%;
-    text-shadow: 
-      0 0 20px rgba(212, 175, 55, 0.4),
-      0 0 40px rgba(212, 175, 55, 0.2),
-      0 0 60px rgba(249, 217, 118, 0.15);
-  }
-  50% {
-    background-position: 60px 60px, 100% 100%;
-    text-shadow: 
-      0 0 25px rgba(212, 175, 55, 0.5),
-      0 0 50px rgba(212, 175, 55, 0.3),
-      0 0 80px rgba(249, 217, 118, 0.2);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .motion-safe\:animate-\[spin_20s_linear_infinite\] {
     animation: none;

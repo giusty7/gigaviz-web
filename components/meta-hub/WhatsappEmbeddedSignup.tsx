@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +59,15 @@ declare global {
   }
 }
 
+type StepStatus = "Waiting" | "In progress" | "Done" | "Failed";
+
+interface StepState {
+  authorize: StepStatus;
+  setup: StepStatus;
+  saving: StepStatus;
+  done: StepStatus;
+}
+
 export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, docsHref, onResult }: Props) {
   const { toast } = useToast();
   const router = useRouter();
@@ -67,54 +76,242 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
   const solutionId = process.env.NEXT_PUBLIC_META_SOLUTION_ID ?? "";
   const [sdkReady, setSdkReady] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [authCode, setAuthCode] = useState<string | null>(null);
   const [label, setLabel] = useState("");
-  const [status, setStatus] = useState<"idle" | "authorizing" | "waiting" | "saving" | "done" | "error">(
-    "idle"
-  );
   const [errorText, setErrorText] = useState<string | null>(null);
-  const pendingFinishRef = useRef<FinishPayload | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  
+  const [stepStates, setStepStates] = useState<StepState>({
+    authorize: "Waiting",
+    setup: "Waiting",
+    saving: "Waiting",
+    done: "Waiting",
+  });
+
+  const authCodeRef = useRef<string | null>(null);
+  const setupDataRef = useRef<FinishPayload | null>(null);
 
   const isConfigured = Boolean(appId && configId);
   const statusLabel = isConnected ? "Connected" : "Not connected";
 
-  const saveConnection = useCallback(
-    async (code: string, payload: FinishPayload) => {
-      setStatus("saving");
-      try {
-        const res = await fetch("/api/meta/whatsapp/connections/embedded-signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            workspaceSlug,
-            label: label.trim() || null,
-            waba_id: payload.wabaId,
-            phone_number_id: payload.phoneNumberId,
-            businessId: payload.businessId ?? null,
-            code,
-          }),
-        });
-        const data = await res.json().catch(() => null);
-        if (!res.ok || data?.ok === false) {
-          throw new Error(data?.message || data?.reason || "Failed to save connection.");
+  // Reset all states
+  const resetFlow = useCallback(() => {
+    setStepStates({
+      authorize: "Waiting",
+      setup: "Waiting",
+      saving: "Waiting",
+      done: "Waiting",
+    });
+    setErrorText(null);
+    setIsRunning(false);
+    authCodeRef.current = null;
+    setupDataRef.current = null;
+  }, []);
+
+  // Main async runner function
+  const runEmbeddedSignup = useCallback(async () => {
+    // Dev-only HTTPS check
+    if (typeof window !== "undefined" && window.location.protocol !== "https:") {
+      setStepStates({
+        authorize: "Failed",
+        setup: "Waiting",
+        saving: "Waiting",
+        done: "Waiting",
+      });
+      setErrorText("Facebook Login requires HTTPS. Use your live/preview URL for testing.");
+      setIsRunning(false);
+      return;
+    }
+
+    if (!window.FB || !sdkReady) {
+      toast({
+        title: "SDK not ready",
+        description: "Facebook SDK is not ready. Try again in a few seconds.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!configId) {
+      toast({
+        title: "Config ID missing",
+        description: "Set NEXT_PUBLIC_META_CONFIG_ID before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsRunning(true);
+    setErrorText(null);
+
+    // Reset all to Waiting
+    setStepStates({
+      authorize: "Waiting",
+      setup: "Waiting",
+      saving: "Waiting",
+      done: "Waiting",
+    });
+
+    try {
+      // STEP 1: Authorize
+      setStepStates(prev => ({ ...prev, authorize: "In progress" }));
+
+      const authResult = await new Promise<string>((resolve, reject) => {
+        const extras: Record<string, unknown> = { sessionInfoVersion: "3" };
+        if (solutionId) {
+          extras.setup = { solutionID: solutionId };
         }
-        setStatus("done");
-        if (onResult) {
-          onResult("success");
-        } else {
-          toast({ title: "Embedded signup succeeded", description: "WhatsApp connection saved." });
-          router.refresh();
+
+        window.FB!.login(
+          (response) => {
+            const code = response?.authResponse?.code ?? null;
+            if (!code) {
+              reject(new Error("Authorization code not received."));
+            } else {
+              resolve(code);
+            }
+          },
+          {
+            config_id: configId,
+            response_type: "code",
+            override_default_response_type: true,
+            extras,
+          }
+        );
+      });
+
+      authCodeRef.current = authResult;
+      setStepStates(prev => ({ ...prev, authorize: "Done" }));
+
+      // STEP 2: Set up WhatsApp (wait for postMessage from Facebook)
+      setStepStates(prev => ({ ...prev, setup: "In progress" }));
+
+      const setupResult = await new Promise<FinishPayload>((resolve, reject) => {
+        let timeoutId: NodeJS.Timeout | null = null;
+        
+        function cleanup() {
+          if (timeoutId) clearTimeout(timeoutId);
+          window.removeEventListener("message", onMessage);
         }
-      } catch (err) {
-        setStatus("error");
-        const msg = err instanceof Error ? err.message : "Failed to save connection.";
-        setErrorText(msg);
-        toast({ title: "Signup failed", description: msg, variant: "destructive" });
-        onResult?.("error");
+
+        function onMessage(event: MessageEvent) {
+          const origin = (event.origin || "").toLowerCase();
+          if (!origin.includes("facebook.com")) return;
+
+          let payload: unknown = event.data;
+          if (typeof payload === "string") {
+            try {
+              payload = JSON.parse(payload);
+            } catch {
+              return;
+            }
+          }
+
+          const data = payload as { type?: string; event?: string; data?: Record<string, unknown> } | null;
+          if (!data || data.type !== "WA_EMBEDDED_SIGNUP") return;
+
+          const eventType = data.event ?? (data.data?.event as string | undefined);
+          const info = (data.data ?? data) as Record<string, unknown>;
+
+          if (eventType === "ERROR") {
+            cleanup();
+            const message = String(info.error_message ?? info.message ?? "Setup error");
+            reject(new Error(message));
+            return;
+          }
+
+          if (eventType === "CANCEL") {
+            cleanup();
+            reject(new Error("Setup was canceled."));
+            return;
+          }
+
+          if (eventType === "FINISH") {
+            cleanup();
+
+            const wabaId = String(info.waba_id ?? info.wabaId ?? "");
+            const phoneNumberId = String(info.phone_number_id ?? info.phoneNumberId ?? "");
+            const businessId = info.business_id ?? info.businessId ?? null;
+
+            if (!wabaId || !phoneNumberId) {
+              reject(new Error("WABA ID or Phone Number ID not found."));
+            } else {
+              resolve({
+                wabaId,
+                phoneNumberId,
+                businessId: businessId ? String(businessId) : null,
+              });
+            }
+          }
+        }
+
+        window.addEventListener("message", onMessage);
+        
+        timeoutId = setTimeout(() => {
+          cleanup();
+          reject(new Error("WhatsApp setup timed out. Please try again."));
+        }, 120000); // 2 min timeout
+      });
+
+      setupDataRef.current = setupResult;
+      setStepStates(prev => ({ ...prev, setup: "Done" }));
+
+      // STEP 3: Save connection
+      setStepStates(prev => ({ ...prev, saving: "In progress" }));
+
+      const res = await fetch("/api/meta/whatsapp/connections/embedded-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceSlug,
+          label: label.trim() || null,
+          waba_id: setupResult.wabaId,
+          phone_number_id: setupResult.phoneNumberId,
+          businessId: setupResult.businessId ?? null,
+          code: authResult,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.message || data?.reason || "Failed to save connection.");
       }
-    },
-    [label, onResult, router, toast, workspaceSlug]
-  );
+
+      setStepStates(prev => ({ ...prev, saving: "Done" }));
+
+      // STEP 4: Done
+      setStepStates(prev => ({ ...prev, done: "Done" }));
+
+      if (onResult) {
+        onResult("success");
+      } else {
+        toast({ title: "Embedded signup succeeded", description: "WhatsApp connection saved." });
+        router.refresh();
+      }
+
+      setIsRunning(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unexpected error occurred.";
+      setErrorText(msg);
+      setIsRunning(false);
+
+      // Map error to correct step
+      setStepStates(prev => {
+        if (!authCodeRef.current) {
+          // Authorize failed
+          return { ...prev, authorize: "Failed" };
+        } else if (!setupDataRef.current) {
+          // Setup failed
+          return { ...prev, setup: "Failed" };
+        } else {
+          // Save failed
+          return { ...prev, saving: "Failed" };
+        }
+      });
+
+      toast({ title: "Signup failed", description: msg, variant: "destructive" });
+      onResult?.("error");
+    }
+  }, [sdkReady, configId, solutionId, workspaceSlug, label, onResult, toast, router]);
 
   useEffect(() => {
     if (!appId) return;
@@ -132,142 +329,21 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
     return () => window.removeEventListener("fb-sdk-ready", markReady);
   }, [appId]);
 
-  useEffect(() => {
-    function onMessage(event: MessageEvent) {
-      const origin = (event.origin || "").toLowerCase();
-      if (!origin.includes("facebook.com")) return;
-
-      let payload: unknown = event.data;
-      if (typeof payload === "string") {
-        try {
-          payload = JSON.parse(payload);
-        } catch {
-          return;
-        }
-      }
-
-      const data = payload as { type?: string; event?: string; data?: Record<string, unknown> } | null;
-      if (!data || data.type !== "WA_EMBEDDED_SIGNUP") return;
-
-      const eventType = data.event ?? (data.data?.event as string | undefined);
-      const info = (data.data ?? data) as Record<string, unknown>;
-
-      if (eventType === "ERROR") {
-        const message = String(info.error_message ?? info.message ?? "Signup error");
-        setStatus("error");
-        setErrorText(message);
-        toast({ title: "Embedded Signup error", description: message, variant: "destructive" });
-        return;
-      }
-
-      if (eventType === "CANCEL") {
-        const step = String(info.current_step ?? "cancelled");
-        setStatus("idle");
-        toast({ title: "Signup canceled", description: `Last step: ${step}` });
-        return;
-      }
-
-      if (eventType === "FINISH") {
-        const wabaId = String(info.waba_id ?? info.wabaId ?? "");
-        const phoneNumberId = String(info.phone_number_id ?? info.phoneNumberId ?? "");
-        const businessId = info.business_id ?? info.businessId ?? null;
-        if (!wabaId || !phoneNumberId) {
-          setStatus("error");
-          setErrorText("WABA ID or Phone Number ID not found.");
-          return;
-        }
-        const finishPayload = { wabaId, phoneNumberId, businessId: businessId ? String(businessId) : null };
-        if (authCode) {
-          void saveConnection(authCode, finishPayload);
-        } else {
-          pendingFinishRef.current = finishPayload;
-          setStatus("waiting");
-        }
-      }
-    }
-
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, [authCode, saveConnection, toast]);
-
-  const stepIndex = useMemo(() => {
-    if (status === "authorizing") return 0;
-    if (status === "waiting") return 1;
-    if (status === "saving") return 2;
-    if (status === "done") return 3;
-    return -1;
-  }, [status]);
-
-  async function launchSignup() {
-    if (!window.FB || !sdkReady) {
-      toast({
-        title: "SDK not ready",
-        description: "Facebook SDK is not ready. Try again in a few seconds.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!configId) {
-      toast({
-        title: "Config ID missing",
-        description: "Set NEXT_PUBLIC_META_CONFIG_ID before continuing.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setErrorText(null);
-    setStatus("authorizing");
-
-    const extras: Record<string, unknown> = { sessionInfoVersion: "3" };
-    if (solutionId) {
-      extras.setup = { solutionID: solutionId };
-    }
-
-    window.FB.login(
-      (response) => {
-        const code = response?.authResponse?.code ?? null;
-        if (!code) {
-          setStatus("error");
-          setErrorText("Authorization code not received.");
-          return;
-        }
-        setAuthCode(code);
-        setStatus("waiting");
-        if (pendingFinishRef.current) {
-          void saveConnection(code, pendingFinishRef.current);
-          pendingFinishRef.current = null;
-        }
-      },
-      {
-        config_id: configId,
-        response_type: "code",
-        override_default_response_type: true,
-        extras,
-      }
-    );
-  }
-
-  function resetFlow() {
-    setStatus("idle");
-    setErrorText(null);
-    setAuthCode(null);
-    pendingFinishRef.current = null;
-  }
-
   const steps = [
-    { key: "authorize", label: "Authorize" },
-    { key: "setup", label: "Setup WhatsApp" },
-    { key: "saving", label: "Saving connection" },
-    { key: "done", label: "Done" },
+    { key: "authorize", label: "Authorize", status: stepStates.authorize },
+    { key: "setup", label: "Set up WhatsApp", status: stepStates.setup },
+    { key: "saving", label: "Save connection", status: stepStates.saving },
+    { key: "done", label: "Done", status: stepStates.done },
   ];
+
+  const hasFailedStep = Object.values(stepStates).some(s => s === "Failed");
 
   return (
     <Card className="border-border bg-card">
       <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle className="flex items-center gap-3 text-base font-semibold text-foreground">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border/70 bg-background/70 text-foreground ring-1 ring-[#d4af37]/25">
+            <span className="inline-flex h-9 w-9 items-center justify-center bg-[#1877F2] text-white shadow-[0_4px_12px_-2px_rgba(24,119,242,0.5),0_2px_6px_-2px_rgba(24,119,242,0.3),inset_0_-2px_0_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_16px_-2px_rgba(24,119,242,0.6),0_3px_8px_-2px_rgba(24,119,242,0.4),inset_0_-2px_0_0_rgba(0,0,0,0.15)] transition-shadow">
               <FacebookIcon className="h-6 w-6" />
             </span>
             <span>Embedded Sign Up (Recommended)</span>
@@ -312,22 +388,25 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
           </div>
         ) : null}
         <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-          <div className="space-y-1">
-            <Label htmlFor="connectionLabel">Connection label (optional)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="connectionLabel">Connection name (optional)</Label>
             <Input
               id="connectionLabel"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="Example: WA Support / WA Sales"
+              placeholder="e.g., WA Support, WA Sales"
               className="bg-background"
               disabled={!canEdit}
             />
+            <p className="text-xs text-muted-foreground">
+              Used only in your Gigaviz dashboard to identify this connection.
+            </p>
           </div>
           <Button onClick={() => setDialogOpen(true)} disabled={!canEdit || !isConfigured}>
-            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#d4af37]/15 text-[#f9d976]">
+            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_0_8px_rgba(24,119,242,0.5)]">
               <FacebookIcon className="h-3 w-3" />
             </span>
-            <span>Start Embedded Sign Up</span>
+            <span>Continue with Facebook</span>
           </Button>
         </div>
         {!canEdit ? (
@@ -341,23 +420,31 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
         <DialogContent className="max-w-xl bg-card text-foreground">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Connect WhatsApp</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              Complete authorization via Facebook Embedded Signup until finished.
+            <DialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Continue in Facebook to complete setup (Embedded Signup).</p>
+                <p className="text-xs">
+                  A Facebook window will open to finish setup. Keep this window open. If nothing opens, allow pop-ups for this site.
+                </p>
+              </div>
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-3">
             <div className="grid gap-2 rounded-xl border border-border bg-background p-3 text-sm">
-              {steps.map((step, idx) => (
+              {steps.map((step) => (
                 <div key={step.key} className="flex items-center justify-between">
                   <span className="text-muted-foreground">{step.label}</span>
                   <Badge
                     className={cn(
                       "border border-border",
-                      idx < stepIndex ? "bg-emerald-500/15 text-emerald-200" : idx === stepIndex ? "bg-gigaviz-surface text-foreground" : "bg-background text-muted-foreground"
+                      step.status === "Done" && "bg-emerald-500/15 text-emerald-200",
+                      step.status === "In progress" && "bg-gigaviz-surface text-foreground",
+                      step.status === "Waiting" && "bg-background text-muted-foreground",
+                      step.status === "Failed" && "bg-rose-500/15 text-rose-200"
                     )}
                   >
-                    {idx < stepIndex ? "Done" : idx === stepIndex ? "Active" : "Pending"}
+                    {step.status}
                   </Badge>
                 </div>
               ))}
@@ -371,15 +458,21 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
           </div>
 
           <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <Button type="button" variant="outline" onClick={resetFlow} disabled={status === "saving"}>
-              Retry
-            </Button>
+            {hasFailedStep ? (
+              <Button type="button" variant="outline" onClick={resetFlow}>
+                Retry
+              </Button>
+            ) : (
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={isRunning}>
+                Close
+              </Button>
+            )}
             <Button
               type="button"
-              onClick={launchSignup}
-              disabled={!sdkReady || status === "saving"}
+              onClick={runEmbeddedSignup}
+              disabled={!sdkReady || isRunning || stepStates.done === "Done"}
             >
-              {status === "saving" ? "Saving..." : "Start Embedded Sign Up"}
+              {isRunning ? "Processing..." : "Continue with Facebook"}
             </Button>
           </DialogFooter>
         </DialogContent>
