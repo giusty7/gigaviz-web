@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BadgeCheck } from "lucide-react";
-import { EcosystemGraph } from "@/components/marketing/ecosystem-graph";
+import { EcosystemOrbital } from "@/components/marketing/EcosystemOrbital";
 import { TrustConsole } from "@/components/marketing/trust-console";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
@@ -192,8 +192,9 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="relative flex items-center justify-center lg:justify-center">
-              <EcosystemGraph />
+            {/* Orbital Visual - compact, aligned with left content */}
+            <div className="relative flex items-start justify-center lg:items-center">
+              <EcosystemOrbital />
             </div>
             </div>
           </div>
