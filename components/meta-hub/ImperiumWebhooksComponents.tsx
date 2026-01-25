@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Zap,
   Activity,
-  Shield,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -725,9 +724,12 @@ export function ImperiumWebhooksFooter() {
       transition={{ delay: 0.5 }}
       className="mt-8 border-t border-[#d4af37]/20 pt-6 text-center"
     >
-      <div className="flex items-center justify-center gap-2 text-xs text-[#f5f5dc]/40">
-        <Shield className="h-4 w-4 text-[#d4af37]/60" />
-        <span>Monitoring Saraf Digital — Gigaviz Imperium by PT Glorious Victorious</span>
+      <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
+        <p>
+          Gigaviz is a Verified Technology Provider for solutions built on the
+          WhatsApp Business Platform (Cloud API).
+        </p>
+        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
       </div>
     </motion.div>
   );

@@ -1780,10 +1780,14 @@ export function TemplateShortcutModal({ isOpen, onClose, templates, onSelect }: 
 
 export function ImperiumInboxFooter() {
   return (
-    <footer className="border-t border-[#d4af37]/10 bg-[#050a18] py-3 text-center">
-      <p className="text-[10px] tracking-widest text-[#f5f5dc]/20">
-        UNIFIED COMMUNICATION ENGINE ΓÇö GIGAVIZ IMPERIUM BY PT GLORIOUS VICTORIOUS
-      </p>
+    <footer className="border-t border-[#d4af37]/10 bg-[#050a18] py-4 text-center">
+      <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
+        <p>
+          Gigaviz is a Verified Technology Provider for solutions built on the
+          WhatsApp Business Platform (Cloud API).
+        </p>
+        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
+      </div>
     </footer>
   );
 }

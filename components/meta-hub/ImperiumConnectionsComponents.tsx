@@ -1993,35 +1993,14 @@ export function ImperiumConnectionsFooter() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.5 }}
-      className="mt-8 border-t border-[#d4af37]/20 pt-6"
+      className="mt-8 border-t border-[#d4af37]/20 pt-6 text-center"
     >
-      <div className="flex flex-col items-center gap-3 text-center">
-        {/* Main Tag */}
-        <div className="flex items-center gap-3">
-          <div className="h-px w-12 bg-gradient-to-r from-transparent to-[#d4af37]/40" />
-          <div className="flex items-center gap-2 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/5 px-4 py-2">
-            <Shield className="h-4 w-4 text-[#d4af37]" />
-            <span className="text-xs font-semibold tracking-wide text-[#d4af37]">
-              Infrastructure Security by PT Glorious Victorious
-            </span>
-          </div>
-          <div className="h-px w-12 bg-gradient-to-l from-transparent to-[#d4af37]/40" />
-        </div>
-
-        {/* Meta Verified Badge */}
-        <div className="flex items-center gap-4 text-[10px] text-[#f5f5dc]/40">
-          <span className="flex items-center gap-1">
-            <BadgeCheck className="h-3 w-3 text-blue-400" />
-            Verified by Meta
-          </span>
-          <span>•</span>
-          <span className="flex items-center gap-1">
-            <Lock className="h-3 w-3 text-emerald-400" />
-            SOC 2 Type II Compliant
-          </span>
-          <span>•</span>
-          <span>Enterprise-Grade Security</span>
-        </div>
+      <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
+        <p>
+          Gigaviz is a Verified Technology Provider for solutions built on the
+          WhatsApp Business Platform (Cloud API).
+        </p>
+        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
       </div>
     </motion.div>
   );

@@ -1104,9 +1104,13 @@ export function TemplateGrid({ templates, selectedId, onSelect, syncing }: Templ
 export function ImperiumForgeFooter() {
   return (
     <footer className="mt-12 border-t border-[#d4af37]/10 py-6 text-center">
-      <p className="text-xs tracking-widest text-[#f5f5dc]/30">
-        UNIFIED COMMUNICATION ENGINE — GIGAVIZ IMPERIUM BY PT GLORIOUS VICTORIOUS
-      </p>
+      <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
+        <p>
+          Gigaviz is a Verified Technology Provider for solutions built on the
+          WhatsApp Business Platform (Cloud API).
+        </p>
+        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
+      </div>
     </footer>
   );
 }
