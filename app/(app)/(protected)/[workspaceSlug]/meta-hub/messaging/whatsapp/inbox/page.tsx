@@ -149,14 +149,6 @@ export default async function WhatsappInboxPage({ params }: Props) {
 
   // Fetch approved templates for quick send
   const adminDb = supabaseAdmin();
-  const { data: phoneRow } = await adminDb
-    .from("wa_phone_numbers")
-    .select("display_name")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
   const { data: templateRows } = await adminDb
     .from("wa_templates")
     .select("name, language, body")
@@ -178,7 +170,6 @@ export default async function WhatsappInboxPage({ params }: Props) {
       canEdit={canEdit}
       allowWrite={allowWrite}
       demoMode={process.env.NEXT_PUBLIC_DEMO_UI === "true"}
-      connectionName={phoneRow?.display_name ?? "WhatsApp"}
       initialThreads={threads ?? []}
       initialMessages={
         messages?.map((m) => ({

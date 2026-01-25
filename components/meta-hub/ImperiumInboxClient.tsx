@@ -80,7 +80,6 @@ interface ImperiumInboxClientProps {
   canEdit: boolean;
   allowWrite: boolean;
   demoMode?: boolean;
-  connectionName?: string;
   initialThreads: Thread[];
   initialMessages: Message[];
   initialSession: SessionInfo;
@@ -118,7 +117,6 @@ export function ImperiumInboxClient({
   canEdit,
   allowWrite,
   demoMode = false,
-  connectionName,
   initialThreads,
   initialMessages,
   initialSession,
