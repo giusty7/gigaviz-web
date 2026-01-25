@@ -8,13 +8,14 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
   // Query directly from tables with RLS (server context has proper session)
   // Avoid RPC with auth.uid() which may not propagate correctly in server context
   
-  // Check WhatsApp connections
+  // Check WhatsApp connections from wa_phone_numbers (SAME source as WhatsApp Business Account card)
   const { data: waConnection } = await supabase
-    .from('meta_whatsapp_connections')
-    .select('id, verified_name, phone_number_id, waba_id, updated_at')
+    .from('wa_phone_numbers')
+    .select('phone_number_id, waba_id, display_name, status, updated_at')
     .eq('workspace_id', workspaceId)
+    .order('created_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   // Check Meta tokens
   const { data: metaToken } = await supabase
@@ -23,7 +24,7 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     .eq('workspace_id', workspaceId)
     .eq('provider', 'meta_whatsapp')
     .limit(1)
-    .single();
+    .maybeSingle();
 
   // Check recent webhook events (last 24h)
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -42,7 +43,7 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     .single();
 
   // Determine statuses
-  const whatsappStatus: IntegrationStatus = waConnection?.id ? 'connected' : 'disconnected';
+  const whatsappStatus: IntegrationStatus = (waConnection?.phone_number_id && metaToken?.id) ? 'connected' : 'disconnected';
   
   let webhookStatus: WebhookStatus = 'not_configured';
   if ((events24h ?? 0) > 0) {
@@ -51,11 +52,12 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     webhookStatus = 'inactive';
   }
 
-  // Derive WhatsApp connector status
+  // Derive WhatsApp connector status using SAME logic as WhatsApp Business Account card
+  // Rule: connected = (token AND phone_number_id present), partial = missing one, none = no record
   let whatsappConnectorStatus: WhatsAppConnectorStatus = 'none';
-  if (waConnection?.id) {
+  if (waConnection?.phone_number_id || metaToken?.id) {
     const hasToken = !!metaToken?.id;
-    const hasPhoneId = !!waConnection.phone_number_id;
+    const hasPhoneId = !!waConnection?.phone_number_id;
     
     if (hasToken && hasPhoneId) {
       whatsappConnectorStatus = 'connected';
@@ -71,7 +73,7 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     workspace_id: workspaceId,
     whatsapp: {
       status: whatsappStatus,
-      displayName: waConnection?.verified_name ?? null,
+      displayName: waConnection?.display_name ?? null,
       phoneId: waConnection?.phone_number_id ?? null,
       wabaId: waConnection?.waba_id ?? null,
       lastUpdated: waConnection?.updated_at ?? null,
