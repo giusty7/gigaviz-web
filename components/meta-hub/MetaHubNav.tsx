@@ -23,6 +23,7 @@ function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
       status: flags.waEnabled ? "live" : "beta",
       children: [
         { label: "Templates", href: `${base}/messaging/whatsapp`, status: "live" },
+        { label: "Contacts", href: `${base}/messaging/whatsapp/contacts`, status: "live" },
         { label: "Inbox", href: `${base}/messaging/whatsapp/inbox`, status: "live" },
       ],
     },

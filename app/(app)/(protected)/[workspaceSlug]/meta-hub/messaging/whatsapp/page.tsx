@@ -29,7 +29,7 @@ export default async function MetaHubWhatsappPage({ params }: Props) {
   const { data: templates } = activeConnection
     ? await supabaseAdmin()
         .from("wa_templates")
-        .select("id, name, language, status, category, quality_score, rejection_reason, phone_number_id, meta_template_id, body, header, footer, buttons, last_synced_at")
+        .select("id, name, language, status, category, quality_score, rejection_reason, phone_number_id, meta_template_id, body, header, footer, buttons, last_synced_at, variable_count, workspace_id, components_json, has_buttons")
         .eq("workspace_id", workspaceId)
         .order("updated_at", { ascending: false })
         .limit(100)

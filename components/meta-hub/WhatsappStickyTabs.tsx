@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { label: "Templates", slug: "" },
+  { label: "Jobs", slug: "/jobs" },
+  { label: "Param Mapping", slug: "/param-defs" },
+  { label: "Contacts", slug: "/contacts" },
   { label: "Inbox", slug: "/inbox" },
   { label: "Webhooks", slug: "/webhooks" },
 ];

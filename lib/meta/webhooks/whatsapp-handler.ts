@@ -267,6 +267,47 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
     });
   }
 
+  // Auto-capture contact from inbound message
+  try {
+    const messages = payload?.entry?.[0]?.changes?.[0]?.value?.messages;
+    if (messages && messages.length > 0) {
+      const message = messages[0] as { from?: string };
+      const fromPhone = message.from;
+      const profileName = (payload?.entry?.[0]?.changes?.[0]?.value as {
+        contacts?: Array<{ profile?: { name?: string } }>;
+      })?.contacts?.[0]?.profile?.name;
+
+      if (fromPhone) {
+        const { normalizePhone } = await import("@/lib/meta/wa-contacts-utils");
+        const normalized = normalizePhone(fromPhone);
+
+        await db.from("wa_contacts").upsert(
+          {
+            workspace_id: workspaceId,
+            normalized_phone: normalized,
+            display_name: profileName || null,
+            last_seen_at: new Date().toISOString(),
+            source: "inbound",
+          },
+          {
+            onConflict: "workspace_id,normalized_phone",
+            ignoreDuplicates: false, // Update last_seen_at
+          }
+        );
+
+        logger.dev("[meta-webhook] contact auto-captured", {
+          workspaceId,
+          phone: normalized,
+        });
+      }
+    }
+  } catch (contactErr) {
+    logger.warn("[meta-webhook] contact auto-capture failed", {
+      workspaceId,
+      message: contactErr instanceof Error ? contactErr.message : "unknown",
+    });
+  }
+
   if (referralHash) {
     const waId = externalId ?? eventKey;
     const { error: convoError } = await db.from("meta_conversations").upsert(

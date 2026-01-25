@@ -183,7 +183,22 @@ export async function POST(req: NextRequest) {
     type?: string;
     format?: string;
     text?: string;
+    buttons?: Array<{ type?: string; text?: string }>;
   };
+
+  // Helper: Extract max variable index from template text (e.g., {{1}}, {{2}})
+  function extractVariableCount(texts: (string | undefined | null)[]): number {
+    let maxVar = 0;
+    for (const text of texts) {
+      if (!text) continue;
+      const matches = text.matchAll(/\{\{(\d+)\}\}/g);
+      for (const match of matches) {
+        const num = parseInt(match[1], 10);
+        if (num > maxVar) maxVar = num;
+      }
+    }
+    return maxVar;
+  }
 
   const rows = templates.map((tpl) => {
     const comps = Array.isArray(tpl.components) ? (tpl.components as TemplateComponent[]) : [];
@@ -205,6 +220,23 @@ export async function POST(req: NextRequest) {
         ? JSON.stringify(headerBlock)
         : null;
 
+    // Compute variable_count from all text fields
+    const bodyText = bodyBlock?.text ?? "";
+    const headerText = headerBlock?.format === "TEXT" ? headerBlock?.text ?? "" : "";
+    const footerText = footerBlock?.text ?? "";
+    const buttonTexts = buttonsBlock.flatMap((b) =>
+      Array.isArray(b.buttons) ? b.buttons.map((btn) => btn.text ?? "") : []
+    );
+
+    const variableCount = extractVariableCount([
+      bodyText,
+      headerText,
+      footerText,
+      ...buttonTexts,
+    ]);
+
+    const hasButtons = buttonsBlock.length > 0 && buttonsBlock.some((b) => Array.isArray(b.buttons) && b.buttons.length > 0);
+
     return {
       workspace_id: workspaceId,
       phone_number_id: phone.phone_number_id,
@@ -212,13 +244,16 @@ export async function POST(req: NextRequest) {
       language: tpl.language ?? "id",
       status: tpl.status ?? "pending",
       category: tpl.category ?? null,
-      body: bodyBlock?.text ?? "",
+      body: bodyText,
       header: headerVal ?? "",
-      footer: footerBlock?.text ?? "",
+      footer: footerText,
       buttons: buttonsBlock && buttonsBlock.length > 0 ? buttonsBlock : [],
       meta_template_id: tpl.id ?? null,
       meta_payload: tpl,
       meta_response: tpl,
+      components_json: comps,
+      variable_count: variableCount,
+      has_buttons: hasButtons,
       quality_score: quality,
       rejection_reason: tpl.rejection_reason ?? null,
       last_synced_at: now,

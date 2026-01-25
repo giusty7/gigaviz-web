@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/wa-send-worker",
+      "schedule": "*/2 * * * *"
+    }
+  ]
+}

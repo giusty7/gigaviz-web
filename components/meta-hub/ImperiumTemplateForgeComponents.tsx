@@ -114,6 +114,10 @@ export type TemplateRow = {
   footer?: string | null;
   buttons?: unknown;
   last_synced_at?: string | null;
+  variable_count?: number | null;
+  workspace_id?: string;
+  components_json?: unknown;
+  has_buttons?: boolean | null;
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════

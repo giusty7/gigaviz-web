@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { Plus, ChevronLeft, ChevronRight, X, Loader2, Send, Eye } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, X, Loader2, Send, Eye, TestTube, Settings, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { SendTestTemplateModal } from "./SendTestTemplateModal";
+import { ParamMappingEditorModal } from "./ParamMappingEditorModal";
 import {
   ForgeHeader,
   StepIndicator,
@@ -20,6 +22,7 @@ import {
   type TemplateState,
   type TemplateRow,
 } from "./ImperiumTemplateForgeComponents";
+import type { WaTemplate } from "@/types/wa-templates";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HYDRATION-SAFE MOUNT CHECK
@@ -140,6 +143,26 @@ export function ImperiumTemplateForgeClient({
   // Preview state
   const [deviceType, setDeviceType] = useState<"iphone" | "android">("iphone");
   const [previewExpanded, setPreviewExpanded] = useState(true);
+
+  const selectedTemplateNormalized: WaTemplate | null = useMemo(() => {
+    if (!selectedTemplate) return null;
+    const variable_count = selectedTemplate.variable_count ?? extractVariableCount(selectedTemplate.body ?? "");
+    const metaPayload = (selectedTemplate as { meta_payload?: unknown }).meta_payload ?? null;
+    const metaResponse = (selectedTemplate as { meta_response?: unknown }).meta_response ?? null;
+    return {
+      ...selectedTemplate,
+      workspace_id: selectedTemplate.workspace_id ?? workspaceId,
+      variable_count,
+      components_json: selectedTemplate.components_json ?? null,
+      has_buttons: selectedTemplate.has_buttons ?? Boolean(selectedTemplate.buttons),
+      meta_payload: metaPayload,
+      meta_response: metaResponse,
+    } as WaTemplate;
+  }, [selectedTemplate, workspaceId]);
+
+  // Modal states
+  const [sendTestOpen, setSendTestOpen] = useState(false);
+  const [paramMappingOpen, setParamMappingOpen] = useState(false);
 
   // Update body examples when variables change
   const variableCount = useMemo(() => extractVariableCount(templateState.bodyText), [templateState.bodyText]);
@@ -469,12 +492,115 @@ export function ImperiumTemplateForgeClient({
               <Loader2 className="h-8 w-8 animate-spin text-[#d4af37]" />
             </div>
           ) : (
-            <TemplateGrid
-              templates={filteredTemplates}
-              selectedId={selectedTemplate?.id ?? null}
-              onSelect={setSelectedTemplate}
-              syncing={syncing}
-            />
+            <>
+              <TemplateGrid
+                templates={filteredTemplates}
+                selectedId={selectedTemplate?.id ?? null}
+                onSelect={setSelectedTemplate}
+                syncing={syncing}
+              />
+
+              {/* Template Detail Panel with Actions */}
+              {selectedTemplateNormalized && (
+                <div className="mt-6 rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6">
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-[#f5f5dc]">{selectedTemplateNormalized.name}</h3>
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="rounded bg-[#d4af37]/20 px-2 py-1 text-xs font-semibold text-[#d4af37]">
+                          {selectedTemplateNormalized.category ?? "UTILITY"}
+                        </span>
+                        <span className="rounded bg-[#f5f5dc]/10 px-2 py-1 text-xs text-[#f5f5dc]/60">
+                          {selectedTemplateNormalized.language?.toUpperCase()}
+                        </span>
+                        <span className={cn(
+                          "rounded px-2 py-1 text-xs font-semibold",
+                          selectedTemplateNormalized.status === "APPROVED" && "bg-[#10b981]/20 text-[#10b981]",
+                          selectedTemplateNormalized.status === "REJECTED" && "bg-[#e11d48]/20 text-[#e11d48]",
+                          selectedTemplateNormalized.status === "PENDING" && "bg-[#d4af37]/20 text-[#d4af37]"
+                        )}>
+                          {selectedTemplateNormalized.status ?? "DRAFT"}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedTemplate(null)}
+                      className="rounded-full p-2 text-[#f5f5dc]/40 hover:bg-[#e11d48]/20 hover:text-[#e11d48]"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {/* Template Content Preview */}
+                  <div className="mb-6 space-y-3 rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/50 p-4">
+                    {selectedTemplateNormalized.header && (
+                      <div className="border-b border-[#f5f5dc]/10 pb-2">
+                        <p className="text-xs font-semibold text-[#d4af37]">HEADER</p>
+                        <p className="mt-1 text-sm text-[#f5f5dc]">{selectedTemplateNormalized.header}</p>
+                      </div>
+                    )}
+                    {selectedTemplateNormalized.body && (
+                      <div className="border-b border-[#f5f5dc]/10 pb-2">
+                        <p className="text-xs font-semibold text-[#d4af37]">BODY</p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm text-[#f5f5dc]">{selectedTemplateNormalized.body}</p>
+                        {selectedTemplateNormalized.variable_count > 0 && (
+                          <p className="mt-2 text-xs text-[#f5f5dc]/40">
+                            Contains {selectedTemplateNormalized.variable_count} parameter{selectedTemplateNormalized.variable_count > 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {selectedTemplateNormalized.footer && (
+                      <div>
+                        <p className="text-xs font-semibold text-[#d4af37]">FOOTER</p>
+                        <p className="mt-1 text-sm text-[#f5f5dc]/60">{selectedTemplateNormalized.footer}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  {selectedTemplateNormalized.status === "APPROVED" && (
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        onClick={() => setSendTestOpen(true)}
+                        className="gap-2 bg-gradient-to-br from-[#10b981] to-[#059669] text-white hover:from-[#10b981]/90 hover:to-[#059669]/90"
+                      >
+                        <TestTube className="h-4 w-4" />
+                        Send Test
+                      </Button>
+
+                      {selectedTemplateNormalized.variable_count > 0 && (
+                        <Button
+                          onClick={() => setParamMappingOpen(true)}
+                          className="gap-2 border-[#d4af37]/40 bg-[#d4af37]/10 text-[#d4af37] hover:bg-[#d4af37]/20"
+                          variant="outline"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Edit Param Mapping
+                        </Button>
+                      )}
+
+                      <Link href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/jobs`}>
+                        <Button
+                          className="gap-2 border-[#f5f5dc]/20 bg-[#f5f5dc]/5 text-[#f5f5dc] hover:bg-[#f5f5dc]/10"
+                          variant="outline"
+                        >
+                          <Users className="h-4 w-4" />
+                          Create Batch Campaign
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+
+                  {selectedTemplateNormalized?.status === "REJECTED" && selectedTemplateNormalized.rejection_reason && (
+                    <div className="mt-4 rounded-lg border border-[#e11d48]/30 bg-[#e11d48]/10 p-4">
+                      <p className="text-xs font-semibold text-[#e11d48]">REJECTION REASON</p>
+                      <p className="mt-1 text-sm text-[#f5f5dc]/80">{selectedTemplateNormalized.rejection_reason}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </motion.div>
 
@@ -630,6 +756,28 @@ export function ImperiumTemplateForgeClient({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Send Test Modal */}
+      {sendTestOpen && selectedTemplateNormalized && activeConnection && (
+        <SendTestTemplateModal
+          template={selectedTemplateNormalized}
+          connectionId={activeConnection.id}
+          onClose={() => setSendTestOpen(false)}
+        />
+      )}
+
+      {/* Param Mapping Editor Modal */}
+      {paramMappingOpen && selectedTemplateNormalized && (
+        <ParamMappingEditorModal
+          template={selectedTemplateNormalized}
+          existingDefs={[]}
+          onClose={() => setParamMappingOpen(false)}
+          onSaved={() => {
+            toast({ title: "✅ Parameter mappings saved!" });
+            setParamMappingOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
