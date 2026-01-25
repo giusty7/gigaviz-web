@@ -1,12 +1,12 @@
 ﻿import "server-only";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { MetaIntegrationStatus, IntegrationStatus, WebhookStatus, WhatsAppConnectorStatus, MetaPortfolioStatus } from "./types";
 
 export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegrationStatus> {
-  const supabase = await supabaseServer();
+  const supabase = supabaseAdmin();
   
-  // Query directly from tables with RLS (server context has proper session)
-  // Avoid RPC with auth.uid() which may not propagate correctly in server context
+  // Use admin client to bypass RLS - workspace_id is already validated by caller
+  // This ensures consistent data source with WhatsApp Business Account card
   
   // Check WhatsApp connections from wa_phone_numbers (SAME source as WhatsApp Business Account card)
   const { data: waConnection } = await supabase
