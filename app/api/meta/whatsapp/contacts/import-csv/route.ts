@@ -10,6 +10,7 @@ import {
   sanitizeTags,
   parseCSV,
   extractPhoneFromRow,
+  validatePhone,
 } from "@/lib/meta/wa-contacts-utils";
 
 export async function POST(request: NextRequest) {
@@ -83,23 +84,27 @@ export async function POST(request: NextRequest) {
       errors: [],
     };
 
-    // Get existing contacts
-    const normalizedPhones = rows
+    // Get existing contacts with wa_id
+    const validatedPhones = rows
       .map((row, idx) => ({
         idx,
         phone: extractPhoneFromRow(row, body.mapping.phoneColumn),
       }))
       .filter((item) => item.phone !== null)
-      .map((item) => item.phone!);
+      .map((item) => {
+        const validation = validatePhone(item.phone!);
+        return validation.valid ? validation.wa_id! : null;
+      })
+      .filter((wa_id) => wa_id !== null) as string[];
 
     const { data: existingContacts } = await supabase
       .from("wa_contacts")
-      .select("normalized_phone")
+      .select("wa_id")
       .eq("workspace_id", body.workspaceId)
-      .in("normalized_phone", normalizedPhones);
+      .in("wa_id", validatedPhones);
 
     const existingSet = new Set(
-      existingContacts?.map((c: { normalized_phone: string }) => c.normalized_phone) || []
+      existingContacts?.map((c: { wa_id: string }) => c.wa_id) || []
     );
 
     // Process each row
@@ -107,9 +112,9 @@ export async function POST(request: NextRequest) {
       const row = rows[i];
       const rowNumber = i + 2; // +1 for 0-index, +1 for header row
 
-      const phone = extractPhoneFromRow(row, body.mapping.phoneColumn);
+      const phoneStr = extractPhoneFromRow(row, body.mapping.phoneColumn);
 
-      if (!phone) {
+      if (!phoneStr) {
         response.invalid++;
         response.errors.push({
           row: rowNumber,
@@ -118,8 +123,22 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
+      // Validate and get wa_id
+      const validation = validatePhone(phoneStr);
+      if (!validation.valid) {
+        response.invalid++;
+        response.errors.push({
+          row: rowNumber,
+          error: validation.error || "Invalid phone format",
+        });
+        continue;
+      }
+
+      const phone = validation.normalized!;
+      const wa_id = validation.wa_id!;
+
       // Check duplicate
-      if (existingSet.has(phone)) {
+      if (existingSet.has(wa_id)) {
         response.duplicates++;
         continue;
       }
@@ -158,6 +177,7 @@ export async function POST(request: NextRequest) {
         .from("wa_contacts")
         .insert({
           workspace_id: body.workspaceId,
+          wa_id,
           normalized_phone: phone,
           display_name,
           tags: sanitizedTags,
@@ -181,7 +201,7 @@ export async function POST(request: NextRequest) {
       } else {
         response.valid++;
         response.created.push(contact.id);
-        existingSet.add(phone); // Prevent duplicates within same batch
+        existingSet.add(wa_id); // Prevent duplicates within same batch
       }
     }
 

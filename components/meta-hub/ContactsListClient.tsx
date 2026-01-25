@@ -30,6 +30,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { ContactModal } from "@/components/meta-hub/ContactModal";
+import { BulkPasteModal } from "@/components/meta-hub/BulkPasteModal";
+import { ImportCSVModal } from "@/components/meta-hub/ImportCSVModal";
 import type { WaContact, OptInStatus, ContactSegment } from "@/types/wa-contacts";
 import { maskPhone, formatPhoneDisplay } from "@/lib/meta/wa-contacts-utils";
 
@@ -51,6 +54,12 @@ export function ContactsListClient({ workspaceId }: Props) {
   const [tags, setTags] = useState<string[]>([]);
   const [segments, setSegments] = useState<ContactSegment[]>([]);
   const [revealedPhones, setRevealedPhones] = useState<Set<string>>(new Set());
+
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkPasteModal, setShowBulkPasteModal] = useState(false);
+  const [showImportCSVModal, setShowImportCSVModal] = useState(false);
+  const [editingContact, setEditingContact] = useState<WaContact | null>(null);
 
   const loadContacts = useCallback(async () => {
     setLoading(true);
@@ -244,9 +253,7 @@ export function ContactsListClient({ workspaceId }: Props) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              /* Open bulk paste modal */
-            }}
+            onClick={() => setShowBulkPasteModal(true)}
           >
             <FileText className="w-4 h-4 mr-2" />
             Bulk Paste
@@ -254,18 +261,14 @@ export function ContactsListClient({ workspaceId }: Props) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              /* Open CSV import modal */
-            }}
+            onClick={() => setShowImportCSVModal(true)}
           >
             <Upload className="w-4 h-4 mr-2" />
             Import CSV
           </Button>
           <Button
             size="sm"
-            onClick={() => {
-              /* Open add contact modal */
-            }}
+            onClick={() => setShowAddModal(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Contact
@@ -421,9 +424,7 @@ export function ContactsListClient({ workspaceId }: Props) {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => {
-                          /* Open edit modal */
-                        }}
+                        onClick={() => setEditingContact(contact)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
@@ -470,6 +471,41 @@ export function ContactsListClient({ workspaceId }: Props) {
           </div>
         </div>
       )}
+
+      {/* Modals */}
+      <ContactModal
+        workspaceId={workspaceId}
+        contact={editingContact}
+        open={showAddModal || !!editingContact}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingContact(null);
+        }}
+        onSaved={() => {
+          loadContacts();
+          loadTags();
+        }}
+      />
+
+      <BulkPasteModal
+        workspaceId={workspaceId}
+        open={showBulkPasteModal}
+        onClose={() => setShowBulkPasteModal(false)}
+        onImported={() => {
+          loadContacts();
+          loadTags();
+        }}
+      />
+
+      <ImportCSVModal
+        workspaceId={workspaceId}
+        open={showImportCSVModal}
+        onClose={() => setShowImportCSVModal(false)}
+        onImported={() => {
+          loadContacts();
+          loadTags();
+        }}
+      />
     </div>
   );
 }

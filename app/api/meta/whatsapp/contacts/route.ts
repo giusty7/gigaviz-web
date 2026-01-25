@@ -228,13 +228,14 @@ export async function POST(request: NextRequest) {
     }
 
     const normalized = phoneValidation.normalized!;
+    const wa_id = phoneValidation.wa_id!;
 
     // Check for duplicate
     const { data: existing } = await supabase
       .from("wa_contacts")
       .select("id")
       .eq("workspace_id", body.workspaceId)
-      .eq("normalized_phone", normalized)
+      .eq("wa_id", wa_id)
       .single();
 
     if (existing) {
@@ -252,6 +253,7 @@ export async function POST(request: NextRequest) {
       .from("wa_contacts")
       .insert({
         workspace_id: body.workspaceId,
+        wa_id,
         normalized_phone: normalized,
         display_name: body.display_name || null,
         tags,

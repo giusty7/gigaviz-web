@@ -4,31 +4,60 @@
  */
 
 /**
- * Normalize phone number to digits-only format (E.164 without +)
+ * Normalize phone number to WhatsApp ID format (digits only, no +)
+ * Returns both wa_id and e164 format
+ * 
+ * Indonesia normalization rules:
+ * - 0812... → 62812... (remove leading 0, add 62)
+ * - 812... → 62812... (add 62 prefix)
+ * - +62812... → 62812... (strip +)
+ * - 62812... → 62812... (keep as-is)
+ * 
  * Examples:
- * - "+62 812-3456-7890" → "6281234567890"
- * - "08123456789" → "628123456789" (assumes Indonesia)
- * - "62 812 345 6789" → "6281234567890"
+ * - "+62 812-3456-7890" → { wa_id: "6281234567890", e164: "+6281234567890" }
+ * - "08123456789" → { wa_id: "628123456789", e164: "+628123456789" }
+ * - "812345678" → { wa_id: "62812345678", e164: "+62812345678" }
  */
 export function normalizePhone(input: string): string {
   // Strip all non-digit characters
   let digits = input.replace(/\D/g, "");
 
-  // Handle Indonesian numbers starting with 0
+  // Handle Indonesian numbers
   if (digits.startsWith("0")) {
+    // 0812... → 62812...
     digits = "62" + digits.substring(1);
+  } else if (digits.startsWith("8") && !digits.startsWith("62")) {
+    // 812... → 62812... (assume Indonesia if starts with 8 but not 62)
+    digits = "62" + digits;
   }
+  // else: already has country code or is international format
 
   return digits;
 }
 
 /**
- * Validate phone number format
+ * Get WhatsApp ID and E.164 format from phone input
+ */
+export function getWhatsAppId(input: string): {
+  wa_id: string;
+  e164: string;
+} {
+  const digits = normalizePhone(input);
+  return {
+    wa_id: digits,
+    e164: "+" + digits,
+  };
+}
+
+/**
+ * Validate phone number format and return wa_id
  * Must be 10-15 digits after normalization
  */
 export function validatePhone(input: string): {
   valid: boolean;
   normalized?: string;
+  wa_id?: string;
+  e164?: string;
   error?: string;
 } {
   if (!input || input.trim().length === 0) {
@@ -49,7 +78,9 @@ export function validatePhone(input: string): {
     return { valid: false, error: "Invalid phone format" };
   }
 
-  return { valid: true, normalized };
+  const { wa_id, e164 } = getWhatsAppId(input);
+
+  return { valid: true, normalized, wa_id, e164 };
 }
 
 /**

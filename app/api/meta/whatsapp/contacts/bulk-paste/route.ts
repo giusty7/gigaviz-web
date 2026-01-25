@@ -77,19 +77,20 @@ export async function POST(request: NextRequest) {
     };
 
     // Get existing contacts
-    const normalizedPhones = parsed
-      .map((p) => validatePhone(p.phone))
-      .filter((v) => v.valid)
-      .map((v) => v.normalized!);
+    const validatedContacts = parsed
+      .map((p) => ({ ...p, validation: validatePhone(p.phone) }))
+      .filter((c) => c.validation.valid);
+
+    const waIds = validatedContacts.map((c) => c.validation.wa_id!);
 
     const { data: existingContacts } = await supabase
       .from("wa_contacts")
-      .select("normalized_phone")
+      .select("wa_id")
       .eq("workspace_id", body.workspaceId)
-      .in("normalized_phone", normalizedPhones);
+      .in("wa_id", waIds);
 
     const existingSet = new Set(
-      existingContacts?.map((c: { normalized_phone: string }) => c.normalized_phone) || []
+      existingContacts?.map((c: { wa_id: string }) => c.wa_id) || []
     );
 
     // Process each line
@@ -106,9 +107,10 @@ export async function POST(request: NextRequest) {
       }
 
       const normalized = validation.normalized!;
+      const wa_id = validation.wa_id!;
 
       // Check duplicate
-      if (existingSet.has(normalized)) {
+      if (existingSet.has(wa_id)) {
         response.duplicates++;
         continue;
       }
@@ -118,6 +120,7 @@ export async function POST(request: NextRequest) {
         .from("wa_contacts")
         .insert({
           workspace_id: body.workspaceId,
+          wa_id,
           normalized_phone: normalized,
           display_name: item.name || null,
           tags,
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
       } else {
         response.valid++;
         response.created.push(contact.id);
-        existingSet.add(normalized); // Prevent duplicates within same batch
+        existingSet.add(wa_id); // Prevent duplicates within same batch
       }
     }
 
