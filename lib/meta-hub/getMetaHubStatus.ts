@@ -1,6 +1,6 @@
 ﻿import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { MetaIntegrationStatus, IntegrationStatus, WebhookStatus } from "./types";
+import type { MetaIntegrationStatus, IntegrationStatus, WebhookStatus, WhatsAppConnectorStatus, MetaPortfolioStatus } from "./types";
 
 export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegrationStatus> {
   const supabase = await supabaseServer();
@@ -51,6 +51,22 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     webhookStatus = 'inactive';
   }
 
+  // Derive WhatsApp connector status
+  let whatsappConnectorStatus: WhatsAppConnectorStatus = 'none';
+  if (waConnection?.id) {
+    const hasToken = !!metaToken?.id;
+    const hasPhoneId = !!waConnection.phone_number_id;
+    
+    if (hasToken && hasPhoneId) {
+      whatsappConnectorStatus = 'connected';
+    } else {
+      whatsappConnectorStatus = 'partial';
+    }
+  }
+
+  // Derive Meta Portfolio status
+  const metaPortfolioStatus: MetaPortfolioStatus = metaToken?.id ? 'linked' : 'none';
+
   return {
     workspace_id: workspaceId,
     whatsapp: {
@@ -73,5 +89,11 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     hasAccessToken: !!metaToken?.id,
     tokenLastUpdated: metaToken?.updated_at ?? null,
     computedAt: new Date().toISOString(),
+    connectors: {
+      whatsapp: whatsappConnectorStatus,
+      metaPortfolio: metaPortfolioStatus,
+      instagram: 'soon',
+      messenger: 'soon',
+    },
   };
 }
