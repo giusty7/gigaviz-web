@@ -1,0 +1,19 @@
+name: WA Send Worker
+
+on:
+  schedule:
+    # Run every 5 minutes (minimum allowed by GitHub)
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  ping-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call wa-send-worker endpoint
+        run: |
+          curl -sS -f -X POST "${{ secrets.CRON_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --data '{"source":"github-actions"}'

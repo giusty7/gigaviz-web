@@ -13,14 +13,29 @@ export const maxDuration = 60; // Vercel max timeout
 const BATCH_SIZE = 10; // Process 10 items per invocation
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
 
-// Vercel Cron secret or internal auth
+// GitHub Actions / Cron secret authentication
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
 export async function POST(req: NextRequest) {
   // Verify authorization
   const authHeader = req.headers.get("authorization");
-  if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
-    logger.warn("[wa-send-worker] unauthorized cron attempt");
+  
+  // Security check
+  if (!CRON_SECRET) {
+    // Dev mode: allow without secret for local testing
+    if (process.env.NODE_ENV !== "production") {
+      logger.warn("[wa-send-worker] CRON_SECRET not set, allowing in dev mode");
+    } else {
+      logger.error("[wa-send-worker] CRON_SECRET not configured in production");
+      return NextResponse.json(
+        { error: "CRON_SECRET not configured" },
+        { status: 500 }
+      );
+    }
+  } else if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    logger.warn("[wa-send-worker] unauthorized cron attempt", {
+      hasAuth: !!authHeader,
+    });
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
