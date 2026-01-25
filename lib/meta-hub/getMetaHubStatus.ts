@@ -52,18 +52,25 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     webhookStatus = 'inactive';
   }
 
-  // Derive WhatsApp connector status using SAME logic as WhatsApp Business Account card
-  // Rule: connected = (token AND phone_number_id present), partial = missing one, none = no record
+  // Derive WhatsApp connector status using two-tier logic
+  // Tier 1 (Configuration): Check if both token AND phone_number_id are present
+  // Tier 2 (Health): Check verification status without downgrading base status
+  const hasToken = !!metaToken?.id;
+  const hasPhoneId = !!waConnection?.phone_number_id;
+  const hasRecord = !!waConnection || !!metaToken?.id;
+  
   let whatsappConnectorStatus: WhatsAppConnectorStatus = 'none';
-  if (waConnection?.phone_number_id || metaToken?.id) {
-    const hasToken = !!metaToken?.id;
-    const hasPhoneId = !!waConnection?.phone_number_id;
-    
-    if (hasToken && hasPhoneId) {
-      whatsappConnectorStatus = 'connected';
-    } else {
-      whatsappConnectorStatus = 'partial';
-    }
+  let whatsappConnectorHealth: 'ok' | 'needs_attention' | undefined;
+  
+  if (!hasRecord) {
+    whatsappConnectorStatus = 'none';
+  } else if (hasToken && hasPhoneId) {
+    whatsappConnectorStatus = 'connected';
+    // Tier 2: Check health (future: check is_valid/last_verified_at)
+    whatsappConnectorHealth = 'ok';
+  } else {
+    // Missing either token or phone_number_id
+    whatsappConnectorStatus = 'partial';
   }
 
   // Derive Meta Portfolio status
@@ -93,6 +100,7 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
     computedAt: new Date().toISOString(),
     connectors: {
       whatsapp: whatsappConnectorStatus,
+      whatsappHealth: whatsappConnectorHealth,
       metaPortfolio: metaPortfolioStatus,
       instagram: 'soon',
       messenger: 'soon',

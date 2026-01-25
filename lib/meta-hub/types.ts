@@ -3,11 +3,13 @@ export type WebhookStatus = 'active' | 'inactive' | 'not_configured' | 'error';
 
 // Multi-connector status types
 export type WhatsAppConnectorStatus = 'connected' | 'partial' | 'none';
+export type WhatsAppConnectorHealth = 'ok' | 'needs_attention';
 export type MetaPortfolioStatus = 'linked' | 'none';
 export type FutureConnectorStatus = 'soon';
 
 export type ConnectorStatuses = {
   whatsapp: WhatsAppConnectorStatus;
+  whatsappHealth?: WhatsAppConnectorHealth;
   metaPortfolio: MetaPortfolioStatus;
   instagram: FutureConnectorStatus;
   messenger: FutureConnectorStatus;

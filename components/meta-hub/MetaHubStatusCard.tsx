@@ -148,7 +148,12 @@ export function MetaHubStatusCard({
       name: 'WhatsApp',
       icon: MessageSquare,
       status: connectors.whatsapp,
-      description: status.whatsapp.displayName || 'Not connected',
+      health: connectors.whatsappHealth,
+      description: connectors.whatsapp === 'connected' 
+        ? (status.whatsapp.displayName || 'Connected and receiving messages')
+        : connectors.whatsapp === 'partial' 
+        ? 'Incomplete setup'
+        : 'Not configured',
       badgeLabel: connectors.whatsapp === 'connected' ? 'Connected' : 
                   connectors.whatsapp === 'partial' ? 'Partial' : 'Not Connected',
     },
@@ -231,7 +236,12 @@ export function MetaHubStatusCard({
                     }`} />
                     <div>
                       <p className="text-sm font-semibold text-[#f5f5dc]">{connector.name}</p>
-                      <p className="text-xs text-[#f5f5dc]/50">{connector.description}</p>
+                      <p className="text-xs text-[#f5f5dc]/50">
+                        {connector.description}
+                        {connector.key === 'whatsapp' && connector.health === 'needs_attention' && (
+                          <span className="ml-1 text-amber-400">• Needs verification</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   {isConnectedOrLinked ? (
