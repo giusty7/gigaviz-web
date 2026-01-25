@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -41,7 +41,6 @@ const inputClassName =
 export default function LoginForm({ nextSafe, loginAction }: LoginFormProps) {
   const router = useRouter();
   const sp = useSearchParams();
-  const formId = useId();
   const submitRef = useRef(false);
 
   const [error, setError] = useState<string | null>(null);
@@ -149,12 +148,12 @@ export default function LoginForm({ nextSafe, loginAction }: LoginFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor={`${formId}-email`} className="text-[#f5f5dc]/80">
+              <FormLabel htmlFor="login-email" className="text-[#f5f5dc]/80">
                 Email
               </FormLabel>
               <FormControl>
                 <Input
-                  id={`${formId}-email`}
+                  id="login-email"
                   type="email"
                   placeholder="you@company.com"
                   autoComplete="email"
@@ -172,13 +171,13 @@ export default function LoginForm({ nextSafe, loginAction }: LoginFormProps) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel htmlFor={`${formId}-password`} className="text-[#f5f5dc]/80">
+              <FormLabel htmlFor="login-password" className="text-[#f5f5dc]/80">
                 Password
               </FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
-                    id={`${formId}-password`}
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     className={`${inputClassName} pr-10`}

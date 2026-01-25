@@ -90,6 +90,44 @@ interface ImperiumInboxClientProps {
   overviewMode?: boolean;
 }
 
+type TelemetrySnapshot = {
+  incomingToday: number;
+  avgResponseMs: number | null;
+  automationRate: number;
+  throughput: { hour: string; count: number }[];
+  slaHours: number;
+  generatedAt: string;
+};
+
+type SentimentResult = {
+  score: number;
+  label: string;
+  source?: string;
+};
+
+function fallbackSentiment(text?: string | null): SentimentResult {
+  if (!text) return { score: 50, label: "Neutral", source: "client_fallback" };
+  const normalized = text.toLowerCase();
+  const positiveWords = ["thank", "great", "good", "love", "appreciate", "yes", "helpful", "nice", "well done"];
+  const negativeWords = ["bad", "angry", "upset", "frustrated", "hate", "no", "problem", "issue", "terrible", "worst"];
+
+  let score = 50;
+  positiveWords.forEach((word) => {
+    if (normalized.includes(word)) score += 8;
+  });
+  negativeWords.forEach((word) => {
+    if (normalized.includes(word)) score -= 10;
+  });
+  score = Math.max(5, Math.min(95, score));
+
+  let label: string;
+  if (score >= 70) label = "Calm";
+  else if (score >= 45) label = "Neutral";
+  else label = "Alert";
+
+  return { score, label, source: "client_fallback" };
+}
+
 type CapabilityReasonCode =
   | "PLAN_LOCKED"
   | "NO_CONNECTION"
@@ -130,6 +168,13 @@ export function ImperiumInboxClient({
   const { toast } = useToast();
   void _workspaceId;
 
+  // User preferences
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const blipRef = useRef<HTMLAudioElement | null>(null);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [lastTelemetryFetchAt, setLastTelemetryFetchAt] = useState<number | null>(null);
+
   // Preference redirect for overview mode
   useEffect(() => {
     if (!overviewMode || !mounted) return;
@@ -138,6 +183,27 @@ export function ImperiumInboxClient({
       window.location.href = `/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox/full`;
     }
   }, [overviewMode, workspaceSlug, mounted]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedSound = localStorage.getItem("gigaviz.metaHub.inbox.soundEnabled");
+    const storedAnimations = localStorage.getItem("gigaviz.metaHub.inbox.animationsEnabled");
+    if (storedSound !== null) setSoundEnabled(storedSound === "true");
+    if (storedAnimations !== null) setAnimationsEnabled(storedAnimations === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("gigaviz.metaHub.inbox.animationsEnabled", String(animationsEnabled));
+  }, [animationsEnabled]);
+
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("gigaviz.metaHub.inbox.soundEnabled", String(soundEnabled));
+  }, [soundEnabled]);
 
   // Thread state
   const [threads, setThreads] = useState<Thread[]>(initialThreads);
@@ -179,6 +245,45 @@ export function ImperiumInboxClient({
     reason: allowWrite ? null : "Messaging is disabled for the current plan.",
   });
 
+  // Telemetry
+  const [telemetry, setTelemetry] = useState<TelemetrySnapshot | null>(null);
+  const [telemetryLoading, setTelemetryLoading] = useState(false);
+  const [slaHours, setSlaHours] = useState<number>(24);
+  const latestMessageTsRef = useRef<number>(0);
+
+  // Sentiment
+  const [customerSentiment, setCustomerSentiment] = useState<SentimentResult>(() => ({ score: 50, label: "Neutral", source: "init" }));
+  const [, setSentimentLoading] = useState(false);
+  const sentimentCacheRef = useRef<string | null>(null);
+  const fetchTelemetry = useCallback(async () => {
+    setTelemetryLoading(true);
+    try {
+      const params = new URLSearchParams({ workspaceSlug });
+      const res = await fetch(`/api/meta/whatsapp/inbox/telemetry?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.reason || data?.error || "Failed to load telemetry");
+      }
+      setTelemetry({
+        incomingToday: data.incomingToday ?? 0,
+        avgResponseMs: data.avgResponseMs ?? null,
+        automationRate: data.automationRate ?? 0,
+        throughput: Array.isArray(data.throughput) ? data.throughput : [],
+        slaHours: data.slaHours ?? slaHours,
+        generatedAt: data.generatedAt ?? new Date().toISOString(),
+      });
+      if (data.slaHours) setSlaHours(data.slaHours);
+      setLastTelemetryFetchAt(Date.now());
+    } catch (err) {
+      // Soft fail; keep previous telemetry if any
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("telemetry_load_failed", err);
+      }
+    } finally {
+      setTelemetryLoading(false);
+    }
+  }, [workspaceSlug, slaHours]);
+
   // Canned responses (for slash commands)
   const cannedResponses: CannedResponse[] = useMemo(() => {
     return templates
@@ -198,6 +303,14 @@ export function ImperiumInboxClient({
 
   // Auto-refresh
   const refreshInterval = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const audio = new Audio(
+      "data:audio/wav;base64,UklGRhQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQgAAAAA/////wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAAAP///wAA"
+    );
+    audio.volume = 0.16;
+    blipRef.current = audio;
+  }, []);
   const templatePlaceholderWarned = useRef(false);
 
   // Filtered threads
@@ -282,6 +395,16 @@ export function ImperiumInboxClient({
         throw new Error(message);
       }
       setMessages(data.messages ?? []);
+      const latestFromResponse = Array.isArray(data.messages)
+        ? data.messages.reduce((max: number, m: Message) => {
+            const ts = Date.parse(m.wa_timestamp ?? m.sent_at ?? m.created_at ?? "");
+            return Number.isFinite(ts) && ts > max ? ts : max;
+          }, 0)
+        : 0;
+      if (latestFromResponse > 0) {
+        latestMessageTsRef.current = latestFromResponse;
+      }
+      void fetchTelemetry();
       if (data.session) {
         const state = data.session.state ?? (data.session.active ? "active" : "expired");
         setSessionInfo({
@@ -307,7 +430,7 @@ export function ImperiumInboxClient({
     } finally {
       setMessagesLoading(false);
     }
-  }, [toast, workspaceSlug]);
+  }, [toast, workspaceSlug, fetchTelemetry]);
 
   // Build contact details from thread
   const buildContactDetails = useCallback(
@@ -339,6 +462,31 @@ export function ImperiumInboxClient({
       }));
   }, [messages]);
 
+  const latestMessageTs = useMemo(() => {
+    return messages.reduce((max, msg) => {
+      const ts = Date.parse(msg.wa_timestamp ?? msg.sent_at ?? msg.created_at ?? "");
+      return Number.isFinite(ts) && ts > max ? ts : max;
+    }, 0);
+  }, [messages]);
+
+  useEffect(() => {
+    fetchTelemetry();
+    const id = setInterval(fetchTelemetry, 120000);
+    return () => clearInterval(id);
+  }, [fetchTelemetry]);
+
+  useEffect(() => {
+    if (!latestMessageTs) return;
+    const shouldRefresh =
+      latestMessageTsRef.current === 0 ||
+      latestMessageTs > latestMessageTsRef.current ||
+      (lastTelemetryFetchAt && Date.now() - lastTelemetryFetchAt > 180000);
+    if (shouldRefresh) {
+      latestMessageTsRef.current = latestMessageTs;
+      void fetchTelemetry();
+    }
+  }, [latestMessageTs, fetchTelemetry, lastTelemetryFetchAt]);
+
   const optOutDetected = useMemo(() => {
     const inboundMessages = messages.filter((m) => ["in", "inbound"].includes(m.direction));
     const latestInbound = inboundMessages.reduce<Message | null>((latest, msg) => {
@@ -357,6 +505,66 @@ export function ImperiumInboxClient({
     const keywords = ["stop", "unsubscribe", "cancel", "end", "quit"];
     return keywords.some((kw) => body === kw || body.startsWith(`${kw} `) || body.includes(` ${kw} `));
   }, [messages]);
+
+  const latestCustomerMessage = useMemo(() => {
+    const inboundMessages = messages
+      .filter((m) => ["in", "inbound"].includes(m.direction))
+      .map((m) => ({
+        text:
+          m.text_body ||
+          (typeof m.content_json === "object" && m.content_json && "text" in m.content_json
+            ? (m.content_json as { text?: string }).text ?? ""
+            : ""),
+        ts: Date.parse(m.wa_timestamp ?? m.sent_at ?? m.created_at ?? ""),
+      }))
+      .filter((m) => Number.isFinite(m.ts));
+
+    if (!inboundMessages.length) return null;
+    inboundMessages.sort((a, b) => a.ts - b.ts);
+    return inboundMessages[inboundMessages.length - 1];
+  }, [messages]);
+
+  useEffect(() => {
+    const text = latestCustomerMessage?.text?.trim();
+    if (!text) {
+      setCustomerSentiment({ score: 50, label: "Neutral", source: "empty" });
+      sentimentCacheRef.current = null;
+      return;
+    }
+    if (sentimentCacheRef.current === text) return;
+
+    const controller = new AbortController();
+    setSentimentLoading(true);
+    fetch("/api/meta/whatsapp/inbox/sentiment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceSlug, text }),
+      signal: controller.signal,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (controller.signal.aborted) return;
+        if (data?.ok && typeof data.score === "number" && data.label) {
+          setCustomerSentiment({ score: data.score, label: data.label, source: data.source ?? "nlp" });
+          sentimentCacheRef.current = text;
+          return;
+        }
+        const fallback = fallbackSentiment(text);
+        setCustomerSentiment(fallback);
+        sentimentCacheRef.current = text;
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        const fallback = fallbackSentiment(text);
+        setCustomerSentiment(fallback);
+        sentimentCacheRef.current = text;
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setSentimentLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [latestCustomerMessage?.text, workspaceSlug]);
 
   const refreshCapabilities = useCallback(async () => {
     setCapability((prev) => ({ ...prev, loading: true }));
@@ -517,6 +725,14 @@ export function ImperiumInboxClient({
       setSelectedThread(thread);
       setContactDetails(buildContactDetails(thread));
       fetchMessages(thread.id);
+      if (soundEnabled && blipRef.current) {
+        try {
+          blipRef.current.currentTime = 0;
+          void blipRef.current.play();
+        } catch {
+          // ignore playback errors (autoplay restrictions)
+        }
+      }
 
       // Mark as read
       if ((thread.unread_count ?? 0) > 0) {
@@ -532,7 +748,7 @@ export function ImperiumInboxClient({
         );
       }
     },
-    [buildContactDetails, fetchMessages, workspaceSlug]
+    [buildContactDetails, fetchMessages, workspaceSlug, soundEnabled]
   );
 
   // Handle send message
@@ -607,6 +823,7 @@ export function ImperiumInboxClient({
             : m
         )
       );
+      void fetchTelemetry();
     } catch (err) {
       // Mark as failed
       setMessages((prev) =>
@@ -620,7 +837,7 @@ export function ImperiumInboxClient({
     } finally {
       setSending(false);
     }
-  }, [composerValue, selectedThread, allowWrite, optOutDetected, sessionState, workspaceSlug, toast]);
+  }, [composerValue, selectedThread, allowWrite, optOutDetected, sessionState, workspaceSlug, toast, fetchTelemetry]);
 
   const handleSendTemplate = useCallback(
     async (template: ApprovedTemplate, variables: string[] = []) => {
@@ -844,6 +1061,17 @@ export function ImperiumInboxClient({
           backgroundSize: "60px 60px",
         }}
       />
+      {animationsEnabled && (
+        <div
+          className="pointer-events-none fixed inset-0 z-0 opacity-30"
+          style={{
+            backgroundImage:
+              "radial-gradient(1px 1px at 10% 20%, rgba(249,217,118,0.45), transparent 40%), radial-gradient(1px 1px at 80% 30%, rgba(34,211,238,0.4), transparent 35%), radial-gradient(1px 1px at 40% 80%, rgba(225,29,72,0.35), transparent 35%), radial-gradient(1px 1px at 65% 60%, rgba(16,185,129,0.35), transparent 35%)",
+            backgroundSize: "180px 180px, 220px 220px, 200px 200px, 240px 240px",
+            animation: "particleDrift 38s linear infinite",
+          }}
+        />
+      )}
 
       <motion.div
         variants={containerVariants}
@@ -867,6 +1095,8 @@ export function ImperiumInboxClient({
         <InboxHeader
           unreadCount={unreadCount}
           connectionStatus={connectionStatus}
+          soundEnabled={soundEnabled}
+          onToggleSound={() => setSoundEnabled((prev) => !prev)}
         />
 
         {/* Overview Mode CTA */}
@@ -918,6 +1148,8 @@ export function ImperiumInboxClient({
               onFilterChange={handleFilterChange}
               loading={threadsLoading}
               currentUserId={userId}
+              slaHours={slaHours}
+              nowMs={nowMs}
             />
           </div>
 
@@ -942,6 +1174,10 @@ export function ImperiumInboxClient({
             onEscalate={handleEscalate}
             escalating={escalating}
             threadStatus={selectedThread?.status ?? null}
+            telemetry={telemetry}
+            telemetryLoading={telemetryLoading}
+            animationsEnabled={animationsEnabled}
+            onToggleAnimations={() => setAnimationsEnabled((prev) => !prev)}
           />
 
           {/* Column 3: CRM Sidebar Toggle */}
@@ -967,6 +1203,10 @@ export function ImperiumInboxClient({
               onClose={() => setSidebarOpen(false)}
               onAddNote={canEdit ? handleAddNote : undefined}
               mediaItems={mediaItems}
+              sentimentScore={customerSentiment.score}
+              sentimentLabel={customerSentiment.label}
+              sentimentText={latestCustomerMessage?.text ?? ""}
+              nowMs={nowMs}
             />
           </div>
         </div>
@@ -1005,6 +1245,19 @@ export function ImperiumInboxClient({
         sending={sending}
         preview={renderedTemplatePreview}
       />
+      <style jsx global>{`
+        @keyframes particleDrift {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          50% {
+            transform: translate3d(-30px, -20px, 0);
+          }
+          100% {
+            transform: translate3d(-60px, -40px, 0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

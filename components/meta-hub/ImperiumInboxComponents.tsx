@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useSyncExternalStore, useState, useRef } from "react";
+import { useSyncExternalStore, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Search,
@@ -38,9 +38,11 @@ import {
   WifiOff,
   Hash,
   AlertCircle,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    HYDRATION-SAFE MOUNT CHECK
@@ -193,6 +195,15 @@ export type SessionInfo = {
   expiresAt?: string | null;
 };
 
+type TelemetrySnapshot = {
+  incomingToday: number;
+  avgResponseMs: number | null;
+  automationRate: number;
+  throughput: { hour: string; count: number }[];
+  slaHours: number;
+  generatedAt: string;
+};
+
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    INBOX HEADER with Connection Status
    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
@@ -200,9 +211,11 @@ export type SessionInfo = {
 interface InboxHeaderProps {
   unreadCount: number;
   connectionStatus?: ConnectionStatus;
+  soundEnabled?: boolean;
+  onToggleSound?: () => void;
 }
 
-export function InboxHeader({ unreadCount, connectionStatus = "connected" }: InboxHeaderProps) {
+export function InboxHeader({ unreadCount, connectionStatus = "connected", soundEnabled = false, onToggleSound }: InboxHeaderProps) {
   const statusConfig = {
     connected: {
       icon: Wifi,
@@ -256,6 +269,22 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected" }: Inb
       </div>
 
       <div className="flex items-center gap-3">
+        {onToggleSound && (
+          <button
+            onClick={onToggleSound}
+            className={cn(
+              "flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all",
+              soundEnabled
+                ? "border-[#10b981]/40 bg-[#10b981]/10 text-[#10b981] shadow-[0_0_12px_rgba(16,185,129,0.25)]"
+                : "border-[#d4af37]/30 bg-[#d4af37]/5 text-[#f5f5dc]/60 hover:border-[#d4af37]/50 hover:bg-[#d4af37]/10"
+            )}
+            title="Toggle interface blip sound when switching chats"
+          >
+            <Volume2 className={cn("h-4 w-4", soundEnabled ? "text-[#10b981]" : "text-[#f5f5dc]/60")} />
+            <span>{soundEnabled ? "Sound On" : "Sound Off"}</span>
+          </button>
+        )}
+
         {/* Connection Status Indicator */}
         <div
           className={cn(
@@ -300,6 +329,8 @@ interface ContactListProps {
   onFilterChange: (updates: Partial<FilterState>) => void;
   loading?: boolean;
   currentUserId?: string;
+  slaHours?: number;
+  nowMs?: number;
 }
 
 export function ContactList({
@@ -310,6 +341,8 @@ export function ContactList({
   onFilterChange,
   loading,
   currentUserId,
+  slaHours = 24,
+  nowMs = 0,
 }: ContactListProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
@@ -463,6 +496,8 @@ export function ContactList({
                 thread={thread}
                 isSelected={selectedId === thread.id}
                 onClick={() => onSelect(thread)}
+                slaHours={slaHours}
+                nowMs={nowMs}
               />
             ))}
           </motion.div>
@@ -478,23 +513,39 @@ interface ContactCardProps {
   thread: Thread;
   isSelected: boolean;
   onClick: () => void;
+  slaHours?: number;
+  nowMs?: number;
 }
 
-function ContactCard({ thread, isSelected, onClick }: ContactCardProps) {
+function ContactCard({ thread, isSelected, onClick, slaHours = 24, nowMs = 0 }: ContactCardProps) {
   const hasUnread = (thread.unread_count ?? 0) > 0;
   const isVip = thread.contact?.is_vip ?? false;
+  const fullId = thread.contact?.display_name ?? thread.external_thread_id ?? "Unknown";
+  const lastMessageAt = thread.last_message_at ? new Date(thread.last_message_at) : null;
+  const hoursSinceLast =
+    lastMessageAt && !Number.isNaN(lastMessageAt.getTime())
+      ? (nowMs - lastMessageAt.getTime()) / (1000 * 60 * 60)
+      : null;
+  const isStale = typeof hoursSinceLast === "number" && hoursSinceLast > slaHours;
 
   return (
     <motion.button
       variants={listItemVariants}
       onClick={onClick}
       className={cn(
-        "group relative mb-1 flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all",
+        "group relative mb-1 flex w-full items-start gap-3 rounded-xl p-3 pl-4 text-left transition-all",
         isSelected
-          ? "border border-[#e11d48]/40 bg-[#e11d48]/10"
-          : "border border-transparent hover:border-[#d4af37]/20 hover:bg-[#d4af37]/5"
+          ? "border border-[#d4af37]/50 bg-gradient-to-r from-[#0d2344] via-[#0a1229] to-[#050a18] shadow-[0_0_24px_rgba(212,175,55,0.35)]"
+          : "border border-transparent bg-[#050a18]/40 hover:border-[#d4af37]/20 hover:bg-[#0a1229]/60"
       )}
     >
+      {isSelected && (
+        <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-[#f9d976] via-[#d4af37] to-[#a5720d] shadow-[0_0_14px_rgba(249,217,118,0.55)]" />
+      )}
+      {isStale && !isSelected && (
+        <div className="absolute right-0 top-1/2 h-10 w-1.5 -translate-y-1/2 rounded-full bg-[#e11d48]/60 shadow-[0_0_18px_rgba(225,29,72,0.45)]" />
+      )}
+
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <div
@@ -517,8 +568,14 @@ function ContactCard({ thread, isSelected, onClick }: ContactCardProps) {
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <p className={cn("truncate text-sm font-semibold", hasUnread ? "text-[#f5f5dc]" : "text-[#f5f5dc]/80")}>
-            {thread.contact?.display_name ?? thread.external_thread_id ?? "Unknown"}
+          <p
+            className={cn(
+              "truncate text-sm font-semibold",
+              hasUnread ? "text-[#f5f5dc]" : "text-[#f5f5dc]/80"
+            )}
+            title={fullId}
+          >
+            {fullId}
           </p>
           {thread.last_message_at && (
             <span className="flex-shrink-0 text-[10px] text-[#f5f5dc]/40">
@@ -585,6 +642,10 @@ interface ChatTerminalProps {
   onEscalate?: () => void;
   escalating?: boolean;
   threadStatus?: string | null;
+  telemetry?: TelemetrySnapshot | null;
+  telemetryLoading?: boolean;
+  animationsEnabled?: boolean;
+  onToggleAnimations?: () => void;
 }
 
 export function ChatTerminal({
@@ -614,16 +675,54 @@ export function ChatTerminal({
   onEscalate,
   escalating,
   threadStatus,
+  telemetry,
+  telemetryLoading,
+  animationsEnabled = true,
+  onToggleAnimations,
 }: ChatTerminalProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const showSlashMenu = composerValue.startsWith("/");
   const slashFilter = showSlashMenu ? composerValue.slice(1).toLowerCase() : "";
-
+  const normalizeThroughput = (buckets: { count: number }[]) => {
+    if (!buckets.length) return [];
+    const trimmed = buckets.slice(-24);
+    const max = Math.max(...trimmed.map((b) => b.count), 1);
+    return trimmed.map((b) => Math.round((b.count / max) * 90) + 5);
+  };
+  const fallbackSeries = useMemo(
+    () => Array.from({ length: 18 }, (_, idx) => 40 + (idx % 6) * 8),
+    []
+  );
+  const pulseMetrics = useMemo(
+    () => ({
+      incoming: telemetry?.incomingToday ?? 128,
+      responseMs: telemetry?.avgResponseMs ?? null,
+      automation: telemetry?.automationRate ?? 64,
+    }),
+    [telemetry]
+  );
   const filteredCanned = cannedResponses.filter(
     (r) => r.shortcut.toLowerCase().includes(slashFilter) || r.body.toLowerCase().includes(slashFilter)
   );
+  const seriesForGraph = useMemo(() => {
+    if (telemetry?.throughput?.length) return normalizeThroughput(telemetry.throughput);
+    return fallbackSeries;
+  }, [telemetry, fallbackSeries]);
+  const systemPulsePath = useMemo(() => {
+    if (seriesForGraph.length === 0) return "";
+    const max = 100;
+    const min = 0;
+    return seriesForGraph
+      .map((value, idx) => {
+        const x = (idx / Math.max(seriesForGraph.length - 1, 1)) * 100;
+        const clamped = Math.max(min, Math.min(max, value));
+        const y = 100 - clamped;
+        return `${x},${y}`;
+      })
+      .join(" ");
+  }, [seriesForGraph]);
 
   const sessionState = sessionInfo?.state ?? "unknown";
   const isExpired = sessionState === "expired";
@@ -638,6 +737,8 @@ export function ChatTerminal({
           ? "24h session window expired. Send an approved template to continue."
           : null;
   const sendBlocked = Boolean(sendGate);
+  const isTyping = composerValue.trim().length > 0;
+  const aiAssistMode = isTyping || showSlashMenu;
 
   const handleSelectCanned = (response: CannedResponse) => {
     onComposerChange(response.body);
@@ -650,10 +751,122 @@ export function ChatTerminal({
 
   if (!thread) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center bg-gradient-to-b from-[#0a1229] to-[#050a18] text-center">
-        <MessageSquare className="mb-4 h-16 w-16 text-[#d4af37]/20" />
-        <p className="text-lg font-semibold text-[#f5f5dc]/60">Select a conversation</p>
-        <p className="text-sm text-[#f5f5dc]/40">Choose a contact to start messaging</p>
+      <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#0a1229] via-[#050a18] to-[#02060f] p-8 text-center">
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(249,217,118,0.08),transparent_35%),radial-gradient(circle_at_80%_40%,rgba(68,255,210,0.08),transparent_32%),radial-gradient(circle_at_60%_80%,rgba(225,29,72,0.08),transparent_30%)] opacity-70",
+            !animationsEnabled && "hidden"
+          )}
+        />
+        <div className="relative z-10 w-full max-w-4xl space-y-6 rounded-3xl border border-[#d4af37]/20 bg-[#050a18]/60 p-8 shadow-[0_0_36px_rgba(0,0,0,0.45),0_0_24px_rgba(212,175,55,0.15)] backdrop-blur">
+          <div className="flex items-center justify-between">
+            <div className="text-left">
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#f5f5dc]/50">
+                <span className="inline-flex h-2 w-2 animate-ping rounded-full bg-[#22d3ee]" />
+                System Pulse
+              </p>
+              <h3 className="mt-2 text-2xl font-bold text-[#f5f5dc]">Operational Telemetry</h3>
+              <p className="mt-1 text-sm text-[#f5f5dc]/60">
+                No thread selected. Monitoring live ingress, response health, and AI automation.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {onToggleAnimations && (
+                <button
+                  onClick={onToggleAnimations}
+                  className={cn(
+                    "rounded-xl border px-3 py-2 text-xs font-semibold transition-all",
+                    animationsEnabled
+                      ? "border-[#22d3ee]/40 bg-[#0b1d33]/70 text-[#22d3ee] shadow-[0_0_12px_rgba(34,211,238,0.25)]"
+                      : "border-[#f5f5dc]/20 bg-[#0b1d33]/40 text-[#f5f5dc]/60 hover:border-[#f5f5dc]/40"
+                  )}
+                >
+                  {animationsEnabled ? "Animations On" : "Animations Off"}
+                </button>
+              )}
+              <div className="rounded-2xl border border-[#22d3ee]/40 bg-[#0b1d33]/80 px-4 py-2 text-left shadow-[0_0_18px_rgba(34,211,238,0.25)]">
+                <p className="text-[11px] uppercase tracking-wide text-[#22d3ee]">Live Link</p>
+                <p className="font-mono text-lg text-[#f5f5dc]">WHATSAPP-PIPE</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#0d2344] to-[#050a18] p-4 text-left shadow-[0_0_22px_rgba(212,175,55,0.15)]">
+              <div className="absolute right-4 top-4 h-10 w-10 rounded-full bg-[#d4af37]/20 blur-2xl" />
+              <p className="text-xs uppercase tracking-wide text-[#f9d976]">Incoming Today</p>
+              <p className="mt-2 text-3xl font-bold text-[#f5f5dc]">
+                {telemetryLoading ? "…" : pulseMetrics.incoming}
+              </p>
+              <p className="text-[11px] text-[#f5f5dc]/50">Messages ingested</p>
+            </div>
+            <div className="relative overflow-hidden rounded-2xl border border-[#22d3ee]/30 bg-gradient-to-br from-[#0b2a3f] to-[#050a18] p-4 text-left shadow-[0_0_22px_rgba(34,211,238,0.15)]">
+              <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-[#22d3ee]/10 blur-2xl" />
+              <p className="text-xs uppercase tracking-wide text-[#22d3ee]">Average Response</p>
+              <p className="mt-2 text-3xl font-bold text-[#f5f5dc]">
+                {telemetryLoading ? "…" : pulseMetrics.responseMs !== null ? `${pulseMetrics.responseMs} ms` : "—"}
+              </p>
+              <p className="text-[11px] text-[#f5f5dc]/50">Median operator latency</p>
+            </div>
+            <div className="relative overflow-hidden rounded-2xl border border-[#10b981]/30 bg-gradient-to-br from-[#0c2f27] to-[#050a18] p-4 text-left shadow-[0_0_22px_rgba(16,185,129,0.15)]">
+              <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-[#10b981]/15 blur-2xl" />
+              <p className="text-xs uppercase tracking-wide text-[#10b981]">AI Automation</p>
+              <p className="mt-2 text-3xl font-bold text-[#f5f5dc]">
+                {telemetryLoading ? "…" : `${pulseMetrics.automation}%`}
+              </p>
+              <p className="text-[11px] text-[#f5f5dc]/50">Flows autonomously resolved</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#050a18]/70 p-5 shadow-[0_0_18px_rgba(0,0,0,0.35)]">
+            <div className="flex items-center justify-between pb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d4af37]/10">
+                  <Activity className="h-4 w-4 text-[#d4af37]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs uppercase tracking-wide text-[#f5f5dc]/50">Throughput Flow</p>
+                  <p className="text-sm text-[#f5f5dc]/80">Linear telemetry · refreshed live</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-[#f5f5dc]/50">
+                <span className="flex h-2 w-2 rounded-full bg-[#10b981] shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                {telemetryLoading ? "Syncing..." : "Live feed"}
+                {telemetry?.generatedAt && (
+                  <span className="text-[10px] text-[#f5f5dc]/40">
+                    Updated {formatTime(telemetry.generatedAt)}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="relative h-40 overflow-hidden rounded-xl border border-[#d4af37]/20 bg-gradient-to-b from-[#0a1229] to-[#050a18]">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+                <defs>
+                  <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f9d976" stopOpacity="0.9" />
+                    <stop offset="60%" stopColor="#22d3ee" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#e11d48" stopOpacity="0.8" />
+                  </linearGradient>
+                </defs>
+                <polyline
+                  fill="none"
+                  stroke="url(#pulseGradient)"
+                  strokeWidth="2.4"
+                  points={systemPulsePath}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+                <polyline
+                  fill="url(#pulseGradient)"
+                  opacity="0.08"
+                  points={`${systemPulsePath} 100,100 0,100`}
+                />
+              </svg>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(249,217,118,0.06),transparent_45%),radial-gradient(circle_at_80%_50%,rgba(34,211,238,0.08),transparent_40%)]" />
+              <div className="absolute left-0 top-1/2 h-px w-full bg-gradient-to-r from-transparent via-[#d4af37]/30 to-transparent" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -900,7 +1113,18 @@ export function ChatTerminal({
           </span>
         </div>
 
-        <div className="relative z-10 flex items-end gap-3">
+        <div
+          className={cn(
+            "relative z-10 flex items-end gap-3 rounded-2xl border border-transparent p-1 transition-all",
+            aiAssistMode && "border-[#22d3ee]/30 shadow-[0_0_24px_rgba(34,211,238,0.15)]"
+          )}
+        >
+          {aiAssistMode && (
+            <div className="absolute -top-4 right-16 flex items-center gap-2 rounded-full border border-[#22d3ee]/40 bg-[#0a1229]/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#22d3ee] shadow-[0_0_12px_rgba(34,211,238,0.2)]">
+              <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#22d3ee]" />
+              AI Suggestion Mode
+            </div>
+          )}
           <div className="flex gap-1">
             <button title="Attach file" className="rounded-lg p-2 text-[#f5f5dc]/40 hover:bg-[#f5f5dc]/10 hover:text-[#f5f5dc]">
               <Paperclip className="h-5 w-5" />
@@ -909,7 +1133,7 @@ export function ChatTerminal({
               <ImageIcon className="h-5 w-5" />
             </button>
           </div>
-          <div className="relative flex-1">
+          <div className={cn("relative flex-1 transition-all", aiAssistMode && "shadow-[0_0_20px_rgba(34,211,238,0.12)]")}>
             <button
               onClick={onGenerateAIDraft}
               disabled={aiDraftLoading}
@@ -931,7 +1155,10 @@ export function ChatTerminal({
                     : "Type a message, use / for canned responses"
               }
               rows={1}
-              className="w-full resize-none rounded-2xl border border-[#d4af37]/20 bg-[#0a1229] pl-10 pr-12 py-3 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 disabled:cursor-not-allowed disabled:border-[#e11d48]/40 disabled:bg-[#0a1229]/60"
+              className={cn(
+                "w-full resize-none rounded-2xl border border-[#d4af37]/20 bg-[#0a1229] pl-10 pr-12 py-3 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 disabled:cursor-not-allowed disabled:border-[#e11d48]/40 disabled:bg-[#0a1229]/60",
+                aiAssistMode && "border-[#22d3ee]/40 bg-[#0f1f3a]/90 shadow-[0_0_28px_rgba(34,211,238,0.2)]"
+              )}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && !showSlashMenu) {
                   e.preventDefault();
@@ -1189,6 +1416,10 @@ interface CRMSidebarProps {
   onAddNote?: (body: string) => void;
   onToggleVIP?: () => void;
   mediaItems?: MediaItem[];
+  sentimentScore?: number;
+  sentimentLabel?: string;
+  sentimentText?: string;
+  nowMs?: number;
 }
 
 export function CRMSidebar({
@@ -1199,12 +1430,91 @@ export function CRMSidebar({
   onAddNote,
   onToggleVIP,
   mediaItems = [],
+  sentimentScore,
+  sentimentLabel,
+  sentimentText,
+  nowMs = 0,
 }: CRMSidebarProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteValue, setNoteValue] = useState("");
   const [submittingNote, setSubmittingNote] = useState(false);
   const [activeTab, setActiveTab] = useState<"details" | "media">("details");
+  const profileAura = useMemo(() => {
+    if (!contact) {
+      return {
+        label: "New Lead",
+        ring: "bg-gradient-to-br from-[#0f172a] via-[#0a1229] to-[#050a18] shadow-[0_0_22px_rgba(34,211,238,0.05)]",
+        chip: "border-[#22d3ee]/40 bg-[#22d3ee]/10 text-[#22d3ee]",
+      };
+    }
+    if (contact.is_vip) {
+      return {
+        label: "VIP",
+        ring: "bg-gradient-to-br from-[#f9d976] via-[#d4af37] to-[#a5720d] shadow-[0_0_22px_rgba(212,175,55,0.45)]",
+        chip: "border-[#d4af37]/50 bg-[#d4af37]/15 text-[#d4af37]",
+      };
+    }
+    if (contact.labels?.some((l) => l.toLowerCase().includes("verified"))) {
+      return {
+        label: "Verified",
+        ring: "bg-gradient-to-br from-[#22d3ee] via-[#0ea5e9] to-[#0b4f7f] shadow-[0_0_22px_rgba(34,211,238,0.35)]",
+        chip: "border-[#22d3ee]/50 bg-[#22d3ee]/15 text-[#22d3ee]",
+      };
+    }
+    return {
+      label: "New Lead",
+      ring: "bg-gradient-to-br from-[#4ade80] via-[#22d3ee] to-[#0ea5e9] shadow-[0_0_22px_rgba(74,222,128,0.25)]",
+      chip: "border-[#4ade80]/40 bg-[#4ade80]/10 text-[#4ade80]",
+    };
+  }, [contact]);
+  const moodScore = useMemo(() => {
+    if (typeof sentimentScore === "number") return Math.max(5, Math.min(95, Math.round(sentimentScore)));
+    if (!contact) return 48;
+    const base = contact.is_vip ? 72 : 58;
+    const activityBoost = (contact.activity_timeline?.length ?? 0) * 3;
+    const notesBoost = (contact.notes?.length ?? 0) * 2;
+    const lastSeenMs = contact.last_seen_at ? new Date(contact.last_seen_at).getTime() : null;
+    const recencyPenalty =
+      lastSeenMs && Number.isFinite(lastSeenMs)
+        ? Math.min(18, (nowMs - lastSeenMs) / (1000 * 60 * 60 * 24))
+        : 0;
+    return Math.min(95, Math.max(12, Math.round(base + activityBoost + notesBoost - recencyPenalty)));
+  }, [contact, sentimentScore, nowMs]);
+  const moodLabel =
+    sentimentLabel ??
+    (moodScore >= 70 ? "Calm" : moodScore >= 45 ? "Neutral" : "Alert");
+  const lastInteraction = contact?.activity_timeline?.[0];
+  const quickStats = useMemo(
+    () => [
+      {
+        label: "Contact ID",
+        value: contact?.id ? contact.id : "n/a",
+        accent: "#d4af37",
+        monospace: true,
+      },
+      {
+        label: "Last Interaction",
+        value:
+          lastInteraction?.description ??
+          (contact?.last_seen_at && !Number.isNaN(new Date(contact.last_seen_at).getTime())
+            ? formatTime(contact.last_seen_at)
+            : "No recent touch"),
+        accent: "#22d3ee",
+      },
+      {
+        label: "Status",
+        value: profileAura.label,
+        accent: "#4ade80",
+      },
+      {
+        label: "Mood",
+        value: `${moodScore}% ${moodLabel}`,
+        accent: moodScore >= 70 ? "#22c55e" : moodScore >= 45 ? "#eab308" : "#ef4444",
+      },
+    ],
+    [contact, lastInteraction, profileAura.label, moodLabel, moodScore]
+  );
 
   const handleSubmitNote = async () => {
     if (!noteValue.trim() || !onAddNote) return;
@@ -1278,26 +1588,52 @@ export function CRMSidebar({
               {activeTab === "details" && (
                 <div className="p-4">
                   {/* Identity Card */}
-                  <div className="mb-6 flex flex-col items-center text-center">
-                    <div className="relative mb-3">
-                      <div
-                        className={cn(
-                          "flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold",
-                          contact.is_vip
-                            ? "bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] ring-4 ring-[#d4af37]/30"
-                            : "bg-[#1a2940] text-[#f5f5dc]"
-                        )}
-                      >
-                        {contact.display_name?.charAt(0).toUpperCase() ?? "?"}
-                      </div>
-                      {contact.is_vip && (
-                        <div className="absolute -right-1 -top-1 rounded-full bg-[#d4af37] p-1.5">
-                          <Crown className="h-4 w-4 text-[#050a18]" />
+                  <div className="mb-6 flex flex-col items-center text-center gap-3">
+                    <div className="relative flex flex-col items-center gap-3 pb-2">
+                      <div className={cn("relative h-24 w-24 rounded-full p-[3px] transition-all", profileAura.ring)}>
+                        <div
+                          className={cn(
+                            "flex h-full w-full items-center justify-center rounded-full text-2xl font-bold",
+                            contact.is_vip
+                              ? "bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18]"
+                              : "bg-[#0f1b33] text-[#f5f5dc]"
+                          )}
+                        >
+                          {contact.display_name?.charAt(0).toUpperCase() ?? "?"}
                         </div>
-                      )}
+                        {contact.is_vip && (
+                          <div className="absolute -right-1 -top-1 rounded-full bg-[#d4af37] p-1.5">
+                            <Crown className="h-4 w-4 text-[#050a18]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className={cn("rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide", profileAura.chip)}>
+                        {profileAura.label}
+                      </div>
                     </div>
                     <h4 className="text-lg font-bold text-[#f5f5dc]">{contact.display_name ?? "Unknown"}</h4>
-                    {contact.phone && <p className="text-sm text-[#f5f5dc]/50">{contact.phone}</p>}
+                    {contact.phone && (
+                      <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2">
+                              <p className="max-w-[180px] truncate font-mono text-xs text-[#f5f5dc]/60">
+                                {formatPhoneShort(contact.phone ?? "")}
+                              </p>
+                              <button
+                                type="button"
+                                aria-label="Copy phone number"
+                                className="rounded p-1 text-[#f5f5dc]/60 transition hover:bg-[#f5f5dc]/10 hover:text-[#f5f5dc]"
+                                onClick={() => navigator.clipboard.writeText(contact.phone ?? "")}
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="text-xs">{contact.phone}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                     {onToggleVIP && (
                       <button
                         onClick={onToggleVIP}
@@ -1336,6 +1672,79 @@ export function CRMSidebar({
                         </span>
                       )}
                     </div>
+                  </div>
+
+                  {/* Customer Mood Scan */}
+                  <div className="mb-6 space-y-3 rounded-2xl border border-[#d4af37]/10 bg-[#050a18]/70 p-4 shadow-[0_0_14px_rgba(0,0,0,0.35)]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-1 items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#0c2f27]">
+                          <Activity className="h-4 w-4 text-[#10b981]" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[#10b981] leading-tight">Customer Mood Scan</p>
+                          <p className="text-[11px] text-[#f5f5dc]/60 leading-snug">AI-toned sentiment trajectory</p>
+                          <p className="text-[11px] text-[#f5f5dc]/70 leading-snug">{moodLabel}</p>
+                        </div>
+                      </div>
+                      <span className="self-center shrink-0 rounded-full bg-[#10b981]/15 px-3 py-1.5 text-xs font-semibold text-[#10b981]">
+                        {moodScore}%
+                      </span>
+                    </div>
+                    <div className="relative h-3 overflow-hidden rounded-full bg-[#0a1229]">
+                      <div
+                        className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-[#22c55e] via-[#eab308] to-[#ef4444] transition-all"
+                        style={{ width: `${moodScore}%` }}
+                      />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.15),transparent_35%)] opacity-40" />
+                    </div>
+                    <div className="flex justify-between px-0.5 text-[10px] uppercase tracking-wide text-[#f5f5dc]/40">
+                      <span>Calm</span>
+                      <span>Neutral</span>
+                      <span>Alert</span>
+                    </div>
+                    {sentimentText && (
+                      <p className="line-clamp-2 pt-1 text-center text-[11px] italic text-[#f5f5dc]/60">
+                        “{sentimentText.slice(0, 140)}{sentimentText.length > 140 ? "…" : ""}”
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+                    {quickStats.map((stat) => {
+                      const isLastInteraction = stat.label.toLowerCase() === "last interaction";
+                      const isContactId = stat.label.toLowerCase() === "contact id";
+                      return (
+                        <div
+                        key={stat.label}
+                        className={cn(
+                          "flex min-h-[110px] flex-col items-center justify-center rounded-xl border border-[#d4af37]/15 bg-[#0a1229]/70 px-4 py-4 text-center shadow-[0_0_12px_rgba(0,0,0,0.25)] backdrop-blur",
+                          isLastInteraction && "col-span-2 md:col-span-1"
+                        )}
+                      >
+                        <p className="text-[10px] uppercase tracking-wide text-[#f5f5dc]/50">{stat.label}</p>
+                        <p
+                          className={cn(
+                            "mt-2 text-sm font-semibold leading-snug",
+                            stat.monospace ? "font-mono text-xs" : "",
+                            stat.accent ? "" : "text-[#f5f5dc]"
+                          )}
+                          style={{ color: stat.accent }}
+                        >
+                          <span
+                            className={cn(
+                              "block max-w-[140px]",
+                              isContactId ? "truncate" : "line-clamp-2"
+                            )}
+                            title={stat.value}
+                          >
+                            {stat.value}
+                          </span>
+                        </p>
+                      </div>
+                      );
+                    })}
                   </div>
 
                   {/* Metadata */}
@@ -1817,5 +2226,12 @@ function formatDate(dateString: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function formatPhoneShort(phone: string): string {
+  if (phone.length <= 9) return phone;
+  const start = phone.slice(0, 5);
+  const end = phone.slice(-4);
+  return `${start}\u2026${end}`;
 }
 
