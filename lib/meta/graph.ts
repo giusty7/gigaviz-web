@@ -1,5 +1,4 @@
 import { logger } from "@/lib/logging";
-import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
 
 export type MetaGraphError = {
   message?: string;
@@ -39,7 +38,10 @@ export function getMetaAccessToken() {
 }
 
 export async function getWorkspaceMetaAccessToken(workspaceId: string) {
-  const { token } = await resolveWorkspaceMetaToken(workspaceId);
+  const { supabaseAdmin } = await import("@/lib/supabase/admin");
+  const { resolveWorkspaceMetaToken } = await import("@/lib/meta/token.shared");
+  const db = supabaseAdmin();
+  const { token } = await resolveWorkspaceMetaToken(db, workspaceId);
   return token;
 }
 

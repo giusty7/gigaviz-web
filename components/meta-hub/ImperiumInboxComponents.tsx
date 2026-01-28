@@ -114,13 +114,15 @@ export type Message = {
   content_json?: Record<string, unknown>;
   text_body?: string | null;
   status?: string | null;
+  outbox_id?: string | null;
+  idempotency_key?: string | null;
+  error_message?: string | null;
   status_at?: string | null;
   status_updated_at?: string | null;
   delivered_at?: string | null;
   read_at?: string | null;
   failed_at?: string | null;
   error_code?: string | null;
-  error_message?: string | null;
   sent_at?: string | null;
   created_at?: string | null;
   external_message_id?: string | null;
@@ -1215,7 +1217,7 @@ function MessageBubble({ message, onReply, onStar, onForward }: MessageBubblePro
   const statusUpdatedAt = message.status_updated_at ?? message.sent_at ?? message.created_at ?? null;
   const timestamp = message.created_at ?? message.wa_timestamp;
   const isTemplate = message.msg_type === "template";
-  const errorReason = message.error_reason;
+  const errorReason = message.error_reason ?? message.error_message ?? null;
 
   const statusMeta = (() => {
     if (!isOutbound) return null;
@@ -2234,4 +2236,3 @@ function formatPhoneShort(phone: string): string {
   const end = phone.slice(-4);
   return `${start}\u2026${end}`;
 }
-

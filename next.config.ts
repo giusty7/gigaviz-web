@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { validateBuildEnv } from "./lib/env/build";
+
+// Fail fast if required env vars are missing or invalid
+validateBuildEnv();
 
 const nextConfig: NextConfig = {
   async headers() {

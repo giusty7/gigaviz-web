@@ -166,6 +166,42 @@ Both should return rows without ambiguity errors.
 
 ---
 
+## 20260128231758_m1_reliability
+
+Adds missing schema for Meta Hub stability:
+- Creates `meta_webhook_events` (idempotent event store) with unique `(workspace_id, event_key)` and RLS.
+- Adds durable rate limiter (`rate_limit_counters`, function `take_rate_limit_slot(p_key,p_cap,p_window_seconds)`).
+- Upgrades `outbox_messages` with workspace_id, thread/connection refs, idempotency key, and `claim_outbox` RPC using `SKIP LOCKED`.
+
+Apply:
+```bash
+npm run db:push
+```
+
+Verify:
+```sql
+-- meta_webhook_events uniqueness
+SELECT count(*) FROM pg_indexes WHERE tablename='meta_webhook_events' AND indexdef ILIKE '%event_key%';
+-- rate limiter function exists
+SELECT oid::regprocedure FROM pg_proc WHERE proname='take_rate_limit_slot';
+-- outbox uniqueness
+SELECT count(*) FROM pg_indexes WHERE tablename='outbox_messages' AND indexdef ILIKE '%idempotency_key%';
+```
+
+Smoke:
+1) POST `/api/webhooks/meta/whatsapp` with same payload twice -> second should return `deduped=true` (from response).  
+2) Queue outbound (e.g., `/api/meta/whatsapp/send-text`) -> row appears in `outbox_messages`, status `queued`.  
+3) Run worker `npm run worker` -> sends (or dry-run) and marks outbox `sent`.
+
+Rollback:
+```
+drop function if exists claim_outbox(integer,text);
+drop function if exists take_rate_limit_slot(text,integer,integer);
+drop table if exists rate_limit_counters;
+drop table if exists outbox_messages;
+drop table if exists meta_webhook_events;
+```
+
 ## WhatsApp Multi-Connection Routing (20260123090000)
 
 ### Problem Summary

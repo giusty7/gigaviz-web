@@ -10,7 +10,7 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDb } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { findConnectionById, getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     return forbiddenResponse(withCookies);
   }
 
-  const limiter = rateLimit(`wa-template-send-test:${workspaceId}:${userData.user.id}`, {
+  const limiter = await rateLimitDb(`wa-template-send-test:${workspaceId}:${userData.user.id}`, {
     windowMs: 60_000,
     max: 5,
   });

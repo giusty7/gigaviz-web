@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin"; // <- tambah ini
 import { getSafeUser } from "@/lib/supabase/safe-user";
+import { publicEnv } from "@/lib/env";
 
 type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
 
@@ -17,8 +18,8 @@ type WorkspaceMemberRow = {
 };
 
 function createSupabaseRouteClient(req: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const cookiesToSet: CookieToSet[] = [];
 

@@ -1,3 +1,6 @@
+import { supabaseAdmin } from "@/lib/supabase/admin.node";
+import "dotenv/config";
+
 type RateLimitOptions = {
   windowMs: number;
   max: number;
@@ -44,7 +47,6 @@ export function rateLimit(key: string, options: RateLimitOptions): RateLimitResu
 export async function rateLimitDb(key: string, options: RateLimitOptions): Promise<RateLimitResult> {
   const windowSeconds = Math.max(1, Math.floor(options.windowMs / 1000));
   try {
-    const { supabaseAdmin } = await import("@/lib/supabase/admin");
     const db = supabaseAdmin();
     const { data, error } = await db.rpc("take_rate_limit_slot", {
       p_key: key,

@@ -8,11 +8,11 @@ import {
   unauthorizedResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDb } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWaSettings } from "@/lib/meta/wa-settings";
-import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
+import { createHash } from "node:crypto";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
@@ -43,6 +43,13 @@ function renderTemplateBody(body: string | null | undefined, variables: string[]
     const value = variables[idx];
     return typeof value === "string" && value.trim().length > 0 ? value : `{{${rawIdx}}}`;
   });
+}
+
+function hashTemplate(name: string, language: string, parameters: Array<{ type: string; text: string }>) {
+  return createHash("sha256")
+    .update(`${name}:${language}:${JSON.stringify(parameters)}`)
+    .digest("hex")
+    .slice(0, 12);
 }
 
 export const runtime = "nodejs";
@@ -95,7 +102,10 @@ export async function POST(req: NextRequest) {
     return forbiddenResponse(withCookies);
   }
 
-  const limiter = rateLimit(`wa-reply:${workspaceId}:${userData.user.id}`, { windowMs: 60_000, max: 5 });
+  const limiter = await rateLimitDb(`wa-reply:${workspaceId}:${userData.user.id}`, {
+    windowMs: 60_000,
+    max: 5,
+  });
   if (!limiter.ok) {
     return withCookies(
       NextResponse.json({ error: "rate_limited", resetAt: limiter.resetAt }, { status: 429 })
@@ -159,7 +169,6 @@ export async function POST(req: NextRequest) {
   }
 
   const resolvedConnection = connectionResult.connection;
-  const resolvedToken = connectionResult.token;
 
   const sandbox = await getWaSettings(workspaceId);
   if (sandbox.sandboxEnabled && !sandbox.whitelist.includes(thread.contact_wa_id)) {
@@ -193,68 +202,16 @@ export async function POST(req: NextRequest) {
     .slice(0, Math.max(placeholderCount, cleanedVars.length))
     .map((text) => ({ type: "text", text }));
   const renderedText = renderTemplateBody(template.body, cleanedVars);
-  const payload = {
-    messaging_product: "whatsapp",
-    to: thread.contact_wa_id,
-    type: "template",
-    template: {
-      name: template.name,
-      language: { code: template.language },
-      components: [
-        {
-          type: "body",
-          parameters,
-        },
-      ],
-    },
-  };
-
-  let success = false;
-  let messageId: string | null = null;
-  let errorText: string | null = null;
-  let waResponse: Record<string, unknown> | null = null;
-
-  const sendResult = await sendWhatsappMessage({
-    phoneNumberId: resolvedConnection.phone_number_id!,
-    token: resolvedToken,
-    payload,
-  });
-
-  waResponse = sendResult.response ?? {};
-  if (sendResult.ok) {
-    success = true;
-    messageId = sendResult.messageId ?? null;
-  } else {
-    errorText = sendResult.errorMessage ?? "send_failed";
-  }
-
-  await logMetaAdminAudit({
-    db: adminDb,
-    workspaceId,
-    userId: userData.user.id,
-    action: "wa_reply_template",
-    ok: success,
-    detail: { threadId, template: templateName },
-    error: success ? null : errorText,
-  });
-
-  if (!success) {
-    return withCookies(
-      NextResponse.json({ error: "send_failed", reason: errorText ?? "unknown" }, { status: 502 })
-    );
-  }
-
   const now = new Date().toISOString();
-  const statusValue = messageId ? "sent" : "pending";
 
   const insertPayload = {
     workspace_id: workspaceId,
     thread_id: threadId,
-    wa_message_id: messageId ?? null,
+    wa_message_id: null as string | null,
     direction: "outbound",
     type: "template",
     msg_type: "template",
-    status: statusValue,
+    status: "queued" as const,
     status_at: now,
     status_updated_at: now,
     delivered_at: null as string | null,
@@ -263,9 +220,13 @@ export async function POST(req: NextRequest) {
     error_code: null as string | null,
     error_message: null as string | null,
     text_body: renderedText || `Template: ${template.name}`,
-    payload_json: { request: payload, response: waResponse ?? {}, template_variables: cleanedVars, rendered_text: renderedText },
+    payload_json: {
+      request: { template: template.name, language: template.language, parameters },
+      template_variables: cleanedVars,
+      rendered_text: renderedText,
+    },
     created_at: now,
-    sent_at: now,
+    sent_at: null as string | null,
     wa_timestamp: now,
     phone_number_id: resolvedConnection.phone_number_id,
     connection_id: resolvedConnection.id, // FK to wa_phone_numbers for deterministic routing
@@ -273,19 +234,11 @@ export async function POST(req: NextRequest) {
     to_wa_id: thread.contact_wa_id ?? null,
   };
 
-  const writeQuery = messageId
-    ? adminDb
-        .from("wa_messages")
-        .upsert(insertPayload, { onConflict: "workspace_id,phone_number_id,wa_message_id" })
-        .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
-        .single()
-    : adminDb
-        .from("wa_messages")
-        .insert(insertPayload)
-        .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
-        .single();
-
-  const { data: insertedMessage, error: insertErr } = await writeQuery;
+  const { data: insertedMessage, error: insertErr } = await adminDb
+    .from("wa_messages")
+    .insert(insertPayload)
+    .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id, status")
+    .single();
   if (insertErr) {
     return withCookies(
       NextResponse.json(
@@ -307,6 +260,65 @@ export async function POST(req: NextRequest) {
     .eq("workspace_id", workspaceId)
     .eq("id", threadId);
 
+  const toPhone = thread.contact_wa_id ?? thread.phone_number_id ?? "";
+  const idempotencyKey = `wa-reply:${workspaceId}:${threadId}:${hashTemplate(template.name, template.language, parameters)}:${Math.floor(Date.now() / 30000)}`;
+  const nextAttemptAt = new Date().toISOString();
+
+  const { data: outboxInsert, error: outboxError } = await adminDb
+    .from("outbox_messages")
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        thread_id: threadId,
+        connection_id: resolvedConnection.id,
+        to_phone: toPhone,
+        message_type: "template",
+        payload: {
+          message_id: insertedMessage.id,
+          template_name: template.name,
+          language: template.language,
+          parameters,
+          connection_id: resolvedConnection.id,
+          phone_number_id: resolvedConnection.phone_number_id,
+        },
+        idempotency_key: idempotencyKey,
+        status: "queued",
+        attempts: 0,
+        next_run_at: nextAttemptAt,
+        next_attempt_at: nextAttemptAt,
+      },
+      { onConflict: "idempotency_key" }
+    )
+    .select("id, status, next_attempt_at, last_error")
+    .single();
+
+  if (outboxError || !outboxInsert) {
+    console.error("[reply-template] outbox insert failed:", outboxError);
+    return withCookies(
+      NextResponse.json(
+        {
+          success: false,
+          error: "outbox_error",
+          reason: "enqueue_failed",
+          message: outboxError?.message ?? "Failed to enqueue message",
+          details: outboxError?.details,
+          hint: outboxError?.hint,
+        },
+        { status: 500 }
+      )
+    );
+  }
+
+  await logMetaAdminAudit({
+    db: adminDb,
+    workspaceId,
+    userId: userData.user.id,
+    action: "wa_reply_template",
+    ok: true,
+    detail: { threadId, template: templateName },
+    error: null,
+  });
+
   // Record metric for dashboard
   try {
     const { incrementQuotaUsage, recordMetric } = await import("@/lib/quotas");
@@ -316,11 +328,18 @@ export async function POST(req: NextRequest) {
     // Best effort
   }
 
+  const responseMessage = insertedMessage
+    ? { ...insertedMessage, outbox_id: outboxInsert.id, idempotency_key: idempotencyKey }
+    : null;
+
   return withCookies(
     NextResponse.json({
       success: true,
-      messageId,
-      insertedMessage,
+      status: "queued",
+      queued: true,
+      message: responseMessage ?? insertedMessage,
+      outboxId: outboxInsert.id,
+      idempotencyKey,
     })
   );
 }

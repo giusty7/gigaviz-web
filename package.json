@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "echo \"No tests configured yet\"",
     "worker": "tsx scripts/worker.ts",
+    "env:check": "tsx lib/env/build.ts",
     "test:smoke": "tsx lib/worker/backoff.test.ts",
     "kb:index": "tsx scripts/kb-index.ts",
     "kb:index:docs": "tsx scripts/kb-index.ts docs",
@@ -51,6 +52,7 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "resend": "^6.6.0",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^2.6.0",
     "zod": "^4.1.13"
   },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { createHash } from "node:crypto";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import {
   forbiddenResponse,
@@ -8,16 +9,19 @@ import {
   unauthorizedResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDb } from "@/lib/rate-limit";
 import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWaSettings } from "@/lib/meta/wa-settings";
-import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
   threadId: z.string().uuid(),
   text: z.string().min(1),
 });
+
+function hashText(text: string) {
+  return createHash("sha256").update(text).digest("hex").slice(0, 12);
+}
 
 export const runtime = "nodejs";
 
@@ -96,7 +100,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const limiter = rateLimit(`wa-send-text:${workspaceId}:${userData.user.id}`, {
+  const limiter = await rateLimitDb(`wa-send-text:${workspaceId}:${userData.user.id}`, {
     windowMs: 60_000,
     max: 10,
   });
@@ -134,7 +138,6 @@ export async function POST(req: NextRequest) {
   }
 
   const resolvedConnection = connectionResult.connection;
-  const resolvedToken = connectionResult.token;
 
   const now = new Date().toISOString();
 
@@ -206,49 +209,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let waMessageId: string | null = null;
-  let waResponse: Record<string, unknown> | null = null;
-  const requestPayload = {
-    messaging_product: "whatsapp",
-    to: thread.contact_wa_id ?? thread.phone_number_id,
-    type: "text",
-    text: { body: text },
-  };
-
-  const sendResult = await sendWhatsappMessage({
-    phoneNumberId: resolvedConnection.phone_number_id!,
-    token: resolvedToken,
-    payload: requestPayload,
-  });
-
-  waResponse = sendResult.response ?? {};
-  if (!sendResult.ok) {
-    return withCookies(
-      NextResponse.json(
-        {
-          error: "wa_send_failed",
-          reason: sendResult.errorMessage ?? "Graph API error",
-          details: sendResult.response ?? null,
-        },
-        { status: 502 }
-      )
-    );
-  }
-
-  waMessageId = sendResult.messageId;
-
-  const statusValue = waMessageId ? "sent" : "pending";
-
   const insertPayload = {
     workspace_id: workspaceId,
     thread_id: threadId,
     phone_number_id: resolvedConnection.phone_number_id,
     connection_id: resolvedConnection.id, // FK to wa_phone_numbers for deterministic routing
-    wa_message_id: waMessageId,
+    wa_message_id: null as string | null,
     direction: "outbound",
     type: "text",
     msg_type: "text",
-    status: statusValue,
+    status: "queued" as const,
     status_at: now,
     status_updated_at: now,
     delivered_at: null as string | null,
@@ -257,30 +227,20 @@ export async function POST(req: NextRequest) {
     error_code: null as string | null,
     error_message: null as string | null,
     text_body: text,
-    payload_json: { request: requestPayload, response: waResponse ?? {} },
+    payload_json: { request: { to: thread.contact_wa_id ?? thread.phone_number_id, text } },
     wa_timestamp: now,
     created_at: now,
-    sent_at: now,
+    sent_at: null as string | null,
     from_wa_id: resolvedConnection.phone_number_id,
     to_wa_id: thread.contact_wa_id ?? null,
   };
 
   try {
-    const writeQuery = waMessageId
-      ? db
-          .from("wa_messages")
-          .upsert(insertPayload, {
-            onConflict: "workspace_id,phone_number_id,wa_message_id",
-          })
-          .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
-          .single()
-      : db
-          .from("wa_messages")
-          .insert(insertPayload)
-          .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id")
-          .single();
-
-    const { data: insertedMessage, error: insertErr } = await writeQuery;
+    const { data: insertedMessage, error: insertErr } = await db
+      .from("wa_messages")
+      .insert(insertPayload)
+      .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id, status")
+      .single();
     if (insertErr) {
       return withCookies(
         NextResponse.json(
@@ -291,6 +251,53 @@ export async function POST(req: NextRequest) {
             message: insertErr.message,
             details: insertErr.details,
             hint: insertErr.hint,
+          },
+          { status: 500 }
+        )
+      );
+    }
+
+    const toPhone = thread.contact_wa_id ?? thread.phone_number_id ?? "";
+    const idempotencyKey = `wa-send-text:${workspaceId}:${threadId}:${hashText(text)}:${Math.floor(Date.now() / 30000)}`;
+
+    const nextAttemptAt = new Date().toISOString();
+    const { data: outboxInsert, error: outboxError } = await db
+      .from("outbox_messages")
+      .upsert(
+        {
+          workspace_id: workspaceId,
+          thread_id: threadId,
+          connection_id: resolvedConnection.id,
+          to_phone: toPhone,
+          message_type: "text",
+          payload: {
+            message_id: insertedMessage.id,
+            text,
+            phone_number_id: resolvedConnection.phone_number_id,
+            connection_id: resolvedConnection.id,
+          },
+          idempotency_key: idempotencyKey,
+          status: "queued",
+          attempts: 0,
+          next_run_at: nextAttemptAt,
+          next_attempt_at: nextAttemptAt,
+        },
+        { onConflict: "idempotency_key" }
+      )
+      .select("id, status, next_attempt_at, last_error")
+      .single();
+
+    if (outboxError || !outboxInsert) {
+      console.error("[send-text] outbox insert failed:", outboxError);
+      return withCookies(
+        NextResponse.json(
+          {
+            ok: false,
+            error: "outbox_error",
+            reason: "enqueue_failed",
+            message: outboxError?.message ?? "Failed to enqueue message",
+            details: outboxError?.details,
+            hint: outboxError?.hint,
           },
           { status: 500 }
         )
@@ -311,17 +318,23 @@ export async function POST(req: NextRequest) {
     try {
       const { incrementQuotaUsage, recordMetric } = await import("@/lib/quotas");
       await incrementQuotaUsage(workspaceId, "wa_messages_monthly", 1);
-      await recordMetric(workspaceId, "wa_messages_sent", 1, { thread_id: threadId });
+      await recordMetric(workspaceId, "wa_messages_sent", 1, { thread_id: threadId, queued: true });
     } catch {
       // Best effort
     }
 
+    const responseMessage = insertedMessage
+      ? { ...insertedMessage, outbox_id: outboxInsert.id, idempotency_key: idempotencyKey }
+      : null;
+
     return withCookies(
       NextResponse.json({
         ok: true,
-        status: "pending",
-        waMessageId,
-        insertedMessage,
+        status: "queued",
+        queued: true,
+        message: responseMessage ?? insertedMessage,
+        outboxId: outboxInsert.id,
+        idempotencyKey,
       })
     );
   } catch (err) {

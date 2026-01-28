@@ -432,6 +432,23 @@ export function ImperiumInboxClient({
     }
   }, [toast, workspaceSlug, fetchTelemetry]);
 
+  const refreshMessages = useCallback(
+    async (threadId: string | null) => {
+      if (!threadId) return;
+      try {
+        const params = new URLSearchParams({ threadId, workspaceSlug });
+        const res = await fetch(`/api/meta/whatsapp/thread/messages?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data?.messages) {
+          setMessages(data.messages ?? []);
+        }
+      } catch {
+        // silent refresh failure
+      }
+    },
+    [workspaceSlug]
+  );
+
   // Build contact details from thread
   const buildContactDetails = useCallback(
     (thread: Thread): ContactDetails => {
@@ -790,7 +807,7 @@ export function ImperiumInboxClient({
       id: `temp-${Date.now()}`,
       direction: "out",
       text_body: text,
-      status: "sending",
+      status: "queued",
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, tempMessage]);
@@ -811,14 +828,19 @@ export function ImperiumInboxClient({
         throw new Error(data.error || "Failed to send message");
       }
 
-      // Replace temp message with real one
+      const inserted = (data?.message ?? data?.insertedMessage) as Partial<Message> | undefined;
+      const outboxId = typeof data?.outboxId === "string" ? data.outboxId : null;
+      const status = (data?.status as string | undefined) ?? inserted?.status ?? "queued";
       setMessages((prev) =>
         prev.map((m) =>
           m.id === tempMessage.id
             ? {
                 ...m,
-                id: data.insertedMessage?.id ?? m.id,
-                status: (data.status as string | undefined) ?? "pending",
+                id: inserted?.id ?? data.insertedMessage?.id ?? m.id,
+                status,
+                wa_message_id: inserted?.wa_message_id ?? m.wa_message_id,
+                wa_timestamp: inserted?.wa_timestamp ?? m.wa_timestamp,
+                outbox_id: outboxId ?? (inserted as { outbox_id?: string })?.outbox_id ?? null,
               }
             : m
         )
@@ -907,6 +929,17 @@ export function ImperiumInboxClient({
     },
     [allowWrite, fetchMessages, optOutDetected, selectedThread, toast, workspaceSlug]
   );
+
+  useEffect(() => {
+    const hasQueued = messages.some(
+      (m) =>
+        !["in", "inbound"].includes(m.direction) &&
+        (!m.status || ["queued", "pending", "sending"].includes((m.status ?? "").toLowerCase()))
+    );
+    if (!selectedThread?.id || !hasQueued) return;
+    const timer = setInterval(() => refreshMessages(selectedThread.id), 2500);
+    return () => clearInterval(timer);
+  }, [messages, selectedThread, refreshMessages]);
 
   const handleEscalate = useCallback(async () => {
     if (!selectedThread) return;

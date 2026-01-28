@@ -57,6 +57,9 @@ type Message = {
   content_json?: Record<string, unknown>; // backwards-compat mapping from API
   text_body?: string | null;
   status?: string | null;
+  outbox_id?: string | null;
+  idempotency_key?: string | null;
+  error_message?: string | null;
   created_at?: string | null;
   external_message_id?: string | null;
   wa_message_id?: string | null;
@@ -275,11 +278,45 @@ export function WhatsappInboxClient({
     [workspaceId, fetchThreads, toast]
   );
 
+  const refreshMessages = useCallback(
+    async (threadId: string | null) => {
+      if (!threadId) return;
+      try {
+        const res = await fetch(
+          `/api/meta/whatsapp/thread/messages?threadId=${encodeURIComponent(
+            threadId
+          )}&workspaceId=${encodeURIComponent(workspaceId)}`,
+          { cache: "no-store", credentials: "include" }
+        );
+        const data = await res.json();
+        if (res.ok && data?.messages) {
+          setMessages(data.messages ?? []);
+        }
+      } catch {
+        // silent
+      }
+    },
+    [workspaceId]
+  );
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
   }, [messages]);
+
+  useEffect(() => {
+    const hasQueued = messages.some(
+      (m) =>
+        !isInbound(m.direction) &&
+        (!m.status || ["queued", "pending", "sending"].includes((m.status || "").toLowerCase()))
+    );
+    if (!selectedId || !hasQueued) return undefined;
+    const timer = setInterval(() => {
+      refreshMessages(selectedId);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [messages, selectedId, refreshMessages]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -610,6 +647,7 @@ export function WhatsappInboxClient({
       direction: "outbound" as const,
       text_body: composerText.trim(),
       wa_timestamp: nowIso,
+      status: "queued" as const,
     };
     setMessages((prev) => [...prev, optimistic]);
     try {
@@ -620,13 +658,19 @@ export function WhatsappInboxClient({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to send message");
-      const inserted = data?.insertedMessage as Partial<Message> | undefined;
+      const inserted = (data?.message ?? data?.insertedMessage) as Partial<Message> | undefined;
       const insertedId = typeof inserted?.id === "string" ? inserted.id : null;
       const insertedDirection =
         (inserted?.direction as Message["direction"]) ?? "outbound";
       const insertedText = inserted?.text_body ?? composerText.trim();
       const insertedTimestamp = inserted?.wa_timestamp ?? nowIso;
       const insertedWaMessageId = inserted?.wa_message_id ?? undefined;
+      const insertedStatus = inserted?.status ?? "queued";
+      const outboxId = typeof data?.outboxId === "string" ? data.outboxId : (inserted as { outbox_id?: string })?.outbox_id ?? null;
+      const idempotencyKey =
+        typeof data?.idempotencyKey === "string"
+          ? data.idempotencyKey
+          : (inserted as { idempotency_key?: string })?.idempotency_key ?? null;
       setMessages((prev) => {
         const withoutTemp = prev.filter((m) => m.id !== tempId);
         if (!insertedId) return withoutTemp;
@@ -638,6 +682,9 @@ export function WhatsappInboxClient({
             text_body: insertedText,
             wa_message_id: insertedWaMessageId,
             wa_timestamp: insertedTimestamp,
+            status: insertedStatus,
+            outbox_id: outboxId ?? null,
+            idempotency_key: idempotencyKey ?? null,
           },
         ];
       });
@@ -686,7 +733,7 @@ export function WhatsappInboxClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.reason || data?.error || "Failed to send template");
       toast({ title: "Message sent", description: data?.messageId ? `ID: ${data.messageId}` : "" });
-      const inserted = data?.insertedMessage as Partial<Message> | undefined;
+      const inserted = (data?.message ?? data?.insertedMessage) as Partial<Message> | undefined;
       const nowIso = new Date().toISOString();
       const preview = `Template: ${replyTemplate.name}`;
       const insertedId = typeof inserted?.id === "string" ? inserted.id : null;
@@ -695,6 +742,12 @@ export function WhatsappInboxClient({
       const insertedText = inserted?.text_body ?? preview;
       const insertedTimestamp = inserted?.wa_timestamp ?? nowIso;
       const insertedWaMessageId = inserted?.wa_message_id ?? undefined;
+      const insertedStatus = inserted?.status ?? "queued";
+      const outboxId = typeof data?.outboxId === "string" ? data.outboxId : (inserted as { outbox_id?: string })?.outbox_id ?? null;
+      const idempotencyKey =
+        typeof data?.idempotencyKey === "string"
+          ? data.idempotencyKey
+          : (inserted as { idempotency_key?: string })?.idempotency_key ?? null;
       setMessages((prev) => {
         const withoutTemp = prev.filter((m) => m.id !== "__tpl_pending__");
         if (!insertedId) return withoutTemp;
@@ -706,6 +759,9 @@ export function WhatsappInboxClient({
             text_body: insertedText,
             wa_message_id: insertedWaMessageId,
             wa_timestamp: insertedTimestamp,
+            status: insertedStatus,
+            outbox_id: outboxId ?? null,
+            idempotency_key: idempotencyKey ?? null,
           },
         ];
       });
@@ -1126,10 +1182,19 @@ export function WhatsappInboxClient({
                       <span>{time}</span>
                     </div>
                     <p className="mt-1 whitespace-pre-wrap">{renderMessageBody(msg)}</p>
-                    {!inbound && msg.status ? (
-                      <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground text-right">
-                        {msg.status}
-                      </p>
+                    {!inbound ? (
+                      <div className="mt-1 text-[11px] tracking-wide text-right text-muted-foreground space-y-0.5">
+                        <div className="uppercase">{msg.status ?? "queued"}</div>
+                        {msg.error_message ? (
+                          <div className="text-amber-600 normal-case">{msg.error_message}</div>
+                        ) : null}
+                        {process.env.NODE_ENV !== "production" ? (
+                          <div className="text-[10px] text-muted-foreground/70">
+                            {msg.outbox_id ? `outbox:${msg.outbox_id}` : null}
+                            {msg.wa_message_id ? ` wa:${msg.wa_message_id}` : null}
+                          </div>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
                 </div>

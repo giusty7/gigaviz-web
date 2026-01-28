@@ -1,7 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDb } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { storeMetaEventLog } from "@/lib/meta/events";
 import {
@@ -113,7 +113,7 @@ export function handleMetaWhatsAppVerify(req: NextRequest) {
 
 export async function handleMetaWhatsAppWebhook(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const limit = rateLimit(`meta-webhook:${ip}`, { windowMs: 60_000, max: 120 });
+  const limit = await rateLimitDb(`meta-webhook:${ip}`, { windowMs: 60_000, max: 120 });
   if (!limit.ok) {
     return NextResponse.json({ error: "rate_limited", resetAt: limit.resetAt }, { status: 429 });
   }
