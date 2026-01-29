@@ -26,17 +26,21 @@ import { BookmarkIcon, CheckIcon, MoreVerticalIcon, TagIcon, UserIcon, XIcon } f
 type SavedView = {
   id: string;
   name: string;
-  status: string;
-  assigned: string;
-  q: string;
+  filters: {
+    status?: string;
+    assigned?: string;
+    tag?: string;
+    q?: string;
+  };
+  created_at?: string;
 };
 
 /** Default preset views shipped out of the box */
 const DEFAULT_VIEWS: SavedView[] = [
-  { id: "preset-open", name: "Open", status: "open", assigned: "all", q: "" },
-  { id: "preset-unassigned", name: "Unassigned", status: "all", assigned: "unassigned", q: "" },
-  { id: "preset-assigned", name: "Assigned to me", status: "all", assigned: "assigned", q: "" },
-  { id: "preset-vip", name: "VIP", status: "all", assigned: "all", q: "vip" },
+  { id: "preset-open", name: "Open", filters: { status: "open", assigned: "all", tag: "all", q: "" } },
+  { id: "preset-unassigned", name: "Unassigned", filters: { status: "all", assigned: "unassigned", tag: "all", q: "" } },
+  { id: "preset-assigned", name: "Assigned to me", filters: { status: "all", assigned: "assigned", tag: "all", q: "" } },
+  { id: "preset-vip", name: "VIP", filters: { status: "all", assigned: "all", tag: "all", q: "vip" } },
 ];
 
 type Thread = {
@@ -84,7 +88,7 @@ type Props = {
 
 const STATUS_OPTIONS = ["open", "pending", "closed"];
 
-const FILTER_PARAM_KEYS = { status: "status", assigned: "assigned", q: "q" } as const;
+const FILTER_PARAM_KEYS = { status: "status", assigned: "assigned", q: "q", tag: "tag" } as const;
 
 function makeTempId() {
   return `temp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -126,6 +130,7 @@ export function WhatsappInboxClient({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assignFilter, setAssignFilter] = useState<string>("all");
+  const [tagFilter, setTagFilter] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
@@ -137,27 +142,26 @@ export function WhatsappInboxClient({
   const searchParams = useSearchParams();
 
   // Saved Views state
-  const savedViewsKey = `gv:wa-inbox-views:${workspaceId}:${userId}`;
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [bulkActionInProgress, setBulkActionInProgress] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
 
-  // Load saved views from localStorage on mount
+  // Fetch saved views from API on mount
   useEffect(() => {
-    try {
-      const raw = typeof window !== "undefined" ? window.localStorage.getItem(savedViewsKey) : null;
-      if (raw) setSavedViews(JSON.parse(raw));
-    } catch {
-      // ignore
+    async function fetchSavedViews() {
+      try {
+        const res = await fetch(`/api/meta/whatsapp/saved-views?workspaceId=${workspaceId}`);
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.views)) {
+          setSavedViews(data.views);
+        }
+      } catch {
+        // Silently fail - saved views are optional
+      }
     }
-  }, [savedViewsKey]);
-
-  // Persist saved views to localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined" && savedViews.length > 0) {
-      window.localStorage.setItem(savedViewsKey, JSON.stringify(savedViews));
-    }
-  }, [savedViews, savedViewsKey]);
+    fetchSavedViews();
+  }, [workspaceId]);
 
   const visibleThreads = useMemo(() => threadList, [threadList]);
 
@@ -179,19 +183,22 @@ export function WhatsappInboxClient({
     const qpStatus = searchParams?.get(FILTER_PARAM_KEYS.status) ?? "all";
     const qpAssign = searchParams?.get(FILTER_PARAM_KEYS.assigned) ?? "all";
     const qpQ = searchParams?.get(FILTER_PARAM_KEYS.q) ?? "";
+    const qpTag = searchParams?.get(FILTER_PARAM_KEYS.tag) ?? "all";
     setStatusFilter(qpStatus || "all");
     setAssignFilter(qpAssign || "all");
     setSearch(qpQ || "");
+    setTagFilter(qpTag || "all");
   }, [searchParams]);
 
   const pushFiltersToUrl = useCallback(
-    (next: { status?: string; assigned?: string; q?: string }) => {
+    (next: { status?: string; assigned?: string; q?: string; tag?: string }) => {
       if (typeof window === "undefined") return;
       const url = new URL(window.location.href);
       const current = new URLSearchParams(url.search);
       if (next.status !== undefined) current.set(FILTER_PARAM_KEYS.status, next.status);
       if (next.assigned !== undefined) current.set(FILTER_PARAM_KEYS.assigned, next.assigned);
       if (next.q !== undefined) current.set(FILTER_PARAM_KEYS.q, next.q);
+      if (next.tag !== undefined) current.set(FILTER_PARAM_KEYS.tag, next.tag);
       router.replace(`${url.pathname}?${current.toString()}`);
     },
     [router]
@@ -215,6 +222,7 @@ export function WhatsappInboxClient({
       if (search.trim()) params.set("q", search.trim());
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (assignFilter !== "all") params.set("assigned", assignFilter);
+      if (tagFilter !== "all") params.set("tag", tagFilter);
 
       const res = await fetch(`/api/meta/whatsapp/threads?${params.toString()}`, {
         cache: "no-store",
@@ -230,7 +238,7 @@ export function WhatsappInboxClient({
     } finally {
       setThreadsLoading(false);
     }
-  }, [workspaceId, search, statusFilter, assignFilter]);
+  }, [workspaceId, search, statusFilter, assignFilter, tagFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -238,6 +246,22 @@ export function WhatsappInboxClient({
     }, 250);
     return () => clearTimeout(timer);
   }, [fetchThreads]);
+
+  // Fetch available tags for the workspace
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const res = await fetch(`/api/meta/whatsapp/tags?workspaceId=${workspaceId}`);
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.tags)) {
+          setAvailableTags(data.tags);
+        }
+      } catch {
+        // Silently fail - tags filter is optional
+      }
+    }
+    fetchTags();
+  }, [workspaceId]);
 
   const loadThread = useCallback(
     async (threadId: string) => {
@@ -489,35 +513,6 @@ export function WhatsappInboxClient({
         variant: "destructive",
       });
     }
-  }
-
-  // --- Saved Views handlers ---
-  function applyView(view: SavedView) {
-    setStatusFilter(view.status);
-    setAssignFilter(view.assigned);
-    setSearch(view.q);
-    setActiveViewId(view.id);
-    pushFiltersToUrl({ status: view.status, assigned: view.assigned, q: view.q });
-  }
-
-  function saveCurrentView() {
-    const name = prompt("Enter a name for this view:");
-    if (!name?.trim()) return;
-    const newView: SavedView = {
-      id: `view-${Date.now().toString(36)}`,
-      name: name.trim(),
-      status: statusFilter,
-      assigned: assignFilter,
-      q: search,
-    };
-    setSavedViews((prev) => [...prev, newView]);
-    setActiveViewId(newView.id);
-    toast({ title: "View saved", description: `"${newView.name}" saved successfully.` });
-  }
-
-  function deleteView(viewId: string) {
-    setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
-    if (activeViewId === viewId) setActiveViewId(null);
   }
 
   // --- Quick Actions (per-thread) ---
@@ -834,7 +829,7 @@ export function WhatsappInboxClient({
 
   const canSend = canEdit && allowWrite;
   const hasFilters =
-    statusFilter !== "all" || assignFilter !== "all" || search.trim().length > 0;
+    statusFilter !== "all" || assignFilter !== "all" || search.trim().length > 0 || tagFilter !== "all";
 
   function toggleBulkSelection(threadId: string) {
     setSelectedThreadIds((prev) => {
@@ -849,7 +844,88 @@ export function WhatsappInboxClient({
     setSearch("");
     setStatusFilter("all");
     setAssignFilter("all");
-    pushFiltersToUrl({ status: "all", assigned: "all", q: "" });
+    setTagFilter("all");
+    pushFiltersToUrl({ status: "all", assigned: "all", q: "", tag: "all" });
+    setActiveViewId(null);
+  }
+
+  function applyView(view: SavedView) {
+    const { filters } = view;
+    setStatusFilter(filters.status ?? "all");
+    setAssignFilter(filters.assigned ?? "all");
+    setSearch(filters.q ?? "");
+    setTagFilter(filters.tag ?? "all");
+    pushFiltersToUrl({
+      status: filters.status ?? "all",
+      assigned: filters.assigned ?? "all",
+      q: filters.q ?? "",
+      tag: filters.tag ?? "all",
+    });
+    setActiveViewId(view.id);
+  }
+
+  async function saveCurrentView() {
+    const name = prompt("Enter a name for this saved view:");
+    if (!name || !name.trim()) return;
+
+    try {
+      const res = await fetch("/api/meta/whatsapp/saved-views", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId,
+          name: name.trim(),
+          filters: {
+            status: statusFilter !== "all" ? statusFilter : undefined,
+            assigned: assignFilter !== "all" ? assignFilter : undefined,
+            tag: tagFilter !== "all" ? tagFilter : undefined,
+            q: search.trim() || undefined,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to save view");
+      }
+
+      setSavedViews((prev) => [...prev, data.view]);
+      setActiveViewId(data.view.id);
+      toast({ title: "View saved", description: `"${name}" saved successfully` });
+    } catch (err) {
+      toast({
+        title: "Failed to save",
+        description: err instanceof Error ? err.message : "Error saving view",
+        variant: "destructive",
+      });
+    }
+  }
+
+  async function deleteView(viewId: string) {
+    if (!confirm("Delete this saved view?")) return;
+
+    try {
+      const res = await fetch(`/api/meta/whatsapp/saved-views/${viewId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || "Failed to delete");
+      }
+
+      setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
+      if (activeViewId === viewId) setActiveViewId(null);
+      toast({ title: "View deleted" });
+    } catch (err) {
+      toast({
+        title: "Failed to delete",
+        description: err instanceof Error ? err.message : "Error",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -906,6 +982,24 @@ export function WhatsappInboxClient({
                 <option value="unassigned">Unassigned</option>
               </select>
             </div>
+            <div className="text-xs">
+              <select
+                className="w-full rounded-lg border border-border bg-background px-2 py-1"
+                value={tagFilter}
+                title="Filter by tag"
+                onChange={(e) => {
+                  setTagFilter(e.target.value);
+                  pushFiltersToUrl({ tag: e.target.value });
+                }}
+              >
+                <option value="all">All tags</option>
+                {availableTags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            </div>
             {hasFilters ? (
               <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span className="text-muted-foreground">Filters:</span>
@@ -922,6 +1016,11 @@ export function WhatsappInboxClient({
                 {search.trim() ? (
                   <Badge variant="outline" className="border-gigaviz-gold text-foreground">
                     Search: {search.trim()}
+                  </Badge>
+                ) : null}
+                {tagFilter !== "all" ? (
+                  <Badge variant="outline" className="border-gigaviz-gold text-foreground">
+                    Tag: {tagFilter}
                   </Badge>
                 ) : null}
                 <Button

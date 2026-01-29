@@ -39,10 +39,28 @@ import {
   Hash,
   AlertCircle,
   Copy,
+  Bookmark,
+  ChevronDown,
+  Trash2,
+  CheckCircle2,
+  Users,
+  ArrowUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 /* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
    HYDRATION-SAFE MOUNT CHECK
@@ -169,6 +187,22 @@ export type FilterState = {
   search: string;
   showVipOnly: boolean;
   quickTab: "all" | "unread" | "assigned";
+  tags: string[];
+  sortBy: "newest" | "oldest" | "recent_reply" | "unread_first";
+};
+
+export type SavedView = {
+  id: string;
+  name: string;
+  filters: Partial<FilterState>;
+  isDefault?: boolean;
+  created_at?: string;
+};
+
+export type WorkspaceMember = {
+  user_id: string;
+  email: string;
+  full_name?: string | null;
 };
 
 export type CannedResponse = {
@@ -333,6 +367,18 @@ interface ContactListProps {
   currentUserId?: string;
   slaHours?: number;
   nowMs?: number;
+  workspaceId?: string;
+  savedViews?: SavedView[];
+  onSaveView?: (name: string, filters: Partial<FilterState>) => Promise<void>;
+  onDeleteView?: (viewId: string) => Promise<void>;
+  onApplyView?: (view: SavedView) => void;
+  activeViewId?: string | null;
+  availableTags?: string[];
+  workspaceMembers?: WorkspaceMember[];
+  bulkMode?: boolean;
+  selectedThreadIds?: Set<string>;
+  onToggleBulkSelection?: (threadId: string) => void;
+  onBulkAction?: (action: string, value?: string) => Promise<void>;
 }
 
 export function ContactList({
@@ -345,8 +391,33 @@ export function ContactList({
   currentUserId,
   slaHours = 24,
   nowMs = 0,
+  savedViews = [],
+  onSaveView,
+  onDeleteView,
+  onApplyView,
+  activeViewId,
+  availableTags = [],
+  workspaceMembers = [],
+  bulkMode = false,
+  selectedThreadIds = new Set(),
+  onBulkAction,
 }: ContactListProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const [showSaveViewDialog, setShowSaveViewDialog] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [showAssignDropdown, setShowAssignDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [newViewName, setNewViewName] = useState("");
+
+  // Preset views
+  const presetViews: SavedView[] = [
+    { id: "preset-open", name: "Open", filters: { status: "open" } },
+    { id: "preset-unassigned", name: "Unassigned", filters: { assigned: "unassigned" } },
+    { id: "preset-my-threads", name: "My Threads", filters: { assigned: currentUserId || "" } },
+    { id: "preset-urgent", name: "Urgent", filters: { showVipOnly: true, quickTab: "unread" } },
+    { id: "preset-needs-reply", name: "Needs Reply", filters: { quickTab: "unread", status: "open" } },
+  ];
 
   // Count for quick tabs
   const unreadCount = threads.filter((t) => (t.unread_count ?? 0) > 0).length;
@@ -434,16 +505,134 @@ export function ContactList({
   
       {/* Search & Filters */}
       <div className="space-y-3 border-b border-[#d4af37]/10 p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#f5f5dc]/30" />
-          <input
-            type="text"
-            value={filter.search}
-            onChange={(e) => onFilterChange({ search: e.target.value })}
-            placeholder="Search contacts..."
-            className="w-full rounded-xl border border-[#d4af37]/20 bg-[#050a18] py-2.5 pl-10 pr-4 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
-          />
+        {/* Filter Stats & Actions Bar */}
+        <div className="flex items-center justify-between text-xs text-[#f5f5dc]/60">
+          <span>
+            Showing <span className="font-semibold text-[#f9d976]">{quickTabFiltered.length}</span> of{" "}
+            <span className="font-semibold">{threads.length}</span> threads
+          </span>
+          {(filter.status !== "all" || filter.search || filter.showVipOnly || (filter.tags && filter.tags.length > 0)) && (
+            <button
+              onClick={() => onFilterChange({ status: "all", search: "", showVipOnly: false, tags: [] })}
+              className="flex items-center gap-1 text-[#e11d48] hover:underline"
+            >
+              <X className="h-3 w-3" />
+              Clear all
+            </button>
+          )}
         </div>
+
+        {/* Search + View + Sort Row */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#f5f5dc]/30" />
+            <input
+              type="text"
+              value={filter.search}
+              onChange={(e) => onFilterChange({ search: e.target.value })}
+              placeholder="Search contacts..."
+              className="w-full rounded-xl border border-[#d4af37]/20 bg-[#050a18] py-2.5 pl-10 pr-4 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
+            />
+          </div>
+
+          {/* Saved Views Dropdown */}
+          <DropdownMenu open={showViewsDropdown} onOpenChange={setShowViewsDropdown}>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1.5 rounded-xl border border-[#d4af37]/20 bg-[#050a18] px-3 py-2.5 text-sm font-medium text-[#f9d976] transition-all hover:bg-[#d4af37]/10 hover:border-[#d4af37]/40">
+                <Bookmark className="h-4 w-4" />
+                <span className="hidden sm:inline">Views</span>
+                <ChevronDown className="h-3 w-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-[#0a1229] border-[#d4af37]/20">
+              <DropdownMenuLabel className="text-[#f5f5dc]/50 text-xs">Preset Views</DropdownMenuLabel>
+              {presetViews.map((view) => (
+                <DropdownMenuItem
+                  key={view.id}
+                  onClick={() => onApplyView?.(view)}
+                  className={cn(
+                    "cursor-pointer text-[#f5f5dc]",
+                    activeViewId === view.id && "bg-[#d4af37]/20 text-[#f9d976]"
+                  )}
+                >
+                  {activeViewId === view.id && <CheckCircle2 className="mr-2 h-3.5 w-3.5" />}
+                  {view.name}
+                </DropdownMenuItem>
+              ))}
+              {savedViews.length > 0 && (
+                <>
+                  <DropdownMenuSeparator className="bg-[#d4af37]/10" />
+                  <DropdownMenuLabel className="text-[#f5f5dc]/50 text-xs">My Views</DropdownMenuLabel>
+                  {savedViews.map((view) => (
+                    <DropdownMenuItem
+                      key={view.id}
+                      className={cn(
+                        "cursor-pointer text-[#f5f5dc] flex items-center justify-between",
+                        activeViewId === view.id && "bg-[#d4af37]/20 text-[#f9d976]"
+                      )}
+                    >
+                      <span onClick={() => onApplyView?.(view)} className="flex-1">
+                        {activeViewId === view.id && <CheckCircle2 className="mr-2 h-3.5 w-3.5 inline" />}
+                        {view.name}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Delete "${view.name}"?`)) {
+                            onDeleteView?.(view.id);
+                          }
+                        }}
+                        className="ml-2 text-[#f5f5dc]/40 hover:text-[#e11d48]"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+              <DropdownMenuSeparator className="bg-[#d4af37]/10" />
+              <DropdownMenuItem
+                onClick={() => setShowSaveViewDialog(true)}
+                className="cursor-pointer text-[#10b981] font-medium"
+              >
+                <Plus className="mr-2 h-3.5 w-3.5" />
+                Save current view
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Sort Dropdown */}
+          <DropdownMenu open={showSortDropdown} onOpenChange={setShowSortDropdown}>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1.5 rounded-xl border border-[#d4af37]/20 bg-[#050a18] px-3 py-2.5 text-sm font-medium text-[#f9d976] transition-all hover:bg-[#d4af37]/10">
+                <ArrowUpDown className="h-4 w-4" />
+                <span className="hidden sm:inline">Sort</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-[#0a1229] border-[#d4af37]/20">
+              {[
+                { value: "newest", label: "Newest First" },
+                { value: "oldest", label: "Oldest First" },
+                { value: "recent_reply", label: "Recent Reply" },
+                { value: "unread_first", label: "Unread First" },
+              ].map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => onFilterChange({ sortBy: option.value as FilterState["sortBy"] })}
+                  className={cn(
+                    "cursor-pointer text-[#f5f5dc]",
+                    filter.sortBy === option.value && "bg-[#d4af37]/20 text-[#f9d976]"
+                  )}
+                >
+                  {filter.sortBy === option.value && <CheckCircle2 className="mr-2 h-3.5 w-3.5" />}
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Status + VIP + Tags + Assignment Row */}
         <div className="flex flex-wrap gap-2">
           {["all", "open", "pending", "closed"].map((status) => (
             <button
@@ -471,9 +660,174 @@ export function ContactList({
             <Crown className="h-3 w-3" />
             VIP
           </button>
+
+          {/* Tags Dropdown */}
+          {availableTags.length > 0 && (
+            <DropdownMenu open={showTagDropdown} onOpenChange={setShowTagDropdown}>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all bg-[#f5f5dc]/5 text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/10">
+                  <Tag className="h-3 w-3" />
+                  Tags
+                  {filter.tags && filter.tags.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
+                      {filter.tags.length}
+                    </Badge>
+                  )}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 bg-[#0a1229] border-[#d4af37]/20">
+                {availableTags.map((tag) => (
+                  <DropdownMenuCheckboxItem
+                    key={tag}
+                    checked={filter.tags?.includes(tag)}
+                    onCheckedChange={(checked) => {
+                      const currentTags = filter.tags || [];
+                      const newTags = checked
+                        ? [...currentTags, tag]
+                        : currentTags.filter((t) => t !== tag);
+                      onFilterChange({ tags: newTags });
+                    }}
+                    className="cursor-pointer text-[#f5f5dc]"
+                  >
+                    {tag}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Assignment Dropdown */}
+          {workspaceMembers.length > 0 && (
+            <DropdownMenu open={showAssignDropdown} onOpenChange={setShowAssignDropdown}>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all bg-[#f5f5dc]/5 text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/10">
+                  <Users className="h-3 w-3" />
+                  Assigned
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 bg-[#0a1229] border-[#d4af37]/20">
+                <DropdownMenuItem
+                  onClick={() => onFilterChange({ assigned: "all" })}
+                  className={cn(
+                    "cursor-pointer text-[#f5f5dc]",
+                    filter.assigned === "all" && "bg-[#d4af37]/20 text-[#f9d976]"
+                  )}
+                >
+                  All
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onFilterChange({ assigned: "unassigned" })}
+                  className={cn(
+                    "cursor-pointer text-[#f5f5dc]",
+                    filter.assigned === "unassigned" && "bg-[#d4af37]/20 text-[#f9d976]"
+                  )}
+                >
+                  Unassigned
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-[#d4af37]/10" />
+                {workspaceMembers.map((member) => (
+                  <DropdownMenuItem
+                    key={member.user_id}
+                    onClick={() => onFilterChange({ assigned: member.user_id })}
+                    className={cn(
+                      "cursor-pointer text-[#f5f5dc]",
+                      filter.assigned === member.user_id && "bg-[#d4af37]/20 text-[#f9d976]"
+                    )}
+                  >
+                    {member.full_name || member.email}
+                    {member.user_id === currentUserId && <span className="ml-2 text-[#10b981]">(You)</span>}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
+
+        {/* Bulk Actions Bar */}
+        {bulkMode && selectedThreadIds.size > 0 && (
+          <div className="flex items-center justify-between rounded-lg border border-[#10b981]/30 bg-[#10b981]/10 p-2">
+            <span className="text-xs font-medium text-[#10b981]">
+              {selectedThreadIds.size} thread{selectedThreadIds.size > 1 ? "s" : ""} selected
+            </span>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onBulkAction?.("status", "open")}
+                className="h-7 px-2 text-xs text-[#f5f5dc]"
+              >
+                Open
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onBulkAction?.("status", "closed")}
+                className="h-7 px-2 text-xs text-[#f5f5dc]"
+              >
+                Close
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onBulkAction?.("assign", currentUserId)}
+                className="h-7 px-2 text-xs text-[#f5f5dc]"
+              >
+                Assign to me
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
-  
+
+      {/* Save View Dialog */}
+      {showSaveViewDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSaveViewDialog(false)}>
+          <div className="w-full max-w-md rounded-xl border border-[#d4af37]/20 bg-[#0a1229] p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-4 text-lg font-semibold text-[#f9d976]">Save Current View</h3>
+            <Input
+              value={newViewName}
+              onChange={(e) => setNewViewName(e.target.value)}
+              placeholder="Enter view name..."
+              className="mb-4 bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newViewName.trim()) {
+                  onSaveView?.(newViewName.trim(), filter);
+                  setNewViewName("");
+                  setShowSaveViewDialog(false);
+                }
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setNewViewName("");
+                  setShowSaveViewDialog(false);
+                }}
+                className="text-[#f5f5dc]/50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (newViewName.trim()) {
+                    onSaveView?.(newViewName.trim(), filter);
+                    setNewViewName("");
+                    setShowSaveViewDialog(false);
+                  }
+                }}
+                disabled={!newViewName.trim()}
+                className="bg-[#d4af37] text-[#0a1229] hover:bg-[#f9d976]"
+              >
+                Save View
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Thread List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (

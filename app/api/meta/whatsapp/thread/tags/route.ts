@@ -10,6 +10,8 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
+import { logger } from "@/lib/logging";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -71,6 +73,23 @@ export async function POST(req: NextRequest) {
       // ignore duplicates
     }
   }
+
+  // Trigger automation rules for tag changes
+  // Run in background - don't block response
+  evaluateRulesForThread({
+    workspaceId,
+    threadId,
+    triggerType: 'tag_added',
+    triggerData: { 
+      tags: rows.map((r) => r.tag),
+      addedBy: userData.user.id,
+    },
+  }).catch((error) => {
+    logger.warn('[tags-api] Automation rules evaluation failed', {
+      threadId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 
   return withCookies(NextResponse.json({ ok: true, tags: rows.map((r) => r.tag) }));
 }

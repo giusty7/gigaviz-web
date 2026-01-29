@@ -323,6 +323,25 @@ export async function POST(req: NextRequest) {
       // Best effort
     }
 
+    // Track usage event for analytics
+    try {
+      const { trackUsageEvent } = await import("@/lib/meta/usage-tracker");
+      await trackUsageEvent({
+        workspaceId,
+        eventType: 'message_sent',
+        threadId,
+        messageId: insertedMessage?.id,
+        userId: userData.user.id,
+        metadata: {
+          text_length: text.length,
+          connection_id: resolvedConnection.id,
+          queued: true,
+        },
+      });
+    } catch {
+      // Best effort - don't block response
+    }
+
     const responseMessage = insertedMessage
       ? { ...insertedMessage, outbox_id: outboxInsert.id, idempotency_key: idempotencyKey }
       : null;

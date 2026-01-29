@@ -86,13 +86,29 @@ export async function GET(req: NextRequest) {
   const status = url.searchParams.get("status")?.trim() ?? "all";
   const assigned = url.searchParams.get("assigned")?.trim() ?? "all";
   const unread = url.searchParams.get("unread")?.trim() ?? "all";
+  const tag = url.searchParams.get("tag")?.trim() ?? "";
 
-  let query = db
-    .from("wa_threads")
-    .select(
-      "id, phone_number_id, contact_wa_id, contact_name, last_message_preview, last_message_at, status, unread_count, assigned_to"
-    )
-    .eq("workspace_id", workspaceId);
+  // If tag filter is provided, join with wa_thread_tags for filtering
+  // Using !inner join ensures only threads WITH that tag are returned
+  let query;
+  if (tag) {
+    // Join with wa_thread_tags and filter by tag
+    query = db
+      .from("wa_threads")
+      .select(
+        `id, phone_number_id, contact_wa_id, contact_name, last_message_preview, last_message_at, status, unread_count, assigned_to,
+        wa_thread_tags!inner(tag)`
+      )
+      .eq("workspace_id", workspaceId)
+      .eq("wa_thread_tags.tag", tag);
+  } else {
+    query = db
+      .from("wa_threads")
+      .select(
+        "id, phone_number_id, contact_wa_id, contact_name, last_message_preview, last_message_at, status, unread_count, assigned_to"
+      )
+      .eq("workspace_id", workspaceId);
+  }
 
   if (q) {
     query = query.or(`contact_name.ilike.%${q}%,contact_wa_id.ilike.%${q}%`);

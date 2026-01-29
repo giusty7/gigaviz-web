@@ -3,6 +3,8 @@ import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { forbiddenResponse, requireWorkspaceMember, requireWorkspaceRole, unauthorizedResponse, workspaceRequiredResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
+import { logger } from "@/lib/logging";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
@@ -69,6 +71,42 @@ export async function POST(req: NextRequest) {
     return withCookies(
       NextResponse.json({ error: "db_error", reason: "thread_update_failed" }, { status: 500 })
     );
+  }
+
+  // Trigger automation rules for status/assignment changes
+  // Run in background - don't block response
+  if (status) {
+    evaluateRulesForThread({
+      workspaceId,
+      threadId,
+      triggerType: 'status_changed',
+      triggerData: { 
+        newStatus: status,
+        changedBy: userData.user.id,
+      },
+    }).catch((error) => {
+      logger.warn('[update-api] Automation rules evaluation failed (status)', {
+        threadId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
+
+  if (assignedTo !== undefined) {
+    evaluateRulesForThread({
+      workspaceId,
+      threadId,
+      triggerType: 'assigned',
+      triggerData: { 
+        assignedTo: assignedTo ?? null,
+        assignedBy: userData.user.id,
+      },
+    }).catch((error) => {
+      logger.warn('[update-api] Automation rules evaluation failed (assigned)', {
+        threadId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
   }
 
   return withCookies(NextResponse.json({ ok: true }));

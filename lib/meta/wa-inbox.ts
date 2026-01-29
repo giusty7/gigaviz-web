@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 import { resolveConnectionForWebhook } from "@/lib/meta/wa-connections";
+import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
 
 type WaMessage = {
   id?: string;
@@ -321,6 +322,24 @@ async function ingestMessage(
       updated_at: new Date().toISOString(),
     })
     .eq("id", thread.id);
+
+  // Trigger automation rules for new message
+  // Run in background - don't block message processing
+  evaluateRulesForThread({
+    workspaceId,
+    threadId: thread.id,
+    triggerType: 'new_message',
+    triggerData: { 
+      messageId: msg.id,
+      contactWaId: contactWaId ?? undefined,
+      textBody: textBody.substring(0, 160),
+    },
+  }).catch((error) => {
+    logger.warn('[wa-inbox] Automation rules evaluation failed', {
+      threadId: thread.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 
   return { newThread, inserted: true };
 }

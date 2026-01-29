@@ -270,3 +270,139 @@ psql "$SUPABASE_DB_URL" -c "SELECT COUNT(*) FROM orphan_webhook_events;"
 # Verify indexes exist
 psql "$SUPABASE_DB_URL" -c "SELECT indexname FROM pg_indexes WHERE tablename IN ('wa_threads','wa_messages','orphan_webhook_events') AND indexname LIKE '%connection%' OR indexname LIKE '%orphan%';"
 ```
+---
+
+## Saved Views for Inbox (20260130000000)
+
+### Purpose
+Allows users to save custom filter combinations (status, assignee, tag, search query) for quick access in the WhatsApp inbox.
+
+### Tables Created
+**`wa_saved_views`**
+- Columns: `id`, `workspace_id`, `user_id`, `name`, `filters` (jsonb), `created_at`, `updated_at`
+- Unique constraint: `(workspace_id, user_id, name)` - prevents duplicate view names per user
+- RLS Policy: User can only access their own views in workspaces they're a member of
+
+### Schema Details
+```sql
+CREATE TABLE wa_saved_views (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  filters jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (workspace_id, user_id, name)
+);
+
+-- Indexes for performance
+CREATE INDEX wa_saved_views_user_idx ON wa_saved_views(user_id);
+CREATE INDEX wa_saved_views_workspace_idx ON wa_saved_views(workspace_id);
+
+-- RLS for security
+ALTER TABLE wa_saved_views ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users_access_own_saved_views"
+ON wa_saved_views
+FOR ALL
+USING (
+  user_id = auth.uid()
+  AND workspace_id IN (
+    SELECT workspace_id
+    FROM workspace_memberships
+    WHERE user_id = auth.uid()
+  )
+);
+```
+
+### API Endpoints
+- **GET** `/api/meta/whatsapp/saved-views?workspaceId=<uuid>` - List user's saved views
+- **POST** `/api/meta/whatsapp/saved-views` - Create new view
+  ```json
+  {
+    "workspaceId": "uuid",
+    "name": "High Priority Open",
+    "filters": {
+      "status": "open",
+      "tag": "urgent",
+      "q": "payment"
+    }
+  }
+  ```
+- **DELETE** `/api/meta/whatsapp/saved-views` - Delete view
+  ```json
+  {
+    "workspaceId": "uuid",
+    "viewId": "uuid"
+  }
+  ```
+
+### Migration File
+`supabase/migrations/20260130000000_wa_saved_views.sql`
+
+### Smoke Tests
+
+#### Creating Saved Views
+1. Navigate to WhatsApp inbox at `/dashboard/meta-hub/whatsapp/<workspace_id>`
+2. Apply filters: set status to "open", select a tag, enter search query
+3. Click "Save view" button (bookmark icon)
+4. Enter view name "Test View" → should succeed
+5. Try saving again with same name → should show error "View name already exists"
+6. Verify view appears in saved views dropdown with correct filters
+
+#### Applying Saved Views
+1. Change filters manually (different status, clear search)
+2. Select saved view from dropdown
+3. Verify all filters update to match saved configuration:
+   - Status dropdown changes
+   - Tag filter updates
+   - Search input populates
+   - URL params update (`?status=open&tag=urgent&q=payment`)
+
+#### Deleting Saved Views
+1. Hover over saved view in dropdown
+2. Click delete icon (trash)
+3. Confirm deletion → view removed from list
+4. Verify it no longer appears after page refresh
+
+#### Multi-User Isolation
+1. Create view as User A: "User A's View"
+2. Login as User B in same workspace
+3. Verify User B cannot see "User A's View" in their dropdown
+4. User B can create their own view with same name
+
+### Manual Verification Commands
+```bash
+# Check table exists with correct schema
+psql "$SUPABASE_DB_URL" -c "\d wa_saved_views"
+
+# Verify RLS is enabled
+psql "$SUPABASE_DB_URL" -c "SELECT tablename, rowsecurity FROM pg_tables WHERE tablename='wa_saved_views';"
+# Should show: wa_saved_views | t
+
+# Check unique constraint exists
+psql "$SUPABASE_DB_URL" -c "SELECT conname FROM pg_constraint WHERE conrelid='wa_saved_views'::regclass AND contype='u';"
+# Should show: wa_saved_views_workspace_id_user_id_name_key
+
+# Verify indexes created
+psql "$SUPABASE_DB_URL" -c "SELECT indexname FROM pg_indexes WHERE tablename='wa_saved_views';"
+# Should show: wa_saved_views_pkey, wa_saved_views_user_idx, wa_saved_views_workspace_idx
+
+# Test basic CRUD (replace UUIDs with actual values)
+psql "$SUPABASE_DB_URL" <<SQL
+-- Insert test view
+INSERT INTO wa_saved_views (workspace_id, user_id, name, filters)
+VALUES ('<workspace_uuid>', '<user_uuid>', 'Test View', '{"status":"open","tag":"urgent"}'::jsonb);
+
+-- Query views for user
+SELECT id, name, filters FROM wa_saved_views WHERE user_id = '<user_uuid>';
+
+-- Delete test view
+DELETE FROM wa_saved_views WHERE user_id = '<user_uuid>' AND name = 'Test View';
+SQL
+```
+
+### Rollback
+```sql
+DROP TABLE IF EXISTS wa_saved_views CASCADE;
+```

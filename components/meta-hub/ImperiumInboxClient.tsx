@@ -24,6 +24,8 @@ import {
   type CannedResponse,
   type MediaItem,
   type SessionInfo,
+  type SavedView,
+  type WorkspaceMember,
 } from "./ImperiumInboxComponents";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -233,7 +235,19 @@ export function ImperiumInboxClient({
     search: "",
     showVipOnly: false,
     quickTab: "all",
+    tags: [],
+    sortBy: "newest",
   });
+
+  // Saved views state
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+
+  // Bulk selection state
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
 
   // Connection status (simulate real-time check)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connected");
@@ -334,6 +348,176 @@ export function ImperiumInboxClient({
       return true;
     });
   }, [threads, filter]);
+
+  // Fetch saved views on mount
+  useEffect(() => {
+    if (!_workspaceId || !mounted) return;
+    async function fetchSavedViews() {
+      try {
+        const res = await fetch(`/api/meta/whatsapp/saved-views?workspaceId=${_workspaceId}`);
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.views)) {
+          setSavedViews(data.views);
+        }
+      } catch {
+        // Silent fail
+      }
+    }
+    fetchSavedViews();
+  }, [_workspaceId, mounted]);
+
+  // Fetch available tags
+  useEffect(() => {
+    if (!_workspaceId || !mounted) return;
+    async function fetchTags() {
+      try {
+        const res = await fetch(`/api/meta/whatsapp/tags?workspaceId=${_workspaceId}`);
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.tags)) {
+          setAvailableTags(data.tags);
+        }
+      } catch {
+        // Silent fail
+      }
+    }
+    fetchTags();
+  }, [_workspaceId, mounted]);
+
+  // Fetch workspace members
+  useEffect(() => {
+    if (!_workspaceId || !mounted) return;
+    async function fetchMembers() {
+      try {
+        const res = await fetch(`/api/workspaces/${_workspaceId}/members`);
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.members)) {
+          setWorkspaceMembers(data.members);
+        }
+      } catch {
+        // Silent fail
+      }
+    }
+    fetchMembers();
+  }, [_workspaceId, mounted]);
+
+  // Saved views handlers
+  const handleSaveView = useCallback(async (name: string, filters: Partial<FilterState>) => {
+    if (!_workspaceId) return;
+    try {
+      const res = await fetch("/api/meta/whatsapp/saved-views", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId: _workspaceId,
+          name,
+          filters,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.view) {
+        setSavedViews((prev) => [...prev, data.view]);
+        setActiveViewId(data.view.id);
+        toast({ title: "View saved", description: `"${name}" saved successfully` });
+      } else {
+        throw new Error(data.error || "Failed to save view");
+      }
+    } catch (err) {
+      toast({
+        title: "Failed to save view",
+        description: err instanceof Error ? err.message : "Error",
+        variant: "destructive",
+      });
+    }
+  }, [_workspaceId, toast]);
+
+  const handleDeleteView = useCallback(async (viewId: string) => {
+    if (!_workspaceId) return;
+    try {
+      const res = await fetch(`/api/meta/whatsapp/saved-views/${viewId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: _workspaceId }),
+      });
+      if (res.ok) {
+        setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
+        if (activeViewId === viewId) setActiveViewId(null);
+        toast({ title: "View deleted" });
+      } else {
+        throw new Error("Failed to delete view");
+      }
+    } catch (err) {
+      toast({
+        title: "Failed to delete view",
+        description: err instanceof Error ? err.message : "Error",
+        variant: "destructive",
+      });
+    }
+  }, [_workspaceId, activeViewId, toast]);
+
+  const handleApplyView = useCallback((view: SavedView) => {
+    setFilter((prev) => ({
+      ...prev,
+      ...view.filters,
+      tags: view.filters.tags || [],
+      sortBy: view.filters.sortBy || "newest",
+    }));
+    setActiveViewId(view.id);
+  }, []);
+
+  // Bulk actions handler
+  const handleBulkAction = useCallback(async (action: string, value?: string) => {
+    if (!_workspaceId || selectedThreadIds.size === 0) return;
+    
+    try {
+      const threadIds = Array.from(selectedThreadIds);
+      let endpoint = "";
+      let body = {};
+
+      if (action === "status") {
+        endpoint = "/api/meta/whatsapp/threads/bulk-update";
+        body = { workspaceId: _workspaceId, threadIds, status: value };
+      } else if (action === "assign") {
+        endpoint = "/api/meta/whatsapp/threads/bulk-update";
+        body = { workspaceId: _workspaceId, threadIds, assignedTo: value };
+      } else if (action === "tag") {
+        endpoint = "/api/meta/whatsapp/threads/bulk-tag";
+        body = { workspaceId: _workspaceId, threadIds, tag: value };
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        toast({ title: "Bulk action completed", description: `Updated ${threadIds.length} thread(s)` });
+        setSelectedThreadIds(new Set());
+        // Refresh threads
+        window.location.reload();
+      } else {
+        throw new Error("Bulk action failed");
+      }
+    } catch (err) {
+      toast({
+        title: "Bulk action failed",
+        description: err instanceof Error ? err.message : "Error",
+        variant: "destructive",
+      });
+    }
+  }, [_workspaceId, selectedThreadIds, toast]);
+
+  const handleToggleBulkSelection = useCallback((threadId: string) => {
+    setSelectedThreadIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(threadId)) {
+        next.delete(threadId);
+      } else {
+        next.add(threadId);
+      }
+      return next;
+    });
+  }, []);
 
   // Unread count
   const unreadCount = useMemo(() => {
@@ -768,6 +952,72 @@ export function ImperiumInboxClient({
     [buildContactDetails, fetchMessages, workspaceSlug, soundEnabled]
   );
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Cmd/Ctrl + K: Focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        const searchInput = document.querySelector(
+          'input[placeholder*="Search"]'
+        ) as HTMLInputElement;
+        searchInput?.focus();
+      }
+
+      // Cmd/Ctrl + B: Toggle bulk mode
+      if ((e.metaKey || e.ctrlKey) && e.key === "b") {
+        e.preventDefault();
+        setBulkMode((prev) => !prev);
+      }
+
+      // Cmd/Ctrl + /: Clear filters
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+        e.preventDefault();
+        setFilter({
+          status: "all",
+          assigned: "all",
+          search: "",
+          showVipOnly: false,
+          quickTab: "all",
+          tags: [],
+          sortBy: "newest",
+        });
+        setActiveViewId(null);
+      }
+
+      // J/K: Navigate threads (vim-style)
+      if (e.key === "j" && selectedThread && threads.length > 0) {
+        e.preventDefault();
+        const currentIndex = threads.findIndex((t) => t.id === selectedThread.id);
+        const nextIndex = Math.min(currentIndex + 1, threads.length - 1);
+        const nextThread = threads[nextIndex];
+        if (nextThread) handleSelectThread(nextThread);
+      }
+
+      if (e.key === "k" && selectedThread && threads.length > 0) {
+        e.preventDefault();
+        const currentIndex = threads.findIndex((t) => t.id === selectedThread.id);
+        const prevIndex = Math.max(currentIndex - 1, 0);
+        const prevThread = threads[prevIndex];
+        if (prevThread) handleSelectThread(prevThread);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedThread, threads, handleSelectThread]);
+
+
   // Handle send message
   const handleSend = useCallback(async () => {
     if (!composerValue.trim() || !selectedThread) return;
@@ -1183,6 +1433,18 @@ export function ImperiumInboxClient({
               currentUserId={userId}
               slaHours={slaHours}
               nowMs={nowMs}
+              workspaceId={_workspaceId}
+              savedViews={savedViews}
+              onSaveView={handleSaveView}
+              onDeleteView={handleDeleteView}
+              onApplyView={handleApplyView}
+              activeViewId={activeViewId}
+              availableTags={availableTags}
+              workspaceMembers={workspaceMembers}
+              bulkMode={bulkMode}
+              selectedThreadIds={selectedThreadIds}
+              onToggleBulkSelection={handleToggleBulkSelection}
+              onBulkAction={handleBulkAction}
             />
           </div>
 
