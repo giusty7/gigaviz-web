@@ -161,26 +161,28 @@ export default async function FullWhatsappInboxPage({ params }: Props) {
   }));
 
   return (
-    <ImperiumInboxClient
-      workspaceId={workspaceId}
-      workspaceSlug={workspaceSlug}
-      userId={ctx.user.id}
-      canEdit={canEdit}
-      allowWrite={allowWrite}
-      demoMode={process.env.NEXT_PUBLIC_DEMO_UI === "true"}
-      initialThreads={threads ?? []}
-      initialMessages={
-        messages?.map((m) => ({
-          ...m,
-          payload_json: m.payload_json ?? {},
-          content_json: m.payload_json ?? {},
-        })) ?? []
-      }
-      initialSession={initialSession}
-      initialTags={tags?.map((t) => t.tag) ?? []}
-      initialNotes={notes ?? []}
-      templates={approvedTemplates}
-      fullMode={true}
-    />
+    <div className="fixed inset-0 z-[9999] h-screen w-screen overflow-hidden bg-[#050a18]">
+      <ImperiumInboxClient
+        workspaceId={workspaceId}
+        workspaceSlug={workspaceSlug}
+        userId={ctx.user.id}
+        canEdit={canEdit}
+        allowWrite={allowWrite}
+        demoMode={process.env.NEXT_PUBLIC_DEMO_UI === "true"}
+        initialThreads={threads ?? []}
+        initialMessages={
+          messages?.map((m) => ({
+            ...m,
+            payload_json: m.payload_json ?? {},
+            content_json: m.payload_json ?? {},
+          })) ?? []
+        }
+        initialSession={initialSession}
+        initialTags={tags?.map((t) => t.tag) ?? []}
+        initialNotes={notes ?? []}
+        templates={approvedTemplates}
+        fullMode={true}
+      />
+    </div>
   );
 }
