@@ -9,8 +9,8 @@ if [[ -z "${DB_URL}" ]]; then
   exit 1
 fi
 
-if ! command -v supabase >/dev/null 2>&1; then
-  echo "[push] supabase CLI is required for applying migrations. Install it: https://supabase.com/docs/guides/cli" >&2
+if ! command -v npx >/dev/null 2>&1; then
+  echo "[push] npx is required (comes with Node.js). Install Node.js first." >&2
   exit 1
 fi
 
@@ -22,7 +22,7 @@ else
 fi
 
 echo "[push] Step 2/3: Apply migrations"
-supabase db push --db-url "${DB_URL}"
+npx supabase db push --db-url "${DB_URL}"
 
 echo "[push] Step 3/3: Verify"
 bash "${ROOT_DIR}/scripts/supabase/verify.sh"

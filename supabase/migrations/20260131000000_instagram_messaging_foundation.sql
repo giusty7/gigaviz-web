@@ -96,6 +96,7 @@ ALTER TABLE public.instagram_thread_tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.instagram_thread_notes ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users access own workspace data
+DROP POLICY IF EXISTS instagram_accounts_workspace_policy ON public.instagram_accounts;
 CREATE POLICY instagram_accounts_workspace_policy ON public.instagram_accounts
   FOR ALL USING (
     workspace_id IN (
@@ -103,6 +104,7 @@ CREATE POLICY instagram_accounts_workspace_policy ON public.instagram_accounts
     )
   );
 
+DROP POLICY IF EXISTS instagram_threads_workspace_policy ON public.instagram_threads;
 CREATE POLICY instagram_threads_workspace_policy ON public.instagram_threads
   FOR ALL USING (
     workspace_id IN (
@@ -110,6 +112,7 @@ CREATE POLICY instagram_threads_workspace_policy ON public.instagram_threads
     )
   );
 
+DROP POLICY IF EXISTS instagram_messages_workspace_policy ON public.instagram_messages;
 CREATE POLICY instagram_messages_workspace_policy ON public.instagram_messages
   FOR ALL USING (
     workspace_id IN (
@@ -117,6 +120,7 @@ CREATE POLICY instagram_messages_workspace_policy ON public.instagram_messages
     )
   );
 
+DROP POLICY IF EXISTS instagram_thread_tags_workspace_policy ON public.instagram_thread_tags;
 CREATE POLICY instagram_thread_tags_workspace_policy ON public.instagram_thread_tags
   FOR ALL USING (
     workspace_id IN (
@@ -124,6 +128,7 @@ CREATE POLICY instagram_thread_tags_workspace_policy ON public.instagram_thread_
     )
   );
 
+DROP POLICY IF EXISTS instagram_thread_notes_workspace_policy ON public.instagram_thread_notes;
 CREATE POLICY instagram_thread_notes_workspace_policy ON public.instagram_thread_notes
   FOR ALL USING (
     workspace_id IN (
@@ -132,14 +137,17 @@ CREATE POLICY instagram_thread_notes_workspace_policy ON public.instagram_thread
   );
 
 -- Updated_at trigger
+DROP TRIGGER IF EXISTS set_instagram_accounts_updated_at ON public.instagram_accounts;
 CREATE TRIGGER set_instagram_accounts_updated_at
   BEFORE UPDATE ON public.instagram_accounts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS set_instagram_threads_updated_at ON public.instagram_threads;
 CREATE TRIGGER set_instagram_threads_updated_at
   BEFORE UPDATE ON public.instagram_threads
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS set_instagram_thread_notes_updated_at ON public.instagram_thread_notes;
 CREATE TRIGGER set_instagram_thread_notes_updated_at
   BEFORE UPDATE ON public.instagram_thread_notes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

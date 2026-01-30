@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
+import { sendInstagramTextMessage, sendInstagramImageMessage } from '@/lib/meta/instagram-send';
 
 export async function POST(
   request: NextRequest,
@@ -13,7 +14,7 @@ export async function POST(
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { threadId } = await params;
     const body = await request.json();
-    const { text } = body;
+    const { text, imageUrl } = body;
 
     // Auth check
     const {
@@ -23,21 +24,16 @@ export async function POST(
       return withCookies(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
     }
 
-    if (!text?.trim()) {
+    if (!text?.trim() && !imageUrl) {
       return withCookies(
-        NextResponse.json({ error: 'text is required' }, { status: 400 })
+        NextResponse.json({ error: 'text or imageUrl is required' }, { status: 400 })
       );
     }
 
-    // Get thread info
+    // Get thread info to verify workspace access
     const { data: thread, error: threadError } = await supabase
       .from('instagram_threads')
-      .select(
-        `
-        *,
-        instagram_accounts(instagram_id, access_token)
-      `
-      )
+      .select('workspace_id')
       .eq('id', threadId)
       .single();
 
@@ -45,71 +41,49 @@ export async function POST(
       return withCookies(NextResponse.json({ error: 'Thread not found' }, { status: 404 }));
     }
 
-    const account = thread.instagram_accounts as unknown as { instagram_id: string; access_token: string } | null;
-    if (!account?.access_token) {
+    // Verify user has access to workspace
+    const { data: membership } = await supabase
+      .from('workspace_memberships')
+      .select('workspace_id')
+      .eq('workspace_id', thread.workspace_id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!membership) {
       return withCookies(
         NextResponse.json(
-          { error: 'Instagram account not connected' },
-          { status: 400 }
+          { error: 'Access denied to this workspace' },
+          { status: 403 }
         )
       );
     }
 
-    // Send via Instagram Graph API
-    const graphUrl = `https://graph.facebook.com/v21.0/${account.instagram_id}/messages`;
-    const response = await fetch(graphUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        recipient: {
-          id: thread.participant_id,
-        },
-        message: {
-          text,
-        },
-        access_token: account.access_token,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error('[Instagram] Send error:', result);
-      throw new Error(result.error?.message || 'Failed to send message');
+    // Send message based on type
+    let result;
+    if (imageUrl) {
+      result = await sendInstagramImageMessage({
+        supabase,
+        workspaceId: thread.workspace_id,
+        threadId,
+        imageUrl,
+      });
+    } else {
+      result = await sendInstagramTextMessage({
+        supabase,
+        workspaceId: thread.workspace_id,
+        threadId,
+        text,
+      });
     }
 
-    // Store message in database
-    const messageData = {
-      workspace_id: thread.workspace_id,
-      thread_id: threadId,
-      account_id: thread.account_id,
-      message_id: result.message_id || `ig_${Date.now()}`,
-      direction: 'outbound',
-      message_type: 'text',
-      text_content: text,
-      status: 'sent',
-      payload_json: result,
-    };
-
-    const { data: message, error: messageError } = await supabase
-      .from('instagram_messages')
-      .insert(messageData)
-      .select()
-      .single();
-
-    if (messageError) throw messageError;
-
-    // Update thread
-    await supabase
-      .from('instagram_threads')
-      .update({
-        last_message_at: new Date().toISOString(),
-        last_message_preview: text.substring(0, 100),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', threadId);
+    if (!result.ok) {
+      return withCookies(
+        NextResponse.json(
+          { error: result.error, details: result.details },
+          { status: 500 }
+        )
+      );
+    }
 
     // Audit log
     await recordAuditEvent({
@@ -117,15 +91,16 @@ export async function POST(
       actorUserId: user.id,
       action: 'instagram_message_sent',
       meta: {
-        thread_id: threadId,
-        text_length: text.length,
+        threadId,
+        messageId: result.messageId,
+        messageType: imageUrl ? 'image' : 'text',
       },
     });
 
     return withCookies(
       NextResponse.json({
         success: true,
-        message,
+        messageId: result.messageId,
       })
     );
   } catch (error) {
