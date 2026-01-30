@@ -3,6 +3,7 @@ import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { streamHelperModel } from "@/lib/helper/providers/stream-router";
 import { recordHelperUsage } from "@/lib/helper/usage";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getRagSettings, searchKnowledge, buildRagContext, trackContextUsage } from "@/lib/helper/rag";
 import type { HelperMode, ProviderName } from "@/lib/helper/providers/types";
 
 export const runtime = "nodejs";
@@ -148,6 +149,27 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return sseError(500, "db_error", "Failed to save user message");
   }
 
+  // RAG: Search knowledge base for relevant context
+  const ragSettings = await getRagSettings(workspaceId);
+  let ragContext = "";
+  let searchResults: Awaited<ReturnType<typeof searchKnowledge>> = [];
+  
+  if (ragSettings.enabled && modeKey === "chat") {
+    try {
+      searchResults = await searchKnowledge(workspaceId, content, {
+        maxResults: ragSettings.max_results,
+        similarityThreshold: ragSettings.similarity_threshold,
+      });
+      
+      if (searchResults.length > 0) {
+        ragContext = buildRagContext(searchResults);
+      }
+    } catch (error) {
+      console.error("RAG search failed:", error);
+      // Continue without RAG context
+    }
+  }
+
   // Insert assistant message with streaming status
   const { data: assistantMessage, error: assistantMsgError } = await db
     .from("helper_messages")
@@ -186,6 +208,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             conversationId,
             userMessageId: userMessage.id,
             assistantMessageId: assistantMessage.id,
+            ragEnabled: searchResults.length > 0,
+            ragSources: searchResults.length,
           })
         )
       );
@@ -207,7 +231,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
       try {
         for await (const chunk of streamHelperModel({
-          content,
+          content: ragContext + content, // Inject RAG context into prompt
           mode: modeKey,
           provider: providerKey,
           signal: abortController.signal,
@@ -262,6 +286,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       }
 
       const finalStatus = aborted ? "cancelled" : hasError ? "error" : "done";
+
+      // Track RAG context usage
+      if (searchResults.length > 0 && finalStatus === "done") {
+        await trackContextUsage(workspaceId, assistantMessage.id, searchResults);
+      }
 
       await db
         .from("helper_messages")
