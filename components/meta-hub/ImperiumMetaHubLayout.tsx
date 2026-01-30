@@ -123,26 +123,10 @@ function buildNav(
     : setup.whatsappConfigured
       ? "live"
       : "beta";
-  const instagramStatus: BadgeStatus = flags.igEnabled
-    ? access.metaHub
-      ? "beta"
-      : "locked"
-    : "soon";
-  const messengerStatus: BadgeStatus = flags.msEnabled
-    ? access.metaHub
-      ? "beta"
-      : "locked"
-    : "soon";
-  const adsStatus: BadgeStatus = flags.adsEnabled
-    ? access.metaHub
-      ? "beta"
-      : "locked"
-    : "soon";
-  const insightsStatus: BadgeStatus = flags.insightsEnabled
-    ? access.metaHub
-      ? "beta"
-      : "locked"
-    : "soon";
+  const instagramStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+  const messengerStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+  const adsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+  const insightsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
 
   return [
     { label: "Overview", href: `${base}`, status: metaHubStatus },

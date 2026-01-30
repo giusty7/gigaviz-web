@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { MetaHubAnalyticsDashboard } from "@/components/meta-hub/MetaHubAnalyticsDashboard";
+import { AutomationRulesManager } from "@/components/meta-hub/AutomationRulesManager";
 import { getAppContext } from "@/lib/app-context";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
@@ -7,7 +7,9 @@ type Props = {
   params: Promise<{ workspaceSlug: string }>;
 };
 
-export default async function MetaHubInsightsPage({ params }: Props) {
+export const dynamic = "force-dynamic";
+
+export default async function MetaHubAutomationPage({ params }: Props) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
@@ -15,14 +17,14 @@ export default async function MetaHubInsightsPage({ params }: Props) {
 
   const workspace = ctx.currentWorkspace;
   if (workspace.slug !== workspaceSlug) {
-    redirect(`/${workspace.slug}/meta-hub/insights`);
+    redirect(`/${workspace.slug}/meta-hub/automation`);
   }
 
   await ensureWorkspaceCookie(workspace.id);
 
   return (
     <div className="space-y-6">
-      <MetaHubAnalyticsDashboard
+      <AutomationRulesManager
         workspaceId={workspace.id}
       />
     </div>

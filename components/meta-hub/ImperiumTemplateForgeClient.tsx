@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { SendTestTemplateModal } from "./SendTestTemplateModal";
 import { ParamMappingEditorModal } from "./ParamMappingEditorModal";
+import { CreateCampaignWizard } from "./CreateCampaignWizard";
 import {
   ForgeHeader,
   StepIndicator,
@@ -163,6 +164,7 @@ export function ImperiumTemplateForgeClient({
   // Modal states
   const [sendTestOpen, setSendTestOpen] = useState(false);
   const [paramMappingOpen, setParamMappingOpen] = useState(false);
+  const [campaignWizardOpen, setCampaignWizardOpen] = useState(false);
 
   // Update body examples when variables change
   const variableCount = useMemo(() => extractVariableCount(templateState.bodyText), [templateState.bodyText]);
@@ -467,14 +469,24 @@ export function ImperiumTemplateForgeClient({
             className="flex-1 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 disabled:opacity-60"
           />
           {canEdit && (
-            <Button
-              onClick={openWizard}
-              disabled={!hasConnection}
-              className="gap-2 bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:from-[#f9d976] hover:to-[#d4af37]"
-            >
-              <Plus className="h-4 w-4" />
-              Create Template
-            </Button>
+            <>
+              <Button
+                onClick={() => setCampaignWizardOpen(true)}
+                disabled={!hasConnection}
+                className="gap-2 bg-gradient-to-br from-[#10b981] to-[#059669] text-white hover:from-[#34d399] hover:to-[#10b981]"
+              >
+                <Send className="h-4 w-4" />
+                Create Campaign
+              </Button>
+              <Button
+                onClick={openWizard}
+                disabled={!hasConnection}
+                className="gap-2 bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:from-[#f9d976] hover:to-[#d4af37]"
+              >
+                <Plus className="h-4 w-4" />
+                Create Template
+              </Button>
+            </>
           )}
         </motion.div>
 
@@ -776,6 +788,16 @@ export function ImperiumTemplateForgeClient({
             toast({ title: "✅ Parameter mappings saved!" });
             setParamMappingOpen(false);
           }}
+        />
+      )}
+
+      {/* Campaign Creation Wizard */}
+      {campaignWizardOpen && (
+        <CreateCampaignWizard
+          workspaceId={workspaceId}
+          workspaceSlug={workspaceSlug}
+          onClose={() => setCampaignWizardOpen(false)}
+          initialTemplateId={selectedTemplate?.id}
         />
       )}
     </div>

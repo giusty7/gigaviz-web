@@ -24,7 +24,11 @@ import { ensureWorkspaceCookie } from "@/lib/workspaces";
 //   -> wa_threads, wa_messages, wa_thread_tags, wa_thread_notes -> lock: meta_send
 // Messaging - WhatsApp Webhooks -> /[workspaceSlug]/meta-hub/messaging/whatsapp/webhooks -> WhatsappWebhookMonitorClient
 //   -> meta_webhook_events, wa_phone_numbers, meta_tokens -> lock: meta_webhooks
-// Messaging - Instagram/Messenger, Ads, Insights -> DisabledModuleState -> no data -> coming soon
+// Messaging - Instagram -> InstagramInboxClient -> instagram_threads, instagram_messages -> lock: meta_hub
+// Messaging - Messenger -> MessengerInboxClient -> messenger_threads, messenger_messages -> lock: meta_hub
+// Ads -> MetaAdsManagerClient -> meta_ad_campaigns, meta_ad_insights -> lock: meta_hub
+// Insights -> MetaHubAnalyticsDashboard -> usage_stats, analytics data -> lock: meta_hub
+// Automation -> AutomationRulesManager -> automation_rules, automation_executions -> lock: meta_hub
 
 type LayoutProps = {
   children: ReactNode;
