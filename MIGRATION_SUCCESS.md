@@ -26,7 +26,8 @@ Schema: public
 
 HTTP Request:
   Method: POST
-  URL: https://gigaviz.vercel.app/api/webhooks/outbox-trigger
+  URL: https://YOUR_PRODUCTION_DOMAIN/api/webhooks/outbox-trigger
+  (Ganti YOUR_PRODUCTION_DOMAIN dengan domain production kamu)
   
 HTTP Headers (click + Add):
   Key: Authorization

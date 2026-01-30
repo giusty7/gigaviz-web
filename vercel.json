@@ -1,6 +1,4 @@
 {
-  "_comment": "Cron config disabled - using Database Webhooks + GitHub Actions instead",
-  "_reason": "Vercel Hobby plan limits: max 1 cron per day. Moved to event-driven architecture.",
   "crons": []
 }
 

@@ -47,7 +47,8 @@ This creates:
    - **Events:** Check `INSERT` and `UPDATE`
    - **HTTP Request:**
      - **Method:** `POST`
-     - **URL:** `https://YOUR_DOMAIN.vercel.app/api/webhooks/outbox-trigger`
+     - **URL:** `https://YOUR_PRODUCTION_DOMAIN/api/webhooks/outbox-trigger`
+       (Ganti dengan domain production: gigaviz.com atau gigaviz-web-v2.vercel.app)
      - **HTTP Headers:**
        ```
        Authorization: Bearer YOUR_WEBHOOK_SECRET

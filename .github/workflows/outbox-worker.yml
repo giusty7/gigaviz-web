@@ -2,18 +2,21 @@ name: Outbox Worker
 
 on:
   schedule:
-    # Run every 2 minutes
-    - cron: "*/2 * * * *"
+    # Run every 5 minutes (GitHub Actions minimum)
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     # Allow manual trigger
 
 jobs:
   process-outbox:
     runs-on: ubuntu-latest
+    env:
+      APP_URL: https://gigaviz.com
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
     steps:
       - name: Process outbox messages
         run: |
-          curl -sS -f -X POST "${{ secrets.OUTBOX_WORKER_URL }}" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+          curl -sS -f -X POST "${APP_URL}/api/cron/outbox-worker" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
             -H "Content-Type: application/json" \
-            --data ''{"source":"github-actions"}''
+            --data '{"source":"github-actions"}'
