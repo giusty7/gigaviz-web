@@ -5,6 +5,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
+import { META_CONFIG } from './config';
 
 export type InstagramMessageType = 'text' | 'image' | 'video' | 'audio' | 'file';
 
@@ -41,7 +43,7 @@ export async function sendInstagramMessage(
 
   try {
     // Instagram Messaging API endpoint
-    const url = `https://graph.facebook.com/v21.0/me/messages`;
+    const url = META_CONFIG.getGraphUrl('/me/messages');
 
     const body: Record<string, unknown> = {
       recipient: { id: recipientIgId },
@@ -72,7 +74,7 @@ export async function sendInstagramMessage(
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[Instagram Send] API error:', data);
+      logger.error('[Instagram Send] API error', { data, status: response.status });
       return {
         ok: false,
         error: data.error?.message || 'Instagram API request failed',
@@ -121,11 +123,21 @@ export async function sendInstagramTextMessage(params: {
       };
     }
 
-    const account = thread.instagram_accounts as { id: string; ig_user_id: string; access_token: string } | null;
-    if (!account?.access_token) {
+    // Validate account structure with type guard
+    const account = thread.instagram_accounts as unknown;
+    if (!account || typeof account !== 'object') {
       return {
         ok: false,
-        error: 'Instagram account not connected or access token missing',
+        error: 'Instagram account not connected',
+      };
+    }
+    
+    // Type narrowing after validation
+    const accountData = account as Record<string, any>;
+    if (!accountData.access_token || !accountData.ig_user_id) {
+      return {
+        ok: false,
+        error: 'Instagram account missing required credentials',
       };
     }
 
@@ -134,7 +146,7 @@ export async function sendInstagramTextMessage(params: {
       threadId: thread.id,
       recipientIgId: thread.recipient_ig_id,
       message: { text },
-      accessToken: account.access_token,
+      accessToken: accountData.access_token,
     });
 
     if (!result.ok) {
@@ -146,7 +158,7 @@ export async function sendInstagramTextMessage(params: {
       .from('instagram_messages')
       .insert({
         thread_id: threadId,
-        instagram_account_id: account.id,
+        instagram_account_id: accountData.id,
         workspace_id: workspaceId,
         ig_message_id: result.messageId,
         direction: 'outbound',
@@ -199,11 +211,21 @@ export async function sendInstagramImageMessage(params: {
       };
     }
 
-    const account = thread.instagram_accounts as { id: string; ig_user_id: string; access_token: string } | null;
-    if (!account?.access_token) {
+    // Validate account structure with type guard
+    const account = thread.instagram_accounts as unknown;
+    if (!account || typeof account !== 'object') {
       return {
         ok: false,
         error: 'Instagram account not connected',
+      };
+    }
+    
+    // Type narrowing after validation
+    const accountData = account as Record<string, any>;
+    if (!accountData.access_token || !accountData.ig_user_id) {
+      return {
+        ok: false,
+        error: 'Instagram account missing required credentials',
       };
     }
 
@@ -220,7 +242,7 @@ export async function sendInstagramImageMessage(params: {
           },
         },
       },
-      accessToken: account.access_token,
+      accessToken: accountData.access_token,
     });
 
     if (!result.ok) {
@@ -232,7 +254,7 @@ export async function sendInstagramImageMessage(params: {
       .from('instagram_messages')
       .insert({
         thread_id: threadId,
-        instagram_account_id: account.id,
+        instagram_account_id: accountData.id,
         workspace_id: workspaceId,
         ig_message_id: result.messageId,
         direction: 'outbound',

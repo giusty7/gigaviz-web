@@ -14,11 +14,16 @@ export const maxDuration = 60; // 60 seconds max
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret for security
+    // Verify cron secret for security (REQUIRED in production)
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET || process.env.VERCEL_CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret) {
+      console.error('[Cron] CRON_SECRET not configured - blocking request');
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
       console.error('[Cron] Unauthorized request to materialized view refresh');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

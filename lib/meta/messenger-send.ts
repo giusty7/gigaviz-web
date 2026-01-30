@@ -5,6 +5,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logging';
+import { META_CONFIG } from './config';
 
 export type MessengerMessageType = 'text' | 'image' | 'video' | 'audio' | 'file';
 
@@ -41,7 +43,7 @@ export async function sendMessengerMessage(
 
   try {
     // Messenger Send API endpoint
-    const url = `https://graph.facebook.com/v21.0/me/messages`;
+    const url = META_CONFIG.getGraphUrl('/me/messages');
 
     const body: Record<string, unknown> = {
       recipient: { id: recipientId },
@@ -73,7 +75,7 @@ export async function sendMessengerMessage(
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[Messenger Send] API error:', data);
+      logger.error('[Messenger Send] API error', { data, status: response.status });
       return {
         ok: false,
         error: data.error?.message || 'Messenger API request failed',
@@ -122,11 +124,21 @@ export async function sendMessengerTextMessage(params: {
       };
     }
 
-    const page = thread.messenger_pages as { id: string; page_id: string; access_token: string } | null;
-    if (!page?.access_token) {
+    // Validate page structure with type guard
+    const page = thread.messenger_pages as unknown;
+    if (!page || typeof page !== 'object') {
       return {
         ok: false,
-        error: 'Messenger page not connected or access token missing',
+        error: 'Messenger page not connected',
+      };
+    }
+    
+    // Type narrowing after validation
+    const pageData = page as Record<string, any>;
+    if (!pageData.access_token || !pageData.page_id) {
+      return {
+        ok: false,
+        error: 'Messenger page missing required credentials',
       };
     }
 
@@ -135,7 +147,7 @@ export async function sendMessengerTextMessage(params: {
       threadId: thread.id,
       recipientId: thread.recipient_psid,
       message: { text },
-      accessToken: page.access_token,
+      accessToken: pageData.access_token,
     });
 
     if (!result.ok) {
@@ -147,7 +159,7 @@ export async function sendMessengerTextMessage(params: {
       .from('messenger_messages')
       .insert({
         thread_id: threadId,
-        messenger_page_id: page.id,
+        messenger_page_id: pageData.id,
         workspace_id: workspaceId,
         message_id: result.messageId,
         direction: 'outbound',
