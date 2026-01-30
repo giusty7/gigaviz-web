@@ -1,17 +1,6 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/outbox-worker",
-      "schedule": "*/2 * * * *"
-    },
-    {
-      "path": "/api/cron/wa-send-worker",
-      "schedule": "*/2 * * * *"
-    },
-    {
-      "path": "/api/cron/refresh-analytics",
-      "schedule": "0 * * * *"
-    }
-  ]
+  "_comment": "Cron config disabled - using Database Webhooks + GitHub Actions instead",
+  "_reason": "Vercel Hobby plan limits: max 1 cron per day. Moved to event-driven architecture.",
+  "crons": []
 }
 

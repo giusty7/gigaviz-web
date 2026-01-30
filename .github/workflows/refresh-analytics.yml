@@ -1,0 +1,31 @@
+# GitHub Actions: Refresh Analytics
+#
+# This workflow refreshes materialized views for analytics:
+# 1. usage_stats_daily materialized view
+# 2. Other analytics aggregations
+#
+# Runs every hour (sufficient for analytics)
+# Uses existing /api/cron/refresh-analytics endpoint
+
+name: Refresh Analytics
+
+on:
+  schedule:
+    # Every hour at minute 0
+    - cron: '0 * * * *'
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  refresh-analytics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    
+    steps:
+      - name: Refresh Analytics Views
+        run: |
+          curl -X GET "${{ secrets.APP_URL }}/api/cron/refresh-analytics" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -f -s -S -w "\nHTTP Status: %{http_code}\n"
+        continue-on-error: true
