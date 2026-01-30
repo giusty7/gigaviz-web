@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Clock3, Loader2, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Clock3, Loader2, ShieldCheck, Sparkles, Users, Search, Filter, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type AuditEvent = {
   id: string;
@@ -20,23 +29,49 @@ export function AuditLogPanel({ workspaceId }: AuditLogPanelProps) {
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [actionFilter, setActionFilter] = useState<string>("all");
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError(null);
+  const loadEvents = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
       const res = await fetch(`/api/audit-events?workspaceId=${workspaceId}`);
       if (!res.ok) {
-        setError("Failed to load audit events.");
-        setLoading(false);
-        return;
+        throw new Error("Failed to load audit events.");
       }
       const payload = (await res.json()) as { events: AuditEvent[] };
       setEvents(payload.events || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load");
+    } finally {
       setLoading(false);
-    };
-    load();
+      setRefreshing(false);
+    }
   }, [workspaceId]);
+
+  useEffect(() => {
+    void loadEvents();
+  }, [loadEvents]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    void loadEvents();
+  };
+
+  const uniqueActions = Array.from(new Set(events.map((e) => e.action))).sort();
+
+  const filteredEvents = events.filter((event) => {
+    if (actionFilter !== "all" && event.action !== actionFilter) return false;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const action = event.action.toLowerCase();
+      const actor = event.actor_email?.toLowerCase() ?? "";
+      return action.includes(query) || actor.includes(query);
+    }
+    return true;
+  });
 
   if (loading) {
     return (
@@ -65,29 +100,84 @@ export function AuditLogPanel({ workspaceId }: AuditLogPanelProps) {
   }
 
   return (
-    <div className="space-y-3">
-      {events.map((evt) => (
-        <div
-          key={evt.id}
-          className="flex items-start justify-between rounded-xl border border-border/80 bg-background px-4 py-3"
-        >
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-gigaviz-surface/70 text-gigaviz-gold">
-              <IconForAction action={evt.action} />
-            </span>
-            <div className="space-y-1 text-sm">
-              <p className="font-semibold text-foreground">{evt.action}</p>
-              <p className="text-xs text-muted-foreground">{evt.actor_email ?? "Unknown actor"}</p>
-              {evt.meta ? (
-                <p className="text-[11px] text-muted-foreground/80">{JSON.stringify(evt.meta)}</p>
-              ) : null}
-            </div>
-          </div>
-          <Badge variant="outline" className="border-border/70 text-[11px] text-muted-foreground">
-            {formatRelative(evt.created_at)}
-          </Badge>
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by action or actor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
-      ))}
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={actionFilter} onValueChange={setActionFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All actions</SelectItem>
+              {uniqueActions.map((action) => (
+                <SelectItem key={action} value={action}>
+                  {action}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            <span className="sr-only">Refresh</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Results count */}
+      {(searchQuery || actionFilter !== "all") && (
+        <div className="text-xs text-muted-foreground">
+          Showing {filteredEvents.length} of {events.length} events
+        </div>
+      )}
+
+      {/* Events list */}
+      {filteredEvents.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-center text-sm">
+          <p className="font-semibold text-foreground">No matching events</p>
+          <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredEvents.map((evt) => (
+            <div
+              key={evt.id}
+              className="flex items-start justify-between rounded-xl border border-border/80 bg-background px-4 py-3"
+            >
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-gigaviz-surface/70 text-gigaviz-gold">
+                  <IconForAction action={evt.action} />
+                </span>
+                <div className="space-y-1 text-sm">
+                  <p className="font-semibold text-foreground">{evt.action}</p>
+                  <p className="text-xs text-muted-foreground">{evt.actor_email ?? "Unknown actor"}</p>
+                  {evt.meta ? (
+                    <p className="text-[11px] text-muted-foreground/80 font-mono">{JSON.stringify(evt.meta)}</p>
+                  ) : null}
+                </div>
+              </div>
+              <Badge variant="outline" className="border-border/70 text-[11px] text-muted-foreground">
+                {formatRelative(evt.created_at)}
+              </Badge>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
