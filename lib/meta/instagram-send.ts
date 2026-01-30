@@ -133,7 +133,7 @@ export async function sendInstagramTextMessage(params: {
     }
     
     // Type narrowing after validation
-    const accountData = account as Record<string, any>;
+    const accountData = account as Record<string, unknown>;
     if (!accountData.access_token || !accountData.ig_user_id) {
       return {
         ok: false,
@@ -146,7 +146,7 @@ export async function sendInstagramTextMessage(params: {
       threadId: thread.id,
       recipientIgId: thread.recipient_ig_id,
       message: { text },
-      accessToken: accountData.access_token,
+      accessToken: accountData.access_token as string,
     });
 
     if (!result.ok) {
@@ -221,7 +221,7 @@ export async function sendInstagramImageMessage(params: {
     }
     
     // Type narrowing after validation
-    const accountData = account as Record<string, any>;
+    const accountData = account as Record<string, unknown>;
     if (!accountData.access_token || !accountData.ig_user_id) {
       return {
         ok: false,
@@ -242,7 +242,7 @@ export async function sendInstagramImageMessage(params: {
           },
         },
       },
-      accessToken: accountData.access_token,
+      accessToken: accountData.access_token as string,
     });
 
     if (!result.ok) {

@@ -134,7 +134,7 @@ export async function sendMessengerTextMessage(params: {
     }
     
     // Type narrowing after validation
-    const pageData = page as Record<string, any>;
+    const pageData = page as Record<string, unknown>;
     if (!pageData.access_token || !pageData.page_id) {
       return {
         ok: false,
@@ -147,7 +147,7 @@ export async function sendMessengerTextMessage(params: {
       threadId: thread.id,
       recipientId: thread.recipient_psid,
       message: { text },
-      accessToken: pageData.access_token,
+      accessToken: pageData.access_token as string,
     });
 
     if (!result.ok) {
