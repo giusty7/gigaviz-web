@@ -9,16 +9,17 @@ import {
   unauthorizedResponse,
   workspaceRequiredResponse,
 } from '@/lib/auth/guard';
+import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
 import { getUsageStats, getUsageSummary } from '@/lib/meta/usage-tracker';
 
 const statsSchema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceId: z.string().min(1), // allow slug or uuid, resolve later
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 const summarySchema = z.object({
-  workspaceId: z.string().uuid(),
+  workspaceId: z.string().min(1),
 });
 
 export const runtime = 'nodejs';
@@ -36,16 +37,16 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const workspaceId = getWorkspaceId(req, undefined, searchParams.get('workspaceId') ?? undefined);
+  const workspaceIdOrSlug = getWorkspaceId(req, undefined, searchParams.get('workspaceId') ?? undefined);
   const startDate = searchParams.get('startDate') ?? undefined;
   const endDate = searchParams.get('endDate') ?? undefined;
 
-  if (!workspaceId) {
+  if (!workspaceIdOrSlug) {
     return workspaceRequiredResponse(withCookies);
   }
 
   // Validate params
-  const parsed = statsSchema.safeParse({ workspaceId, startDate, endDate });
+  const parsed = statsSchema.safeParse({ workspaceId: workspaceIdOrSlug, startDate, endDate });
   if (!parsed.success) {
     return withCookies(
       NextResponse.json(
@@ -55,14 +56,26 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
+  // Resolve workspace (supports slug or UUID)
+  const resolvedWorkspaceId = await resolveWorkspaceId(supabase, parsed.data.workspaceId);
+
+  if (!resolvedWorkspaceId) {
+    return withCookies(
+      NextResponse.json(
+        { error: 'workspace_not_found' },
+        { status: 404 }
+      )
+    );
+  }
+
+  const membership = await requireWorkspaceMember(userData.user.id, resolvedWorkspaceId);
   if (!membership.ok || !requireWorkspaceRole(membership.role, ['owner', 'admin', 'member'])) {
     return forbiddenResponse(withCookies);
   }
 
   // Fetch stats
   const result = await getUsageStats({
-    workspaceId,
+    workspaceId: resolvedWorkspaceId,
     startDate,
     endDate,
   });
@@ -103,15 +116,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId } = parsed.data;
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
+  const resolvedWorkspaceId = await resolveWorkspaceId(supabase, parsed.data.workspaceId);
+
+  if (!resolvedWorkspaceId) {
+    return withCookies(
+      NextResponse.json(
+        { error: 'workspace_not_found' },
+        { status: 404 }
+      )
+    );
+  }
+
+  const membership = await requireWorkspaceMember(userData.user.id, resolvedWorkspaceId);
   
   if (!membership.ok || !requireWorkspaceRole(membership.role, ['owner', 'admin', 'member'])) {
     return forbiddenResponse(withCookies);
   }
 
   // Fetch summary
-  const result = await getUsageSummary(workspaceId);
+  const result = await getUsageSummary(resolvedWorkspaceId);
 
   if (!result.ok) {
     return withCookies(

@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
+import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,15 +15,24 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      return withCookies(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+      // In dev without auth, keep UI usable by returning empty threads
+      return withCookies(NextResponse.json({ threads: [] }));
     }
 
-    const workspaceId = searchParams.get('workspace_id');
-    if (!workspaceId) {
+    const workspaceIdOrSlug = searchParams.get('workspace_id');
+    if (!workspaceIdOrSlug) {
       return withCookies(NextResponse.json(
         { error: 'workspace_id required' },
         { status: 400 }
       ));
+    }
+
+    // Resolve workspace: support both UUID and slug
+    const workspaceId = await resolveWorkspaceId(supabase, workspaceIdOrSlug);
+    
+    if (!workspaceId) {
+      // Gracefully return empty list for dev instances without workspace seed
+      return withCookies(NextResponse.json({ threads: [] }));
     }
 
     // Filters

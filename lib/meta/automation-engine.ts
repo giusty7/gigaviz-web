@@ -196,7 +196,8 @@ export async function evaluateRulesForThread(params: {
         const actionResults = await executeActions(
           supabase,
           rule.actions || [],
-          threadContext
+          threadContext,
+          rule.id
         );
 
         const actionsSucceeded = actionResults.filter(r => r.ok).length;
@@ -418,12 +419,13 @@ function evaluateCondition(thread: ThreadContext, condition: Condition): boolean
 async function executeActions(
   supabase: ReturnType<typeof supabaseAdmin>,
   actions: Action[],
-  thread: ThreadContext
+  thread: ThreadContext,
+  ruleId: string
 ): Promise<Array<{ ok: boolean; error?: string }>> {
   const results = [];
 
   for (const action of actions) {
-    const result = await executeAction(supabase, action, thread);
+    const result = await executeAction(supabase, action, thread, ruleId);
     results.push(result);
   }
 
@@ -436,7 +438,8 @@ async function executeActions(
 async function executeAction(
   supabase: ReturnType<typeof supabaseAdmin>,
   action: Action,
-  thread: ThreadContext
+  thread: ThreadContext,
+  ruleId: string
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     switch (action.type) {
@@ -524,10 +527,74 @@ async function executeAction(
       }
 
       case 'send_template': {
-        // TODO: Implement template sending via outbox
-        // For now, log as not implemented
-        console.warn('[AutomationEngine] send_template action not yet implemented');
-        return { ok: false, error: 'send_template not yet implemented' };
+        // Send WhatsApp template via outbox
+        const { template_name, language, components } = action.params;
+
+        if (!template_name || typeof template_name !== 'string') {
+          return { ok: false, error: 'send_template requires template_name parameter' };
+        }
+
+        const templateLang = typeof language === 'string' ? language : 'en_US';
+        const templateComponents = Array.isArray(components) ? components : [];
+
+        // Get thread details for recipient phone
+        const { data: threadData, error: threadError } = await supabase
+          .from('wa_threads')
+          .select('phone_number, connection_id')
+          .eq('id', thread.id)
+          .eq('workspace_id', thread.workspace_id)
+          .single();
+
+        if (threadError || !threadData) {
+          return { ok: false, error: `Failed to get thread details: ${threadError?.message}` };
+        }
+
+        // Create outbound message record
+        const { data: message, error: msgError } = await supabase
+          .from('wa_messages')
+          .insert({
+            workspace_id: thread.workspace_id,
+            thread_id: thread.id,
+            connection_id: threadData.connection_id,
+            direction: 'out',
+            text: `[Template: ${template_name}]`, // Placeholder text
+            status: 'queued',
+          })
+          .select('id')
+          .single();
+
+        if (msgError || !message) {
+          return { ok: false, error: `Failed to create message: ${msgError?.message}` };
+        }
+
+        // Queue to outbox for worker processing
+        const idempotencyKey = `automation-${ruleId}-${thread.id}-${Date.now()}`;
+        const { error: outboxError } = await supabase
+          .from('outbox_messages')
+          .insert({
+            workspace_id: thread.workspace_id,
+            thread_id: thread.id,
+            connection_id: threadData.connection_id,
+            to_phone: threadData.phone_number,
+            message_type: 'template',
+            payload: {
+              message_id: message.id,
+              template_name,
+              language: templateLang,
+              components: templateComponents,
+            },
+            idempotency_key: idempotencyKey,
+            status: 'queued',
+            attempts: 0,
+            next_run_at: new Date().toISOString(),
+            next_attempt_at: new Date().toISOString(),
+          });
+
+        if (outboxError) {
+          return { ok: false, error: `Failed to queue template: ${outboxError.message}` };
+        }
+
+        return { ok: true };
       }
 
       default:

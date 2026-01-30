@@ -158,9 +158,24 @@ export function MetaHubAnalyticsDashboard({
     );
   }
 
+  const safeData: AnalyticsData = {
+    totalThreads: data.totalThreads ?? 0,
+    totalMessages: data.totalMessages ?? 0,
+    automationTriggers: data.automationTriggers ?? 0,
+    avgResponseTimeMs: data.avgResponseTimeMs ?? 0,
+    threadsByStatus: data.threadsByStatus ?? [],
+    messagesByDay: data.messagesByDay ?? [],
+    topTags: data.topTags ?? [],
+    tokenUsage: data.tokenUsage ?? 0,
+    period: data.period ?? timeRange,
+  };
+
   const maxMessages = Math.max(
-    ...data.messagesByDay.map((d) => d.inbound + d.outbound)
+    0,
+    ...safeData.messagesByDay.map((d) => d.inbound + d.outbound)
   );
+
+  const view = safeData;
 
   return (
     <motion.div
@@ -231,7 +246,7 @@ export function MetaHubAnalyticsDashboard({
             </div>
             <div>
               <p className="text-sm text-[#f5f5dc]/60">Total Threads</p>
-              <p className="text-2xl font-bold text-[#f5f5dc]">{data.totalThreads.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-[#f5f5dc]">{view.totalThreads.toLocaleString()}</p>
             </div>
           </div>
         </motion.div>
@@ -246,7 +261,7 @@ export function MetaHubAnalyticsDashboard({
             </div>
             <div>
               <p className="text-sm text-[#f5f5dc]/60">Messages Sent</p>
-              <p className="text-2xl font-bold text-[#f5f5dc]">{data.totalMessages.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-[#f5f5dc]">{view.totalMessages.toLocaleString()}</p>
             </div>
           </div>
         </motion.div>
@@ -261,7 +276,7 @@ export function MetaHubAnalyticsDashboard({
             </div>
             <div>
               <p className="text-sm text-[#f5f5dc]/60">Automations</p>
-              <p className="text-2xl font-bold text-[#f5f5dc]">{data.automationTriggers.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-[#f5f5dc]">{view.automationTriggers.toLocaleString()}</p>
             </div>
           </div>
         </motion.div>
@@ -277,7 +292,7 @@ export function MetaHubAnalyticsDashboard({
             <div>
               <p className="text-sm text-[#f5f5dc]/60">Avg Response Time</p>
               <p className="text-2xl font-bold text-[#f5f5dc]">
-                {formatDuration(data.avgResponseTimeMs)}
+                {formatDuration(view.avgResponseTimeMs)}
               </p>
             </div>
           </div>
@@ -297,8 +312,8 @@ export function MetaHubAnalyticsDashboard({
           </div>
 
           <div className="space-y-3">
-            {(data.threadsByStatus || []).map((item) => {
-              const total = data.threadsByStatus.reduce((sum, s) => sum + s.count, 0);
+            {(view.threadsByStatus || []).map((item) => {
+              const total = view.threadsByStatus.reduce((sum, s) => sum + s.count, 0);
               const percentage = total > 0 ? (item.count / total) * 100 : 0;
 
               let colorClass = "bg-[#d4af37]";
@@ -351,7 +366,7 @@ export function MetaHubAnalyticsDashboard({
             </div>
 
             <div className="flex h-48 items-end gap-1">
-              {(data.messagesByDay || []).slice(-14).map((day, idx) => {
+              {(view.messagesByDay || []).slice(-14).map((day, idx) => {
                 const inboundHeight = maxMessages > 0 ? (day.inbound / maxMessages) * 100 : 0;
                 const outboundHeight = maxMessages > 0 ? (day.outbound / maxMessages) * 100 : 0;
 
@@ -387,7 +402,7 @@ export function MetaHubAnalyticsDashboard({
       </div>
 
       {/* Top Tags */}
-      {data.topTags.length > 0 && (
+      {view.topTags.length > 0 && (
         <motion.div
           variants={itemVariants}
           className="rounded-xl border border-[#d4af37]/20 bg-gradient-to-br from-[#0a1229] to-[#050a18] p-6"
@@ -398,8 +413,8 @@ export function MetaHubAnalyticsDashboard({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {(data.topTags || []).slice(0, 15).map((item) => {
-              const maxCount = data.topTags?.[0]?.count ?? 1;
+            {(view.topTags || []).slice(0, 15).map((item) => {
+              const maxCount = view.topTags?.[0]?.count ?? 1;
               const intensity = (item.count / maxCount) * 100;
 
               return (
@@ -431,7 +446,7 @@ export function MetaHubAnalyticsDashboard({
             </div>
             <div>
               <p className="text-sm text-[#f5f5dc]/60">Token Usage</p>
-              <p className="text-2xl font-bold text-[#f5f5dc]">{data.tokenUsage.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-[#f5f5dc]">{view.tokenUsage.toLocaleString()}</p>
             </div>
           </div>
           <div className="text-right text-xs text-[#f5f5dc]/60">
