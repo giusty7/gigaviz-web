@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createHash } from "node:crypto";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import {
   forbiddenResponse,
@@ -12,16 +11,13 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimitDb } from "@/lib/rate-limit";
 import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWaSettings } from "@/lib/meta/wa-settings";
+import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
   threadId: z.string().uuid(),
   text: z.string().min(1),
 });
-
-function hashText(text: string) {
-  return createHash("sha256").update(text).digest("hex").slice(0, 12);
-}
 
 export const runtime = "nodejs";
 
@@ -194,8 +190,8 @@ export async function POST(req: NextRequest) {
   }
 
   const sandbox = await getWaSettings(workspaceId);
-  const toPhone = thread.contact_wa_id ?? thread.phone_number_id;
-  if (sandbox.sandboxEnabled && toPhone && !sandbox.whitelist.includes(toPhone)) {
+  const recipientPhone = thread.contact_wa_id ?? thread.phone_number_id;
+  if (sandbox.sandboxEnabled && recipientPhone && !sandbox.whitelist.includes(recipientPhone)) {
     return withCookies(
       NextResponse.json(
         {
@@ -209,28 +205,55 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Send directly to WhatsApp API (synchronous)
+  const toPhone = thread.contact_wa_id ?? thread.phone_number_id ?? "";
+  let waMessageId: string | null = null;
+  let sendError: string | null = null;
+
+  try {
+    const sendResult = await sendWhatsappMessage({
+      phoneNumberId: resolvedConnection.phone_number_id!,
+      token: connectionResult.token!,
+      payload: {
+        messaging_product: "whatsapp",
+        to: toPhone,
+        type: "text",
+        text: { body: text },
+      },
+    });
+
+    if (!sendResult.ok) {
+      sendError = sendResult.errorMessage ?? "send_failed";
+    } else {
+      waMessageId = sendResult.messageId ?? null;
+    }
+  } catch (err) {
+    sendError = err instanceof Error ? err.message : "send_exception";
+  }
+
+  // Insert message with final status
   const insertPayload = {
     workspace_id: workspaceId,
     thread_id: threadId,
     phone_number_id: resolvedConnection.phone_number_id,
-    connection_id: resolvedConnection.id, // FK to wa_phone_numbers for deterministic routing
-    wa_message_id: null as string | null,
+    connection_id: resolvedConnection.id,
+    wa_message_id: waMessageId,
     direction: "outbound",
     type: "text",
     msg_type: "text",
-    status: "queued" as const,
+    status: sendError ? "failed" : "sent",
     status_at: now,
     status_updated_at: now,
     delivered_at: null as string | null,
     read_at: null as string | null,
-    failed_at: null as string | null,
+    failed_at: sendError ? now : null,
+    sent_at: sendError ? null : now,
     error_code: null as string | null,
-    error_message: null as string | null,
+    error_message: sendError,
     text_body: text,
-    payload_json: { request: { to: thread.contact_wa_id ?? thread.phone_number_id, text } },
+    payload_json: { request: { to: toPhone, text } },
     wa_timestamp: now,
     created_at: now,
-    sent_at: null as string | null,
     from_wa_id: resolvedConnection.phone_number_id,
     to_wa_id: thread.contact_wa_id ?? null,
   };
@@ -239,69 +262,11 @@ export async function POST(req: NextRequest) {
     const { data: insertedMessage, error: insertErr } = await db
       .from("wa_messages")
       .insert(insertPayload)
-      .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id, status")
+      .select("id, thread_id, direction, text_body, wa_timestamp, wa_message_id, status, error_message")
       .single();
+
     if (insertErr) {
-      return withCookies(
-        NextResponse.json(
-          {
-            ok: false,
-            error: "db_error",
-            reason: "insert_failed",
-            message: insertErr.message,
-            details: insertErr.details,
-            hint: insertErr.hint,
-          },
-          { status: 500 }
-        )
-      );
-    }
-
-    const toPhone = thread.contact_wa_id ?? thread.phone_number_id ?? "";
-    const idempotencyKey = `wa-send-text:${workspaceId}:${threadId}:${hashText(text)}:${Math.floor(Date.now() / 30000)}`;
-
-    const nextAttemptAt = new Date().toISOString();
-    const { data: outboxInsert, error: outboxError } = await db
-      .from("outbox_messages")
-      .upsert(
-        {
-          workspace_id: workspaceId,
-          thread_id: threadId,
-          connection_id: resolvedConnection.id,
-          to_phone: toPhone,
-          message_type: "text",
-          payload: {
-            message_id: insertedMessage.id,
-            text,
-            phone_number_id: resolvedConnection.phone_number_id,
-            connection_id: resolvedConnection.id,
-          },
-          idempotency_key: idempotencyKey,
-          status: "queued",
-          attempts: 0,
-          next_run_at: nextAttemptAt,
-          next_attempt_at: nextAttemptAt,
-        },
-        { onConflict: "idempotency_key" }
-      )
-      .select("id, status, next_attempt_at, last_error")
-      .single();
-
-    if (outboxError || !outboxInsert) {
-      console.error("[send-text] outbox insert failed:", outboxError);
-      return withCookies(
-        NextResponse.json(
-          {
-            ok: false,
-            error: "outbox_error",
-            reason: "enqueue_failed",
-            message: outboxError?.message ?? "Failed to enqueue message",
-            details: outboxError?.details,
-            hint: outboxError?.hint,
-          },
-          { status: 500 }
-        )
-      );
+      console.error("[send-text] DB insert failed:", insertErr);
     }
 
     await db
@@ -314,46 +279,57 @@ export async function POST(req: NextRequest) {
       .eq("workspace_id", workspaceId)
       .eq("id", threadId);
 
-    // Record metric for dashboard
+    // Record metrics (best effort)
     try {
       const { incrementQuotaUsage, recordMetric } = await import("@/lib/quotas");
       await incrementQuotaUsage(workspaceId, "wa_messages_monthly", 1);
-      await recordMetric(workspaceId, "wa_messages_sent", 1, { thread_id: threadId, queued: true });
+      await recordMetric(workspaceId, "wa_messages_sent", 1, {
+        thread_id: threadId,
+        success: !sendError,
+      });
     } catch {
       // Best effort
     }
 
-    // Track usage event for analytics
+    // Track usage (best effort)
     try {
       const { trackUsageEvent } = await import("@/lib/meta/usage-tracker");
       await trackUsageEvent({
         workspaceId,
-        eventType: 'message_sent',
+        eventType: "message_sent",
         threadId,
         messageId: insertedMessage?.id,
         userId: userData.user.id,
         metadata: {
           text_length: text.length,
           connection_id: resolvedConnection.id,
-          queued: true,
+          success: !sendError,
         },
       });
     } catch {
-      // Best effort - don't block response
+      // Best effort
     }
 
-    const responseMessage = insertedMessage
-      ? { ...insertedMessage, outbox_id: outboxInsert.id, idempotency_key: idempotencyKey }
-      : null;
+    if (sendError) {
+      return withCookies(
+        NextResponse.json(
+          {
+            ok: false,
+            error: "send_failed",
+            reason: sendError,
+            message: insertedMessage,
+          },
+          { status: 500 }
+        )
+      );
+    }
 
     return withCookies(
       NextResponse.json({
         ok: true,
-        status: "queued",
-        queued: true,
-        message: responseMessage ?? insertedMessage,
-        outboxId: outboxInsert.id,
-        idempotencyKey,
+        status: "sent",
+        message: insertedMessage,
+        waMessageId,
       })
     );
   } catch (err) {
@@ -362,8 +338,9 @@ export async function POST(req: NextRequest) {
         {
           ok: false,
           error: "db_error",
-          reason: "insert_failed",
+          reason: "database_failed",
           message: err instanceof Error ? err.message : "unknown",
+          sendResult: { waMessageId, sendError },
         },
         { status: 500 }
       )

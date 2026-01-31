@@ -219,12 +219,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "connection_not_found" }, { status: 404 });
   }
 
-  const { data: accessToken, error: tokenError } = await findTokenForConnection(
+  const { data: tokenRow, error: tokenError } = await findTokenForConnection(
     db,
     connection.workspace_id,
     connection.phone_number_id,
     connection.waba_id
   );
+  const accessToken = tokenRow?.token_encrypted ?? null;
   if (tokenError || !accessToken) {
     logger.error("[outbox-trigger] Access token not found", { connectionId, error: tokenError?.message });
     await markMessageStatus(db, messageId, "failed", null, "token_not_found");
