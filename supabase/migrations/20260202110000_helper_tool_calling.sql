@@ -46,9 +46,9 @@ CREATE TABLE IF NOT EXISTS public.helper_functions (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_functions_product ON public.helper_functions(product_slug);
-CREATE INDEX idx_helper_functions_category ON public.helper_functions(category);
-CREATE INDEX idx_helper_functions_active ON public.helper_functions(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_helper_functions_product ON public.helper_functions(product_slug);
+CREATE INDEX IF NOT EXISTS idx_helper_functions_category ON public.helper_functions(category);
+CREATE INDEX IF NOT EXISTS idx_helper_functions_active ON public.helper_functions(is_active) WHERE is_active = true;
 
 COMMENT ON TABLE public.helper_functions IS 'Registry of executable functions for Helper AI';
 COMMENT ON COLUMN public.helper_functions.parameters_schema IS 'JSON Schema for function parameters';
@@ -97,11 +97,11 @@ CREATE TABLE IF NOT EXISTS public.helper_function_calls (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_calls_workspace ON public.helper_function_calls(workspace_id);
-CREATE INDEX idx_helper_calls_function ON public.helper_function_calls(function_id);
-CREATE INDEX idx_helper_calls_conversation ON public.helper_function_calls(conversation_id);
-CREATE INDEX idx_helper_calls_status ON public.helper_function_calls(status);
-CREATE INDEX idx_helper_calls_created ON public.helper_function_calls(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_helper_calls_workspace ON public.helper_function_calls(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_calls_function ON public.helper_function_calls(function_id);
+CREATE INDEX IF NOT EXISTS idx_helper_calls_conversation ON public.helper_function_calls(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_helper_calls_status ON public.helper_function_calls(status);
+CREATE INDEX IF NOT EXISTS idx_helper_calls_created ON public.helper_function_calls(workspace_id, created_at DESC);
 
 COMMENT ON TABLE public.helper_function_calls IS 'Execution log of Helper function calls';
 
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.helper_function_permissions (
   UNIQUE(workspace_id, function_id)
 );
 
-CREATE INDEX idx_helper_perms_workspace ON public.helper_function_permissions(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_perms_workspace ON public.helper_function_permissions(workspace_id);
 
 COMMENT ON TABLE public.helper_function_permissions IS 'Per-workspace function permission overrides';
 
@@ -157,8 +157,8 @@ CREATE TABLE IF NOT EXISTS public.helper_call_confirmations (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_confirmations_call ON public.helper_call_confirmations(call_id);
-CREATE INDEX idx_helper_confirmations_status ON public.helper_call_confirmations(status);
+CREATE INDEX IF NOT EXISTS idx_helper_confirmations_call ON public.helper_call_confirmations(call_id);
+CREATE INDEX IF NOT EXISTS idx_helper_confirmations_status ON public.helper_call_confirmations(status);
 
 COMMENT ON TABLE public.helper_call_confirmations IS 'User confirmations for function calls';
 
@@ -356,7 +356,8 @@ INSERT INTO public.helper_functions (
   'direct',
   NULL,
   true
-);
+)
+on conflict (function_name) do nothing;
 
 -- =====================================================
 -- 6. RLS POLICIES
@@ -364,6 +365,8 @@ INSERT INTO public.helper_functions (
 
 -- Function Calls
 ALTER TABLE public.helper_function_calls ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_calls_workspace_access" ON public.helper_function_calls;
+DROP POLICY IF EXISTS helper_calls_workspace_access ON public.helper_function_calls;
 CREATE POLICY "helper_calls_workspace_access"
   ON public.helper_function_calls
   FOR ALL
@@ -375,6 +378,8 @@ CREATE POLICY "helper_calls_workspace_access"
 
 -- Function Permissions
 ALTER TABLE public.helper_function_permissions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_perms_workspace_access" ON public.helper_function_permissions;
+DROP POLICY IF EXISTS helper_perms_workspace_access ON public.helper_function_permissions;
 CREATE POLICY "helper_perms_workspace_access"
   ON public.helper_function_permissions
   FOR ALL
@@ -386,6 +391,8 @@ CREATE POLICY "helper_perms_workspace_access"
 
 -- Call Confirmations
 ALTER TABLE public.helper_call_confirmations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_confirmations_workspace_access" ON public.helper_call_confirmations;
+DROP POLICY IF EXISTS helper_confirmations_workspace_access ON public.helper_call_confirmations;
 CREATE POLICY "helper_confirmations_workspace_access"
   ON public.helper_call_confirmations
   FOR ALL
@@ -453,6 +460,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS helper_calls_update_stats ON public.helper_function_calls;
 CREATE TRIGGER helper_calls_update_stats
   AFTER UPDATE ON public.helper_function_calls
   FOR EACH ROW

@@ -57,11 +57,11 @@ create table if not exists public.marketplace_items (
   updated_at timestamptz not null default now()
 );
 
-create index idx_marketplace_items_creator_workspace on public.marketplace_items(creator_workspace_id);
-create index idx_marketplace_items_category on public.marketplace_items(category);
-create index idx_marketplace_items_status on public.marketplace_items(status);
-create index idx_marketplace_items_published on public.marketplace_items(published_at) where status = 'approved';
-create index idx_marketplace_items_slug on public.marketplace_items(slug);
+create index if not exists idx_marketplace_items_creator_workspace on public.marketplace_items(creator_workspace_id);
+create index if not exists idx_marketplace_items_category on public.marketplace_items(category);
+create index if not exists idx_marketplace_items_status on public.marketplace_items(status);
+create index if not exists idx_marketplace_items_published on public.marketplace_items(published_at) where status = 'approved';
+create index if not exists idx_marketplace_items_slug on public.marketplace_items(slug);
 
 comment on table public.marketplace_items is 'Marketplace items catalog - templates, prompts, assets, mini-apps';
 
@@ -96,9 +96,9 @@ create table if not exists public.marketplace_purchases (
   refund_reason text
 );
 
-create index idx_marketplace_purchases_buyer on public.marketplace_purchases(buyer_workspace_id);
-create index idx_marketplace_purchases_item on public.marketplace_purchases(item_id);
-create index idx_marketplace_purchases_creator on public.marketplace_purchases(item_id, purchased_at);
+create index if not exists idx_marketplace_purchases_buyer on public.marketplace_purchases(buyer_workspace_id);
+create index if not exists idx_marketplace_purchases_item on public.marketplace_purchases(item_id);
+create index if not exists idx_marketplace_purchases_creator on public.marketplace_purchases(item_id, purchased_at);
 
 comment on table public.marketplace_purchases is 'Marketplace purchase transactions and licenses';
 
@@ -132,8 +132,8 @@ create table if not exists public.marketplace_reviews (
   unique(purchase_id)
 );
 
-create index idx_marketplace_reviews_item on public.marketplace_reviews(item_id);
-create index idx_marketplace_reviews_reviewer on public.marketplace_reviews(reviewer_workspace_id);
+create index if not exists idx_marketplace_reviews_item on public.marketplace_reviews(item_id);
+create index if not exists idx_marketplace_reviews_reviewer on public.marketplace_reviews(reviewer_workspace_id);
 
 comment on table public.marketplace_reviews is 'Marketplace item reviews and ratings';
 
@@ -177,12 +177,16 @@ comment on table public.marketplace_creators is 'Marketplace creator profiles an
 
 -- Public can browse approved items
 alter table public.marketplace_items enable row level security;
+drop policy if exists "marketplace_items_public_read" on public.marketplace_items;
+drop policy if exists marketplace_items_public_read on public.marketplace_items;
 create policy "marketplace_items_public_read"
   on public.marketplace_items
   for select
   using (status = 'approved');
 
 -- Creators can manage their own items
+drop policy if exists "marketplace_items_creator_all" on public.marketplace_items;
+drop policy if exists marketplace_items_creator_all on public.marketplace_items;
 create policy "marketplace_items_creator_all"
   on public.marketplace_items
   for all
@@ -194,6 +198,8 @@ create policy "marketplace_items_creator_all"
 
 -- Buyers can view their purchases
 alter table public.marketplace_purchases enable row level security;
+drop policy if exists "marketplace_purchases_buyer_read" on public.marketplace_purchases;
+drop policy if exists marketplace_purchases_buyer_read on public.marketplace_purchases;
 create policy "marketplace_purchases_buyer_read"
   on public.marketplace_purchases
   for select
@@ -204,6 +210,8 @@ create policy "marketplace_purchases_buyer_read"
   );
 
 -- Creators can view their sales
+drop policy if exists "marketplace_purchases_creator_read" on public.marketplace_purchases;
+drop policy if exists marketplace_purchases_creator_read on public.marketplace_purchases;
 create policy "marketplace_purchases_creator_read"
   on public.marketplace_purchases
   for select
@@ -218,11 +226,15 @@ create policy "marketplace_purchases_creator_read"
 
 -- Reviews: public read, buyers can write
 alter table public.marketplace_reviews enable row level security;
+drop policy if exists "marketplace_reviews_public_read" on public.marketplace_reviews;
+drop policy if exists marketplace_reviews_public_read on public.marketplace_reviews;
 create policy "marketplace_reviews_public_read"
   on public.marketplace_reviews
   for select
   using (true);
 
+drop policy if exists "marketplace_reviews_buyer_write" on public.marketplace_reviews;
+drop policy if exists marketplace_reviews_buyer_write on public.marketplace_reviews;
 create policy "marketplace_reviews_buyer_write"
   on public.marketplace_reviews
   for insert
@@ -234,11 +246,15 @@ create policy "marketplace_reviews_buyer_write"
 
 -- Creator profiles: public read, owner write
 alter table public.marketplace_creators enable row level security;
+drop policy if exists "marketplace_creators_public_read" on public.marketplace_creators;
+drop policy if exists marketplace_creators_public_read on public.marketplace_creators;
 create policy "marketplace_creators_public_read"
   on public.marketplace_creators
   for select
   using (true);
 
+drop policy if exists "marketplace_creators_owner_write" on public.marketplace_creators;
+drop policy if exists marketplace_creators_owner_write on public.marketplace_creators;
 create policy "marketplace_creators_owner_write"
   on public.marketplace_creators
   for all

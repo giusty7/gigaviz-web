@@ -1,0 +1,90 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import {
+  getCannedResponse,
+  updateCannedResponse,
+  deleteCannedResponse,
+} from "@/lib/ops/canned-responses";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id } = await context.params;
+    const response = await getCannedResponse(id);
+
+    if (!response) {
+      return NextResponse.json({ error: "Canned response not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ response });
+  } catch (error) {
+    console.error("Get canned response error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to get canned response" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id } = await context.params;
+    const body = await request.json();
+    const { title, content, shortcut, category } = body;
+
+    const response = await updateCannedResponse(id, {
+      title,
+      content,
+      shortcut,
+      category,
+    });
+
+    return NextResponse.json({ response });
+  } catch (error) {
+    console.error("Update canned response error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to update canned response" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id } = await context.params;
+    await deleteCannedResponse(id);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete canned response error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to delete canned response" },
+      { status: 500 }
+    );
+  }
+}

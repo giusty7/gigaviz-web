@@ -51,14 +51,14 @@ CREATE TABLE IF NOT EXISTS public.helper_attachments (
   processed_at timestamptz
 );
 
-CREATE INDEX idx_helper_attachments_workspace ON public.helper_attachments(workspace_id);
-CREATE INDEX idx_helper_attachments_message ON public.helper_attachments(message_id);
-CREATE INDEX idx_helper_attachments_conversation ON public.helper_attachments(conversation_id);
-CREATE INDEX idx_helper_attachments_type ON public.helper_attachments(attachment_type);
-CREATE INDEX idx_helper_attachments_status ON public.helper_attachments(processing_status);
+CREATE INDEX IF NOT EXISTS idx_helper_attachments_workspace ON public.helper_attachments(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_attachments_message ON public.helper_attachments(message_id);
+CREATE INDEX IF NOT EXISTS idx_helper_attachments_conversation ON public.helper_attachments(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_helper_attachments_type ON public.helper_attachments(attachment_type);
+CREATE INDEX IF NOT EXISTS idx_helper_attachments_status ON public.helper_attachments(processing_status);
 
 -- Vector similarity search index
-CREATE INDEX idx_helper_attachments_embedding ON public.helper_attachments 
+CREATE INDEX IF NOT EXISTS idx_helper_attachments_embedding ON public.helper_attachments 
 USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 
@@ -68,6 +68,8 @@ COMMENT ON COLUMN public.helper_attachments.extracted_text IS 'OCR/transcription
 -- Enable RLS
 ALTER TABLE public.helper_attachments ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_workspace_attachments" ON public.helper_attachments;
+DROP POLICY IF EXISTS users_access_own_workspace_attachments ON public.helper_attachments;
 CREATE POLICY "users_access_own_workspace_attachments"
 ON public.helper_attachments
 FOR ALL
@@ -96,7 +98,7 @@ ADD COLUMN IF NOT EXISTS content_type text DEFAULT 'text' CHECK (content_type IN
 ALTER TABLE public.helper_messages
 ADD COLUMN IF NOT EXISTS attachments_count integer DEFAULT 0;
 
-CREATE INDEX idx_helper_messages_content_type ON public.helper_messages(content_type);
+CREATE INDEX IF NOT EXISTS idx_helper_messages_content_type ON public.helper_messages(content_type);
 
 -- =====================================================
 -- 3. ADVANCED MODES
@@ -210,10 +212,11 @@ INSERT INTO public.helper_modes (
   'You are a data analyst. Identify patterns, trends, and actionable insights from data.',
   ARRAY['analysis']::text[],
   true
-);
+)
+ON CONFLICT (mode_slug) DO NOTHING;
 
-CREATE INDEX idx_helper_modes_slug ON public.helper_modes(mode_slug);
-CREATE INDEX idx_helper_modes_active ON public.helper_modes(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_helper_modes_slug ON public.helper_modes(mode_slug);
+CREATE INDEX IF NOT EXISTS idx_helper_modes_active ON public.helper_modes(is_active) WHERE is_active = true;
 
 COMMENT ON TABLE public.helper_modes IS 'Advanced AI modes with specialized capabilities';
 
@@ -221,7 +224,7 @@ COMMENT ON TABLE public.helper_modes IS 'Advanced AI modes with specialized capa
 ALTER TABLE public.helper_conversations
 ADD COLUMN IF NOT EXISTS mode_slug text REFERENCES public.helper_modes(mode_slug) DEFAULT 'chat';
 
-CREATE INDEX idx_helper_conversations_mode ON public.helper_conversations(mode_slug);
+CREATE INDEX IF NOT EXISTS idx_helper_conversations_mode ON public.helper_conversations(mode_slug);
 
 -- =====================================================
 -- 4. PROCESSING QUEUE
@@ -265,14 +268,16 @@ CREATE TABLE IF NOT EXISTS public.helper_processing_queue (
   priority integer DEFAULT 5 -- 1=highest, 10=lowest
 );
 
-CREATE INDEX idx_helper_processing_queue_status ON public.helper_processing_queue(status, priority);
-CREATE INDEX idx_helper_processing_queue_attachment ON public.helper_processing_queue(attachment_id);
+CREATE INDEX IF NOT EXISTS idx_helper_processing_queue_status ON public.helper_processing_queue(status, priority);
+CREATE INDEX IF NOT EXISTS idx_helper_processing_queue_attachment ON public.helper_processing_queue(attachment_id);
 
 COMMENT ON TABLE public.helper_processing_queue IS 'Background processing queue for multi-modal content';
 
 -- Enable RLS
 ALTER TABLE public.helper_processing_queue ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_workspace_processing" ON public.helper_processing_queue;
+DROP POLICY IF EXISTS users_access_own_workspace_processing ON public.helper_processing_queue;
 CREATE POLICY "users_access_own_workspace_processing"
 ON public.helper_processing_queue
 FOR ALL
@@ -319,14 +324,16 @@ CREATE TABLE IF NOT EXISTS public.helper_reasoning_steps (
   UNIQUE(message_id, step_number)
 );
 
-CREATE INDEX idx_helper_reasoning_steps_message ON public.helper_reasoning_steps(message_id);
-CREATE INDEX idx_helper_reasoning_steps_conversation ON public.helper_reasoning_steps(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_helper_reasoning_steps_message ON public.helper_reasoning_steps(message_id);
+CREATE INDEX IF NOT EXISTS idx_helper_reasoning_steps_conversation ON public.helper_reasoning_steps(conversation_id);
 
 COMMENT ON TABLE public.helper_reasoning_steps IS 'Chain-of-thought reasoning steps for transparency';
 
 -- Enable RLS
 ALTER TABLE public.helper_reasoning_steps ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_workspace_reasoning" ON public.helper_reasoning_steps;
+DROP POLICY IF EXISTS users_access_own_workspace_reasoning ON public.helper_reasoning_steps;
 CREATE POLICY "users_access_own_workspace_reasoning"
 ON public.helper_reasoning_steps
 FOR ALL
@@ -458,6 +465,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS trigger_auto_queue_attachment_processing ON helper_attachments;
 CREATE TRIGGER trigger_auto_queue_attachment_processing
 AFTER INSERT ON helper_attachments
 FOR EACH ROW
@@ -510,11 +518,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS trigger_update_message_stats_reasoning ON helper_reasoning_steps;
 CREATE TRIGGER trigger_update_message_stats_reasoning
 AFTER INSERT ON helper_reasoning_steps
 FOR EACH ROW
 EXECUTE FUNCTION update_message_stats();
 
+DROP TRIGGER IF EXISTS trigger_update_message_stats_attachments ON helper_attachments;
 CREATE TRIGGER trigger_update_message_stats_attachments
 AFTER INSERT ON helper_attachments
 FOR EACH ROW

@@ -37,8 +37,8 @@ create table if not exists public.ig_accounts (
   updated_at timestamptz not null default now()
 );
 
-create index idx_ig_accounts_workspace on public.ig_accounts(workspace_id);
-create index idx_ig_accounts_ig_id on public.ig_accounts(ig_account_id);
+create index if not exists idx_ig_accounts_workspace on public.ig_accounts(workspace_id);
+create index if not exists idx_ig_accounts_ig_id on public.ig_accounts(ig_account_id);
 
 -- Instagram Threads (conversations)
 create table if not exists public.ig_threads (
@@ -71,10 +71,10 @@ create table if not exists public.ig_threads (
   unique(ig_account_id, ig_thread_id)
 );
 
-create index idx_ig_threads_workspace on public.ig_threads(workspace_id);
-create index idx_ig_threads_account on public.ig_threads(ig_account_id);
-create index idx_ig_threads_status on public.ig_threads(status);
-create index idx_ig_threads_assigned on public.ig_threads(assigned_to);
+create index if not exists idx_ig_threads_workspace on public.ig_threads(workspace_id);
+create index if not exists idx_ig_threads_account on public.ig_threads(ig_account_id);
+create index if not exists idx_ig_threads_status on public.ig_threads(status);
+create index if not exists idx_ig_threads_assigned on public.ig_threads(assigned_to);
 
 -- Instagram Messages
 create table if not exists public.ig_messages (
@@ -111,9 +111,9 @@ create table if not exists public.ig_messages (
   updated_at timestamptz not null default now()
 );
 
-create index idx_ig_messages_thread on public.ig_messages(thread_id, created_at);
-create index idx_ig_messages_workspace on public.ig_messages(workspace_id);
-create index idx_ig_messages_ig_id on public.ig_messages(ig_message_id);
+create index if not exists idx_ig_messages_thread on public.ig_messages(thread_id, created_at);
+create index if not exists idx_ig_messages_workspace on public.ig_messages(workspace_id);
+create index if not exists idx_ig_messages_ig_id on public.ig_messages(ig_message_id);
 
 comment on table public.ig_accounts is 'Instagram Business Accounts for messaging';
 comment on table public.ig_threads is 'Instagram Direct Message threads';
@@ -151,8 +151,8 @@ create table if not exists public.messenger_pages (
   updated_at timestamptz not null default now()
 );
 
-create index idx_messenger_pages_workspace on public.messenger_pages(workspace_id);
-create index idx_messenger_pages_page_id on public.messenger_pages(page_id);
+create index if not exists idx_messenger_pages_workspace on public.messenger_pages(workspace_id);
+create index if not exists idx_messenger_pages_page_id on public.messenger_pages(page_id);
 
 -- Messenger Threads
 create table if not exists public.messenger_threads (
@@ -184,9 +184,9 @@ create table if not exists public.messenger_threads (
   unique(page_id, psid)
 );
 
-create index idx_messenger_threads_workspace on public.messenger_threads(workspace_id);
-create index idx_messenger_threads_page on public.messenger_threads(page_id);
-create index idx_messenger_threads_status on public.messenger_threads(status);
+create index if not exists idx_messenger_threads_workspace on public.messenger_threads(workspace_id);
+create index if not exists idx_messenger_threads_page on public.messenger_threads(page_id);
+create index if not exists idx_messenger_threads_status on public.messenger_threads(status);
 
 -- Messenger Messages
 create table if not exists public.messenger_messages (
@@ -217,8 +217,8 @@ create table if not exists public.messenger_messages (
   updated_at timestamptz not null default now()
 );
 
-create index idx_messenger_messages_thread on public.messenger_messages(thread_id, created_at);
-create index idx_messenger_messages_workspace on public.messenger_messages(workspace_id);
+create index if not exists idx_messenger_messages_thread on public.messenger_messages(thread_id, created_at);
+create index if not exists idx_messenger_messages_workspace on public.messenger_messages(workspace_id);
 
 comment on table public.messenger_pages is 'Facebook Pages with Messenger enabled';
 comment on table public.messenger_threads is 'Messenger conversations';
@@ -259,9 +259,9 @@ create table if not exists public.messaging_bulk_actions (
   created_at timestamptz not null default now()
 );
 
-create index idx_bulk_actions_workspace on public.messaging_bulk_actions(workspace_id);
-create index idx_bulk_actions_status on public.messaging_bulk_actions(status);
-create index idx_bulk_actions_platform on public.messaging_bulk_actions(platform);
+create index if not exists idx_bulk_actions_workspace on public.messaging_bulk_actions(workspace_id);
+create index if not exists idx_bulk_actions_status on public.messaging_bulk_actions(status);
+create index if not exists idx_bulk_actions_platform on public.messaging_bulk_actions(platform);
 
 comment on table public.messaging_bulk_actions is 'Bulk messaging operations log';
 
@@ -271,6 +271,8 @@ comment on table public.messaging_bulk_actions is 'Bulk messaging operations log
 
 -- Instagram Accounts
 alter table public.ig_accounts enable row level security;
+drop policy if exists "ig_accounts_workspace_all" on public.ig_accounts;
+drop policy if exists ig_accounts_workspace_all on public.ig_accounts;
 create policy "ig_accounts_workspace_all"
   on public.ig_accounts
   for all
@@ -282,6 +284,8 @@ create policy "ig_accounts_workspace_all"
 
 -- Instagram Threads
 alter table public.ig_threads enable row level security;
+drop policy if exists "ig_threads_workspace_all" on public.ig_threads;
+drop policy if exists ig_threads_workspace_all on public.ig_threads;
 create policy "ig_threads_workspace_all"
   on public.ig_threads
   for all
@@ -293,6 +297,8 @@ create policy "ig_threads_workspace_all"
 
 -- Instagram Messages
 alter table public.ig_messages enable row level security;
+drop policy if exists "ig_messages_workspace_all" on public.ig_messages;
+drop policy if exists ig_messages_workspace_all on public.ig_messages;
 create policy "ig_messages_workspace_all"
   on public.ig_messages
   for all
@@ -304,6 +310,8 @@ create policy "ig_messages_workspace_all"
 
 -- Messenger Pages
 alter table public.messenger_pages enable row level security;
+drop policy if exists "messenger_pages_workspace_all" on public.messenger_pages;
+drop policy if exists messenger_pages_workspace_all on public.messenger_pages;
 create policy "messenger_pages_workspace_all"
   on public.messenger_pages
   for all
@@ -315,6 +323,8 @@ create policy "messenger_pages_workspace_all"
 
 -- Messenger Threads
 alter table public.messenger_threads enable row level security;
+drop policy if exists "messenger_threads_workspace_all" on public.messenger_threads;
+drop policy if exists messenger_threads_workspace_all on public.messenger_threads;
 create policy "messenger_threads_workspace_all"
   on public.messenger_threads
   for all
@@ -326,6 +336,8 @@ create policy "messenger_threads_workspace_all"
 
 -- Messenger Messages
 alter table public.messenger_messages enable row level security;
+drop policy if exists "messenger_messages_workspace_all" on public.messenger_messages;
+drop policy if exists messenger_messages_workspace_all on public.messenger_messages;
 create policy "messenger_messages_workspace_all"
   on public.messenger_messages
   for all
@@ -337,6 +349,8 @@ create policy "messenger_messages_workspace_all"
 
 -- Bulk Actions
 alter table public.messaging_bulk_actions enable row level security;
+drop policy if exists "bulk_actions_workspace_all" on public.messaging_bulk_actions;
+drop policy if exists bulk_actions_workspace_all on public.messaging_bulk_actions;
 create policy "bulk_actions_workspace_all"
   on public.messaging_bulk_actions
   for all

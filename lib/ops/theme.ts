@@ -71,6 +71,8 @@ export const opsTheme = {
   nav: {
     items: [
       { label: "Workspaces", href: "/ops/workspaces", icon: "Building2" },
+      { label: "Customers", href: "/ops/customers", icon: "Users" },
+      { label: "Tickets", href: "/ops/tickets", icon: "Ticket" },
       { label: "System Logs", href: "/ops/audit", icon: "ScrollText" },
       { label: "Health", href: "/ops/health", icon: "HeartPulse" },
       { label: "Sovereign Command", href: "/ops/god-console", icon: "LayoutPanelLeft" },

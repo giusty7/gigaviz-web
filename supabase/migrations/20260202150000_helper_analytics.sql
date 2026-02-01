@@ -42,16 +42,18 @@ CREATE TABLE IF NOT EXISTS public.helper_analytics_events (
 );
 
 -- Partitioning for performance (by month)
-CREATE INDEX idx_helper_analytics_events_workspace_created ON public.helper_analytics_events(workspace_id, created_at DESC);
-CREATE INDEX idx_helper_analytics_events_type ON public.helper_analytics_events(event_type);
-CREATE INDEX idx_helper_analytics_events_category ON public.helper_analytics_events(event_category);
-CREATE INDEX idx_helper_analytics_events_user ON public.helper_analytics_events(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_helper_analytics_events_workspace_created ON public.helper_analytics_events(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_helper_analytics_events_type ON public.helper_analytics_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_helper_analytics_events_category ON public.helper_analytics_events(event_category);
+CREATE INDEX IF NOT EXISTS idx_helper_analytics_events_user ON public.helper_analytics_events(user_id) WHERE user_id IS NOT NULL;
 
 COMMENT ON TABLE public.helper_analytics_events IS 'Event tracking for analytics and monitoring';
 
 -- Enable RLS
 ALTER TABLE public.helper_analytics_events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_analytics" ON public.helper_analytics_events;
+DROP POLICY IF EXISTS users_access_workspace_analytics ON public.helper_analytics_events;
 CREATE POLICY "users_access_workspace_analytics"
 ON public.helper_analytics_events
 FOR SELECT
@@ -92,15 +94,17 @@ CREATE TABLE IF NOT EXISTS public.helper_message_feedback (
   UNIQUE(message_id, user_id)
 );
 
-CREATE INDEX idx_helper_message_feedback_message ON public.helper_message_feedback(message_id);
-CREATE INDEX idx_helper_message_feedback_rating ON public.helper_message_feedback(rating);
-CREATE INDEX idx_helper_message_feedback_workspace_created ON public.helper_message_feedback(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_helper_message_feedback_message ON public.helper_message_feedback(message_id);
+CREATE INDEX IF NOT EXISTS idx_helper_message_feedback_rating ON public.helper_message_feedback(rating);
+CREATE INDEX IF NOT EXISTS idx_helper_message_feedback_workspace_created ON public.helper_message_feedback(workspace_id, created_at DESC);
 
 COMMENT ON TABLE public.helper_message_feedback IS 'User feedback on AI responses (thumbs up/down)';
 
 -- Enable RLS
 ALTER TABLE public.helper_message_feedback ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_feedback" ON public.helper_message_feedback;
+DROP POLICY IF EXISTS users_access_workspace_feedback ON public.helper_message_feedback;
 CREATE POLICY "users_access_workspace_feedback"
 ON public.helper_message_feedback
 FOR ALL
@@ -141,6 +145,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS trigger_update_message_feedback_counts ON helper_message_feedback;
 CREATE TRIGGER trigger_update_message_feedback_counts
 AFTER INSERT OR UPDATE ON helper_message_feedback
 FOR EACH ROW
@@ -160,7 +165,7 @@ SELECT
 FROM helper_conversations
 GROUP BY workspace_id, DATE(created_at);
 
-CREATE UNIQUE INDEX idx_helper_daily_metrics_workspace_date 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_helper_daily_metrics_workspace_date 
 ON helper_daily_metrics(workspace_id, date DESC);
 
 COMMENT ON MATERIALIZED VIEW helper_daily_metrics IS 'Daily aggregated conversation metrics';
@@ -213,7 +218,7 @@ INNER JOIN helper_functions hf ON hf.id = hfc.function_id
 WHERE hfc.created_at >= now() - interval '30 days'
 GROUP BY hfc.workspace_id, hf.function_name, hf.display_name, hf.product_slug, hf.category;
 
-CREATE UNIQUE INDEX idx_helper_function_usage_workspace_function 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_helper_function_usage_workspace_function 
 ON helper_function_usage_stats(workspace_id, function_name);
 
 COMMENT ON MATERIALIZED VIEW helper_function_usage_stats IS 'Function call analytics';
@@ -261,7 +266,7 @@ CREATE TABLE IF NOT EXISTS public.helper_cost_tracking (
   UNIQUE(workspace_id, period_start)
 );
 
-CREATE INDEX idx_helper_cost_tracking_workspace_period 
+CREATE INDEX IF NOT EXISTS idx_helper_cost_tracking_workspace_period 
 ON public.helper_cost_tracking(workspace_id, period_start DESC);
 
 COMMENT ON TABLE public.helper_cost_tracking IS 'Cost tracking and optimization data';
@@ -269,6 +274,8 @@ COMMENT ON TABLE public.helper_cost_tracking IS 'Cost tracking and optimization 
 -- Enable RLS
 ALTER TABLE public.helper_cost_tracking ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_cost_tracking" ON public.helper_cost_tracking;
+DROP POLICY IF EXISTS users_access_workspace_cost_tracking ON public.helper_cost_tracking;
 CREATE POLICY "users_access_workspace_cost_tracking"
 ON public.helper_cost_tracking
 FOR SELECT
@@ -317,15 +324,17 @@ CREATE TABLE IF NOT EXISTS public.helper_error_logs (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_error_logs_workspace_created ON public.helper_error_logs(workspace_id, created_at DESC);
-CREATE INDEX idx_helper_error_logs_type ON public.helper_error_logs(error_type);
-CREATE INDEX idx_helper_error_logs_severity ON public.helper_error_logs(severity) WHERE is_resolved = false;
+CREATE INDEX IF NOT EXISTS idx_helper_error_logs_workspace_created ON public.helper_error_logs(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_helper_error_logs_type ON public.helper_error_logs(error_type);
+CREATE INDEX IF NOT EXISTS idx_helper_error_logs_severity ON public.helper_error_logs(severity) WHERE is_resolved = false;
 
 COMMENT ON TABLE public.helper_error_logs IS 'Centralized error tracking and monitoring';
 
 -- Enable RLS
 ALTER TABLE public.helper_error_logs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "admins_access_workspace_error_logs" ON public.helper_error_logs;
+DROP POLICY IF EXISTS admins_access_workspace_error_logs ON public.helper_error_logs;
 CREATE POLICY "admins_access_workspace_error_logs"
 ON public.helper_error_logs
 FOR SELECT

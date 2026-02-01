@@ -1,11 +1,8 @@
 name: Outbox Worker
 
 on:
-  schedule:
-    # Runs every 5 minutes to process queued WhatsApp messages
-    - cron: "*/5 * * * *"
   workflow_dispatch:
-    # Allow manual trigger
+    # Manual trigger only; scheduled cron disabled because realtime webhooks handle delivery
 
 jobs:
   process-outbox:

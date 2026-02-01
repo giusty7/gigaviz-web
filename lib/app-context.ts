@@ -10,6 +10,8 @@ import {
   resolveCurrentWorkspace,
   WORKSPACE_COOKIE,
 } from "@/lib/workspaces";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import type { User } from "@supabase/supabase-js";
 
 export async function getAppContext(workspaceSlug?: string | null) {
   const supabase = await supabaseServer();
@@ -40,5 +42,60 @@ export async function getAppContext(workspaceSlug?: string | null) {
     currentWorkspace,
     currentRole,
     effectiveEntitlements,
+  };
+}
+
+// Impersonated context: uses service role to resolve target user's workspace
+export async function getAppContextImpersonated(
+  impersonationId: string,
+  workspaceSlug?: string | null
+) {
+  const db = supabaseAdmin();
+  const { data: imp, error } = await db
+    .from("ops_impersonations")
+    .select(
+      "id, target_user_id, target_email, workspace_id, workspace_slug, reason, expires_at, ended_at"
+    )
+    .eq("id", impersonationId)
+    .is("ended_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (error || !imp) {
+    return { user: null };
+  }
+
+  const targetUserRes = await db.auth.admin.getUserById(imp.target_user_id);
+  const targetUser = targetUserRes.data.user as User | null;
+
+  if (!targetUser) {
+    return { user: null };
+  }
+
+  const profile = await ensureProfile(targetUser);
+  const workspaces = await getUserWorkspaces(targetUser.id);
+
+  const currentWorkspace = resolveCurrentWorkspace(
+    workspaces,
+    imp.workspace_id,
+    workspaceSlug ?? imp.workspace_slug
+  );
+
+  const currentRole = currentWorkspace
+    ? workspaces.find((ws) => ws.id === currentWorkspace.id)?.role ?? null
+    : null;
+
+  const effectiveEntitlements = currentWorkspace
+    ? await getWorkspaceEffectiveEntitlements(currentWorkspace.id)
+    : [];
+
+  return {
+    user: targetUser,
+    profile,
+    workspaces,
+    currentWorkspace,
+    currentRole,
+    effectiveEntitlements,
+    impersonationId,
   };
 }

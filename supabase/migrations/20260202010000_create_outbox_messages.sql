@@ -71,22 +71,18 @@ create index if not exists outbox_messages_thread_idx
 alter table public.outbox_messages enable row level security;
 
 -- RLS Policy: Users can only access their workspace's outbox
-do $$
-begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname='public' and tablename='outbox_messages' and policyname='outbox_messages_ws_all'
-  ) then
-    execute 'create policy outbox_messages_ws_all on public.outbox_messages
-      for all using (
-        workspace_id in (
-          select workspace_id
-          from workspace_memberships
-          where user_id = auth.uid()
-        )
-      )';
-  end if;
-end $$;
+drop policy if exists "outbox_messages_ws_all" on public.outbox_messages;
+drop policy if exists outbox_messages_ws_all on public.outbox_messages;
+create policy "outbox_messages_ws_all"
+  on public.outbox_messages
+  for all
+  using (
+    workspace_id in (
+      select workspace_id
+      from workspace_memberships
+      where user_id = auth.uid()
+    )
+  );
 
 -- Function to claim outbox messages for processing
 create or replace function public.claim_outbox(

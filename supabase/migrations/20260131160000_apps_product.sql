@@ -118,6 +118,8 @@ comment on table public.apps_roadmap is 'Public roadmap showing upcoming feature
 -- Apps Catalog (public read, admin write)
 alter table public.apps_catalog enable row level security;
 
+drop policy if exists "apps_catalog_public_read" on public.apps_catalog;
+drop policy if exists apps_catalog_public_read on public.apps_catalog;
 create policy "apps_catalog_public_read"
   on public.apps_catalog
   for select
@@ -127,6 +129,8 @@ create policy "apps_catalog_public_read"
 -- Apps Requests (workspace-scoped)
 alter table public.apps_requests enable row level security;
 
+drop policy if exists "apps_requests_workspace_read" on public.apps_requests;
+drop policy if exists apps_requests_workspace_read on public.apps_requests;
 create policy "apps_requests_workspace_read"
   on public.apps_requests
   for select
@@ -139,6 +143,8 @@ create policy "apps_requests_workspace_read"
     )
   );
 
+drop policy if exists "apps_requests_workspace_insert" on public.apps_requests;
+drop policy if exists apps_requests_workspace_insert on public.apps_requests;
 create policy "apps_requests_workspace_insert"
   on public.apps_requests
   for insert
@@ -152,6 +158,8 @@ create policy "apps_requests_workspace_insert"
     and user_id = auth.uid()
   );
 
+drop policy if exists "apps_requests_workspace_update" on public.apps_requests;
+drop policy if exists apps_requests_workspace_update on public.apps_requests;
 create policy "apps_requests_workspace_update"
   on public.apps_requests
   for update
@@ -167,6 +175,8 @@ create policy "apps_requests_workspace_update"
 -- Apps Roadmap (public read for is_public=true items)
 alter table public.apps_roadmap enable row level security;
 
+drop policy if exists "apps_roadmap_public_read" on public.apps_roadmap;
+drop policy if exists apps_roadmap_public_read on public.apps_roadmap;
 create policy "apps_roadmap_public_read"
   on public.apps_roadmap
   for select
@@ -190,12 +200,11 @@ values
   ('trade', 'Trade', 'E-commerce platform', 'sales', 'coming_soon', 'paid', 'Complete e-commerce solution for online sellers')
 on conflict (slug) do nothing;
 
--- Insert sample roadmap items
-insert into public.apps_roadmap (title, description, status, priority, category, quarter, is_public)
+insert into public.apps_roadmap (id, title, description, status, priority, category, quarter, is_public)
 values
-  ('Marketplace Beta Launch', 'Launch beta version of Marketplace with template marketplace', 'in_progress', 'high', 'feature', 'Q1 2026', true),
-  ('Arena MVP', 'Release MVP of Arena with basic tournament management', 'planned', 'high', 'feature', 'Q2 2026', true),
-  ('Pay Integration', 'Integrate Gigaviz Pay with Meta Hub for payment links in WhatsApp', 'planned', 'medium', 'integration', 'Q2 2026', true),
-  ('Community Forums', 'Add forum functionality to Community product', 'planned', 'medium', 'feature', 'Q2 2026', true),
-  ('Trade Catalog Management', 'Product catalog management for Trade', 'planned', 'low', 'feature', 'Q3 2026', true)
-on conflict do nothing;
+  ('1c4a3a3e-5d15-41aa-9c7c-5b1c80d5f211'::uuid, 'Marketplace Beta Launch', 'Launch beta version of Marketplace with template marketplace', 'in_progress', 'high', 'feature', 'Q1 2026', true),
+  ('9fbc6f1a-6e03-43a2-9e7a-58da1c9b0c2f'::uuid, 'Arena MVP', 'Release MVP of Arena with basic tournament management', 'planned', 'high', 'feature', 'Q2 2026', true),
+  ('f3f1f5c0-5c51-4d5c-92e0-6d5be5f51a6f'::uuid, 'Pay Integration', 'Integrate Gigaviz Pay with Meta Hub for payment links in WhatsApp', 'planned', 'medium', 'integration', 'Q2 2026', true),
+  ('d66a9b11-8bf4-4e7f-98de-7c8841bf624d'::uuid, 'Community Forums', 'Add forum functionality to Community product', 'planned', 'medium', 'feature', 'Q2 2026', true),
+  ('4a52ef0b-5ed9-4e9a-8a3e-6e6f0e1e4f85'::uuid, 'Trade Catalog Management', 'Product catalog management for Trade', 'planned', 'low', 'feature', 'Q3 2026', true)
+on conflict (id) do nothing;

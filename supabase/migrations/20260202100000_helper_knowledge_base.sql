@@ -47,12 +47,12 @@ CREATE TABLE IF NOT EXISTS public.helper_knowledge_sources (
   UNIQUE(workspace_id, source_type, source_id)
 );
 
-CREATE INDEX idx_helper_knowledge_workspace ON public.helper_knowledge_sources(workspace_id);
-CREATE INDEX idx_helper_knowledge_source ON public.helper_knowledge_sources(source_type, source_id);
-CREATE INDEX idx_helper_knowledge_active ON public.helper_knowledge_sources(workspace_id, is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_helper_knowledge_workspace ON public.helper_knowledge_sources(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_knowledge_source ON public.helper_knowledge_sources(source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_helper_knowledge_active ON public.helper_knowledge_sources(workspace_id, is_active) WHERE is_active = true;
 
 -- Vector similarity search index (IVFFLAT for fast approximate search)
-CREATE INDEX idx_helper_knowledge_embedding ON public.helper_knowledge_sources 
+CREATE INDEX IF NOT EXISTS idx_helper_knowledge_embedding ON public.helper_knowledge_sources 
   USING ivfflat (embedding vector_cosine_ops)
   WITH (lists = 100);
 
@@ -84,11 +84,11 @@ CREATE TABLE IF NOT EXISTS public.helper_knowledge_chunks (
   UNIQUE(source_id, chunk_index)
 );
 
-CREATE INDEX idx_helper_chunks_source ON public.helper_knowledge_chunks(source_id);
-CREATE INDEX idx_helper_chunks_workspace ON public.helper_knowledge_chunks(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_chunks_source ON public.helper_knowledge_chunks(source_id);
+CREATE INDEX IF NOT EXISTS idx_helper_chunks_workspace ON public.helper_knowledge_chunks(workspace_id);
 
 -- Vector search on chunks
-CREATE INDEX idx_helper_chunks_embedding ON public.helper_knowledge_chunks 
+CREATE INDEX IF NOT EXISTS idx_helper_chunks_embedding ON public.helper_knowledge_chunks 
   USING ivfflat (embedding vector_cosine_ops)
   WITH (lists = 100);
 
@@ -117,9 +117,9 @@ CREATE TABLE IF NOT EXISTS public.helper_context_usage (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_context_message ON public.helper_context_usage(message_id);
-CREATE INDEX idx_helper_context_source ON public.helper_context_usage(source_id);
-CREATE INDEX idx_helper_context_workspace ON public.helper_context_usage(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_context_message ON public.helper_context_usage(message_id);
+CREATE INDEX IF NOT EXISTS idx_helper_context_source ON public.helper_context_usage(source_id);
+CREATE INDEX IF NOT EXISTS idx_helper_context_workspace ON public.helper_context_usage(workspace_id);
 
 COMMENT ON TABLE public.helper_context_usage IS 'Track which knowledge sources helped answer questions';
 
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS public.helper_rag_settings (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_rag_settings_workspace ON public.helper_rag_settings(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_rag_settings_workspace ON public.helper_rag_settings(workspace_id);
 
 COMMENT ON TABLE public.helper_rag_settings IS 'Per-workspace RAG configuration';
 
@@ -242,6 +242,8 @@ COMMENT ON FUNCTION search_helper_chunks IS 'Semantic search at chunk-level for 
 
 -- Knowledge Sources
 ALTER TABLE public.helper_knowledge_sources ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_knowledge_workspace_access" ON public.helper_knowledge_sources;
+DROP POLICY IF EXISTS helper_knowledge_workspace_access ON public.helper_knowledge_sources;
 CREATE POLICY "helper_knowledge_workspace_access"
   ON public.helper_knowledge_sources
   FOR ALL
@@ -253,6 +255,8 @@ CREATE POLICY "helper_knowledge_workspace_access"
 
 -- Chunks
 ALTER TABLE public.helper_knowledge_chunks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_chunks_workspace_access" ON public.helper_knowledge_chunks;
+DROP POLICY IF EXISTS helper_chunks_workspace_access ON public.helper_knowledge_chunks;
 CREATE POLICY "helper_chunks_workspace_access"
   ON public.helper_knowledge_chunks
   FOR ALL
@@ -264,6 +268,8 @@ CREATE POLICY "helper_chunks_workspace_access"
 
 -- Context Usage
 ALTER TABLE public.helper_context_usage ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_context_workspace_access" ON public.helper_context_usage;
+DROP POLICY IF EXISTS helper_context_workspace_access ON public.helper_context_usage;
 CREATE POLICY "helper_context_workspace_access"
   ON public.helper_context_usage
   FOR ALL
@@ -275,6 +281,8 @@ CREATE POLICY "helper_context_workspace_access"
 
 -- RAG Settings
 ALTER TABLE public.helper_rag_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "helper_rag_settings_workspace_access" ON public.helper_rag_settings;
+DROP POLICY IF EXISTS helper_rag_settings_workspace_access ON public.helper_rag_settings;
 CREATE POLICY "helper_rag_settings_workspace_access"
   ON public.helper_rag_settings
   FOR ALL
@@ -297,6 +305,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS helper_rag_settings_updated_at ON public.helper_rag_settings;
 CREATE TRIGGER helper_rag_settings_updated_at
   BEFORE UPDATE ON public.helper_rag_settings
   FOR EACH ROW

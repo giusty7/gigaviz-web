@@ -10,6 +10,8 @@ import {
   LayoutPanelLeft,
   ScrollText,
   ShieldCheck,
+  Ticket,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { opsTheme } from "@/lib/ops/theme";
@@ -23,9 +25,11 @@ type OpsShellProps = {
 // Map icon names to components
 const iconMap: Record<string, LucideIcon> = {
   Building2,
+  Users,
   ScrollText,
   HeartPulse,
   LayoutPanelLeft,
+  Ticket,
 };
 
 const NAV_ITEMS = opsTheme.nav.items.map((item) => ({

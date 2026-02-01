@@ -36,8 +36,8 @@ create table if not exists public.office_templates (
   unique(workspace_id, slug)
 );
 
-create index idx_office_templates_workspace on public.office_templates(workspace_id);
-create index idx_office_templates_category on public.office_templates(category);
+create index if not exists idx_office_templates_workspace on public.office_templates(workspace_id);
+create index if not exists idx_office_templates_category on public.office_templates(category);
 
 -- Office Documents (user-created instances)
 create table if not exists public.office_documents (
@@ -60,8 +60,8 @@ create table if not exists public.office_documents (
   updated_at timestamptz not null default now()
 );
 
-create index idx_office_documents_workspace on public.office_documents(workspace_id);
-create index idx_office_documents_template on public.office_documents(template_id);
+create index if not exists idx_office_documents_workspace on public.office_documents(workspace_id);
+create index if not exists idx_office_documents_template on public.office_documents(template_id);
 
 comment on table public.office_templates is 'Office product: reusable document templates';
 comment on table public.office_documents is 'Office product: user-created documents';
@@ -99,8 +99,8 @@ create table if not exists public.graph_charts (
   updated_at timestamptz not null default now()
 );
 
-create index idx_graph_charts_workspace on public.graph_charts(workspace_id);
-create index idx_graph_charts_type on public.graph_charts(chart_type);
+create index if not exists idx_graph_charts_workspace on public.graph_charts(workspace_id);
+create index if not exists idx_graph_charts_type on public.graph_charts(chart_type);
 
 -- Graph Dashboards (collections of charts)
 create table if not exists public.graph_dashboards (
@@ -125,7 +125,7 @@ create table if not exists public.graph_dashboards (
   unique(workspace_id, slug)
 );
 
-create index idx_graph_dashboards_workspace on public.graph_dashboards(workspace_id);
+create index if not exists idx_graph_dashboards_workspace on public.graph_dashboards(workspace_id);
 
 comment on table public.graph_charts is 'Graph product: data visualizations and charts';
 comment on table public.graph_dashboards is 'Graph product: dashboard collections';
@@ -166,8 +166,8 @@ create table if not exists public.tracks_workflows (
   unique(workspace_id, slug)
 );
 
-create index idx_tracks_workflows_workspace on public.tracks_workflows(workspace_id);
-create index idx_tracks_workflows_status on public.tracks_workflows(status);
+create index if not exists idx_tracks_workflows_workspace on public.tracks_workflows(workspace_id);
+create index if not exists idx_tracks_workflows_status on public.tracks_workflows(status);
 
 -- Tracks Runs (workflow executions)
 create table if not exists public.tracks_runs (
@@ -193,9 +193,9 @@ create table if not exists public.tracks_runs (
   duration_ms integer
 );
 
-create index idx_tracks_runs_workflow on public.tracks_runs(workflow_id);
-create index idx_tracks_runs_workspace on public.tracks_runs(workspace_id);
-create index idx_tracks_runs_status on public.tracks_runs(status);
+create index if not exists idx_tracks_runs_workflow on public.tracks_runs(workflow_id);
+create index if not exists idx_tracks_runs_workspace on public.tracks_runs(workspace_id);
+create index if not exists idx_tracks_runs_status on public.tracks_runs(status);
 
 comment on table public.tracks_workflows is 'Tracks product: workflow orchestration definitions';
 comment on table public.tracks_runs is 'Tracks product: workflow execution history';
@@ -206,6 +206,8 @@ comment on table public.tracks_runs is 'Tracks product: workflow execution histo
 
 -- Office Templates
 alter table public.office_templates enable row level security;
+drop policy if exists "office_templates_workspace_all" on public.office_templates;
+drop policy if exists office_templates_workspace_all on public.office_templates;
 create policy "office_templates_workspace_all"
   on public.office_templates
   for all
@@ -217,6 +219,8 @@ create policy "office_templates_workspace_all"
 
 -- Office Documents
 alter table public.office_documents enable row level security;
+drop policy if exists "office_documents_workspace_all" on public.office_documents;
+drop policy if exists office_documents_workspace_all on public.office_documents;
 create policy "office_documents_workspace_all"
   on public.office_documents
   for all
@@ -228,6 +232,8 @@ create policy "office_documents_workspace_all"
 
 -- Graph Charts
 alter table public.graph_charts enable row level security;
+drop policy if exists "graph_charts_workspace_all" on public.graph_charts;
+drop policy if exists graph_charts_workspace_all on public.graph_charts;
 create policy "graph_charts_workspace_all"
   on public.graph_charts
   for all
@@ -239,6 +245,8 @@ create policy "graph_charts_workspace_all"
 
 -- Graph Dashboards
 alter table public.graph_dashboards enable row level security;
+drop policy if exists "graph_dashboards_workspace_all" on public.graph_dashboards;
+drop policy if exists graph_dashboards_workspace_all on public.graph_dashboards;
 create policy "graph_dashboards_workspace_all"
   on public.graph_dashboards
   for all
@@ -250,6 +258,8 @@ create policy "graph_dashboards_workspace_all"
 
 -- Tracks Workflows
 alter table public.tracks_workflows enable row level security;
+drop policy if exists "tracks_workflows_workspace_all" on public.tracks_workflows;
+drop policy if exists tracks_workflows_workspace_all on public.tracks_workflows;
 create policy "tracks_workflows_workspace_all"
   on public.tracks_workflows
   for all
@@ -261,6 +271,8 @@ create policy "tracks_workflows_workspace_all"
 
 -- Tracks Runs
 alter table public.tracks_runs enable row level security;
+drop policy if exists "tracks_runs_workspace_all" on public.tracks_runs;
+drop policy if exists tracks_runs_workspace_all on public.tracks_runs;
 create policy "tracks_runs_workspace_all"
   on public.tracks_runs
   for all
@@ -312,6 +324,7 @@ on conflict (workspace_id, slug) do nothing;
 
 -- Seed sample Graph charts
 insert into public.graph_charts (
+  id,
   workspace_id,
   title,
   description,
@@ -322,6 +335,7 @@ insert into public.graph_charts (
   created_by
 ) values
 (
+  '6f8c3c9d-4f21-4b4a-9c4c-1c6bb7c0ef31'::uuid,
   (select id from workspaces limit 1),
   'Monthly Revenue Trend',
   'Revenue performance over the last 12 months',
@@ -332,6 +346,7 @@ insert into public.graph_charts (
   (select id from auth.users limit 1)
 ),
 (
+  'c5b0de0b-45d5-46b7-8c35-1d6d4f5b7b9d'::uuid,
   (select id from workspaces limit 1),
   'Lead Sources Breakdown',
   'Distribution of leads by source channel',
@@ -341,7 +356,7 @@ insert into public.graph_charts (
   array['leads', 'marketing', 'channels'],
   (select id from auth.users limit 1)
 )
-on conflict do nothing;
+on conflict (id) do nothing;
 
 -- Seed sample Tracks workflow
 insert into public.tracks_workflows (

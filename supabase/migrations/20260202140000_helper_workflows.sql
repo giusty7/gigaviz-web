@@ -61,16 +61,18 @@ CREATE TABLE IF NOT EXISTS public.helper_workflows (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_workflows_workspace ON public.helper_workflows(workspace_id);
-CREATE INDEX idx_helper_workflows_trigger_type ON public.helper_workflows(trigger_type);
-CREATE INDEX idx_helper_workflows_enabled ON public.helper_workflows(is_enabled) WHERE is_enabled = true;
-CREATE INDEX idx_helper_workflows_template ON public.helper_workflows(is_template) WHERE is_template = true;
+CREATE INDEX IF NOT EXISTS idx_helper_workflows_workspace ON public.helper_workflows(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflows_trigger_type ON public.helper_workflows(trigger_type);
+CREATE INDEX IF NOT EXISTS idx_helper_workflows_enabled ON public.helper_workflows(is_enabled) WHERE is_enabled = true;
+CREATE INDEX IF NOT EXISTS idx_helper_workflows_template ON public.helper_workflows(is_template) WHERE is_template = true;
 
 COMMENT ON TABLE public.helper_workflows IS 'Automated workflows for Helper AI';
 
 -- Enable RLS
 ALTER TABLE public.helper_workflows ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_workflows" ON public.helper_workflows;
+DROP POLICY IF EXISTS users_access_workspace_workflows ON public.helper_workflows;
 CREATE POLICY "users_access_workspace_workflows"
 ON public.helper_workflows
 FOR ALL
@@ -123,15 +125,17 @@ CREATE TABLE IF NOT EXISTS public.helper_workflow_runs (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_workflow_runs_workflow ON public.helper_workflow_runs(workflow_id);
-CREATE INDEX idx_helper_workflow_runs_status ON public.helper_workflow_runs(status);
-CREATE INDEX idx_helper_workflow_runs_created ON public.helper_workflow_runs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_runs_workflow ON public.helper_workflow_runs(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_runs_status ON public.helper_workflow_runs(status);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_runs_created ON public.helper_workflow_runs(created_at DESC);
 
 COMMENT ON TABLE public.helper_workflow_runs IS 'Execution log for workflows';
 
 -- Enable RLS
 ALTER TABLE public.helper_workflow_runs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_workflow_runs" ON public.helper_workflow_runs;
+DROP POLICY IF EXISTS users_access_workspace_workflow_runs ON public.helper_workflow_runs;
 CREATE POLICY "users_access_workspace_workflow_runs"
 ON public.helper_workflow_runs
 FOR ALL
@@ -172,14 +176,16 @@ CREATE TABLE IF NOT EXISTS public.helper_workflow_schedules (
   UNIQUE(workflow_id)
 );
 
-CREATE INDEX idx_helper_workflow_schedules_next_run ON public.helper_workflow_schedules(next_run_at) WHERE is_active = true;
-CREATE INDEX idx_helper_workflow_schedules_workflow ON public.helper_workflow_schedules(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_schedules_next_run ON public.helper_workflow_schedules(next_run_at) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_schedules_workflow ON public.helper_workflow_schedules(workflow_id);
 
 COMMENT ON TABLE public.helper_workflow_schedules IS 'Cron schedules for workflows';
 
 -- Enable RLS
 ALTER TABLE public.helper_workflow_schedules ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_schedules" ON public.helper_workflow_schedules;
+DROP POLICY IF EXISTS users_access_workspace_schedules ON public.helper_workflow_schedules;
 CREATE POLICY "users_access_workspace_schedules"
 ON public.helper_workflow_schedules
 FOR ALL
@@ -218,15 +224,17 @@ CREATE TABLE IF NOT EXISTS public.helper_workflow_event_triggers (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_workflow_event_triggers_workspace ON public.helper_workflow_event_triggers(workspace_id);
-CREATE INDEX idx_helper_workflow_event_triggers_event_type ON public.helper_workflow_event_triggers(event_type);
-CREATE INDEX idx_helper_workflow_event_triggers_active ON public.helper_workflow_event_triggers(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_event_triggers_workspace ON public.helper_workflow_event_triggers(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_event_triggers_event_type ON public.helper_workflow_event_triggers(event_type);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_event_triggers_active ON public.helper_workflow_event_triggers(is_active) WHERE is_active = true;
 
 COMMENT ON TABLE public.helper_workflow_event_triggers IS 'Event-based workflow triggers';
 
 -- Enable RLS
 ALTER TABLE public.helper_workflow_event_triggers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_event_triggers" ON public.helper_workflow_event_triggers;
+DROP POLICY IF EXISTS users_access_workspace_event_triggers ON public.helper_workflow_event_triggers;
 CREATE POLICY "users_access_workspace_event_triggers"
 ON public.helper_workflow_event_triggers
 FOR ALL
@@ -270,14 +278,16 @@ CREATE TABLE IF NOT EXISTS public.helper_workflow_webhooks (
   UNIQUE(workflow_id)
 );
 
-CREATE INDEX idx_helper_workflow_webhooks_workflow ON public.helper_workflow_webhooks(workflow_id);
-CREATE INDEX idx_helper_workflow_webhooks_url ON public.helper_workflow_webhooks(webhook_url);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_webhooks_workflow ON public.helper_workflow_webhooks(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_webhooks_url ON public.helper_workflow_webhooks(webhook_url);
 
 COMMENT ON TABLE public.helper_workflow_webhooks IS 'Webhook endpoints for workflows';
 
 -- Enable RLS
 ALTER TABLE public.helper_workflow_webhooks ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_webhooks" ON public.helper_workflow_webhooks;
+DROP POLICY IF EXISTS users_access_workspace_webhooks ON public.helper_workflow_webhooks;
 CREATE POLICY "users_access_workspace_webhooks"
 ON public.helper_workflow_webhooks
 FOR ALL
@@ -521,6 +531,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS trigger_update_workflow_stats ON helper_workflow_runs;
 CREATE TRIGGER trigger_update_workflow_stats
 AFTER INSERT OR UPDATE ON helper_workflow_runs
 FOR EACH ROW
@@ -554,14 +565,16 @@ CREATE TABLE IF NOT EXISTS public.helper_workflow_permissions (
   UNIQUE(workflow_id, user_id, role)
 );
 
-CREATE INDEX idx_helper_workflow_permissions_workflow ON public.helper_workflow_permissions(workflow_id);
-CREATE INDEX idx_helper_workflow_permissions_user ON public.helper_workflow_permissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_permissions_workflow ON public.helper_workflow_permissions(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_helper_workflow_permissions_user ON public.helper_workflow_permissions(user_id);
 
 COMMENT ON TABLE public.helper_workflow_permissions IS 'Granular permissions for workflows';
 
 -- Enable RLS
 ALTER TABLE public.helper_workflow_permissions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_workflow_permissions" ON public.helper_workflow_permissions;
+DROP POLICY IF EXISTS users_access_workspace_workflow_permissions ON public.helper_workflow_permissions;
 CREATE POLICY "users_access_workspace_workflow_permissions"
 ON public.helper_workflow_permissions
 FOR ALL

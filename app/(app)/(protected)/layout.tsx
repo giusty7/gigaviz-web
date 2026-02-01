@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import AppShell from "@/components/app/AppShell";
-import { getAppContext } from "@/lib/app-context";
+import { getAppContext, getAppContextImpersonated } from "@/lib/app-context";
+import { getImpersonationContext } from "@/lib/impersonation/context";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,14 @@ type AppLayoutProps = {
 
 export default async function AppLayout({ children, params }: AppLayoutProps) {
   const resolvedParams = await params;
-  const ctx = await getAppContext(resolvedParams?.workspaceSlug);
+  const impersonation = await getImpersonationContext();
+
+  const ctx = impersonation.isImpersonating && impersonation.impersonationId
+    ? await getAppContextImpersonated(
+        impersonation.impersonationId,
+        resolvedParams?.workspaceSlug ?? impersonation.workspaceSlug
+      )
+    : await getAppContext(resolvedParams?.workspaceSlug);
 
   if (!ctx.user) {
     redirect("/login");

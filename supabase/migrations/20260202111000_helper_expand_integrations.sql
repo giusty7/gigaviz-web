@@ -13,8 +13,7 @@ INSERT INTO helper_functions (
   required_params,
   requires_confirmation,
   handler_type,
-  handler_endpoint,
-  min_role
+  handler_endpoint
 ) VALUES
 -- Broadcast & Templates
 (
@@ -28,9 +27,7 @@ INSERT INTO helper_functions (
   ARRAY['message'],
   true,
   'api',
-  '/api/meta/broadcasts/send',
-  'admin'
-),
+  '/api/meta/broadcasts/send'),
 (
   'create_template',
   'Create Message Template',
@@ -42,9 +39,7 @@ INSERT INTO helper_functions (
   ARRAY['name', 'category', 'language', 'body'],
   true,
   'api',
-  '/api/meta/templates/create',
-  'admin'
-),
+  '/api/meta/templates/create'),
 (
   'get_template_analytics',
   'Get Template Analytics',
@@ -56,9 +51,7 @@ INSERT INTO helper_functions (
   ARRAY['templateId'],
   false,
   'api',
-  '/api/meta/templates/analytics',
-  'member'
-),
+  '/api/meta/templates/analytics'),
 
 -- Contact Management Extended
 (
@@ -72,9 +65,7 @@ INSERT INTO helper_functions (
   ARRAY['primaryContactId', 'duplicateContactIds'],
   true,
   'api',
-  '/api/meta/contacts/merge',
-  'admin'
-),
+  '/api/meta/contacts/merge'),
 (
   'export_contacts',
   'Export Contacts',
@@ -83,12 +74,10 @@ INSERT INTO helper_functions (
   'meta-hub',
   'crm',
   '{"filters": {"type": "object"}, "format": {"type": "string", "enum": ["csv", "xlsx"]}}'::jsonb,
-  ARRAY[],
+  ARRAY[]::text[],
   false,
   'api',
-  '/api/meta/contacts/export',
-  'member'
-),
+  '/api/meta/contacts/export'),
 (
   'import_contacts',
   'Import Contacts',
@@ -100,9 +89,7 @@ INSERT INTO helper_functions (
   ARRAY['fileUrl'],
   true,
   'api',
-  '/api/meta/contacts/import',
-  'admin'
-),
+  '/api/meta/contacts/import'),
 
 -- Conversation Management Extended
 (
@@ -116,9 +103,7 @@ INSERT INTO helper_functions (
   ARRAY['conversationIds', 'tags', 'action'],
   false,
   'api',
-  '/api/meta/conversations/bulk-tag',
-  'member'
-),
+  '/api/meta/conversations/bulk-tag'),
 (
   'get_conversation_analytics',
   'Get Conversation Analytics',
@@ -127,12 +112,10 @@ INSERT INTO helper_functions (
   'meta-hub',
   'analytics',
   '{"startDate": {"type": "string"}, "endDate": {"type": "string"}, "groupBy": {"type": "string", "enum": ["day", "week", "month"]}}'::jsonb,
-  ARRAY[],
+  ARRAY[]::text[],
   false,
   'api',
-  '/api/meta/analytics/conversations',
-  'member'
-),
+  '/api/meta/analytics/conversations'),
 
 -- Marketplace Functions
 (
@@ -146,9 +129,7 @@ INSERT INTO helper_functions (
   ARRAY['query'],
   false,
   'direct',
-  NULL,
-  'member'
-),
+  NULL),
 (
   'create_product',
   'Create Product',
@@ -160,9 +141,7 @@ INSERT INTO helper_functions (
   ARRAY['name', 'description', 'price'],
   true,
   'api',
-  '/api/marketplace/products/create',
-  'member'
-),
+  '/api/marketplace/products/create'),
 (
   'update_product',
   'Update Product',
@@ -174,9 +153,7 @@ INSERT INTO helper_functions (
   ARRAY['productId', 'updates'],
   false,
   'api',
-  '/api/marketplace/products/update',
-  'member'
-),
+  '/api/marketplace/products/update'),
 
 -- Studio Functions
 (
@@ -190,9 +167,7 @@ INSERT INTO helper_functions (
   ARRAY['name', 'stages'],
   false,
   'api',
-  '/api/studio/funnels/create',
-  'member'
-),
+  '/api/studio/funnels/create'),
 (
   'get_funnel_metrics',
   'Get Funnel Metrics',
@@ -204,9 +179,7 @@ INSERT INTO helper_functions (
   ARRAY['funnelId'],
   false,
   'api',
-  '/api/studio/funnels/metrics',
-  'member'
-),
+  '/api/studio/funnels/metrics'),
 
 -- Workspace Management
 (
@@ -220,9 +193,7 @@ INSERT INTO helper_functions (
   ARRAY['email', 'role'],
   true,
   'api',
-  '/api/workspaces/invite',
-  'admin'
-),
+  '/api/workspaces/invite'),
 (
   'get_workspace_usage',
   'Get Workspace Usage',
@@ -231,12 +202,10 @@ INSERT INTO helper_functions (
   'platform',
   'analytics',
   '{"metric": {"type": "string", "enum": ["tokens", "messages", "storage", "all"]}}'::jsonb,
-  ARRAY[],
+  ARRAY[]::text[],
   false,
   'api',
-  '/api/workspaces/usage',
-  'member'
-),
+  '/api/workspaces/usage'),
 (
   'create_workspace_note',
   'Create Workspace Note',
@@ -248,9 +217,7 @@ INSERT INTO helper_functions (
   ARRAY['title', 'content'],
   false,
   'direct',
-  NULL,
-  'member'
-),
+  NULL),
 
 -- Analytics & Reporting
 (
@@ -264,9 +231,7 @@ INSERT INTO helper_functions (
   ARRAY['reportType', 'metrics'],
   false,
   'direct',
-  NULL,
-  'member'
-),
+  NULL),
 (
   'get_ai_insights',
   'Get AI Insights',
@@ -278,9 +243,7 @@ INSERT INTO helper_functions (
   ARRAY['dataSource'],
   false,
   'direct',
-  NULL,
-  'member'
-),
+  NULL),
 
 -- Automation Helpers
 (
@@ -294,9 +257,7 @@ INSERT INTO helper_functions (
   ARRAY['contactId', 'message', 'scheduledFor'],
   false,
   'api',
-  '/api/meta/messages/schedule',
-  'member'
-),
+  '/api/meta/messages/schedule'),
 (
   'create_reminder',
   'Create Reminder',
@@ -308,9 +269,8 @@ INSERT INTO helper_functions (
   ARRAY['title', 'dueAt'],
   false,
   'direct',
-  NULL,
-  'member'
-);
+  NULL)
+ON CONFLICT (function_name) DO NOTHING;
 
 -- Add function permission groups for easier management
 CREATE TABLE IF NOT EXISTS helper_function_groups (
@@ -328,6 +288,8 @@ CREATE TABLE IF NOT EXISTS helper_function_groups (
 -- Enable RLS
 ALTER TABLE helper_function_groups ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_workspace_function_groups" ON helper_function_groups;
+DROP POLICY IF EXISTS users_access_own_workspace_function_groups ON helper_function_groups;
 CREATE POLICY "users_access_own_workspace_function_groups"
 ON helper_function_groups
 FOR ALL
@@ -462,3 +424,5 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Add comment
 COMMENT ON TABLE helper_function_groups IS 'Group functions for easier permission management and discoverability';
 COMMENT ON MATERIALIZED VIEW helper_function_analytics IS 'Analytics for function usage across all workspaces';
+
+

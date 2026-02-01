@@ -15,7 +15,7 @@ ADD COLUMN IF NOT EXISTS visibility text DEFAULT 'private' CHECK (visibility IN 
   'workspace'  -- All workspace members can see
 ));
 
-CREATE INDEX idx_helper_conversations_visibility ON public.helper_conversations(visibility);
+CREATE INDEX IF NOT EXISTS idx_helper_conversations_visibility ON public.helper_conversations(visibility);
 
 -- Shared conversations
 CREATE TABLE IF NOT EXISTS public.helper_conversation_shares (
@@ -44,15 +44,17 @@ CREATE TABLE IF NOT EXISTS public.helper_conversation_shares (
   UNIQUE(conversation_id, shared_with_user_id)
 );
 
-CREATE INDEX idx_helper_conversation_shares_conversation ON public.helper_conversation_shares(conversation_id);
-CREATE INDEX idx_helper_conversation_shares_user ON public.helper_conversation_shares(shared_with_user_id);
-CREATE INDEX idx_helper_conversation_shares_token ON public.helper_conversation_shares(share_token) WHERE share_token IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_helper_conversation_shares_conversation ON public.helper_conversation_shares(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_helper_conversation_shares_user ON public.helper_conversation_shares(shared_with_user_id);
+CREATE INDEX IF NOT EXISTS idx_helper_conversation_shares_token ON public.helper_conversation_shares(share_token) WHERE share_token IS NOT NULL;
 
 COMMENT ON TABLE public.helper_conversation_shares IS 'Share conversations with team members';
 
 -- Enable RLS
 ALTER TABLE public.helper_conversation_shares ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_view_shares_they_have_access_to" ON public.helper_conversation_shares;
+DROP POLICY IF EXISTS users_view_shares_they_have_access_to ON public.helper_conversation_shares;
 CREATE POLICY "users_view_shares_they_have_access_to"
 ON public.helper_conversation_shares
 FOR SELECT
@@ -64,6 +66,8 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "users_can_share_their_conversations" ON public.helper_conversation_shares;
+DROP POLICY IF EXISTS users_can_share_their_conversations ON public.helper_conversation_shares;
 CREATE POLICY "users_can_share_their_conversations"
 ON public.helper_conversation_shares
 FOR INSERT
@@ -104,16 +108,18 @@ CREATE TABLE IF NOT EXISTS public.helper_message_comments (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_message_comments_message ON public.helper_message_comments(message_id);
-CREATE INDEX idx_helper_message_comments_conversation ON public.helper_message_comments(conversation_id);
-CREATE INDEX idx_helper_message_comments_user ON public.helper_message_comments(user_id);
-CREATE INDEX idx_helper_message_comments_parent ON public.helper_message_comments(parent_comment_id) WHERE parent_comment_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_helper_message_comments_message ON public.helper_message_comments(message_id);
+CREATE INDEX IF NOT EXISTS idx_helper_message_comments_conversation ON public.helper_message_comments(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_helper_message_comments_user ON public.helper_message_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_helper_message_comments_parent ON public.helper_message_comments(parent_comment_id) WHERE parent_comment_id IS NOT NULL;
 
 COMMENT ON TABLE public.helper_message_comments IS 'Team comments on AI responses';
 
 -- Enable RLS
 ALTER TABLE public.helper_message_comments ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_workspace_comments" ON public.helper_message_comments;
+DROP POLICY IF EXISTS users_access_own_workspace_comments ON public.helper_message_comments;
 CREATE POLICY "users_access_own_workspace_comments"
 ON public.helper_message_comments
 FOR ALL
@@ -160,15 +166,17 @@ CREATE TABLE IF NOT EXISTS public.helper_templates (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_helper_templates_workspace ON public.helper_templates(workspace_id);
-CREATE INDEX idx_helper_templates_category ON public.helper_templates(category);
-CREATE INDEX idx_helper_templates_active ON public.helper_templates(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_helper_templates_workspace ON public.helper_templates(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_templates_category ON public.helper_templates(category);
+CREATE INDEX IF NOT EXISTS idx_helper_templates_active ON public.helper_templates(is_active) WHERE is_active = true;
 
 COMMENT ON TABLE public.helper_templates IS 'Reusable conversation templates for teams';
 
 -- Enable RLS
 ALTER TABLE public.helper_templates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_templates" ON public.helper_templates;
+DROP POLICY IF EXISTS users_access_workspace_templates ON public.helper_templates;
 CREATE POLICY "users_access_workspace_templates"
 ON public.helper_templates
 FOR SELECT
@@ -183,6 +191,8 @@ USING (
   )
 );
 
+DROP POLICY IF EXISTS "users_manage_own_templates" ON public.helper_templates;
+DROP POLICY IF EXISTS users_manage_own_templates ON public.helper_templates;
 CREATE POLICY "users_manage_own_templates"
 ON public.helper_templates
 FOR ALL
@@ -280,14 +290,16 @@ CREATE TABLE IF NOT EXISTS public.helper_folders (
   UNIQUE(workspace_id, name, parent_folder_id)
 );
 
-CREATE INDEX idx_helper_folders_workspace ON public.helper_folders(workspace_id);
-CREATE INDEX idx_helper_folders_parent ON public.helper_folders(parent_folder_id) WHERE parent_folder_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_helper_folders_workspace ON public.helper_folders(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_folders_parent ON public.helper_folders(parent_folder_id) WHERE parent_folder_id IS NOT NULL;
 
 COMMENT ON TABLE public.helper_folders IS 'Organize conversations into folders';
 
 -- Enable RLS
 ALTER TABLE public.helper_folders ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_workspace_folders" ON public.helper_folders;
+DROP POLICY IF EXISTS users_access_workspace_folders ON public.helper_folders;
 CREATE POLICY "users_access_workspace_folders"
 ON public.helper_folders
 FOR ALL
@@ -303,7 +315,7 @@ USING (
 ALTER TABLE public.helper_conversations
 ADD COLUMN IF NOT EXISTS folder_id uuid REFERENCES public.helper_folders(id) ON DELETE SET NULL;
 
-CREATE INDEX idx_helper_conversations_folder ON public.helper_conversations(folder_id);
+CREATE INDEX IF NOT EXISTS idx_helper_conversations_folder ON public.helper_conversations(folder_id);
 
 -- =====================================================
 -- 5. MENTIONS & NOTIFICATIONS
@@ -336,14 +348,16 @@ CREATE TABLE IF NOT EXISTS public.helper_mentions (
   )
 );
 
-CREATE INDEX idx_helper_mentions_user ON public.helper_mentions(mentioned_user_id, is_read);
-CREATE INDEX idx_helper_mentions_conversation ON public.helper_mentions(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_helper_mentions_user ON public.helper_mentions(mentioned_user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_helper_mentions_conversation ON public.helper_mentions(conversation_id);
 
 COMMENT ON TABLE public.helper_mentions IS 'Track @mentions in conversations';
 
 -- Enable RLS
 ALTER TABLE public.helper_mentions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_mentions" ON public.helper_mentions;
+DROP POLICY IF EXISTS users_access_own_mentions ON public.helper_mentions;
 CREATE POLICY "users_access_own_mentions"
 ON public.helper_mentions
 FOR ALL
@@ -396,15 +410,17 @@ CREATE TABLE IF NOT EXISTS public.helper_bulk_operations (
   completed_at timestamptz
 );
 
-CREATE INDEX idx_helper_bulk_operations_workspace ON public.helper_bulk_operations(workspace_id);
-CREATE INDEX idx_helper_bulk_operations_user ON public.helper_bulk_operations(initiated_by);
-CREATE INDEX idx_helper_bulk_operations_status ON public.helper_bulk_operations(status);
+CREATE INDEX IF NOT EXISTS idx_helper_bulk_operations_workspace ON public.helper_bulk_operations(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_helper_bulk_operations_user ON public.helper_bulk_operations(initiated_by);
+CREATE INDEX IF NOT EXISTS idx_helper_bulk_operations_status ON public.helper_bulk_operations(status);
 
 COMMENT ON TABLE public.helper_bulk_operations IS 'Track bulk operations on conversations';
 
 -- Enable RLS
 ALTER TABLE public.helper_bulk_operations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_access_own_workspace_bulk_ops" ON public.helper_bulk_operations;
+DROP POLICY IF EXISTS users_access_own_workspace_bulk_ops ON public.helper_bulk_operations;
 CREATE POLICY "users_access_own_workspace_bulk_ops"
 ON public.helper_bulk_operations
 FOR ALL
@@ -479,6 +495,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Update RLS for conversations to respect sharing
 DROP POLICY IF EXISTS "users_access_own_workspace_conversations" ON public.helper_conversations;
+DROP POLICY IF EXISTS "users_access_own_and_shared_conversations" ON public.helper_conversations;
+DROP POLICY IF EXISTS users_access_own_and_shared_conversations ON public.helper_conversations;
 
 CREATE POLICY "users_access_own_and_shared_conversations"
 ON public.helper_conversations

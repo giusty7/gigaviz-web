@@ -105,6 +105,10 @@ COMMENT ON FUNCTION refresh_usage_stats IS 'Refresh usage_stats_daily materializ
 -- ========================================
 ALTER TABLE usage_events ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "workspace_members_read_usage_events" ON usage_events;
+DROP POLICY IF EXISTS "service_role_insert_usage_events" ON usage_events;
+
 -- Workspace members can read their usage events
 CREATE POLICY "workspace_members_read_usage_events"
 ON usage_events
@@ -139,6 +143,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS usage_events_set_date_trigger ON usage_events;
 CREATE TRIGGER usage_events_set_date_trigger
 BEFORE INSERT ON usage_events
 FOR EACH ROW
