@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 import { findConnectionById, findTokenForConnection } from "@/lib/meta/wa-connections";
 import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
+import { updateWorkerHeartbeat } from "@/lib/ops/health";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -300,6 +301,22 @@ export async function POST(req: NextRequest) {
   }
 
   logger.info("[outbox-worker] batch completed", { sent: sentCount, failed: failedCount, requeued: requeuedCount });
+
+  // Record worker heartbeat
+  try {
+    await updateWorkerHeartbeat({
+      workerName: "outbox-worker",
+      workerType: "cron",
+      status: "completed",
+      lastRunAt: new Date().toISOString(),
+      nextRunAt: computeNextRunIso(120_000), // Next run in 2 minutes
+      errorCount: failedCount,
+      lastError: failedCount > 0 ? `${failedCount} items failed` : undefined,
+      metadata: { sent: sentCount, failed: failedCount, requeued: requeuedCount },
+    });
+  } catch (err) {
+    logger.error("[outbox-worker] Failed to record heartbeat", { error: err });
+  }
 
   return NextResponse.json({
     ok: true,
