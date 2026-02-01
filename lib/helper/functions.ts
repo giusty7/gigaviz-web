@@ -230,8 +230,31 @@ export function validateParameters(
     }
   }
 
-  // TODO: Add JSON Schema validation here
-  // For now, just basic checks
+  // Validate parameters against JSON schema
+  if (func.parametersSchema && typeof func.parametersSchema === "object") {
+    const schema = func.parametersSchema as Record<string, unknown>;
+    const properties = schema.properties as Record<string, Record<string, unknown>> | undefined;
+    
+    if (properties) {
+      for (const [paramName, value] of Object.entries(parameters)) {
+        const paramSchema = properties[paramName];
+        if (!paramSchema) {
+          // Parameter not in schema - allow for flexibility
+          continue;
+        }
+        
+        const expectedType = paramSchema.type as string | undefined;
+        if (expectedType && value !== null && value !== undefined) {
+          const actualType = Array.isArray(value) ? "array" : typeof value;
+          if (expectedType !== actualType) {
+            errors.push(
+              `Parameter '${paramName}' should be type '${expectedType}' but got '${actualType}'`
+            );
+          }
+        }
+      }
+    }
+  }
 
   return {
     valid: errors.length === 0,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Filter, ScrollText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, FileJson, Filter, ScrollText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -19,6 +19,8 @@ import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getCurrentUser, isPlatformAdminById } from "@/lib/platform-admin/server";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 50;
 
 type AuditRow = {
   id: string;
@@ -43,35 +45,45 @@ async function fetchAuditRows(searchParams?: {
   actor?: string;
   from?: string;
   to?: string;
+  page?: string;
 }) {
   const db = supabaseAdmin();
   const action = (searchParams?.action || "").trim();
   const actor = (searchParams?.actor || "").trim();
   const from = parseDate(searchParams?.from);
   const to = parseDate(searchParams?.to);
+  const page = parseInt(searchParams?.page || "1", 10);
+  const offset = (page - 1) * PAGE_SIZE;
 
   let query = db
     .from("owner_audit_log")
     .select(
-      "id, action, actor_email, actor_role, workspace_id, target_table, target_id, meta, created_at"
+      "id, action, actor_email, actor_role, workspace_id, target_table, target_id, meta, created_at",
+      { count: "exact" }
     )
     .order("created_at", { ascending: false })
-    .limit(150);
+    .range(offset, offset + PAGE_SIZE - 1);
 
   if (action) query = query.ilike("action", `%${action}%`);
   if (actor) query = query.or(`actor_email.ilike.%${actor}%,actor_user_id.eq.${actor}`);
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lte("created_at", to);
 
-  const { data, error } = await query;
-  if (error) return [];
-  return (data ?? []) as AuditRow[];
+  const { data, error, count } = await query;
+  if (error) return { rows: [], total: 0 };
+  return { rows: (data ?? []) as AuditRow[], total: count ?? 0 };
 }
 
 export default async function OpsAuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ action?: string; actor?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ 
+    action?: string; 
+    actor?: string; 
+    from?: string; 
+    to?: string;
+    page?: string;
+  }>;
 }) {
   const { userId, email } = await getCurrentUser();
   if (!userId) notFound();
@@ -80,12 +92,37 @@ export default async function OpsAuditPage({
   if (!platformAdmin) notFound();
 
   const sp = await searchParams;
-  const rows = await fetchAuditRows(sp);
+  const { rows, total } = await fetchAuditRows(sp);
+  const currentPage = parseInt(sp.page || "1", 10);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  
   const hasFilters =
     Boolean(sp.action) ||
     Boolean(sp.actor) ||
     Boolean(sp.from) ||
     Boolean(sp.to);
+
+  // Build query string for pagination links
+  const buildQueryString = (page: number) => {
+    const params = new URLSearchParams();
+    if (sp.action) params.set("action", sp.action);
+    if (sp.actor) params.set("actor", sp.actor);
+    if (sp.from) params.set("from", sp.from);
+    if (sp.to) params.set("to", sp.to);
+    params.set("page", page.toString());
+    return params.toString();
+  };
+
+  // Build export query string (without page)
+  const buildExportQueryString = (format: "csv" | "json") => {
+    const params = new URLSearchParams();
+    if (sp.action) params.set("action", sp.action);
+    if (sp.actor) params.set("actor", sp.actor);
+    if (sp.from) params.set("from", sp.from);
+    if (sp.to) params.set("to", sp.to);
+    params.set("format", format);
+    return params.toString();
+  };
 
   return (
     <OpsShell actorEmail={email} actorRole="platform_admin">
@@ -128,14 +165,60 @@ export default async function OpsAuditPage({
                     <Link href="/ops/audit">Clear</Link>
                   </Button>
                 ) : null}
+                <div className="ml-auto flex gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <a href={`/api/ops/audit/export?${buildExportQueryString("csv")}`} download>
+                      <Download className="mr-2 h-4 w-4" />
+                      Export CSV
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <a href={`/api/ops/audit/export?${buildExportQueryString("json")}`} download>
+                      <FileJson className="mr-2 h-4 w-4" />
+                      Export JSON
+                    </a>
+                  </Button>
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
 
         <Card className="border-border bg-card/80">
-          <CardHeader>
-            <CardTitle className="text-base">Recent events</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Recent events</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Showing {rows.length > 0 ? ((currentPage - 1) * PAGE_SIZE) + 1 : 0} - {Math.min(currentPage * PAGE_SIZE, total)} of {total} events
+              </p>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage <= 1}
+                >
+                  <Link href={`/ops/audit?${buildQueryString(currentPage - 1)}`}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= totalPages}
+                >
+                  <Link href={`/ops/audit?${buildQueryString(currentPage + 1)}`}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             {rows.length === 0 ? (

@@ -10,8 +10,9 @@ import {
   LayoutPanelLeft,
   ScrollText,
   ShieldCheck,
+  type LucideIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { opsTheme } from "@/lib/ops/theme";
 
 type OpsShellProps = {
   children: ReactNode;
@@ -19,59 +20,95 @@ type OpsShellProps = {
   actorRole?: string | null;
 };
 
-const NAV_ITEMS = [
-  { label: "Workspaces", href: "/ops/workspaces", icon: Building2 },
-  { label: "System Logs", href: "/ops/audit", icon: ScrollText },
-  { label: "Health", href: "/ops/health", icon: HeartPulse },
-  { label: "Sovereign Command", href: "/ops/god-console", icon: LayoutPanelLeft },
-];
+// Map icon names to components
+const iconMap: Record<string, LucideIcon> = {
+  Building2,
+  ScrollText,
+  HeartPulse,
+  LayoutPanelLeft,
+};
+
+const NAV_ITEMS = opsTheme.nav.items.map((item) => ({
+  ...item,
+  icon: iconMap[item.icon] ?? Building2,
+}));
 
 export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
   const pathname = usePathname();
+  const { colors, opacity, watermark, header } = opsTheme;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-[#040815] via-[#050a18] to-[#0a1229] text-foreground">
-      <div className="pointer-events-none absolute inset-0 opacity-100">
-        <div className="batik-overlay opacity-100" />
+    <div 
+      className="relative min-h-screen text-foreground"
+      style={{
+        background: `linear-gradient(to bottom, ${colors.backgroundAlt}, ${colors.background}, ${colors.backgroundLight})`
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0" style={{ opacity: opacity.batik }}>
+        <div className="batik-overlay" style={{ opacity: opacity.batik }} />
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Ctext x='30' y='140' font-family='Inter' font-size='34' fill='rgba(212,175,55,0.06)' transform='rotate(-30 140 140)'%3EINTERNAL ACCESS%3C/text%3E%3C/svg%3E\")",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${watermark.size}' height='${watermark.size}' viewBox='0 0 ${watermark.size} ${watermark.size}'%3E%3Ctext x='30' y='140' font-family='Inter' font-size='34' fill='rgba(212,175,55,${watermark.opacity})' transform='rotate(${watermark.rotation} 140 140)'%3E${watermark.text}%3C/text%3E%3C/svg%3E")`,
             backgroundRepeat: "repeat",
-            backgroundSize: "280px 280px",
+            backgroundSize: `${watermark.size}px ${watermark.size}px`,
           }}
         />
       </div>
 
       <div className="relative mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 lg:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#d4af37]/40 bg-[#050a18]/80 px-4 py-4 shadow-sm backdrop-blur">
+        <header 
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border px-4 py-4 shadow-sm backdrop-blur"
+          style={{
+            borderColor: `rgba(212,175,55,${opacity.primary.border})`,
+            backgroundColor: `rgba(5,10,24,${opacity.background.header})`,
+          }}
+        >
           <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#d4af37]">
-              Imperium Internal Ops
+            <p 
+              className="text-xs uppercase"
+              style={{ 
+                letterSpacing: "0.2em",
+                color: colors.primary 
+              }}
+            >
+              {header.subtitle}
             </p>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-[#d4af37]" />
-              <h1 className="text-xl font-semibold leading-tight text-[#f5f5dc]">
-                Ops Console
+              <ShieldCheck className="h-5 w-5 flex-shrink-0" style={{ color: colors.primary }} />
+              <h1 className="text-xl font-semibold leading-tight" style={{ color: colors.text }}>
+                {header.title}
               </h1>
             </div>
-            <p className="text-sm text-[#f5f5dc]/70">
-              Sovereign control for workspaces, billing, plans, logs, and manual overrides.
+            <p className="text-sm" style={{ color: `rgba(245,245,220,${opacity.text.muted})` }}>
+              {header.description}
             </p>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/70 px-4 py-3 text-xs text-[#f5f5dc]/80 backdrop-blur">
-            <ActivitySquare className="h-4 w-4 text-[#d4af37]" />
+          <div 
+            className="flex items-center gap-3 rounded-xl border px-4 py-3 text-xs backdrop-blur"
+            style={{
+              borderColor: `rgba(212,175,55,0.30)`,
+              backgroundColor: `rgba(10,18,41,${opacity.background.badge})`,
+              color: `rgba(245,245,220,0.80)`,
+            }}
+          >
+            <ActivitySquare className="h-4 w-4 flex-shrink-0" style={{ color: colors.primary }} />
             <div className="flex flex-col">
-              <span className="text-[#f5f5dc]">{actorEmail ?? "platform-admin"}</span>
-              <span className="text-[11px] font-semibold uppercase tracking-wide">
+              <span className="truncate max-w-[200px]" style={{ color: colors.text }}>{actorEmail ?? "platform-admin"}</span>
+              <span 
+                className="font-semibold uppercase"
+                style={{ 
+                  fontSize: "11px",
+                  letterSpacing: "0.05em",
+                }}
+              >
                 {(actorRole ?? "platform_admin").toUpperCase()}
               </span>
             </div>
           </div>
         </header>
 
-        <nav className="flex gap-2 overflow-x-auto pb-1">
+        <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {NAV_ITEMS.map((item) => {
             const active =
               pathname === item.href ||
@@ -80,21 +117,35 @@ export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "group inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition backdrop-blur",
-                  active
-                    ? "border-[#d4af37]/80 bg-[#d4af37]/15 text-[#f5f5dc] shadow-[0_0_20px_rgba(212,175,55,0.25)]"
-                    : "border-border bg-[#050a18]/80 text-[#f5f5dc]/60 hover:border-[#d4af37]/60 hover:text-[#f5f5dc]"
-                )}
+                className="group inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition backdrop-blur whitespace-nowrap touch-manipulation"
+                style={{
+                  borderColor: active 
+                    ? `rgba(212,175,55,${opacity.primary.borderActive})` 
+                    : `var(--border)`,
+                  backgroundColor: active 
+                    ? `rgba(212,175,55,${opacity.primary.bg})` 
+                    : `rgba(5,10,24,${opacity.background.nav})`,
+                  color: active 
+                    ? colors.text 
+                    : `rgba(245,245,220,${opacity.text.veryMuted})`,
+                  boxShadow: active ? `0 0 20px rgba(212,175,55,0.25)` : "none",
+                }}
               >
-                <item.icon className="h-4 w-4" />
-                {item.label}
+                <item.icon className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <main className="mb-10 space-y-6 rounded-2xl border border-[#d4af37]/25 bg-[#050a18]/60 p-4 backdrop-blur-lg shadow-[0_30px_80px_-50px_rgba(0,0,0,0.7)]">
+        <main 
+          className="mb-10 space-y-6 rounded-2xl border p-3 sm:p-4 md:p-6 backdrop-blur-lg"
+          style={{
+            borderColor: `rgba(212,175,55,${opacity.primary.borderLight})`,
+            backgroundColor: `rgba(5,10,24,${opacity.background.card})`,
+            boxShadow: `0 30px 80px -50px rgba(0,0,0,0.7)`,
+          }}
+        >
           {children}
         </main>
       </div>

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { validatePayload } from "@/lib/entitlements/payload-spec";
 import { recordOwnerAudit } from "@/lib/owner/audit";
 import { requireOwner } from "@/lib/owner/requireOwner";
-import { assertOwnerRateLimit } from "@/lib/owner/rate-limit";
+import { assertOpsRateLimit } from "@/lib/ops/rate-limit";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type OwnerOpResult<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -50,7 +50,7 @@ export async function setWorkspaceEntitlement(
   if (!owner.ok) return { ok: false, error: owner.reason };
 
   try {
-    assertOwnerRateLimit(`${owner.user.id}:entitlement`);
+    await assertOpsRateLimit(`${owner.user.id}:entitlement`);
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("rate_limited:")) {
       return { ok: false, error: "Too many owner actions. Please wait and retry." };
@@ -158,7 +158,7 @@ async function applyTokenDelta(
   if (!owner.ok) return { ok: false, error: owner.reason };
 
   try {
-    assertOwnerRateLimit(`${owner.user.id}:tokens`);
+    await assertOpsRateLimit(`${owner.user.id}:tokens`);
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("rate_limited:")) {
       return { ok: false, error: "Too many owner actions. Please wait and retry." };

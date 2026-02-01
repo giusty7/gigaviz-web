@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCurrentUser, isOwnerEmailAllowed } from "@/lib/platform-admin/server";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+export async function POST(request: Request) {
   const { userId, email } = await getCurrentUser();
   if (!userId || !email) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
@@ -27,6 +28,16 @@ export async function POST() {
       { error: error.message || "claim_failed" },
       { status: 500 }
     );
+  }
+
+  // Check if this is a form submission (has content-type header)
+  const contentType = request.headers.get("content-type");
+  const isFormSubmit = contentType?.includes("application/x-www-form-urlencoded") || 
+                       contentType === null; // Form submissions without explicit content-type
+
+  if (isFormSubmit) {
+    // Redirect to ops page which will then redirect to god-console
+    redirect("/ops/god-console");
   }
 
   return NextResponse.json({ ok: true });

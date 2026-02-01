@@ -8,7 +8,7 @@ import {
   grantWorkspaceTokens,
   setWorkspaceEntitlement,
 } from "@/lib/owner/ops";
-import { assertOwnerRateLimit } from "@/lib/owner/rate-limit";
+import { assertOpsRateLimit } from "@/lib/ops/rate-limit";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 
@@ -108,7 +108,7 @@ export async function addOwnerNoteAction(formData: FormData): Promise<ActionResu
   const { workspaceId, note } = parsed.data;
   const { db, user, actorEmail, actorRole } = admin;
   try {
-    assertOwnerRateLimit(`${user.id}:note`);
+    await assertOpsRateLimit(`${user.id}:note`);
   } catch (error) {
     return { ok: false, error: rateLimitMessage(error) ?? "rate_limited" };
   }
@@ -161,7 +161,7 @@ export async function upsertFeatureFlagAction(formData: FormData): Promise<Actio
   const { db, user, actorEmail, actorRole } = admin;
 
   try {
-    assertOwnerRateLimit(`${user.id}:flag`);
+    await assertOpsRateLimit(`${user.id}:flag`);
   } catch (error) {
     return { ok: false, error: rateLimitMessage(error) ?? "rate_limited" };
   }
@@ -218,7 +218,7 @@ export async function toggleFeatureFlagAction(formData: FormData): Promise<Actio
   const { db, user, actorEmail, actorRole } = admin;
 
   try {
-    assertOwnerRateLimit(`${user.id}:flag_toggle`);
+    await assertOpsRateLimit(`${user.id}:flag_toggle`);
   } catch (error) {
     return { ok: false, error: rateLimitMessage(error) ?? "rate_limited" };
   }
@@ -273,7 +273,7 @@ export async function suspendWorkspaceAction(formData: FormData): Promise<Action
   const { db, user, actorEmail, actorRole } = admin;
 
   try {
-    assertOwnerRateLimit(`${user.id}:suspend`);
+    await assertOpsRateLimit(`${user.id}:suspend`);
   } catch (error) {
     return { ok: false, error: rateLimitMessage(error) ?? "rate_limited" };
   }
@@ -326,7 +326,7 @@ export async function unsuspendWorkspaceAction(formData: FormData): Promise<Acti
   const { db, user, actorEmail, actorRole } = admin;
 
   try {
-    assertOwnerRateLimit(`${user.id}:unsuspend`);
+    await assertOpsRateLimit(`${user.id}:unsuspend`);
   } catch (error) {
     return { ok: false, error: rateLimitMessage(error) ?? "rate_limited" };
   }

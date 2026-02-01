@@ -22,30 +22,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import type { WorkspaceEntitlementRow } from "@/lib/owner/ops";
-
-// 10 Hub entitlements (modules)
-const HUB_ENTITLEMENT_KEYS = [
-  { key: "core_os", label: "Core OS" },
-  { key: "meta_hub", label: "Meta Hub" },
-  { key: "studio", label: "Studio" },
-  { key: "helper", label: "Helper" },
-  { key: "office", label: "Office" },
-  { key: "marketplace", label: "Marketplace" },
-  { key: "arena", label: "Arena" },
-  { key: "pay", label: "Pay" },
-  { key: "trade", label: "Trade" },
-  { key: "community", label: "Community" },
-];
-
-// Capability entitlements (features within hubs)
-const CAPABILITY_ENTITLEMENT_KEYS = [
-  { key: "inbox", label: "Inbox" },
-  { key: "automation", label: "Automation" },
-  { key: "studio_graph", label: "Studio Graph" },
-  { key: "wa_blast", label: "WA Blast" },
-  { key: "mass_blast", label: "Mass Blast" },
-  { key: "analytics", label: "Analytics" },
-];
+import {
+  HUB_ENTITLEMENT_KEYS,
+  CAPABILITY_ENTITLEMENT_KEYS,
+} from "@/lib/ops/entitlements-config";
 
 export function OwnerEntitlementsPanel({
   workspaceId,
