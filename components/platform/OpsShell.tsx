@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import {
   ActivitySquare,
   Building2,
+  Code,
   HeartPulse,
   LayoutPanelLeft,
   ScrollText,
@@ -28,6 +29,7 @@ const iconMap: Record<string, LucideIcon> = {
   Users,
   ScrollText,
   HeartPulse,
+  Code,
   LayoutPanelLeft,
   Ticket,
 };

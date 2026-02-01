@@ -75,6 +75,7 @@ export const opsTheme = {
       { label: "Tickets", href: "/ops/tickets", icon: "Ticket" },
       { label: "System Logs", href: "/ops/audit", icon: "ScrollText" },
       { label: "Health", href: "/ops/health", icon: "HeartPulse" },
+      { label: "Dev Tools", href: "/ops/dev-tools", icon: "Code" },
       { label: "Sovereign Command", href: "/ops/god-console", icon: "LayoutPanelLeft" },
     ],
   },
