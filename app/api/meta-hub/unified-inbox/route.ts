@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { z } from 'zod';
 
 const QuerySchema = z.object({
@@ -67,8 +68,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: membership } = await supabase
-      .from('workspace_memberships')
+    // Use admin client to bypass RLS recursion on workspace_members
+    const adminDb = supabaseAdmin();
+    const { data: membership } = await adminDb
+      .from('workspace_members')
       .select('workspace_id')
       .eq('workspace_id', workspaceId)
       .eq('user_id', userData.user.id)
@@ -83,105 +86,102 @@ export async function GET(request: NextRequest) {
 
     const threads: UnifiedThread[] = [];
 
-    // Fetch WhatsApp threads
+    // Fetch WhatsApp threads (use admin client to bypass RLS)
     if (channel === 'all' || channel === 'whatsapp') {
-      const waQuery = supabase
+      const { data: waThreads } = await adminDb
         .from('wa_threads')
-        .select('*')
+        .select('id, workspace_id, phone_number_id, contact_wa_id, contact_name, last_message_preview, last_message_at, status, unread_count, assigned_to, created_at')
         .eq('workspace_id', workspaceId)
         .order('last_message_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (status && status !== 'all') {
-        waQuery.eq('status', status);
-      }
-
-      const { data: waThreads } = await waQuery;
-
       if (waThreads) {
+        // Filter by status (treat null as 'open')
+        const filteredThreads = status && status !== 'all'
+          ? waThreads.filter(t => (t.status ?? 'open') === status)
+          : waThreads;
+          
         threads.push(
-          ...waThreads.map((t) => ({
+          ...filteredThreads.map((t) => ({
             id: t.id,
             channel: 'whatsapp' as const,
             workspace_id: t.workspace_id,
-            status: t.status,
-            contact_name: t.contact_name || t.contact_phone,
-            contact_identifier: t.contact_phone,
+            status: t.status ?? 'open',
+            contact_name: t.contact_name || t.contact_wa_id || 'Unknown',
+            contact_identifier: t.contact_wa_id,
             last_message_at: t.last_message_at,
             last_message_preview: t.last_message_preview,
             unread_count: t.unread_count || 0,
             assigned_to: t.assigned_to,
-            tags: t.tags || [],
+            tags: [],
             created_at: t.created_at,
           }))
         );
       }
     }
 
-    // Fetch Instagram threads
+    // Fetch Instagram threads (use admin client to bypass RLS)
     if (channel === 'all' || channel === 'instagram') {
-      const igQuery = supabase
+      const { data: igThreads } = await adminDb
         .from('instagram_threads')
         .select('*')
         .eq('workspace_id', workspaceId)
         .order('last_message_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (status && status !== 'all') {
-        igQuery.eq('status', status);
-      }
-
-      const { data: igThreads } = await igQuery;
-
       if (igThreads) {
+        // Filter by status (treat null as 'open')
+        const filteredThreads = status && status !== 'all'
+          ? igThreads.filter(t => (t.status ?? 'open') === status)
+          : igThreads;
+          
         threads.push(
-          ...igThreads.map((t) => ({
+          ...filteredThreads.map((t) => ({
             id: t.id,
             channel: 'instagram' as const,
             workspace_id: t.workspace_id,
-            status: t.status,
-            contact_name: t.participant_name || t.participant_username,
+            status: t.status ?? 'open',
+            contact_name: t.participant_name || t.participant_username || 'Unknown',
             contact_identifier: t.participant_username || t.recipient_ig_id,
             last_message_at: t.last_message_at,
             last_message_preview: t.last_message_preview,
             unread_count: t.unread_count || 0,
             assigned_to: t.assigned_to,
-            tags: t.tags || [],
+            tags: [],
             created_at: t.created_at,
           }))
         );
       }
     }
 
-    // Fetch Messenger threads
+    // Fetch Messenger threads (use admin client to bypass RLS)
     if (channel === 'all' || channel === 'messenger') {
-      const messengerQuery = supabase
+      const { data: messengerThreads } = await adminDb
         .from('messenger_threads')
         .select('*')
         .eq('workspace_id', workspaceId)
         .order('last_message_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (status && status !== 'all') {
-        messengerQuery.eq('status', status);
-      }
-
-      const { data: messengerThreads } = await messengerQuery;
-
       if (messengerThreads) {
+        // Filter by status (treat null as 'open')
+        const filteredThreads = status && status !== 'all'
+          ? messengerThreads.filter(t => (t.status ?? 'open') === status)
+          : messengerThreads;
+          
         threads.push(
-          ...messengerThreads.map((t) => ({
+          ...filteredThreads.map((t) => ({
             id: t.id,
             channel: 'messenger' as const,
             workspace_id: t.workspace_id,
-            status: t.status,
+            status: t.status ?? 'open',
             contact_name: t.participant_name || 'Unknown',
             contact_identifier: t.recipient_psid,
             last_message_at: t.last_message_at,
             last_message_preview: t.last_message_preview,
             unread_count: t.unread_count || 0,
             assigned_to: t.assigned_to,
-            tags: t.tags || [],
+            tags: [],
             created_at: t.created_at,
           }))
         );

@@ -113,11 +113,6 @@ function buildNav(
     : setup.whatsappConfigured
       ? "live"
       : "beta";
-  const inboxStatus: BadgeStatus = !access.send
-    ? "locked"
-    : setup.whatsappConfigured
-      ? "live"
-      : "beta";
   const webhooksStatus: BadgeStatus = !access.webhooks
     ? "locked"
     : setup.whatsappConfigured
@@ -127,6 +122,10 @@ function buildNav(
   const messengerStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const adsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const insightsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+
+  // Extract workspaceSlug from base path (e.g., "/owner-gigaviz/meta-hub" -> "owner-gigaviz")
+  const workspaceSlug = base.split("/")[1] || "";
+  const unifiedInboxHref = workspaceSlug ? `/${workspaceSlug}/inbox` : "/inbox";
 
   return [
     { label: "Overview", href: `${base}`, status: metaHubStatus },
@@ -140,7 +139,7 @@ function buildNav(
       status: whatsappStatus,
       children: [
         { label: "Templates", href: `${base}/messaging/whatsapp`, status: templatesStatus },
-        { label: "Inbox", href: `${base}/messaging/whatsapp/inbox`, status: inboxStatus },
+        { label: "Inbox", href: unifiedInboxHref, status: "live" },
       ],
     },
     {

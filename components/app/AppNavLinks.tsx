@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  MessageSquare,
   Boxes,
-  Sparkles,
   Coins,
+  Users,
   CreditCard,
   Settings,
   type LucideIcon,
@@ -24,9 +25,10 @@ export type AppNavLink = {
 // Icon map for default labels
 const iconMap: Record<string, LucideIcon> = {
   Dashboard: LayoutDashboard,
+  Inbox: MessageSquare,
   Products: Boxes,
-  "AI Assistant": Sparkles,
-  "Usage Credits": Coins,
+  Tokens: Coins,
+  Workspace: Users,
   Subscription: CreditCard,
   Settings: Settings,
 };
@@ -39,11 +41,23 @@ type AppNavLinksProps = {
 export default function AppNavLinks({ links, collapsed = false }: AppNavLinksProps) {
   const pathname = usePathname();
 
+  // Helper to check if a link is active (handles special cases like Inbox)
+  const checkActive = (href: string, label: string): boolean => {
+    if (!pathname) return false;
+    
+    // Special case: Inbox should also be active for legacy /meta-hub/inbox routes
+    if (label === "Inbox") {
+      return pathname.includes("/inbox") || pathname.includes("/meta-hub/inbox");
+    }
+    
+    return pathname.startsWith(href);
+  };
+
   return (
     <TooltipProvider delayDuration={150}>
       <nav className={cn("flex flex-col gap-1 text-sm", collapsed && "items-center w-full")}>
         {links.map((link) => {
-          const isActive = pathname ? pathname.startsWith(link.href) : false;
+          const isActive = checkActive(link.href, link.label);
           const Icon = link.icon ?? iconMap[link.label] ?? LayoutDashboard;
 
           const content = (

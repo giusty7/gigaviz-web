@@ -66,16 +66,18 @@ export default function AppShell({
     workspaces.find((ws) => ws.id === currentWorkspaceId) ?? null;
   const workspaceSlug = currentWorkspaceSlug ?? currentWorkspace?.slug ?? null;
   const dashboardHref = workspaceSlug ? `/${workspaceSlug}/dashboard` : "/";
-  const modulesHref = workspaceSlug ? `/${workspaceSlug}/modules` : "/modules";
-  const helperHref = workspaceSlug ? `/${workspaceSlug}/helper` : "/helper";
+  const inboxHref = workspaceSlug ? `/${workspaceSlug}/inbox` : "/inbox";
+  const productsHref = workspaceSlug ? `/${workspaceSlug}/products` : "/products";
   const tokensHref = workspaceSlug ? `/${workspaceSlug}/tokens` : "/tokens";
+  const workspaceManageHref = workspaceSlug ? `/${workspaceSlug}/platform` : "/platform";
   const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
   const settingsHref = workspaceSlug ? `/${workspaceSlug}/settings` : "/settings";
   const navLinks = [
     { href: dashboardHref, label: "Dashboard" },
-    { href: modulesHref, label: "Products" },
-    { href: helperHref, label: "AI Assistant" },
-    { href: tokensHref, label: "Usage Credits" },
+    { href: inboxHref, label: "Inbox" },
+    { href: productsHref, label: "Products" },
+    { href: tokensHref, label: "Tokens" },
+    { href: workspaceManageHref, label: "Workspace" },
     { href: billingHref, label: "Subscription" },
     { href: settingsHref, label: "Settings" },
   ];
