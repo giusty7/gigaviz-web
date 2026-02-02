@@ -28,6 +28,7 @@ import {
   Settings,
   Gauge,
   AlertTriangle,
+  ArrowDownIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -435,10 +436,43 @@ interface MessageListProps {
 function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const isUserScrolledUp = useRef(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
+  // Scroll handler to track user position
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+    isUserScrolledUp.current = !isAtBottom;
+    setShowScrollButton(!isAtBottom && messages.length > 0);
+  }, [messages.length]);
+
+  // Track last message count to detect new messages
+  const lastMessageCountRef = useRef(messages.length);
+
+  // Auto-scroll only when user is at bottom OR initial load
   useEffect(() => {
+    const hasNewMessage = messages.length > lastMessageCountRef.current;
+    lastMessageCountRef.current = messages.length;
+
+    if (!isUserScrolledUp.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (hasNewMessage) {
+      // New message arrived while user is scrolled up - button already shown via handleScroll
+    }
+  }, [messages.length]);
+
+  // Initial scroll to bottom on mount
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "instant" });
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    isUserScrolledUp.current = false;
+    setShowScrollButton(false);
+  }, []);
 
   if (isLoading) {
     return (
@@ -449,8 +483,12 @@ function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: Mess
   }
 
   return (
-    <ScrollArea className="h-full" ref={scrollRef}>
-      <div className="p-4 space-y-4">
+    <div 
+      className="absolute inset-0 overflow-y-auto scrollbar-thin scrollbar-thumb-[#d4af37]/30 scrollbar-track-transparent" 
+      ref={scrollRef}
+      onScroll={handleScroll}
+    >
+      <div className="min-h-full flex flex-col justify-end p-4 space-y-4">
         <AnimatePresence mode="popLayout">
           {messages.map((msg) => (
             <motion.div
@@ -496,6 +534,22 @@ function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: Mess
         <div ref={bottomRef} />
       </div>
 
+      {/* Scroll to bottom button */}
+      <AnimatePresence>
+        {showScrollButton && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            onClick={scrollToBottom}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37] text-[#050a18] shadow-lg shadow-[#d4af37]/30 hover:bg-[#f9d976] transition-colors"
+          >
+            <ArrowDownIcon className="h-4 w-4" />
+            <span className="text-sm font-medium">New messages</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Stop button */}
       {isProcessing && (
         <div className="sticky bottom-4 flex justify-center">
@@ -510,7 +564,7 @@ function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: Mess
           </Button>
         </div>
       )}
-    </ScrollArea>
+    </div>
   );
 }
 
@@ -1042,7 +1096,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
 
   if (!mounted) {
     return (
-      <div className="flex h-full w-full bg-[#050a18] -mx-4 -mt-6 md:-mx-6 lg:-mx-8 min-h-screen-minus-header">
+      <div className="flex h-full w-full bg-[#050a18]">
         <div className="flex-1 flex items-center justify-center">
           <Loader2Icon className="h-8 w-8 animate-spin text-[#d4af37]" />
         </div>
@@ -1077,7 +1131,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
   );
 
   return (
-    <div className="flex h-full w-full bg-[#050a18] -mx-4 -mt-6 md:-mx-6 lg:-mx-8 min-h-screen-minus-header">
+    <div className="flex h-full w-full bg-[#050a18]">
       {/* Cyber-Batik Background */}
       <div
         className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
@@ -1143,8 +1197,8 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
         </aside>
 
         {/* Center - chat area */}
-        <main className="flex-1 flex flex-col min-w-0 bg-[#050a18]">
-          <div className="flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#050a18] relative h-full overflow-hidden">
+          <div className="flex-1 relative min-h-0">
             {messages.length > 0 ? (
               <ImperiumMessageList
                 messages={messages}
@@ -1160,7 +1214,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
               />
             )}
           </div>
-          <div className="border-t border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl">
+          <div className="flex-shrink-0 border-t border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl">
             <ImperiumComposer
               mode={mode}
               provider={provider}
@@ -1183,8 +1237,8 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
 
       {/* Mobile layout */}
       <div className="flex lg:hidden flex-col h-full w-full pt-14 relative z-10">
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#050a18]">
-          <div className="flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#050a18] relative h-full overflow-hidden">
+          <div className="flex-1 relative min-h-0">
             {messages.length > 0 ? (
               <ImperiumMessageList
                 messages={messages}
@@ -1200,7 +1254,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
               />
             )}
           </div>
-          <div className="border-t border-[#d4af37]/20 bg-[#0a1229]/80">
+          <div className="flex-shrink-0 border-t border-[#d4af37]/20 bg-[#0a1229]/80">
             <ImperiumComposer
               mode={mode}
               provider={provider}

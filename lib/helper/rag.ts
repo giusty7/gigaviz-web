@@ -18,6 +18,7 @@ export type SearchResult = {
   contentText: string;
   similarity: number;
   metadata: Record<string, unknown>;
+  sourceLevel?: "workspace" | "platform"; // NEW: track if from workspace or platform KB
 };
 
 /**
@@ -60,6 +61,131 @@ export async function searchKnowledge(
     contentText: row.content_text,
     similarity: row.similarity,
     metadata: row.metadata ?? {},
+    sourceLevel: "workspace" as const,
+  }));
+}
+
+/**
+ * Search BOTH workspace knowledge and platform knowledge (hybrid)
+ * Platform knowledge = Gigaviz docs managed by admin
+ * Workspace knowledge = User's own business docs
+ */
+export async function searchHybridKnowledge(
+  workspaceId: string,
+  query: string,
+  options: {
+    maxResults?: number;
+    similarityThreshold?: number;
+  } = {}
+): Promise<SearchResult[]> {
+  const { maxResults = 5, similarityThreshold = 0.7 } = options;
+
+  // Generate embedding for query
+  const queryEmbedding = await generateEmbedding(query);
+  const embeddingString = `[${queryEmbedding.join(",")}]`;
+
+  const db = supabaseAdmin();
+
+  // Try hybrid search RPC first
+  const { data: hybridData, error: hybridError } = await db.rpc("search_hybrid_knowledge", {
+    p_workspace_id: workspaceId,
+    query_embedding: embeddingString,
+    match_threshold: similarityThreshold,
+    match_count: maxResults,
+  });
+
+  if (!hybridError && hybridData && hybridData.length > 0) {
+    return hybridData.map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      sourceType: "kb_article" as KnowledgeSourceType,
+      sourceId: row.source_id as string,
+      title: row.title as string | null,
+      contentText: row.content as string,
+      similarity: row.similarity as number,
+      metadata: {},
+      sourceLevel: row.source_level as "workspace" | "platform",
+    }));
+  }
+
+  // Fallback: search both separately and merge
+  const [workspaceResults, platformResults] = await Promise.all([
+    searchWorkspaceKnowledge(workspaceId, queryEmbedding, similarityThreshold, maxResults),
+    searchPlatformKnowledge(queryEmbedding, similarityThreshold, maxResults),
+  ]);
+
+  // Merge and sort by similarity
+  const combined = [...workspaceResults, ...platformResults]
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, maxResults);
+
+  return combined;
+}
+
+/**
+ * Search workspace-specific knowledge
+ */
+async function searchWorkspaceKnowledge(
+  workspaceId: string,
+  queryEmbedding: number[],
+  threshold: number,
+  limit: number
+): Promise<SearchResult[]> {
+  const db = supabaseAdmin();
+
+  const { data, error } = await db.rpc("search_workspace_knowledge", {
+    p_workspace_id: workspaceId,
+    query_embedding: `[${queryEmbedding.join(",")}]`,
+    match_threshold: threshold,
+    match_count: limit,
+  });
+
+  if (error) {
+    console.error("Workspace knowledge search failed:", error);
+    return [];
+  }
+
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    sourceType: "kb_article" as KnowledgeSourceType,
+    sourceId: row.source_id as string,
+    title: row.title as string | null,
+    contentText: row.content as string,
+    similarity: row.similarity as number,
+    metadata: {},
+    sourceLevel: "workspace" as const,
+  }));
+}
+
+/**
+ * Search platform-wide Gigaviz documentation
+ */
+async function searchPlatformKnowledge(
+  queryEmbedding: number[],
+  threshold: number,
+  limit: number
+): Promise<SearchResult[]> {
+  const db = supabaseAdmin();
+
+  const { data, error } = await db.rpc("search_platform_knowledge", {
+    query_embedding: `[${queryEmbedding.join(",")}]`,
+    match_threshold: threshold,
+    match_count: limit,
+  });
+
+  if (error) {
+    console.error("Platform knowledge search failed:", error);
+    return [];
+  }
+
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    sourceType: "kb_article" as KnowledgeSourceType,
+    sourceId: row.source_id as string,
+    title: row.title as string | null,
+    contentText: row.content as string,
+    similarity: row.similarity as number,
+    metadata: {},
+    sourceLevel: "platform" as const,
   }));
 }
 
@@ -99,7 +225,8 @@ export function buildRagContext(results: SearchResult[]): string {
   if (results.length === 0) return "";
 
   const contextParts = results.map((result, index) => {
-    return `[Source ${index + 1}: ${result.sourceType}]\n${result.contentText}\n`;
+    const levelLabel = result.sourceLevel === "platform" ? "Gigaviz Docs" : "Business Knowledge";
+    return `[Source ${index + 1}: ${levelLabel}${result.title ? ` - ${result.title}` : ""}]\n${result.contentText}\n`;
   });
 
   return `\n\n--- Relevant Context from Knowledge Base ---\n${contextParts.join("\n")}\n--- End Context ---\n\n`;

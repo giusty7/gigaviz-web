@@ -24,6 +24,7 @@ import {
   Play,
   Download,
   Key,
+  BookOpen,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,7 @@ const menuCategories = [
       { label: "Sovereign Command", href: "/ops/god-console", icon: LayoutPanelLeft, description: "Full control center with manual overrides" },
       { label: "Workspaces", href: "/ops/workspaces", icon: Building2, description: "Browse and manage all workspaces" },
       { label: "Customers", href: "/ops/customers", icon: Users, description: "Lookup by email, phone, or ID" },
+      { label: "Platform Knowledge", href: "/ops/platform-kb", icon: BookOpen, description: "Manage Gigaviz docs for AI assistant" },
     ],
   },
   {

@@ -5,3 +5,7 @@ export * from "./ChatEmptyState";
 export * from "./Composer";
 export * from "./WorkspaceControls";
 export * from "./HelperPageShell";
+export * from "./HelperSubPageShell";
+export * from "./KnowledgeBaseClient";
+export * from "./WorkflowsClient";
+export * from "./AnalyticsClient";

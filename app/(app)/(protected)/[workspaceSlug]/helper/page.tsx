@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ImperiumHelperClient } from "@/components/helper/ImperiumHelperClient";
+import { HelperSubPageShell } from "@/components/helper/HelperSubPageShell";
 import { FeatureGate } from "@/components/gates/feature-gate";
 import { getAppContext } from "@/lib/app-context";
 import { requireEntitlement } from "@/lib/entitlements/server";
@@ -31,12 +32,14 @@ export default async function HelperPage({ params }: Props) {
 
   return (
     <FeatureGate allowed={entitlement.allowed}>
-      <ImperiumHelperClient
-        workspaceId={workspace.id}
-        workspaceSlug={workspace.slug}
-        workspaceName={workspace.name}
-        initialConversations={conversations ?? []}
-      />
+      <HelperSubPageShell workspaceSlug={workspaceSlug} activeTab="chat">
+        <ImperiumHelperClient
+          workspaceId={workspace.id}
+          workspaceSlug={workspace.slug}
+          workspaceName={workspace.name}
+          initialConversations={conversations ?? []}
+        />
+      </HelperSubPageShell>
     </FeatureGate>
   );
 }
