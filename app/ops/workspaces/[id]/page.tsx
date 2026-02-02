@@ -304,13 +304,20 @@ export default async function OpsWorkspaceDetailPage({
             <CardContent>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Read-only entitlements. Use Sovereign Command to edit.
+                  Manage product access for this workspace.
                 </p>
-                <Button asChild variant="secondary" size="sm">
-                  <a href={`/ops/god-console?workspaceId=${workspace.id}&workspaceSlug=${workspace.slug}`}>
-                    Open Sovereign Command
-                  </a>
-                </Button>
+                <div className="flex gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <a href={`/ops/entitlements?workspaceId=${workspace.id}`}>
+                      Open Entitlements
+                    </a>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm">
+                    <a href={`/ops/god-console?workspaceId=${workspace.id}&workspaceSlug=${workspace.slug}`}>
+                      Sovereign Command
+                    </a>
+                  </Button>
+                </div>
               </div>
               <OwnerEntitlementsPanel
                 workspaceId={workspace.id}

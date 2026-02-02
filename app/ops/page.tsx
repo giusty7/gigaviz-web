@@ -23,6 +23,7 @@ import {
   Database,
   Play,
   Download,
+  Key,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +52,17 @@ const menuCategories = [
     bgColor: "bg-blue-950/20",
     items: [
       { label: "Support Tickets", href: "/ops/tickets", icon: Ticket, description: "Manage tickets with SLA tracking" },
+    ],
+  },
+  {
+    id: "entitlements",
+    title: "Entitlements",
+    description: "Product access control",
+    color: "from-[#d4af37] to-[#f9d976]",
+    borderColor: "border-[#d4af37]/30",
+    bgColor: "bg-[#d4af37]/10",
+    items: [
+      { label: "Entitlements", href: "/ops/entitlements", icon: Key, description: "Grant or revoke product access for workspaces" },
     ],
   },
   {

@@ -76,6 +76,7 @@ export const opsTheme = {
       { label: "Command", href: "/ops/god-console", icon: "LayoutPanelLeft", group: "core" },
       { label: "Workspaces", href: "/ops/workspaces", icon: "Building2", group: "core" },
       { label: "Customers", href: "/ops/customers", icon: "Users", group: "core" },
+      { label: "Entitlements", href: "/ops/entitlements", icon: "Key", group: "core" },
       // Support
       { label: "Tickets", href: "/ops/tickets", icon: "Ticket", group: "support" },
       // Monitoring

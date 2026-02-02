@@ -250,6 +250,38 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                       Force unlock or lock modules per workspace.
                     </p>
                   </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={entPending}
+                      onClick={() => {
+                        ENTITLEMENT_KEYS.forEach((key) => {
+                          if (!entitlements.has(key)) {
+                            handleToggleEntitlement(key, true);
+                          }
+                        });
+                      }}
+                      className="h-7 rounded-lg border-emerald-400/40 bg-emerald-500/10 text-emerald-200 text-xs hover:bg-emerald-500/20"
+                    >
+                      Unlock All
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={entPending}
+                      onClick={() => {
+                        ENTITLEMENT_KEYS.forEach((key) => {
+                          if (entitlements.has(key)) {
+                            handleToggleEntitlement(key, false);
+                          }
+                        });
+                      }}
+                      className="h-7 rounded-lg border-red-400/40 bg-red-500/10 text-red-200 text-xs hover:bg-red-500/20"
+                    >
+                      Lock All
+                    </Button>
+                  </div>
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {ENTITLEMENT_KEYS.map((key) => {
@@ -257,33 +289,37 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                     return (
                       <div
                         key={key}
-                        className="flex items-center justify-between rounded-xl border border-[#d4af37]/25 bg-[#0a1229]/70 px-3 py-2 text-sm text-[#f5f5dc]"
+                        className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition-all ${
+                          enabled
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                            : "border-[#d4af37]/25 bg-[#0a1229]/70 text-[#f5f5dc]/60"
+                        }`}
                       >
                         <div className="flex items-center gap-2">
                           {enabled ? (
-                            <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                            <ShieldCheck className="h-4 w-4 text-emerald-400" />
                           ) : (
-                            <ShieldOff className="h-4 w-4 text-[#d946ef]" />
+                            <ShieldOff className="h-4 w-4 text-[#f5f5dc]/30" />
                           )}
-                          <span className="uppercase tracking-wide text-xs">{key}</span>
+                          <span className="uppercase tracking-wide text-xs font-medium">{key.replace(/_/g, " ")}</span>
                         </div>
                         <Button
                           size="sm"
-                          variant={enabled ? "outline" : "secondary"}
+                          variant="ghost"
                           disabled={entPending}
                           onClick={() => handleToggleEntitlement(key, !enabled)}
-                          className={`h-8 rounded-lg ${
+                          className={`h-7 rounded-lg px-3 ${
                             enabled
-                              ? "border-emerald-400/40 text-emerald-200"
-                              : "border-[#d4af37]/40 text-[#f5f5dc]"
+                              ? "text-red-300 hover:bg-red-500/20 hover:text-red-200"
+                              : "text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
                           }`}
                         >
                           {entPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-3 w-3 animate-spin" />
                           ) : enabled ? (
-                            "Disable"
+                            "Lock"
                           ) : (
-                            "Enable"
+                            "Unlock"
                           )}
                         </Button>
                       </div>

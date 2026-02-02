@@ -73,6 +73,19 @@ export async function setWorkspaceEntitlement(
   }
   const { db, user, actorEmail, actorRole } = owner;
 
+  // Wrap payload with consistent metadata structure
+  const enrichedPayload = {
+    version: 1,
+    ...((typeof validatedPayload === "object" && validatedPayload) || {}),
+    meta: {
+      source: "sovereign_command",
+      granted_by: user.id,
+      granted_by_email: actorEmail,
+      granted_at: new Date().toISOString(),
+      reason: reason ?? null,
+    },
+  };
+
   const { data: before } = await db
     .from("workspace_entitlements")
     .select("workspace_id, key, enabled, payload, updated_at, updated_by")
@@ -85,7 +98,7 @@ export async function setWorkspaceEntitlement(
     p_workspace_id: workspaceId,
     p_entitlement_key: key,
     p_enabled: enabled,
-    p_payload: validatedPayload,
+    p_payload: enrichedPayload,
     p_expires_at: null,
     p_reason: reason ?? null,
   });
@@ -129,7 +142,7 @@ export async function setWorkspaceEntitlement(
   }
 
   await recordOwnerAudit({
-    action: enabled ? "owner.entitlement.enabled" : "owner.entitlement.disabled",
+    action: enabled ? "entitlement.grant" : "entitlement.revoke",
     actorUserId: user.id,
     actorEmail,
     actorRole,
@@ -138,7 +151,7 @@ export async function setWorkspaceEntitlement(
     targetId: `${workspaceId}:${key}`,
     before: before ?? null,
     after,
-    meta: { key, reason: reason ?? null },
+    meta: { key, reason: reason ?? null, source: "sovereign_command" },
   });
 
   return { ok: true, data: after };
