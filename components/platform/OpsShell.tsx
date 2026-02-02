@@ -5,14 +5,17 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   ActivitySquare,
+  BarChart3,
   Building2,
   Code,
   HeartPulse,
+  Home,
   LayoutPanelLeft,
   ScrollText,
   ShieldCheck,
   Ticket,
   Users,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { opsTheme } from "@/lib/ops/theme";
@@ -25,23 +28,36 @@ type OpsShellProps = {
 
 // Map icon names to components
 const iconMap: Record<string, LucideIcon> = {
+  Home,
   Building2,
   Users,
   ScrollText,
   HeartPulse,
+  BarChart3,
+  Zap,
   Code,
   LayoutPanelLeft,
   Ticket,
 };
 
+// Group nav items with separators
 const NAV_ITEMS = opsTheme.nav.items.map((item) => ({
   ...item,
   icon: iconMap[item.icon] ?? Building2,
 }));
 
+// Get unique groups in order
+const GROUPS = opsTheme.nav.groups;
+
 export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
   const pathname = usePathname();
   const { colors, opacity, watermark, header } = opsTheme;
+
+  // Group items by category
+  const groupedItems = GROUPS.map(group => ({
+    ...group,
+    items: NAV_ITEMS.filter(item => item.group === group.id)
+  }));
 
   return (
     <div 
@@ -114,34 +130,49 @@ export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
           </div>
         </header>
 
-        <nav className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {NAV_ITEMS.map((item) => {
-            const active =
-              pathname === item.href ||
-              (item.href !== "/ops/god-console" && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition backdrop-blur whitespace-nowrap touch-manipulation"
-                style={{
-                  borderColor: active 
-                    ? `rgba(212,175,55,${opacity.primary.borderActive})` 
-                    : `var(--border)`,
-                  backgroundColor: active 
-                    ? `rgba(212,175,55,${opacity.primary.bg})` 
-                    : `rgba(5,10,24,${opacity.background.nav})`,
-                  color: active 
-                    ? colors.text 
-                    : `rgba(245,245,220,${opacity.text.veryMuted})`,
-                  boxShadow: active ? `0 0 20px rgba(212,175,55,0.25)` : "none",
-                }}
-              >
-                <item.icon className="h-4 w-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+          {groupedItems.map((group, groupIndex) => (
+            <div key={group.id} className="flex items-center gap-1">
+              {/* Group separator (except first) */}
+              {groupIndex > 0 && (
+                <div 
+                  className="h-6 w-px mx-1 hidden sm:block" 
+                  style={{ backgroundColor: `rgba(212,175,55,0.2)` }}
+                />
+              )}
+              {/* Group items */}
+              {group.items.map((item) => {
+                // Special handling for exact match routes
+                const isExactRoute = item.href === "/ops" || item.href === "/ops/god-console";
+                const active = isExactRoute
+                  ? pathname === item.href
+                  : pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={item.label}
+                    className="group inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition backdrop-blur whitespace-nowrap touch-manipulation"
+                    style={{
+                      borderColor: active 
+                        ? `rgba(212,175,55,${opacity.primary.borderActive})` 
+                        : `rgba(212,175,55,0.15)`,
+                      backgroundColor: active 
+                        ? `rgba(212,175,55,${opacity.primary.bg})` 
+                        : `rgba(5,10,24,${opacity.background.nav})`,
+                      color: active 
+                        ? colors.text 
+                        : `rgba(245,245,220,${opacity.text.veryMuted})`,
+                      boxShadow: active ? `0 0 20px rgba(212,175,55,0.25)` : "none",
+                    }}
+                  >
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden md:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <main 

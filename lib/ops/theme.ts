@@ -67,16 +67,33 @@ export const opsTheme = {
     size: 280,
   },
 
-  // Navigation
+  // Navigation - organized by category
   nav: {
     items: [
-      { label: "Workspaces", href: "/ops/workspaces", icon: "Building2" },
-      { label: "Customers", href: "/ops/customers", icon: "Users" },
-      { label: "Tickets", href: "/ops/tickets", icon: "Ticket" },
-      { label: "System Logs", href: "/ops/audit", icon: "ScrollText" },
-      { label: "Health", href: "/ops/health", icon: "HeartPulse" },
-      { label: "Dev Tools", href: "/ops/dev-tools", icon: "Code" },
-      { label: "Sovereign Command", href: "/ops/god-console", icon: "LayoutPanelLeft" },
+      // Home
+      { label: "Dashboard", href: "/ops", icon: "Home", group: "home" },
+      // Core Operations
+      { label: "Command", href: "/ops/god-console", icon: "LayoutPanelLeft", group: "core" },
+      { label: "Workspaces", href: "/ops/workspaces", icon: "Building2", group: "core" },
+      { label: "Customers", href: "/ops/customers", icon: "Users", group: "core" },
+      // Support
+      { label: "Tickets", href: "/ops/tickets", icon: "Ticket", group: "support" },
+      // Monitoring
+      { label: "Health", href: "/ops/health", icon: "HeartPulse", group: "monitoring" },
+      { label: "Logs", href: "/ops/audit", icon: "ScrollText", group: "monitoring" },
+      // Business
+      { label: "Analytics", href: "/ops/analytics", icon: "BarChart3", group: "business" },
+      { label: "Operations", href: "/ops/operations", icon: "Zap", group: "business" },
+      // Developer
+      { label: "Dev Tools", href: "/ops/dev-tools", icon: "Code", group: "developer" },
+    ],
+    groups: [
+      { id: "home", label: "Home" },
+      { id: "core", label: "Core" },
+      { id: "support", label: "Support" },
+      { id: "monitoring", label: "Monitoring" },
+      { id: "business", label: "Business" },
+      { id: "developer", label: "Developer" },
     ],
   },
 
