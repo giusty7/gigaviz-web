@@ -6,6 +6,7 @@ import { load } from "cheerio";
 import type { AnyNode, Element } from "domhandler";
 import { XMLParser } from "fast-xml-parser";
 import pLimit from "p-limit";
+import { generateEmbedding } from "@/lib/helper/embeddings";
 import type { IndexerConfig } from "./env";
 
 export type SourceKind = "page" | "doc" | "release" | "faq" | "suggestion";
@@ -293,10 +294,14 @@ export class KBIndexer {
     return createHash("sha256").update(content).digest("hex");
   }
 
-  private async embedText(_text: string): Promise<number[]> {
-    void _text;
-    // Placeholder: returns zero-vector with expected dimension. Replace with provider call later.
-    return Array(this.config.embedDim).fill(0);
+  private async embedText(text: string): Promise<number[]> {
+    try {
+      return await generateEmbedding(text);
+    } catch (error) {
+      console.error("Embedding generation failed:", error);
+      // Fallback to zero-vector if API fails
+      return Array(this.config.embedDim).fill(0);
+    }
   }
 
   private async upsertSource(params: {

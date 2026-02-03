@@ -5,8 +5,9 @@ import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 import { findConnectionById, findTokenForConnection } from "@/lib/meta/wa-connections.node";
 import { nextBackoffMs } from "@/lib/worker/backoff";
 import { rateLimitDb } from "@/lib/rate-limit.node";
+import { logger } from "../lib/logging";
 
-console.log("[WORKER] Starting up...");
+logger.info("Worker starting up");
 
 // Outbox row mirrors DB shape (see migration)
 type OutboxRow = {
@@ -84,16 +85,16 @@ async function markMessageStatus(
 }
 
 async function sendOutboxItem(db: ReturnType<typeof supabaseAdmin>, item: OutboxRow) {
-  console.log(`[WORKER] Processing outbox item ${item.id}`);
+  logger.info("Processing outbox item", { itemId: item.id });
   const attempts = item.attempts ?? 0;
   const payload = asRecord(item.payload) as SendPayload;
   const messageId = typeof payload.message_id === "string" ? payload.message_id : null;
   const toPhone = item.to_phone;
 
-  console.log(`[WORKER] Item ${item.id}: messageId=${messageId}, toPhone=${toPhone}`);
+  logger.info("Outbox item details", { itemId: item.id, messageId, toPhone });
 
   if (!messageId || !toPhone) {
-    console.error(`[WORKER] Item ${item.id}: Missing messageId or toPhone`);
+    logger.error("Missing messageId or toPhone", { itemId: item.id });
     const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
     await updateOutbox(db, item.id, {
       status: "failed",
@@ -147,9 +148,9 @@ async function sendOutboxItem(db: ReturnType<typeof supabaseAdmin>, item: Outbox
   }
 
   const { data: connection, error: connectionErr } = await findConnectionById(db, connectionId);
-  console.log(`[WORKER] Item ${item.id}: Connection lookup - connectionId=${connectionId}, found=${!!connection}, err=${connectionErr?.message}`);
+  logger.info("Connection lookup", { itemId: item.id, connectionId, found: !!connection, error: connectionErr?.message });
   if (connectionErr || !connection) {
-    console.error(`[WORKER] Item ${item.id}: Connection lookup failed`);
+    logger.error("Connection lookup failed", { itemId: item.id });
     await markMessageStatus(db, messageId, "failed", null, "connection_not_found");
     const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
     await updateOutbox(db, item.id, {
@@ -216,7 +217,7 @@ async function sendOutboxItem(db: ReturnType<typeof supabaseAdmin>, item: Outbox
   }
 
   const enableSend = process.env.ENABLE_WA_SEND === "true";
-  console.log(`[WORKER] Item ${item.id}: Sending... enableSend=${enableSend}, toPhone=${toPhone}, type=${item.message_type}`);
+  logger.info("Sending WhatsApp message", { itemId: item.id, enableSend, toPhone, type: item.message_type });
   let waMessageId: string | null = null;
   let sendError: string | null = null;
 
@@ -237,10 +238,10 @@ async function sendOutboxItem(db: ReturnType<typeof supabaseAdmin>, item: Outbox
     }
   } catch (err) {
     sendError = err instanceof Error ? err.message : "send_exception";
-    console.error(`[WORKER] Item ${item.id}: Send exception:`, err);
+    logger.error("Send exception", { itemId: item.id, error: err });
   }
 
-  console.log(`[WORKER] Item ${item.id}: Send result - waMessageId=${waMessageId}, sendError=${sendError}`);
+  logger.info("Send result", { itemId: item.id, waMessageId, sendError });
 
   if (sendError) {
     const nextAttempt = attempts + 1;
@@ -277,7 +278,7 @@ async function sendOutboxItem(db: ReturnType<typeof supabaseAdmin>, item: Outbox
   }
 
   // Success
-  console.log(`[WORKER] Item ${item.id}: SUCCESS - Marking as sent, waMessageId=${waMessageId}`);
+  logger.info("Message sent successfully", { itemId: item.id, waMessageId });
   await markMessageStatus(db, messageId, "sent", waMessageId, null);
   const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(); // 1 year from now
   const { error: outboxUpdateErr } = await updateOutbox(db, item.id, {
@@ -290,9 +291,9 @@ async function sendOutboxItem(db: ReturnType<typeof supabaseAdmin>, item: Outbox
     locked_by: null,
   });
   if (outboxUpdateErr) {
-    console.error(`[WORKER] Item ${item.id}: Failed to update outbox to 'sent':`, outboxUpdateErr);
+    logger.error("Failed to update outbox status", { itemId: item.id, error: outboxUpdateErr });
   } else {
-    console.log(`[WORKER] Item ${item.id}: Outbox updated to 'sent' successfully`);
+    logger.info("Outbox updated to sent", { itemId: item.id });
   }
 }
 
@@ -301,25 +302,25 @@ async function runOnce() {
   const batchSize = Math.max(1, Number(process.env.WORKER_BATCH_SIZE ?? 20) || 20);
   const workerId = getWorkerId();
 
-  console.log(`[WORKER] Claiming outbox batch (size=${batchSize}, worker=${workerId.slice(0, 20)}...)...`);
+  logger.info("Claiming outbox batch", { batchSize, workerId: workerId.slice(0, 20) });
   const { data, error } = await db.rpc("claim_outbox", {
     p_batch_size: batchSize,
     p_worker_id: workerId,
   });
 
   if (error) {
-    console.log("OUTBOX_CLAIM_ERROR", error.message);
+    logger.error("Outbox claim error", { error: error.message });
     return;
   }
 
   const items = (data ?? []) as OutboxRow[];
-  console.log(`[WORKER] Claimed ${items.length} items`);
+  logger.info("Claimed outbox items", { count: items.length });
   for (const item of items) {
     try {
       await sendOutboxItem(db, item);
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      console.error("OUTBOX_ITEM_FATAL", { id: item.id, reason, error: err });
+      logger.error("Outbox item fatal error", { itemId: item.id, reason, error: err });
       const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
       await updateOutbox(db, item.id, {
         status: "failed",
@@ -335,33 +336,33 @@ async function runOnce() {
 }
 
 async function run() {
-  console.log("[WORKER] Entering run() loop...");
+  logger.info("Entering worker run loop");
   let keepRunning = true;
   const pollIntervalMs = Math.max(500, Number(process.env.WORKER_POLL_INTERVAL_MS ?? 2000) || 2000);
 
   const handleStop = () => {
-    console.log("[WORKER] Stop signal received");
+    logger.info("Stop signal received");
     keepRunning = false;
   };
 
   process.on("SIGINT", handleStop);
   process.on("SIGTERM", handleStop);
 
-  console.log(`[WORKER] Poll interval: ${pollIntervalMs}ms`);
+  logger.info("Worker configuration", { pollIntervalMs });
   
   while (keepRunning) {
-    console.log("[WORKER] Running batch...");
+    logger.info("Running batch");
     await runOnce();
     if (!keepRunning) break;
     await sleep(pollIntervalMs);
   }
   
-  console.log("[WORKER] Exiting gracefully");
+  logger.info("Exiting gracefully");
 }
 
-console.log("[WORKER] Calling run()...");
+logger.info("Calling worker run");
 run().catch((err) => {
   const msg = err instanceof Error ? err.message : String(err);
-  console.error("WORKER_FATAL", msg, err);
+  logger.error("Worker fatal error", { message: msg, error: err });
   process.exit(1);
 });
