@@ -18,6 +18,7 @@ import {
   Activity,
   Layers,
   CloudLightning,
+  Settings,
 } from "lucide-react";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
 import type { MetaHubAccess, MetaHubSetup } from "@/lib/meta-hub/access";
@@ -82,6 +83,7 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Inbox: MessagesSquare,
   Assets: Layers,
   Events: CloudLightning,
+  Settings: Settings,
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -157,6 +159,11 @@ function buildNav(
       label: "Insights",
       href: `${base}/insights`,
       status: insightsStatus,
+    },
+    {
+      label: "Settings",
+      href: `${base}/settings`,
+      status: "live",
     },
   ];
 }

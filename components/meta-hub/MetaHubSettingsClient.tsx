@@ -9,6 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { EditConnectionDialog } from "@/components/meta-hub/EditConnectionDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Pencil, RefreshCw, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { QuickRepliesManager } from "@/components/meta-hub/QuickRepliesManager";
+import { AgentStatusManager } from "@/components/meta-hub/AgentStatusManager";
+import { AssignmentRulesManager } from "@/components/meta-hub/AssignmentRulesManager";
+import { AutoReplyRulesManager } from "@/components/meta-hub/AutoReplyRulesManager";
 
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -38,12 +42,31 @@ type Connection = {
   lastError: string | null;
 };
 
+type Member = {
+  user_id: string;
+  role: string;
+  profiles: {
+    full_name: string | null;
+    avatar_url: string | null;
+  };
+};
+
+type Template = {
+  id: string;
+  name: string;
+  language: string;
+  status: string;
+};
+
 type MetaHubSettingsClientProps = {
   workspaceId: string;
   workspaceSlug: string;
   workspaceName: string;
   initialTab: string;
   connections: Connection[];
+  members: Member[];
+  templates: Template[];
+  currentUserId: string;
 };
 
 export function MetaHubSettingsClient({
@@ -52,6 +75,9 @@ export function MetaHubSettingsClient({
   workspaceName,
   initialTab,
   connections,
+  members,
+  templates,
+  currentUserId,
 }: MetaHubSettingsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -126,10 +152,14 @@ export function MetaHubSettingsClient({
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="connections">Connections</TabsTrigger>
           <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
+          <TabsTrigger value="quick-replies">Quick Replies</TabsTrigger>
+          <TabsTrigger value="agent-status">Agent Status</TabsTrigger>
+          <TabsTrigger value="assignment">Assignment</TabsTrigger>
+          <TabsTrigger value="auto-reply">Auto-Reply</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
@@ -321,6 +351,38 @@ export function MetaHubSettingsClient({
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Quick Replies Tab */}
+        <TabsContent value="quick-replies" className="space-y-4">
+          <QuickRepliesManager workspaceId={workspaceId} />
+        </TabsContent>
+
+        {/* Agent Status Tab */}
+        <TabsContent value="agent-status" className="space-y-4">
+          <AgentStatusManager currentUserId={currentUserId} />
+        </TabsContent>
+
+        {/* Assignment Rules Tab */}
+        <TabsContent value="assignment" className="space-y-4">
+          <AssignmentRulesManager 
+            members={members.map(m => ({
+              userId: m.user_id,
+              role: m.role,
+              profile: m.profiles ? {
+                fullName: m.profiles.full_name,
+                email: m.user_id, // fallback - ideally should fetch real email
+              } : undefined
+            }))}
+          />
+        </TabsContent>
+
+        {/* Auto-Reply Rules Tab */}
+        <TabsContent value="auto-reply" className="space-y-4">
+          <AutoReplyRulesManager 
+            workspaceId={workspaceId}
+            templates={templates}
+          />
         </TabsContent>
       </Tabs>
 

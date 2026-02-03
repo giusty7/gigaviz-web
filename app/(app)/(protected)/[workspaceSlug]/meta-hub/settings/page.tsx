@@ -33,6 +33,34 @@ export default async function MetaHubSettingsPage({ params, searchParams }: Prop
 
   const db = supabaseAdmin();
 
+  // Fetch workspace members for assignment rules
+  const { data: rawMembers } = await db
+    .from("workspace_members")
+    .select(`
+      user_id,
+      role,
+      profiles!inner(
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq("workspace_id", workspaceId);
+
+  // Transform members to match expected structure (profiles is an object, not array)
+  const members = (rawMembers || []).map((m) => ({
+    user_id: m.user_id,
+    role: m.role,
+    profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles,
+  }));
+
+  // Fetch WhatsApp templates for auto-reply rules
+  const { data: templates } = await db
+    .from("wa_templates")
+    .select("id, name, language, status")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "APPROVED")
+    .order("name");
+
   // Fetch connections with enriched data from cache
   const { data: connections } = await db
     .from("wa_phone_numbers")
@@ -84,6 +112,9 @@ export default async function MetaHubSettingsPage({ params, searchParams }: Prop
       workspaceName={ctx.currentWorkspace.name}
       initialTab={tab}
       connections={enrichedConnections}
+      members={members || []}
+      templates={templates || []}
+      currentUserId={ctx.user.id}
     />
   );
 }
