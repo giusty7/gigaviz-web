@@ -53,7 +53,7 @@ export default async function AuditPage({ params }: AuditPageProps) {
         </CardContent>
       </Card>
 
-      <AuditLogPanel workspaceId={workspace.id} />
+      <AuditLogPanel workspaceId={workspace.id} workspaceName={workspace.name} />
     </div>
   );
 }

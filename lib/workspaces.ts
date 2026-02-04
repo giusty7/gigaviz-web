@@ -11,9 +11,13 @@ export type WorkspaceSummary = {
   slug: string;
   owner_id: string | null;
   workspace_type: string;
+  description: string | null;
   created_at: string;
   role: string;
 };
+
+// Note: description column may not exist in all environments
+// Query fetches it optionally, defaults to null if missing
 
 export async function getWorkspaceCookie() {
   const cookieStore = await cookies();
@@ -59,7 +63,7 @@ export async function getUserWorkspaces(userId: string) {
   const workspaceIds = memberships.map((membership) => membership.workspace_id);
   const { data: workspaces, error: workspaceError } = await db
     .from("workspaces")
-    .select("id, name, slug, owner_id, workspace_type, created_at")
+    .select("id, name, slug, owner_id, workspace_type, description, created_at")
     .in("id", workspaceIds);
 
   if (workspaceError) throw workspaceError;
@@ -78,6 +82,7 @@ export async function getUserWorkspaces(userId: string) {
         slug: workspace.slug,
         owner_id: workspace.owner_id,
         workspace_type: workspace.workspace_type,
+        description: workspace.description ?? null,
         created_at: workspace.created_at,
         role: membership.role,
       },

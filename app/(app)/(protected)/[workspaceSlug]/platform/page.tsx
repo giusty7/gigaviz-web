@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GetStartedPanel } from "@/components/onboarding/get-started-panel";
+import { WorkspaceActions } from "@/components/platform/workspace-actions";
 import { getAppContext } from "@/lib/app-context";
 import {
   getOnboardingSignals,
@@ -236,6 +237,17 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
                 </div>
                 <p className="text-xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{card.value}</p>
                 <p className="mt-1 text-xs text-[#f5f5dc]/50">{card.helper}</p>
+                {/* Add workspace actions to first card */}
+                {card.title === "Active workspace" && (
+                  <WorkspaceActions
+                    workspaceId={workspace.id}
+                    workspaceName={workspace.name}
+                    workspaceSlug={workspace.slug}
+                    workspaceDescription={workspace.description}
+                    workspaceType={workspace.workspace_type}
+                    userRole={ctx.currentRole ?? "member"}
+                  />
+                )}
               </div>
             </div>
           );

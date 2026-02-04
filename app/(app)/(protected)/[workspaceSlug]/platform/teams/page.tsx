@@ -31,7 +31,7 @@ export default async function PlatformTeamsPage({ params }: Props) {
 
   // Fetch workspace members
   const { data: members } = await supabase
-    .from("workspace_memberships")
+    .from("workspace_members")
     .select(`
       id,
       user_id,
