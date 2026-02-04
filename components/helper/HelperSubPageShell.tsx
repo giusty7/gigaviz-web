@@ -8,6 +8,10 @@ import {
   UsersIcon,
   ZapIcon,
   BarChart3Icon,
+  TargetIcon,
+  DatabaseIcon,
+  HistoryIcon,
+  SparklesIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +23,13 @@ type Props = {
 
 const HELPER_TABS = [
   { id: "chat", label: "Chat", icon: MessageCircleIcon, href: "" },
-  { id: "knowledge", label: "Knowledge Base", icon: BookOpenIcon, href: "/knowledge" },
-  { id: "crm", label: "CRM", icon: UsersIcon, href: "/crm" },
+  { id: "crm", label: "CRM Insights", icon: UsersIcon, href: "/crm" },
+  { id: "leads", label: "Leads AI", icon: TargetIcon, href: "/leads" },
   { id: "workflows", label: "Workflows", icon: ZapIcon, href: "/workflows" },
+  { id: "history", label: "Run History", icon: HistoryIcon, href: "/history" },
+  { id: "knowledge", label: "Knowledge", icon: DatabaseIcon, href: "/knowledge" },
+  { id: "docs", label: "Docs", icon: BookOpenIcon, href: "/docs" },
+  { id: "ai", label: "AI Studio", icon: SparklesIcon, href: "/ai-studio" },
   { id: "analytics", label: "Analytics", icon: BarChart3Icon, href: "/analytics" },
 ];
 
