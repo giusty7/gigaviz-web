@@ -5,6 +5,7 @@ import { motion, type Variants } from "framer-motion";
 import { PanelRightClose, PanelRightOpen, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { AgentStatusPanel } from "@/components/meta-hub/AgentStatusPanel";
 import {
   InboxHeader,
   ContactList,
@@ -1381,6 +1382,11 @@ export function ImperiumInboxClient({
           soundEnabled={soundEnabled}
           onToggleSound={() => setSoundEnabled((prev) => !prev)}
         />
+
+        {/* Agent Status Panel */}
+        <div className="border-b border-[#d4af37]/10 bg-[#0a1229]/80 px-6 py-2">
+          <AgentStatusPanel workspaceId={_workspaceId} currentUserId={userId} />
+        </div>
 
         {/* Overview Mode CTA */}
         {overviewMode && (

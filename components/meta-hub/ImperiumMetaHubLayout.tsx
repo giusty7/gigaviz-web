@@ -78,6 +78,7 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "Messaging - Instagram": Instagram,
   "Messaging - Messenger": MessagesSquare,
   Ads: Megaphone,
+  Automation: Zap,
   Insights: BarChart3,
   Templates: MessageSquare,
   Inbox: MessagesSquare,
@@ -124,6 +125,7 @@ function buildNav(
   const messengerStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const adsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const insightsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
+  const automationStatus: BadgeStatus = access.metaHub ? "live" : "locked";
 
   // Extract workspaceSlug from base path (e.g., "/owner-gigaviz/meta-hub" -> "owner-gigaviz")
   const workspaceSlug = base.split("/")[1] || "";
@@ -155,6 +157,11 @@ function buildNav(
       status: messengerStatus,
     },
     { label: "Ads", href: `${base}/ads`, status: adsStatus },
+    {
+      label: "Automation",
+      href: `${base}/automation`,
+      status: automationStatus,
+    },
     {
       label: "Insights",
       href: `${base}/insights`,

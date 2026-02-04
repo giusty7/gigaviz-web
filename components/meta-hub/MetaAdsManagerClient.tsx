@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '@/lib/hooks/use-workspace';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -19,12 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Eye,
   MousePointer,
   DollarSign,
   Target,
   Calendar,
+  RefreshCw,
 } from 'lucide-react';
 
 interface CampaignStats {
@@ -51,10 +54,12 @@ interface AdAccountSummary {
 
 export function MetaAdsManagerClient() {
   const { workspace } = useWorkspace();
+  const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<CampaignStats[]>([]);
   const [summary, setSummary] = useState<AdAccountSummary | null>(null);
   const [dateRange, setDateRange] = useState('last_7_days');
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (!workspace) return;
@@ -80,6 +85,45 @@ export function MetaAdsManagerClient() {
     }
   }
 
+  async function syncFromMeta() {
+    if (!workspace?.id) return;
+    
+    try {
+      setSyncing(true);
+      const res = await fetch('/api/meta/ads/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: workspace.id,
+          date_range: dateRange,
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Sync failed');
+      }
+
+      toast({
+        title: 'Sync Complete',
+        description: data.message || `Synced ${data.campaigns_count} campaigns`,
+      });
+
+      // Reload data after sync
+      await loadData();
+    } catch (error) {
+      console.error('Error syncing ads data:', error);
+      toast({
+        title: 'Sync Failed',
+        description: error instanceof Error ? error.message : 'Failed to sync with Meta',
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   const formatCurrency = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`;
   };
@@ -102,20 +146,31 @@ export function MetaAdsManagerClient() {
             Monitor and analyze your Meta advertising campaigns
           </p>
         </div>
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-40">
-            <Calendar className="h-4 w-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="yesterday">Yesterday</SelectItem>
-            <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-            <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-            <SelectItem value="this_month">This Month</SelectItem>
-            <SelectItem value="last_month">Last Month</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={syncFromMeta}
+            disabled={syncing || loading}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync from Meta'}
+          </Button>
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-40">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="yesterday">Yesterday</SelectItem>
+              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+              <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+              <SelectItem value="this_month">This Month</SelectItem>
+              <SelectItem value="last_month">Last Month</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Summary Cards */}
