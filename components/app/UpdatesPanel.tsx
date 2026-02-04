@@ -28,48 +28,51 @@ export async function UpdatesPanel({ workspaceSlug }: UpdatesPanelProps) {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-[#d4af37]/15 bg-[#0a1229]/70 p-5">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#d4af37]/10 via-transparent to-transparent" />
-      
-      <div className="relative">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-[#f5f5dc]">Product updates</p>
-            <p className="text-xs text-[#f5f5dc]/65">Latest improvements and features</p>
-          </div>
-          <Link
-            href={`/${workspaceSlug}/changelog`}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#d4af37]/30 px-3 py-2 text-xs font-semibold text-[#d4af37] transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/10"
-          >
-            View all →
-          </Link>
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#d4af37]/80 font-semibold">
+            What&apos;s New
+          </p>
+          <h2 className="text-xl font-bold text-[#f5f5dc]">Product Updates</h2>
         </div>
+        <Link
+          href={`/${workspaceSlug}/changelog`}
+          className="text-sm font-semibold text-[#d4af37] hover:underline flex items-center gap-1"
+        >
+          View all <Sparkles className="h-4 w-4" />
+        </Link>
+      </div>
 
-        <div className="space-y-3">
-          {updates.map((update) => {
+      <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/70">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#d4af37]/5 to-transparent" />
+        
+        <div className="relative divide-y divide-[#d4af37]/10">{updates.map((update) => {
             const Icon = typeIcons[update.type];
             return (
               <Link
                 key={update.slug}
                 href={`/${workspaceSlug}/changelog/${update.slug}`}
-                className="flex items-start gap-3 rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 p-3 transition hover:border-[#d4af37]/20"
+                className="flex items-start gap-4 p-4 transition hover:bg-[#d4af37]/5"
               >
                 <div
-                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border ${typeColors[update.type]}`}
+                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border ${typeColors[update.type]}`}
                 >
                   <Icon className="h-4 w-4" />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-medium text-[#f5f5dc]">
-                    {update.title}
-                  </h4>
+                  <div className="flex items-start justify-between gap-3">
+                    <h4 className="text-sm font-semibold text-[#f5f5dc]">
+                      {update.title}
+                    </h4>
+                    <time className="text-xs text-[#f5f5dc]/40 whitespace-nowrap">
+                      {formatUpdateDate(update.date)}
+                    </time>
+                  </div>
                   <p className="mt-1 text-xs text-[#f5f5dc]/60 line-clamp-2">
                     {update.summary}
                   </p>
-                  <time className="mt-1 block text-xs text-[#f5f5dc]/40">
-                    {formatUpdateDate(update.date)}
-                  </time>
                 </div>
             </Link>
             );
