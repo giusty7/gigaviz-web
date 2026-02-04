@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import AppShell from "@/components/app/AppShell";
 import { getAppContext, getAppContextImpersonated } from "@/lib/app-context";
 import { getImpersonationContext } from "@/lib/impersonation/context";
+import { isPlatformAdminById } from "@/lib/platform-admin/server";
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +31,16 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
     redirect("/onboarding");
   }
 
+  // Check if user is Gigaviz platform staff (not just workspace admin)
+  const isPlatformAdmin = await isPlatformAdminById(ctx.user.id);
+
   return (
     <AppShell
       userEmail={ctx.user.email ?? "user"}
       workspaces={ctx.workspaces}
       currentWorkspaceId={ctx.currentWorkspace.id}
       currentWorkspaceSlug={ctx.currentWorkspace.slug}
-      isAdmin={Boolean(ctx.profile?.is_admin)}
+      isAdmin={isPlatformAdmin}
     >
       {children}
     </AppShell>

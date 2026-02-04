@@ -76,8 +76,8 @@ export async function getUnifiedDashboard(
       { label: "Storage", value: platformData.storageUsed || "N/A" },
     ],
     quickAction: {
-      label: "Manage workspace",
-      href: platformData.settingsHref,
+      label: "Open Platform",
+      href: platformData.platformHref,
     },
   });
 
@@ -295,6 +295,7 @@ async function getPlatformMetrics(workspaceId: string, db: ReturnType<typeof sup
     creditsHref: `/${slug}/credits`,
     baseHref: `/${slug}`,
     metaHubHref: `/${slug}/meta-hub`,
+    platformHref: `/${slug}/platform`,
   };
 }
 

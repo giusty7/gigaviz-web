@@ -7,6 +7,7 @@ import { UnifiedProductGrid } from "@/components/app/dashboard-widgets/UnifiedPr
 import { UpdatesPanel } from "@/components/app/UpdatesPanel";
 import { getAppContext } from "@/lib/app-context";
 import { getUnifiedDashboard } from "@/lib/dashboard/overview";
+import { isPlatformAdminById } from "@/lib/platform-admin/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { formatRelativeTime } from "@/lib/time";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
@@ -87,7 +88,9 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     };
   });
 
-  const isAdmin = Boolean(ctx.profile?.is_admin);
+  // Check if user is a Gigaviz platform admin (staff) - NOT regular workspace admin
+  const isPlatformAdmin = await isPlatformAdminById(ctx.user.id);
+
   return (
     <div className="relative min-h-screen">
       {/* Background pattern */}
@@ -187,8 +190,8 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
           </section>
         </div>
 
-        {/* Admin Panel */}
-        {isAdmin && (
+        {/* Admin Panel - Only visible to Gigaviz platform staff */}
+        {isPlatformAdmin && (
           <AdminPanel
             workspaceId={ctx.currentWorkspace.id}
             enableBillingTestMode={process.env.ENABLE_BILLING_TEST_MODE === "true"}

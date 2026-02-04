@@ -131,8 +131,8 @@ export default function AppShell({
             <AppNavLinks links={navLinks} collapsed={isCollapsed} />
 
             {isAdmin && !isCollapsed && (
-              <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-                Admin Mode Enabled
+              <div className="mt-6 rounded-xl border border-purple-500/40 bg-purple-500/10 px-3 py-2 text-xs text-purple-100">
+                🛡️ Gigaviz Staff Mode
               </div>
             )}
 

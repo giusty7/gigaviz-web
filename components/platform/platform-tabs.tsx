@@ -7,7 +7,6 @@ import {
   Home,
   KeyRound,
   ScrollText,
-  Shield,
   Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,13 +15,13 @@ type PlatformTabsProps = {
   baseHref: string;
 };
 
+// Client-facing tabs only - Entitlements moved to /ops for Gigaviz staff
 const tabs = [
   { label: "Overview", segment: "", icon: Home },
   { label: "Workspaces", segment: "/workspaces", icon: Users2 },
   { label: "Roles & Access", segment: "/roles", icon: KeyRound },
   { label: "Audit Log", segment: "/audit", icon: ScrollText },
   { label: "Billing", segment: "/billing", icon: CreditCard },
-  { label: "Entitlements", segment: "/entitlements", icon: Shield },
 ];
 
 export function PlatformTabs({ baseHref }: PlatformTabsProps) {
