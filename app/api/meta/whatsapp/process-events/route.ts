@@ -8,7 +8,7 @@ import {
   unauthorizedResponse,
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
-import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
+import { processWhatsappEvents, checkAndTriggerAIReplies } from "@/lib/meta/wa-inbox";
 
 export const runtime = "nodejs";
 
@@ -42,6 +42,15 @@ export async function POST(req: NextRequest) {
     reconcileLimit: 100,
   });
 
+  // Check and trigger AI auto-replies for recent inbound messages
+  let aiTriggered = 0;
+  try {
+    const aiResult = await checkAndTriggerAIReplies(workspaceId);
+    aiTriggered = aiResult.triggered;
+  } catch (err) {
+    console.error("[process-events] AI reply check failed:", err);
+  }
+
   return withCookies(
     NextResponse.json({
       ok: true,
@@ -57,6 +66,7 @@ export async function POST(req: NextRequest) {
       processed: result.processed,
       messagesCreated: result.messagesCreated,
       threadsCreated: result.threadsTouched,
+      aiTriggered,
     })
   );
 }

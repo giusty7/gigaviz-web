@@ -163,6 +163,11 @@ function buildNav(
       status: automationStatus,
     },
     {
+      label: "AI Auto-Reply",
+      href: `${base}/ai-reply`,
+      status: automationStatus,
+    },
+    {
       label: "Insights",
       href: `${base}/insights`,
       status: insightsStatus,

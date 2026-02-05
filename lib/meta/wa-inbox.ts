@@ -3,6 +3,171 @@ import { logger } from "@/lib/logging";
 import { resolveConnectionForWebhook } from "@/lib/meta/wa-connections";
 import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
 
+/**
+ * Trigger AI auto-reply for a newly ingested inbound message.
+ * Includes deduplication: checks ai_reply_logs to avoid double-replies 
+ * when both webhook handler and processWhatsappEvents process the same event.
+ */
+async function triggerAIReplyForMessage(params: {
+  workspaceId: string;
+  threadId: string;
+  incomingMessage: string;
+  contactName?: string;
+  connectionId?: string;
+  phoneNumber: string;
+}) {
+  const { workspaceId, threadId, incomingMessage, contactName, connectionId, phoneNumber } = params;
+  const db = supabaseAdmin();
+
+  // Dedup: check if we already replied to a very recent message in this thread
+  // Look for an AI reply log in the last 60 seconds for this thread
+  const recentWindow = new Date(Date.now() - 60_000).toISOString();
+  const { data: recentReply } = await db
+    .from("ai_reply_logs")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("thread_id", threadId)
+    .gte("created_at", recentWindow)
+    .limit(1)
+    .maybeSingle();
+
+  if (recentReply) {
+    console.log("[AI-INBOX] Skipping duplicate AI reply for thread:", threadId);
+    return;
+  }
+
+  // Resolve connectionId if not provided
+  let resolvedConnectionId = connectionId;
+  if (!resolvedConnectionId) {
+    const { data: thread } = await db
+      .from("wa_threads")
+      .select("connection_id, phone_number_id")
+      .eq("id", threadId)
+      .single();
+    resolvedConnectionId = thread?.connection_id ?? thread?.phone_number_id ?? undefined;
+  }
+
+  if (!resolvedConnectionId) {
+    console.log("[AI-INBOX] No connection_id for thread:", threadId);
+    return;
+  }
+
+  console.log("[AI-INBOX] Triggering AI reply for thread:", threadId, "message:", incomingMessage.substring(0, 30));
+
+  // Dynamic import to avoid circular dependency
+  const { processAIReply } = await import("@/lib/meta/ai-reply-service");
+  
+  const result = await processAIReply({
+    workspaceId,
+    threadId,
+    incomingMessage,
+    contactName,
+    connectionId: resolvedConnectionId,
+    phoneNumber,
+  });
+
+  console.log("[AI-INBOX] AI reply result:", result);
+}
+
+/**
+ * Check for recent inbound messages that haven't received an AI reply yet.
+ * This is the PRIMARY mechanism for triggering AI replies — works in both
+ * production (after webhook) and local dev (on page load).
+ * 
+ * It scans wa_messages for recent inbound texts, checks if an AI reply
+ * has already been logged, and triggers processAIReply if not.
+ */
+export async function checkAndTriggerAIReplies(workspaceId: string) {
+  const db = supabaseAdmin();
+
+  // First check if AI reply is even enabled for this workspace
+  const { data: settings } = await db
+    .from("ai_reply_settings")
+    .select("enabled")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  if (!settings?.enabled) {
+    return { triggered: 0 };
+  }
+
+  // Find inbound text messages from the last 5 minutes that don't have AI reply logs
+  const fiveMinAgo = new Date(Date.now() - 5 * 60_000).toISOString();
+  
+  const { data: recentMessages, error } = await db
+    .from("wa_messages")
+    .select("id, thread_id, text_body, from_wa_id, created_at")
+    .eq("workspace_id", workspaceId)
+    .eq("direction", "inbound")
+    .eq("type", "text")
+    .gte("created_at", fiveMinAgo)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error || !recentMessages || recentMessages.length === 0) {
+    return { triggered: 0 };
+  }
+
+  let triggered = 0;
+
+  for (const msg of recentMessages) {
+    if (!msg.text_body || !msg.from_wa_id || !msg.thread_id) continue;
+
+    // Check if we already have an AI reply log for this thread in the time window
+    const { data: existingLog } = await db
+      .from("ai_reply_logs")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("thread_id", msg.thread_id)
+      .gte("created_at", new Date(new Date(msg.created_at).getTime() - 5000).toISOString())
+      .limit(1)
+      .maybeSingle();
+
+    if (existingLog) {
+      continue; // Already processed
+    }
+
+    // Get thread details for connection routing
+    const { data: thread } = await db
+      .from("wa_threads")
+      .select("id, connection_id, phone_number_id, contact_name")
+      .eq("id", msg.thread_id)
+      .single();
+
+    if (!thread) continue;
+
+    const resolvedConnectionId = thread.connection_id ?? thread.phone_number_id;
+    if (!resolvedConnectionId) continue;
+
+    console.log("[AI-CHECK] Found unprocessed inbound message for AI reply:", {
+      threadId: msg.thread_id,
+      messagePreview: msg.text_body.substring(0, 30),
+      from: msg.from_wa_id,
+    });
+
+    try {
+      const { processAIReply } = await import("@/lib/meta/ai-reply-service");
+      const result = await processAIReply({
+        workspaceId,
+        threadId: msg.thread_id,
+        incomingMessage: msg.text_body,
+        contactName: thread.contact_name ?? undefined,
+        connectionId: resolvedConnectionId,
+        phoneNumber: msg.from_wa_id,
+      });
+      console.log("[AI-CHECK] AI reply result:", result);
+      triggered++;
+    } catch (err) {
+      logger.warn("[ai-check] AI reply failed for message", {
+        messageId: msg.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return { triggered };
+}
+
 type WaMessage = {
   id?: string;
   from?: string;
@@ -340,6 +505,25 @@ async function ingestMessage(
       error: error instanceof Error ? error.message : String(error),
     });
   });
+
+  // Trigger AI Auto-Reply for inbound text messages
+  // This runs here (inside ingestMessage) so it works both from webhook handler
+  // AND from page-load processWhatsappEvents (local dev / reconcile)
+  if (msg.type === "text" && msg.text?.body && contactWaId) {
+    triggerAIReplyForMessage({
+      workspaceId,
+      threadId: thread.id,
+      incomingMessage: msg.text.body,
+      contactName: contactName ?? undefined,
+      connectionId: connectionId ?? undefined,
+      phoneNumber: contactWaId,
+    }).catch((aiErr) => {
+      logger.warn("[wa-inbox] AI reply trigger failed", {
+        threadId: thread.id,
+        error: aiErr instanceof Error ? aiErr.message : String(aiErr),
+      });
+    });
+  }
 
   return { newThread, inserted: true };
 }

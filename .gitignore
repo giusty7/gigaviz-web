@@ -61,3 +61,10 @@ fix-build.ps1
 
 # realtime test log
 REALTIME_TEST.md
+
+# diagnostic / debug scripts (may contain sensitive data)
+scripts/check-db.ts
+scripts/check-tables.ts
+scripts/check-token.ts
+scripts/test-ai-reply.ts
+scripts/test-token.ts

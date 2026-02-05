@@ -1,5 +1,10 @@
 ﻿import { createClient } from "@supabase/supabase-js";
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+
+// Load .env.local first (project convention), then .env as fallback
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 function requireEnv(name: string): string {
   const val = process.env[name];

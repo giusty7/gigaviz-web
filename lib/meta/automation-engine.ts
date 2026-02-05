@@ -41,7 +41,8 @@ export type ActionType =
   | 'remove_tag'      // Remove tag from thread
   | 'change_status'   // Update thread status
   | 'assign_to'       // Assign thread to user
-  | 'send_template';  // Send WhatsApp template message
+  | 'send_template'   // Send WhatsApp template message
+  | 'ai_reply';       // Generate AI reply using Helper
 
 /**
  * Automation rule structure
@@ -592,6 +593,53 @@ async function executeAction(
 
         if (outboxError) {
           return { ok: false, error: `Failed to queue template: ${outboxError.message}` };
+        }
+
+        return { ok: true };
+      }
+
+      case 'ai_reply': {
+        // Trigger AI-powered reply using Helper
+        const { processAIReply } = await import('@/lib/meta/ai-reply-service');
+
+        // Get thread details
+        const { data: threadData, error: threadError } = await supabase
+          .from('wa_threads')
+          .select('phone_number, connection_id, contact_name')
+          .eq('id', thread.id)
+          .eq('workspace_id', thread.workspace_id)
+          .single();
+
+        if (threadError || !threadData) {
+          return { ok: false, error: `Failed to get thread details: ${threadError?.message}` };
+        }
+
+        // Get the last incoming message
+        const { data: lastMessage } = await supabase
+          .from('wa_messages')
+          .select('text')
+          .eq('thread_id', thread.id)
+          .eq('direction', 'in')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        const incomingMessage = lastMessage?.text || '';
+        if (!incomingMessage) {
+          return { ok: false, error: 'No incoming message to reply to' };
+        }
+
+        const result = await processAIReply({
+          workspaceId: thread.workspace_id,
+          threadId: thread.id,
+          incomingMessage,
+          contactName: threadData.contact_name,
+          connectionId: threadData.connection_id,
+          phoneNumber: threadData.phone_number,
+        });
+
+        if (!result.success) {
+          return { ok: false, error: result.reason || 'AI reply failed' };
         }
 
         return { ok: true };

@@ -17,6 +17,7 @@ function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
     { label: "Overview", href: `${base}`, status: "live" },
     { label: "Connections", href: `${base}/connections`, status: "live" },
     { label: "Webhooks", href: `${base}/webhooks`, status: "live" },
+    { label: "AI Auto-Reply", href: `${base}/ai-reply`, status: "live" },
     {
       label: "Messaging - WhatsApp",
       href: `${base}/messaging/whatsapp`,
