@@ -295,15 +295,12 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
             messageId: message.id,
           });
         } else {
-          // Look up the thread for this contact
-          const { normalizePhone } = await import("@/lib/meta/wa-contacts-utils");
-          const normalizedPhone = normalizePhone(message.from);
-          
+          // Look up the thread using contact_wa_id (raw WhatsApp ID from message.from)
           const { data: thread } = await db
             .from("wa_threads")
             .select("id, connection_id")
             .eq("workspace_id", workspaceId)
-            .eq("contact_phone", normalizedPhone)
+            .eq("contact_wa_id", message.from)
             .order("updated_at", { ascending: false })
             .limit(1)
             .maybeSingle();
