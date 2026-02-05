@@ -115,19 +115,26 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
   const [newTemplateName, setNewTemplateName] = useState("");
   const [newTemplatePrompt, setNewTemplatePrompt] = useState("");
 
-  // Load templates on mount
+  // Load templates from real API
   const loadTemplates = useCallback(async () => {
     setIsLoading(true);
     try {
-      // In production, fetch from API
-      // For now, use initialTemplates
-      setTemplates(initialTemplates);
+      const res = await fetch(`/api/helper/templates?workspaceId=${workspaceId}`, { 
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.templates) {
+          setTemplates(data.templates);
+        }
+      }
     } catch (error) {
       console.error("Failed to load templates:", error);
+      setTemplates(initialTemplates);
     } finally {
       setIsLoading(false);
     }
-  }, [initialTemplates]);
+  }, [workspaceId, initialTemplates]);
 
   useEffect(() => {
     loadTemplates();
@@ -154,15 +161,25 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
     return matchesFilter && matchesSearch;
   });
 
-  // Save settings
+  // Save settings - Real API
   const handleSaveSettings = async () => {
     setIsSaving(true);
     setSaveStatus("idle");
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSaveStatus("success");
+      const res = await fetch(`/api/helper/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId,
+          ...currentSettings,
+        }),
+      });
+      if (res.ok) {
+        setSaveStatus("success");
+      } else {
+        setSaveStatus("error");
+      }
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
       console.error("Failed to save settings:", error);

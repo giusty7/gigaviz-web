@@ -172,27 +172,34 @@ export function LeadsManagerClient({
   const [activeTab, setActiveTab] = useState("pipeline");
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Auto-refresh lead scores every 60 seconds
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      setLoading(true);
-      // Simulate fetching updated lead scores
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setLeads((prev) =>
-        prev.map((lead) => ({
-          ...lead,
-          // Slight score variation to show live updates
-          score: Math.min(100, Math.max(0, lead.score + Math.floor(Math.random() * 7 - 3))),
-        }))
-      );
-      setLastUpdate(new Date());
+  // Fetch leads from real API
+  const fetchLeads = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/helper/leads?workspaceId=${workspaceId}`, { 
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.leads) {
+          setLeads(data.leads);
+          setLastUpdate(new Date());
+        }
+      }
+    } catch (error) {
+      console.error("[Leads] Failed to fetch:", error);
+    } finally {
       setLoading(false);
-    }, 60000);
+    }
+  }, [workspaceId]);
 
+  // Auto-refresh leads every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchLeads, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchLeads]);
 
-  // Log workspace for API integration
+  // Initial load
   useEffect(() => {
     console.log(`[Leads] Initialized for workspace: ${workspaceSlug} (${workspaceId})`);
   }, [workspaceId, workspaceSlug]);
@@ -209,58 +216,96 @@ export function LeadsManagerClient({
     pipelineValue: leads.reduce((sum, l) => sum + (l.estimated_value || 0), 0),
   };
 
-  // AI Analysis
+  // AI Analysis - Real API
   const runAIAnalysis = useCallback(async () => {
     setAnalyzing(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Simulate AI scoring
-    const updatedLeads = leads.map(lead => ({
-      ...lead,
-      aiScore: Math.floor(Math.random() * 40) + 60,
-      aiReason: [
-        "High engagement rate, responded to 3 messages",
-        "Fits ideal customer profile",
-        "Budget confirmed in conversation",
-        "Decision maker identified",
-        "Active on platform recently",
-      ][Math.floor(Math.random() * 5)],
-    }));
-    setLeads(updatedLeads);
+    try {
+      // Score each lead using real AI API
+      const scoredLeads = await Promise.all(
+        leads.slice(0, 10).map(async (lead) => {
+          try {
+            const res = await fetch(`/api/helper/leads/score`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                lead_id: lead.id,
+                workspaceId 
+              }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.ok && data.lead) {
+                return {
+                  ...lead,
+                  ...data.lead,
+                  aiScore: data.lead.score,
+                  aiReason: data.analysis?.summary || data.lead.ai_summary,
+                };
+              }
+            }
+            return lead;
+          } catch {
+            return lead;
+          }
+        })
+      );
 
-    // Generate recommendations
-    setRecommendations([
-      {
-        id: "1",
-        type: "hot_lead",
-        leadId: leads[0]?.id || "",
-        leadName: leads[0]?.name || "Lead",
-        message: "This lead has shown strong buying signals. High probability of conversion.",
-        action: "Schedule a demo call today",
-        priority: "high",
-      },
-      {
-        id: "2",
-        type: "follow_up",
-        leadId: leads[1]?.id || "",
-        leadName: leads[1]?.name || "Lead",
-        message: "No response in 3 days. Risk of going cold.",
-        action: "Send a personalized follow-up",
-        priority: "high",
-      },
-      {
-        id: "3",
-        type: "nurture",
-        leadId: leads[2]?.id || "",
-        leadName: leads[2]?.name || "Lead",
-        message: "Interested but not ready to buy. Add to nurture sequence.",
-        action: "Add to email drip campaign",
-        priority: "medium",
-      },
-    ]);
+      // Update leads with scored ones
+      setLeads(prev => {
+        const updatedMap = new Map(scoredLeads.map(l => [l.id, l]));
+        return prev.map(lead => updatedMap.get(lead.id) || lead);
+      });
 
-    setAnalyzing(false);
-  }, [leads]);
+      // Generate recommendations from scored leads
+      const hotLeads = scoredLeads.filter(l => l.score >= 75);
+      const warmLeads = scoredLeads.filter(l => l.score >= 50 && l.score < 75);
+      const coldLeads = scoredLeads.filter(l => l.score < 50);
+
+      const newRecs: AIRecommendation[] = [];
+      
+      if (hotLeads[0]) {
+        newRecs.push({
+          id: "hot-1",
+          type: "hot_lead",
+          leadId: hotLeads[0].id,
+          leadName: hotLeads[0].name || "Lead",
+          message: hotLeads[0].aiReason || "High conversion probability detected.",
+          action: "Schedule a demo call today",
+          priority: "high",
+        });
+      }
+      
+      if (warmLeads[0]) {
+        newRecs.push({
+          id: "warm-1",
+          type: "follow_up",
+          leadId: warmLeads[0].id,
+          leadName: warmLeads[0].name || "Lead",
+          message: warmLeads[0].aiReason || "Lead needs follow-up attention.",
+          action: "Send a personalized follow-up",
+          priority: "high",
+        });
+      }
+      
+      if (coldLeads[0]) {
+        newRecs.push({
+          id: "cold-1",
+          type: "nurture",
+          leadId: coldLeads[0].id,
+          leadName: coldLeads[0].name || "Lead",
+          message: coldLeads[0].aiReason || "Lead needs nurturing.",
+          action: "Add to email drip campaign",
+          priority: "medium",
+        });
+      }
+
+      setRecommendations(newRecs);
+    } catch (error) {
+      console.error("[Leads] AI analysis failed:", error);
+    } finally {
+      setAnalyzing(false);
+    }
+  }, [leads, workspaceId]);
 
   // Note: Auto-analysis disabled - user triggers via button click
 

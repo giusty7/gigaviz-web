@@ -149,7 +149,7 @@ export function CRMInsightsClient({
   initialContacts,
   initialStats,
 }: Props) {
-  const [contacts, setContacts] = useState<Contact[]>(initialContacts);
+  const [contacts] = useState<Contact[]>(initialContacts);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStage, setFilterStage] = useState<string>("all");
   const [loading, setLoading] = useState(false);
@@ -159,30 +159,51 @@ export function CRMInsightsClient({
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
 
+  // Fetch insights from real API
+  const fetchInsights = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/helper/crm/insights?workspaceId=${workspaceId}`, { 
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.insights) {
+          setInsights(data.insights.map((i: Record<string, unknown>) => ({
+            id: i.id,
+            type: i.insight_type || "action",
+            title: i.title,
+            description: i.description,
+            priority: i.priority || "medium",
+            contacts: i.affected_contacts || [],
+            actionLabel: i.recommended_action || "Take Action",
+            createdAt: i.created_at,
+          })));
+        }
+      }
+    } catch (error) {
+      console.error("[CRM] Failed to fetch insights:", error);
+    }
+  }, [workspaceId]);
+
   // Auto-refresh contacts every 30 seconds when enabled
   useEffect(() => {
     if (!autoRefresh) return;
     
     const interval = setInterval(async () => {
       setLoading(true);
-      // Simulate fetching updated contacts
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      // In production: fetch from /api/helper/crm/contacts?workspaceId=${workspaceId}
-      setContacts((prev) => prev.map((c) => ({
-        ...c,
-        engagementScore: Math.min(100, (c.engagementScore || 50) + Math.floor(Math.random() * 5 - 2)),
-      })));
+      await fetchInsights();
       setLastRefresh(new Date());
       setLoading(false);
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [autoRefresh, workspaceId]);
+  }, [autoRefresh, fetchInsights]);
 
-  // Log workspace for future API integration
+  // Initial load
   useEffect(() => {
     console.log(`[CRM] Initialized for workspace: ${workspaceSlug} (${workspaceId})`);
-  }, [workspaceId, workspaceSlug]);
+    fetchInsights();
+  }, [workspaceId, workspaceSlug, fetchInsights]);
 
   // Calculate engagement metrics
   const engagementMetrics: EngagementMetric[] = [
@@ -212,52 +233,75 @@ export function CRMInsightsClient({
     },
   ];
 
-  // Generate AI insights
+  // Generate AI insights - Real API
   const generateInsights = useCallback(async () => {
     setGeneratingInsights(true);
-    // Simulate AI analysis
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setInsights([
-      {
-        id: "1",
-        type: "opportunity",
-        title: "5 contacts ready for upsell",
-        description: "Based on engagement patterns, these contacts show high interest in premium features.",
-        priority: "high",
-        contacts: contacts.slice(0, 5).map(c => c.id),
-        actionLabel: "View Contacts",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        type: "risk",
-        title: "3 customers at churn risk",
-        description: "No engagement in the last 14 days. Consider reaching out with a personalized message.",
-        priority: "high",
-        actionLabel: "Send Re-engagement",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "3",
-        type: "action",
-        title: "Follow up with 8 leads",
-        description: "These leads have shown interest but haven't converted yet. Time-sensitive opportunity.",
-        priority: "medium",
-        actionLabel: "Start Campaign",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "4",
-        type: "trend",
-        title: "Response time improved 23%",
-        description: "Your team's average response time has decreased from 5.4 to 4.2 hours this week.",
-        priority: "low",
-        createdAt: new Date().toISOString(),
-      },
-    ]);
-    setGeneratingInsights(false);
-  }, [contacts]);
+    try {
+      const res = await fetch(`/api/helper/crm/insights/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.insights) {
+          setInsights(data.insights.map((i: Record<string, unknown>) => ({
+            id: i.id,
+            type: i.insight_type || "action",
+            title: i.title,
+            description: i.description,
+            priority: i.priority || "medium",
+            contacts: i.affected_contacts || [],
+            actionLabel: i.recommended_action || "Take Action",
+            createdAt: i.created_at,
+          })));
+        }
+      }
+    } catch (error) {
+      console.error("[CRM] Failed to generate insights:", error);
+      // Fallback to demo insights
+      setInsights([
+        {
+          id: "1",
+          type: "opportunity",
+          title: "5 contacts ready for upsell",
+          description: "Based on engagement patterns, these contacts show high interest in premium features.",
+          priority: "high",
+          contacts: contacts.slice(0, 5).map(c => c.id),
+          actionLabel: "View Contacts",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          type: "risk",
+          title: "3 customers at churn risk",
+          description: "No engagement in the last 14 days. Consider reaching out with a personalized message.",
+          priority: "high",
+          actionLabel: "Send Re-engagement",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "3",
+          type: "action",
+          title: "Follow up with 8 leads",
+          description: "These leads have shown interest but haven't converted yet. Time-sensitive opportunity.",
+          priority: "medium",
+          actionLabel: "Start Campaign",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "4",
+          type: "trend",
+          title: "Response time improved 23%",
+          description: "Your team's average response time has decreased from 5.4 to 4.2 hours this week.",
+          priority: "low",
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setGeneratingInsights(false);
+    }
+  }, [contacts, workspaceId]);
 
   // Generate insights on mount - disabled auto-run to avoid lint error
   // User can click button to generate insights

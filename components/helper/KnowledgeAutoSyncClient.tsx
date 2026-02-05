@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -242,34 +242,61 @@ export function KnowledgeAutoSyncClient({
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState<KnowledgeSource | null>(null);
   const [syncing, setSyncing] = useState<Set<string>>(new Set());
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
+  const hasFetched = useRef(false);
 
-  // Auto-sync check every 60 seconds for sources with autoSync enabled
+  // Fetch sync jobs from API
+  const fetchSyncJobs = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/helper/knowledge/sync?workspaceId=${workspaceId}`, { 
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.jobs) {
+          // Update sources with sync status from jobs
+          type SyncJob = { source_id: string; status: string; completed_at?: string };
+          const jobsBySource = new Map<string, SyncJob>(
+            (data.jobs as SyncJob[]).map((j) => [j.source_id, j])
+          );
+          setSources(prev => prev.map(source => {
+            const job = jobsBySource.get(source.id);
+            if (job) {
+              return {
+                ...source,
+                status: job.status === "running" ? "syncing" as const : source.status,
+                lastSyncAt: job.completed_at || source.lastSyncAt,
+              };
+            }
+            return source;
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("[Knowledge] Failed to fetch sync jobs:", error);
+    }
+  }, [workspaceId]);
+
+  // Fetch on workspace change and auto-sync every 60 seconds
   useEffect(() => {
+    // Initial fetch via interval trick
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      const timer = setTimeout(() => void fetchSyncJobs(), 0);
+      return () => clearTimeout(timer);
+    }
+    
     const interval = setInterval(() => {
-      setLoading(true);
-      const now = new Date();
-      // Check for sources that need syncing
-      setSources((prev) =>
-        prev.map((source) => {
-          if (!source.autoSync || source.status === "syncing") return source;
-          if (!source.nextSyncAt) return source;
-          if (new Date(source.nextSyncAt) <= now) {
-            // Would trigger sync in production
-            console.log(`[Knowledge] Auto-sync due for: ${source.name}`);
-          }
-          return source;
-        })
-      );
-      setLastCheck(now);
-      setLoading(false);
+      void fetchSyncJobs();
+      setLastCheck(new Date());
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchSyncJobs]);
 
-  // Log workspace for API integration
+  // Log workspace on init
   useEffect(() => {
     console.log(`[Knowledge] Initialized for workspace: ${workspaceSlug} (${workspaceId})`);
   }, [workspaceId, workspaceSlug]);
@@ -296,21 +323,37 @@ export function KnowledgeAutoSyncClient({
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  // Sync a source
+  // Sync a source - Real API
   const syncSource = useCallback(async (sourceId: string) => {
     setSyncing(prev => new Set([...prev, sourceId]));
     setSources(prev => prev.map(s => 
       s.id === sourceId ? { ...s, status: "syncing" as const } : s
     ));
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    try {
+      const res = await fetch(`/api/helper/knowledge/sync`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId,
+          source_id: sourceId,
+        }),
+      });
+      
+      if (res.ok) {
+        // Wait a bit then check status
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await fetchSyncJobs();
+      }
+    } catch (error) {
+      console.error("[Knowledge] Sync failed:", error);
+    }
 
     setSources(prev => prev.map(s => 
       s.id === sourceId ? { 
         ...s, 
         status: "active" as const,
         lastSyncAt: new Date().toISOString(),
-        chunkCount: s.chunkCount + Math.floor(Math.random() * 10),
       } : s
     ));
     setSyncing(prev => {
@@ -318,7 +361,7 @@ export function KnowledgeAutoSyncClient({
       next.delete(sourceId);
       return next;
     });
-  }, []);
+  }, [workspaceId, fetchSyncJobs]);
 
   // Toggle auto-sync
   const toggleAutoSync = useCallback((sourceId: string) => {

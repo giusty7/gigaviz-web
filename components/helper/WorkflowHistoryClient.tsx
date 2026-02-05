@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -231,6 +231,11 @@ const getStepIcon = (type: WorkflowStep["type"]) => {
   }
 };
 
+// Hydration-safe mount check
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -240,6 +245,9 @@ export function WorkflowHistoryClient({
   workspaceSlug,
   initialRuns = mockRuns,
 }: Props) {
+  // Hydration-safe check for client-side rendering
+  const isMounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+
   const [runs, setRuns] = useState<WorkflowRun[]>(initialRuns);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -247,7 +255,44 @@ export function WorkflowHistoryClient({
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [viewingRun, setViewingRun] = useState<WorkflowRun | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+  // Set initial date only on client to avoid hydration mismatch
+  useEffect(() => {
+    if (!lastRefresh) {
+      setLastRefresh(new Date());
+    }
+  }, [lastRefresh]);
+
+  // Fetch workflow runs from real API
+  const fetchRuns = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/helper/workflows/runs?workspaceId=${workspaceId}`, { 
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.runs) {
+          setRuns(data.runs.map((r: Record<string, unknown>) => ({
+            id: r.id,
+            workflowId: r.workflow_id,
+            workflowName: (r.workflow as { name?: string })?.name || "Workflow",
+            status: r.status,
+            triggeredBy: r.triggered_by || "manual",
+            startedAt: r.started_at,
+            completedAt: r.completed_at,
+            duration: r.duration_ms,
+            steps: r.steps || [],
+            context: r.context,
+            error: r.error,
+          })));
+          setLastRefresh(new Date());
+        }
+      }
+    } catch (error) {
+      console.error("[Workflow History] Failed to fetch:", error);
+    }
+  }, [workspaceId]);
 
   // Auto-refresh running workflows every 5 seconds
   useEffect(() => {
@@ -255,45 +300,17 @@ export function WorkflowHistoryClient({
     if (!hasRunning) return;
 
     const interval = setInterval(() => {
-      setLoading(true);
-      // Simulate progress update for running workflows
-      setRuns((prev) =>
-        prev.map((run) => {
-          if (run.status !== "running") return run;
-          const updatedSteps = run.steps.map((step, idx) => {
-            // Progress running step
-            if (step.status === "running") {
-              return Math.random() > 0.7
-                ? { ...step, status: "completed" as const, duration: Math.floor(Math.random() * 2000) + 500 }
-                : step;
-            }
-            // Start next pending step
-            if (step.status === "pending" && idx > 0 && run.steps[idx - 1].status === "completed") {
-              return { ...step, status: "running" as const };
-            }
-            return step;
-          });
-          // Check if all completed
-          const allDone = updatedSteps.every((s) => s.status === "completed" || s.status === "skipped");
-          return {
-            ...run,
-            steps: updatedSteps,
-            status: allDone ? "completed" : "running",
-            completedAt: allDone ? new Date().toISOString() : undefined,
-          };
-        })
-      );
-      setLastRefresh(new Date());
-      setLoading(false);
+      fetchRuns();
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [runs]);
+  }, [runs, fetchRuns]);
 
-  // Log workspace for API integration
+  // Initial load
   useEffect(() => {
     console.log(`[Workflow History] Initialized for workspace: ${workspaceSlug} (${workspaceId})`);
-  }, [workspaceId, workspaceSlug]);
+    fetchRuns();
+  }, [workspaceId, workspaceSlug, fetchRuns]);
 
   // Calculate stats
   const stats: WorkflowStats = {
@@ -323,11 +340,26 @@ export function WorkflowHistoryClient({
 
   const retryRun = useCallback(async (runId: string) => {
     setLoading(true);
-    console.log(`[Workflow] Retrying run: ${runId}`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // In production: await fetch(`/api/helper/workflows/runs/${runId}/retry`)
-    setLoading(false);
-  }, []);
+    try {
+      const run = runs.find(r => r.id === runId);
+      if (run) {
+        await fetch(`/api/helper/workflows/runs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workspaceId,
+            workflow_id: run.workflowId,
+            triggered_by: "manual",
+          }),
+        });
+        await fetchRuns();
+      }
+    } catch (error) {
+      console.error("[Workflow] Retry failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [runs, workspaceId, fetchRuns]);
 
   const cancelRun = useCallback(async (runId: string) => {
     setRuns(prev => prev.map(r => 
@@ -354,7 +386,7 @@ export function WorkflowHistoryClient({
             <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/60">
               {loading && <Loader2 className="h-3 w-3 animate-spin text-[#d4af37]" />}
               <Clock className="h-3 w-3" />
-              <span>Updated: {lastRefresh.toLocaleTimeString()}</span>
+              <span>Updated: {isMounted && lastRefresh ? lastRefresh.toLocaleTimeString() : "--:--:--"}</span>
             </div>
             <Button
               variant="outline"
@@ -414,49 +446,51 @@ export function WorkflowHistoryClient({
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
-            <Input
-              placeholder="Search workflows..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]"
-            />
+        {isMounted && (
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
+              <Input
+                placeholder="Search workflows..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-[#d4af37]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Advanced
+            </Button>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="running">Running</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterTrigger} onValueChange={setFilterTrigger}>
+              <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
+                <SelectValue placeholder="Trigger" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
+                <SelectItem value="all">All Triggers</SelectItem>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="schedule">Scheduled</SelectItem>
+                <SelectItem value="webhook">Webhook</SelectItem>
+                <SelectItem value="event">Event</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-[#d4af37]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Advanced
-          </Button>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="running">Running</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterTrigger} onValueChange={setFilterTrigger}>
-            <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
-              <SelectValue placeholder="Trigger" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-              <SelectItem value="all">All Triggers</SelectItem>
-              <SelectItem value="manual">Manual</SelectItem>
-              <SelectItem value="schedule">Scheduled</SelectItem>
-              <SelectItem value="webhook">Webhook</SelectItem>
-              <SelectItem value="event">Event</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        )}
 
         {/* Runs List */}
         <div className="space-y-4">
@@ -512,7 +546,7 @@ export function WorkflowHistoryClient({
                         <div className="flex items-center gap-4 mt-1 text-sm text-[#f5f5dc]/60">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {new Date(run.startedAt).toLocaleString()}
+                            {isMounted ? new Date(run.startedAt).toLocaleString() : "--"}
                           </span>
                           {run.duration && (
                             <span className="flex items-center gap-1">
@@ -704,7 +738,7 @@ export function WorkflowHistoryClient({
                 <div className="p-3 rounded-lg bg-[#050a18]/50">
                   <p className="text-xs text-[#f5f5dc]/60">Started</p>
                   <p className="font-medium text-[#f5f5dc]">
-                    {new Date(viewingRun.startedAt).toLocaleString()}
+                    {isMounted ? new Date(viewingRun.startedAt).toLocaleString() : "--"}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-[#050a18]/50">
