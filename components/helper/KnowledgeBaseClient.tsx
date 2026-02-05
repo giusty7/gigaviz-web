@@ -57,7 +57,7 @@ type KnowledgeSource = {
   content_text: string;
   metadata: Record<string, unknown> | null;
   indexed_at: string | null;
-  status: string | null;
+  is_active: boolean | null;
   created_at: string;
 };
 

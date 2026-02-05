@@ -46,7 +46,7 @@ export default async function KnowledgeBasePage({ params }: Props) {
   const db = supabaseAdmin();
   const { data: sources } = await db
     .from("helper_knowledge_sources")
-    .select("id, source_type, source_id, title, content_text, metadata, indexed_at, status, created_at")
+    .select("id, source_type, source_id, title, content_text, metadata, indexed_at, is_active, created_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false })
     .limit(100);

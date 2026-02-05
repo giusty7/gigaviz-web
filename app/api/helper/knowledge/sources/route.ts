@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
   const db = supabaseAdmin();
   const { data: sources, error } = await db
     .from("helper_knowledge_sources")
-    .select("id, source_type, source_id, title, content_text, metadata, indexed_at, status, created_at")
+    .select("id, source_type, source_id, title, content_text, metadata, indexed_at, is_active, created_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -102,10 +102,8 @@ export async function POST(req: NextRequest) {
         title,
         content_text: content,
         embedding: `[${embedding.join(",")}]`,
-        metadata: metadata || {},
+        metadata: { ...(metadata || {}), created_by: user.id },
         indexed_at: new Date().toISOString(),
-        status: "indexed",
-        created_by: user.id,
       })
       .select("id")
       .single();
