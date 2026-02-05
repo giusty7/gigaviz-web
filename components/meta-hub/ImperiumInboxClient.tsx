@@ -1278,25 +1278,8 @@ export function ImperiumInboxClient({
     };
   }, [fetchThreads]);
 
-  // AI Auto-Reply check: periodically trigger AI reply processing for new inbound messages
-  useEffect(() => {
-    if (!_workspaceId || !mounted) return;
-    const checkAIReplies = async () => {
-      try {
-        await fetch("/api/meta/whatsapp/process-events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workspaceId: _workspaceId }),
-        });
-      } catch {
-        // Silently ignore
-      }
-    };
-    // Run immediately once, then every 15 seconds
-    checkAIReplies();
-    const aiCheckTimer = setInterval(checkAIReplies, 15000);
-    return () => clearInterval(aiCheckTimer);
-  }, [_workspaceId, mounted]);
+  // AI Auto-Reply is handled by the AI Reply Worker (scripts/ai-reply-worker.ts)
+  // No client-side polling needed — the worker runs independently.
 
   // Realtime polling for messages (2.5s interval, pause when tab hidden)
   useEffect(() => {

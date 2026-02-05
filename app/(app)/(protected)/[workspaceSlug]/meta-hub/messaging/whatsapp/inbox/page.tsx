@@ -3,7 +3,7 @@ import { ImperiumInboxClient } from "@/components/meta-hub/ImperiumInboxClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { processWhatsappEvents, checkAndTriggerAIReplies } from "@/lib/meta/wa-inbox";
+import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
 import { getWorkspacePlan } from "@/lib/plans";
 import type { SessionInfo } from "@/components/meta-hub/ImperiumInboxComponents";
 
@@ -22,10 +22,7 @@ export default async function WhatsappInboxPage({ params }: Props) {
   // Process latest events best-effort on page load
   await processWhatsappEvents(ctx.currentWorkspace.id, 10);
 
-  // Check for recent inbound messages that need AI auto-reply
-  checkAndTriggerAIReplies(ctx.currentWorkspace.id).catch((err) => {
-    console.error("[inbox-page] AI reply check failed:", err);
-  });
+  // AI Auto-Reply is handled by the AI Reply Worker (scripts/ai-reply-worker.ts)
 
   const supabase = await supabaseServer();
   const workspaceId = ctx.currentWorkspace.id;

@@ -114,13 +114,12 @@ async function processWorkspace(settings: any) {
     if (!msg.text_body || !msg.from_wa_id || !msg.thread_id) continue;
     if (processedMessages.has(msg.id)) continue; // Already processed this session
 
-    // Check for existing AI reply log (dedup across sessions)
+    // Check for existing AI reply log for this specific message (dedup across sessions)
     const { data: existingLog } = await db
       .from("ai_reply_logs")
       .select("id")
       .eq("workspace_id", workspaceId)
-      .eq("thread_id", msg.thread_id)
-      .gte("created_at", new Date(new Date(msg.created_at).getTime() - 10_000).toISOString())
+      .eq("message_id", msg.id)
       .limit(1)
       .maybeSingle();
 
@@ -186,7 +185,7 @@ async function processWorkspace(settings: any) {
       // Queue handoff message instead
       if (settings.handoff_message) {
         await sendReply(workspaceId, msg.thread_id, connectionId, msg.from_wa_id, settings.handoff_message, thread.contact_name);
-        await logReply(workspaceId, msg.thread_id, msg.text_body, settings.handoff_message, "handoff", settings.ai_model, 0);
+        await logReply(workspaceId, msg.thread_id, msg.id, msg.text_body, settings.handoff_message, "handoff", settings.ai_model, 0);
       }
       processedMessages.add(msg.id);
       continue;
@@ -199,7 +198,7 @@ async function processWorkspace(settings: any) {
       .from("ai_reply_logs")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspaceId)
-      .eq("status", "sent")
+      .eq("status", "success")
       .gte("created_at", todayStart.toISOString());
 
     if (dailyCount && dailyCount >= (settings.max_messages_per_day || 100)) {
@@ -256,7 +255,7 @@ async function processWorkspace(settings: any) {
 
       if (!aiReply) {
         console.error("[ai-worker] ❌ No response from OpenAI");
-        await logReply(workspaceId, msg.thread_id, msg.text_body, null, "failed", model, 0, "No response from OpenAI");
+        await logReply(workspaceId, msg.thread_id, msg.id, msg.text_body, null, "failed", model, 0, "No response from OpenAI");
         processedMessages.add(msg.id);
         continue;
       }
@@ -267,12 +266,12 @@ async function processWorkspace(settings: any) {
       await sendReply(workspaceId, msg.thread_id, connectionId, msg.from_wa_id, aiReply, thread.contact_name);
 
       // Log success
-      await logReply(workspaceId, msg.thread_id, msg.text_body, aiReply, "sent", model, tokensUsed);
+      await logReply(workspaceId, msg.thread_id, msg.id, msg.text_body, aiReply, "sent", model, tokensUsed);
 
       console.log(`[ai-worker] 📤 Reply queued for delivery to ${msg.from_wa_id}`);
     } catch (err: any) {
       console.error(`[ai-worker] ❌ AI reply failed:`, err.message);
-      await logReply(workspaceId, msg.thread_id, msg.text_body, null, "failed", settings.ai_model, 0, err.message);
+      await logReply(workspaceId, msg.thread_id, msg.id, msg.text_body, null, "failed", settings.ai_model, 0, err.message);
     }
 
     processedMessages.add(msg.id);
@@ -373,6 +372,7 @@ async function sendReply(
 async function logReply(
   workspaceId: string,
   threadId: string,
+  messageId: string,
   inboundMessage: string,
   aiResponse: string | null,
   status: string,
@@ -386,6 +386,7 @@ async function logReply(
   await db.from("ai_reply_logs").insert({
     workspace_id: workspaceId,
     thread_id: threadId,
+    message_id: messageId,             // Link to specific inbound message for dedup
     input_message: inboundMessage,     // DB column is input_message
     ai_response: aiResponse,
     model_used: model || "gpt-4o-mini", // DB column is model_used

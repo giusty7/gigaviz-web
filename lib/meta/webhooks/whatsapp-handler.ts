@@ -285,78 +285,15 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
         id?: string;
       };
       
-      console.log("[AI-DEBUG] Message details:", { 
-        from: message.from, 
-        type: message.type, 
-        hasText: !!message.text?.body,
-        textPreview: message.text?.body?.substring(0, 50)
-      });
+      // AI Auto-Reply is handled exclusively by the AI Reply Worker (scripts/ai-reply-worker.ts)
+      // to prevent duplicate replies. Do NOT call processAIReply here.
       
-      // Only process text messages for AI reply
       if (message.type === "text" && message.text?.body && message.from) {
-        const { processAIReply } = await import("@/lib/meta/ai-reply-service");
-        
-        console.log("[AI-DEBUG] Looking for thread with contact_wa_id:", message.from);
-        
-        // Get thread for this phone number - field is contact_wa_id, not phone_number
-        const { data: thread, error: threadError } = await db
-          .from("wa_threads")
-          .select("id, contact_wa_id, connection_id, phone_number_id")
-          .eq("workspace_id", workspaceId)
-          .eq("contact_wa_id", message.from)
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        console.log("[AI-DEBUG] Thread lookup result:", { 
-          found: !!thread, 
-          threadId: thread?.id,
-          error: threadError?.message 
+        logger.dev("[meta-webhook] Inbound text received, AI worker will handle reply", {
+          workspaceId,
+          from: message.from,
+          messagePreview: message.text.body.substring(0, 50),
         });
-
-        if (thread) {
-          const profileName = (payload?.entry?.[0]?.changes?.[0]?.value as {
-            contacts?: Array<{ profile?: { name?: string } }>;
-          })?.contacts?.[0]?.profile?.name;
-
-          console.log("[AI-DEBUG] Calling processAIReply with:", {
-            workspaceId,
-            threadId: thread.id,
-            messagePreview: message.text.body.substring(0, 30),
-            connectionId: thread.connection_id || connectionRow.id,
-          });
-
-          // Process AI reply synchronously (MUST await to prevent premature termination)
-          try {
-            const aiResult = await processAIReply({
-              workspaceId,
-              threadId: thread.id,
-              incomingMessage: message.text.body,
-              contactName: profileName,
-              connectionId: thread.connection_id || connectionRow.id,
-              phoneNumber: message.from,
-            });
-            console.log("[AI-DEBUG] processAIReply result:", aiResult);
-          } catch (aiErr) {
-            console.error("[AI-DEBUG] processAIReply error:", aiErr);
-            logger.warn("[meta-webhook] AI reply failed", {
-              workspaceId,
-              threadId: thread.id,
-              error: aiErr instanceof Error ? aiErr.message : String(aiErr),
-            });
-          }
-
-          logger.dev("[meta-webhook] AI reply triggered", {
-            workspaceId,
-            threadId: thread.id,
-          });
-        } else {
-          console.log("[AI-DEBUG] No thread found for:", message.from);
-          logger.dev("[meta-webhook] AI reply skipped - no thread found", {
-            workspaceId,
-            from: message.from,
-          });
-        }
       } else {
         console.log("[AI-DEBUG] Skipping non-text message or missing data:", {
           type: message.type,
