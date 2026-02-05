@@ -271,11 +271,6 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
   // NOTE: This runs AFTER processWhatsappEvents which creates the thread
   try {
     const messages = payload?.entry?.[0]?.changes?.[0]?.value?.messages;
-    console.log("[AI-DEBUG] Checking for messages in webhook payload:", { 
-      hasMessages: !!messages, 
-      messageCount: messages?.length || 0,
-      workspaceId 
-    });
     
     if (messages && messages.length > 0) {
       const message = messages[0] as { 
@@ -285,21 +280,61 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
         id?: string;
       };
       
-      // AI Auto-Reply is handled exclusively by the AI Reply Worker (scripts/ai-reply-worker.ts)
-      // to prevent duplicate replies. Do NOT call processAIReply here.
-      
-      if (message.type === "text" && message.text?.body && message.from) {
-        logger.dev("[meta-webhook] Inbound text received, AI worker will handle reply", {
-          workspaceId,
-          from: message.from,
-          messagePreview: message.text.body.substring(0, 50),
-        });
-      } else {
-        console.log("[AI-DEBUG] Skipping non-text message or missing data:", {
-          type: message.type,
-          hasText: !!message.text?.body,
-          hasFrom: !!message.from
-        });
+      if (message.type === "text" && message.text?.body && message.from && message.id) {
+        // Dedup check: skip if this message_id was already processed
+        const { data: existingLog } = await db
+          .from("ai_reply_logs")
+          .select("id")
+          .eq("workspace_id", workspaceId)
+          .eq("message_id", message.id)
+          .maybeSingle();
+
+        if (existingLog) {
+          logger.dev("[meta-webhook] AI reply already processed for this message", {
+            workspaceId,
+            messageId: message.id,
+          });
+        } else {
+          // Look up the thread for this contact
+          const { normalizePhone } = await import("@/lib/meta/wa-contacts-utils");
+          const normalizedPhone = normalizePhone(message.from);
+          
+          const { data: thread } = await db
+            .from("wa_threads")
+            .select("id, connection_id")
+            .eq("workspace_id", workspaceId)
+            .eq("contact_phone", normalizedPhone)
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (thread) {
+            const { processAIReply } = await import("@/lib/meta/ai-reply-service");
+            
+            const result = await processAIReply({
+              workspaceId,
+              threadId: thread.id,
+              incomingMessage: message.text.body,
+              contactName: (payload?.entry?.[0]?.changes?.[0]?.value as {
+                contacts?: Array<{ profile?: { name?: string } }>;
+              })?.contacts?.[0]?.profile?.name || undefined,
+              connectionId: thread.connection_id || connectionRow.id,
+              phoneNumber: message.from,
+              messageId: message.id,
+            });
+
+            logger.dev("[meta-webhook] AI reply result", {
+              workspaceId,
+              action: result.action,
+              messageId: message.id,
+            });
+          } else {
+            logger.dev("[meta-webhook] No thread found for AI reply", {
+              workspaceId,
+              from: message.from,
+            });
+          }
+        }
       }
     }
   } catch (aiTriggerErr) {

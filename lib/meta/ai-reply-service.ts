@@ -397,8 +397,9 @@ export async function processAIReply(params: {
   contactName?: string;
   connectionId: string;
   phoneNumber: string;
+  messageId?: string;
 }): Promise<AIReplyResult> {
-  const { workspaceId, threadId, incomingMessage, contactName, connectionId, phoneNumber } = params;
+  const { workspaceId, threadId, incomingMessage, contactName, connectionId, phoneNumber, messageId } = params;
   const startTime = Date.now();
 
   console.log("[AI-REPLY] Starting processAIReply:", { workspaceId, threadId, messagePreview: incomingMessage.substring(0, 30) });
@@ -472,7 +473,7 @@ export async function processAIReply(params: {
     if (containsHandoffKeyword(incomingMessage, settings.handoffKeywords)) {
       await handoffThread(workspaceId, threadId, "User requested human agent");
       await sendHandoffMessage(workspaceId, threadId, connectionId, phoneNumber, settings.handoffMessage);
-      await logAIReply(workspaceId, threadId, incomingMessage, null, "handoff", null, null);
+      await logAIReply(workspaceId, threadId, incomingMessage, null, "handoff", null, null, undefined, messageId);
       return { success: true, action: "handoff", reason: "User requested human agent" };
     }
 
@@ -558,7 +559,7 @@ export async function processAIReply(params: {
 
     // 16. Log the successful reply
     const responseTimeMs = Date.now() - startTime;
-    await logAIReply(workspaceId, threadId, incomingMessage, aiResponse, "success", tokensUsed, responseTimeMs);
+    await logAIReply(workspaceId, threadId, incomingMessage, aiResponse, "success", tokensUsed, responseTimeMs, undefined, messageId);
 
     console.log("[AI-REPLY] SUCCESS! Response time:", responseTimeMs, "ms");
     return {
@@ -573,7 +574,7 @@ export async function processAIReply(params: {
     console.error("[AI-REPLY] FAILED:", error);
     logger.error("[ai-reply] Error processing AI reply", { error, workspaceId, threadId });
     
-    await logAIReply(workspaceId, threadId, incomingMessage, null, "failed", null, Date.now() - startTime, error);
+    await logAIReply(workspaceId, threadId, incomingMessage, null, "failed", null, Date.now() - startTime, error, messageId);
     
     return {
       success: false,
@@ -725,13 +726,15 @@ async function logAIReply(
   status: "pending" | "success" | "failed" | "handoff" | "skipped",
   tokensUsed: number | null,
   responseTimeMs: number | null,
-  errorMessage?: string
+  errorMessage?: string,
+  messageId?: string
 ): Promise<void> {
   const db = supabaseAdmin();
 
   await db.from("ai_reply_logs").insert({
     workspace_id: workspaceId,
     thread_id: threadId,
+    message_id: messageId || null,
     input_message: inputMessage,
     ai_response: aiResponse,
     status,
