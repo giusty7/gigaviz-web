@@ -266,34 +266,56 @@ async function searchKnowledgeBase(
   try {
     const db = supabaseAdmin();
 
-    // Get OpenAI client for embeddings
+    // Get OpenAI client for embeddings — use ada-002 to match stored embeddings
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // Generate embedding for the query
     const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: "text-embedding-ada-002",
       input: query,
     });
 
     const queryEmbedding = embeddingResponse.data[0].embedding;
+    const embeddingStr = `[${queryEmbedding.join(",")}]`;
 
-    // Search knowledge chunks using vector similarity
-    const { data: chunks, error } = await db.rpc("match_knowledge_chunks", {
-      query_embedding: queryEmbedding,
+    // Search helper_knowledge_sources directly (sources store embeddings)
+    // Using raw SQL via RPC since Supabase JS client doesn't support vector ops
+    const { data: sources, error } = await db.rpc("match_knowledge_sources", {
+      query_embedding: embeddingStr,
       match_threshold: threshold,
       match_count: 5,
       p_workspace_id: workspaceId,
     });
 
     if (error) {
-      logger.warn("[ai-reply] Knowledge search failed", { error: error.message, workspaceId });
+      // Fallback: if RPC doesn't exist, do a simple text search
+      logger.warn("[ai-reply] Knowledge RPC search failed, trying direct query", { 
+        error: error.message, workspaceId 
+      });
+      
+      // Direct fallback: just get all active sources for this workspace
+      const { data: fallbackSources } = await db
+        .from("helper_knowledge_sources")
+        .select("id, title, content_text")
+        .eq("workspace_id", workspaceId)
+        .eq("is_active", true)
+        .not("content_text", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (fallbackSources && fallbackSources.length > 0) {
+        return fallbackSources.map((s: { title: string | null; content_text: string }) => ({
+          content: s.content_text,
+          source: s.title || "knowledge base",
+          confidence: 0.8,
+        }));
+      }
       return [];
     }
 
-    return (chunks || []).map((chunk: { content: string; source_url: string; similarity: number }) => ({
-      content: chunk.content,
-      source: chunk.source_url || "knowledge base",
-      confidence: chunk.similarity,
+    return (sources || []).map((s: { content_text: string; title: string; similarity: number }) => ({
+      content: s.content_text,
+      source: s.title || "knowledge base",
+      confidence: s.similarity,
     }));
   } catch (err) {
     logger.error("[ai-reply] Knowledge search error", { error: err, workspaceId });
@@ -593,26 +615,29 @@ function buildSystemPrompt(
   contactName?: string,
   knowledgeContext?: KnowledgeContext[]
 ): string {
-  let prompt = settings.systemPrompt || `You are a friendly and professional virtual assistant. Answer questions clearly and helpfully.`;
+  let prompt = settings.systemPrompt || `You are a friendly and professional virtual assistant for Gigaviz. Answer questions clearly and helpfully based on the knowledge provided to you.`;
 
   if (contactName) {
     prompt += `\n\nCustomer name: ${contactName}`;
   }
 
   if (knowledgeContext && knowledgeContext.length > 0) {
-    prompt += `\n\n--- REFERENCE INFORMATION ---\nUse the following information to answer if relevant:\n`;
+    prompt += `\n\n=== KNOWLEDGE BASE (USE THIS TO ANSWER) ===\n`;
+    prompt += `IMPORTANT: Prioritize the following information when answering. This is your primary source of truth.\n`;
     knowledgeContext.forEach((ctx, idx) => {
-      prompt += `\n[${idx + 1}] ${ctx.content}\n`;
+      prompt += `\n[Source ${idx + 1}: ${ctx.source}]\n${ctx.content}\n`;
     });
-    prompt += `\n--- END OF REFERENCE ---`;
+    prompt += `\n=== END KNOWLEDGE BASE ===`;
   }
 
   prompt += `\n\nGUIDELINES:
-- Keep answers concise (2-3 paragraphs maximum)
-- If unsure, ask for clarification
-- If the question is beyond your capability, suggest speaking with the team
-- Use emojis sparingly for a friendly impression
-- Do not provide inaccurate information`;
+- ALWAYS use the Knowledge Base information above to answer questions when relevant
+- If the Knowledge Base contains the answer, use it — do NOT say "I don't know" or "I can't access the internet"
+- Reply in the same language the customer uses (Indonesian/English)
+- Keep answers concise and WhatsApp-friendly (max 2-3 short paragraphs)
+- If the question is genuinely outside your knowledge, politely say you'll check with the team
+- Never reveal you are ChatGPT or OpenAI — you are the Gigaviz AI assistant
+- Use emojis sparingly for a friendly tone`;
 
   return prompt;
 }
