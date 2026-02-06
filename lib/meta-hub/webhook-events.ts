@@ -195,3 +195,70 @@ export async function getWebhookEventsSummary(opts: FetchOptions): Promise<Webho
   }
   return fetchLegacyEvents(opts, now);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVENT STATS BREAKDOWN - Sent / Delivered / Read / Failed (last 24h)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export type EventStatsBreakdown = {
+  messageSent: number;
+  messageDelivered: number;
+  messageRead: number;
+  messageFailed: number;
+};
+
+/**
+ * Queries meta_webhook_events for status breakdown by extracting
+ * status values from the event payloads stored with event_type = "messages"
+ * and the statuses array within the payload.
+ */
+export async function getEventStatsBreakdown(workspaceId: string): Promise<EventStatsBreakdown> {
+  const db = supabaseAdmin();
+  const dayAgo = new Date(Date.now() - DAY_MS).toISOString();
+
+  // Query meta_webhook_events for events in the last 24h
+  const { data: events } = await db
+    .from("meta_webhook_events")
+    .select("payload_json")
+    .eq("workspace_id", workspaceId)
+    .gte("received_at", dayAgo);
+
+  const result: EventStatsBreakdown = {
+    messageSent: 0,
+    messageDelivered: 0,
+    messageRead: 0,
+    messageFailed: 0,
+  };
+
+  if (!events || events.length === 0) return result;
+
+  for (const row of events) {
+    const payload = row.payload_json as Record<string, unknown> | null;
+    if (!payload) continue;
+
+    // Extract statuses from the WhatsApp webhook payload structure
+    type WaChange = { value?: { statuses?: Array<{ status?: string }>; messages?: unknown[] } };
+    type WaEntry = { changes?: WaChange[] };
+    const entry = (payload as { entry?: WaEntry[] })?.entry;
+    const changeValue = entry?.[0]?.changes?.[0]?.value;
+    const statuses = changeValue?.statuses;
+    if (Array.isArray(statuses)) {
+      for (const s of statuses) {
+        const status = (s as { status?: string })?.status;
+        if (status === "sent") result.messageSent++;
+        else if (status === "delivered") result.messageDelivered++;
+        else if (status === "read") result.messageRead++;
+        else if (status === "failed") result.messageFailed++;
+      }
+    }
+
+    // Count incoming messages as "received/sent" from the platform's perspective
+    const incomingMessages = changeValue?.messages;
+    if (Array.isArray(incomingMessages) && incomingMessages.length > 0) {
+      // Incoming messages count as delivered to platform
+      result.messageDelivered += incomingMessages.length;
+    }
+  }
+
+  return result;
+}

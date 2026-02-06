@@ -370,50 +370,87 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Badge
-            variant="outline"
-            className={cn(
-              "border-border bg-background text-xs",
-              isConnected ? "text-emerald-200" : "text-muted-foreground"
+        {/* Connected State - show success visual instead of sign-up form */}
+        {isConnected ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/10">
+                <svg className="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-emerald-300">WhatsApp Business Connected</p>
+                <p className="text-xs text-muted-foreground">
+                  Your WhatsApp Business account is linked via Embedded Sign Up. You can manage your connection in the Gateway section below.
+                </p>
+              </div>
+              <Badge
+                variant="outline"
+                className="border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-200"
+              >
+                Active
+              </Badge>
+            </div>
+            {canEdit && (
+              <p className="text-xs text-muted-foreground">
+                Need to reconnect or add another number? Use the form below or click here to{" "}
+                <button
+                  onClick={() => setDialogOpen(true)}
+                  disabled={!isConfigured}
+                  className="text-[#1877F2] underline hover:text-[#1877F2]/80 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  re-run Embedded Sign Up
+                </button>.
+              </p>
             )}
-          >
-            Status: {statusLabel}
-          </Badge>
-          {!canEdit ? <span className="text-xs">Owner/Admin only</span> : null}
-        </div>
-        {!isConfigured ? (
-          <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground">
-            Add NEXT_PUBLIC_META_APP_ID & NEXT_PUBLIC_META_CONFIG_ID env vars to use Embedded Signup.
           </div>
-        ) : null}
-        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-          <div className="space-y-1.5">
-            <Label htmlFor="connectionLabel">Connection name (optional)</Label>
-            <Input
-              id="connectionLabel"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="e.g., WA Support, WA Sales"
-              className="bg-background"
-              disabled={!canEdit}
-            />
-            <p className="text-xs text-muted-foreground">
-              Used only in your Gigaviz dashboard to identify this connection.
-            </p>
-          </div>
-          <Button onClick={() => setDialogOpen(true)} disabled={!canEdit || !isConfigured}>
-            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_0_8px_rgba(24,119,242,0.5)]">
-              <FacebookIcon className="h-3 w-3" />
-            </span>
-            <span>Continue with Facebook</span>
-          </Button>
-        </div>
-        {!canEdit ? (
-          <p className="text-xs text-muted-foreground">
-            Only owners/admins can add new connections.
-          </p>
-        ) : null}
+        ) : (
+          /* Not Connected State - show sign-up form */
+          <>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Badge
+                variant="outline"
+                className="border-border bg-background text-xs text-muted-foreground"
+              >
+                Status: {statusLabel}
+              </Badge>
+              {!canEdit ? <span className="text-xs">Owner/Admin only</span> : null}
+            </div>
+            {!isConfigured ? (
+              <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted-foreground">
+                Add NEXT_PUBLIC_META_APP_ID & NEXT_PUBLIC_META_CONFIG_ID env vars to use Embedded Signup.
+              </div>
+            ) : null}
+            <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+              <div className="space-y-1.5">
+                <Label htmlFor="connectionLabel">Connection name (optional)</Label>
+                <Input
+                  id="connectionLabel"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  placeholder="e.g., WA Support, WA Sales"
+                  className="bg-background"
+                  disabled={!canEdit}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Used only in your Gigaviz dashboard to identify this connection.
+                </p>
+              </div>
+              <Button onClick={() => setDialogOpen(true)} disabled={!canEdit || !isConfigured}>
+                <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_0_8px_rgba(24,119,242,0.5)]">
+                  <FacebookIcon className="h-3 w-3" />
+                </span>
+                <span>Continue with Facebook</span>
+              </Button>
+            </div>
+            {!canEdit ? (
+              <p className="text-xs text-muted-foreground">
+                Only owners/admins can add new connections.
+              </p>
+            ) : null}
+          </>
+        )}
       </CardContent>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

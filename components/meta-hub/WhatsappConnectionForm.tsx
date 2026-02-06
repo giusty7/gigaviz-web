@@ -4,6 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { ShieldCheck, KeyRound, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +19,18 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
-const schema = z.object({
-  phoneNumberId: z.string().min(6, "Phone number ID is required"),
-  wabaId: z.string().optional(),
-  accessToken: z.string().min(8, "Access token is required"),
-  displayName: z.string().optional(),
-});
+function buildSchema(tokenExists: boolean) {
+  return z.object({
+    phoneNumberId: z.string().min(6, "Phone number ID is required"),
+    wabaId: z.string().optional(),
+    accessToken: tokenExists
+      ? z.string().optional() // Token already stored; only required if user wants to replace
+      : z.string().min(8, "Access token is required"),
+    displayName: z.string().optional(),
+  });
+}
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 type Props = {
   workspaceId: string;
@@ -40,6 +45,8 @@ type Props = {
   lastTestedAt?: string | null;
   lastTestResult?: string | null;
   tokenSet?: boolean;
+  /** Called after a successful save so the parent can refresh server data */
+  onSaved?: () => void;
 };
 
 export function WhatsappConnectionForm({
@@ -54,6 +61,7 @@ export function WhatsappConnectionForm({
   lastTestedAt,
   lastTestResult,
   tokenSet,
+  onSaved,
 }: Props) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -64,9 +72,10 @@ export function WhatsappConnectionForm({
     lastTestResult ?? null
   );
   const [hasToken, setHasToken] = useState(Boolean(tokenSet));
+  const [showTokenReplace, setShowTokenReplace] = useState(false);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(buildSchema(hasToken && !showTokenReplace)),
     defaultValues: {
       phoneNumberId: initialPhoneNumberId ?? "",
       wabaId: initialWabaId ?? "",
@@ -84,6 +93,7 @@ export function WhatsappConnectionForm({
     if (readOnly) return;
     setSaving(true);
     try {
+      const trimmedToken = values.accessToken?.trim() || "";
       const res = await fetch("/api/meta/whatsapp/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,7 +102,7 @@ export function WhatsappConnectionForm({
           phoneNumberId: values.phoneNumberId.trim(),
           wabaId: values.wabaId?.trim() || null,
           displayName: values.displayName?.trim() || null,
-          accessToken: values.accessToken.trim(),
+          ...(trimmedToken ? { accessToken: trimmedToken } : {}),
         }),
       });
       const data = await res.json().catch(() => null);
@@ -101,6 +111,7 @@ export function WhatsappConnectionForm({
       }
       setCurrentStatus(data?.status ?? "active");
       setHasToken(Boolean(data?.tokenSet ?? true));
+      setShowTokenReplace(false);
       setCurrentTestResult(data?.lastTestResult ?? null);
       setCurrentTestedAt(data?.lastTestedAt ?? null);
       form.reset({
@@ -111,8 +122,12 @@ export function WhatsappConnectionForm({
       });
       toast({
         title: "Connection saved",
-        description: "Phone number ID and WhatsApp token saved.",
+        description: trimmedToken
+          ? "Connection and new token saved securely."
+          : "Connection details updated.",
       });
+      // Trigger parent to refresh server data so all sections update
+      onSaved?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to save connection";
       toast({
@@ -275,15 +290,56 @@ export function WhatsappConnectionForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Access token</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Secret token"
-                    disabled={readOnly || saving}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
+                {hasToken && !showTokenReplace ? (
+                  /* Token already secured — show badge + replace option */
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5">
+                      <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                      <span className="text-sm font-medium text-emerald-300">
+                        Token secured &amp; encrypted
+                      </span>
+                    </div>
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setShowTokenReplace(true)}
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Replace with a new token
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  /* No token yet or user chose to replace */
+                  <div className="space-y-2">
+                    <FormControl>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          type="password"
+                          placeholder={hasToken ? "Enter new token to replace" : "Enter access token"}
+                          className="pl-9"
+                          disabled={readOnly || saving}
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    {showTokenReplace && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowTokenReplace(false);
+                          form.setValue("accessToken", "");
+                        }}
+                        className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        ← Cancel, keep current token
+                      </button>
+                    )}
+                    <FormMessage />
+                  </div>
+                )}
               </FormItem>
             )}
           />

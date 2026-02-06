@@ -68,6 +68,26 @@ interface ImperiumConnectionsClientProps {
   webhookTestEnvMissing?: string[];
   sandboxEnabled?: boolean;
   sandboxWhitelist?: string[];
+  businessIntel?: {
+    businessManagerId: string | null;
+    businessName: string | null;
+    verificationStatus: "verified" | "pending" | "not_verified" | null;
+    linkedAssets: {
+      facebookPages: number | null;
+      instagramAccounts: number | null;
+      systemUsers: number | null;
+    } | null;
+  };
+  eventStats?: {
+    messageSent: number;
+    messageDelivered: number;
+    messageRead: number;
+    messageFailed: number;
+  };
+  monitorMetrics?: {
+    latencyMs: number | null;
+    uptime: number | null;
+  };
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -88,6 +108,9 @@ export function ImperiumConnectionsClient({
   webhookTestEnvMissing = [],
   sandboxEnabled = false,
   sandboxWhitelist = [],
+  businessIntel,
+  eventStats,
+  monitorMetrics,
 }: ImperiumConnectionsClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
@@ -286,6 +309,7 @@ export function ImperiumConnectionsClient({
             lastTestedAt={connection?.lastTestedAt ?? null}
             lastTestResult={connection?.lastTestResult ?? null}
             tokenSet={tokenSet}
+            onSaved={() => router.refresh()}
           />
         </motion.div>
 
@@ -302,16 +326,17 @@ export function ImperiumConnectionsClient({
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Business Asset Vault */}
             <BusinessAssetVault
-              businessManagerId={null}
-              businessName={null}
-              verificationStatus={null}
-              linkedAssets={null}
+              businessManagerId={businessIntel?.businessManagerId ?? null}
+              businessName={businessIntel?.businessName ?? null}
+              verificationStatus={businessIntel?.verificationStatus ?? null}
+              linkedAssets={businessIntel?.linkedAssets ?? null}
               onCopy={handleCopy}
             />
 
             {/* Event Radar */}
             <EventRadar
               eventsLast24h={eventsLast24h}
+              eventStats={eventStats ?? undefined}
               conversionTrackingEnabled={conversionTracking}
               onToggleConversionTracking={() => setConversionTracking(!conversionTracking)}
             />
@@ -330,8 +355,8 @@ export function ImperiumConnectionsClient({
 
           <div className="grid gap-6 lg:grid-cols-2">
             <MonitorCard
-              latencyMs={null}
-              uptime={null}
+              latencyMs={monitorMetrics?.latencyMs ?? null}
+              uptime={monitorMetrics?.uptime ?? null}
               eventsLast24h={eventsLast24h}
             />
             <SandboxSettingsCard

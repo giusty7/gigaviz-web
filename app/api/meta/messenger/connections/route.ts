@@ -5,7 +5,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
+import { requireWorkspaceMember, requireWorkspaceRole } from '@/lib/auth/guard';
 import { recordAuditEvent } from '@/lib/audit';
 import { logger } from '@/lib/logging';
 
@@ -44,22 +46,17 @@ export async function GET(request: NextRequest) {
       return withCookies(NextResponse.json({ connections: [] }));
     }
 
-    // Verify workspace membership
-    const { data: membership } = await supabase
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('workspace_id', workspaceId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (!membership) {
+    // Verify workspace membership (use admin client to bypass RLS on membership table)
+    const membership = await requireWorkspaceMember(user.id, workspaceId);
+    if (!membership.ok) {
       return withCookies(NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
       ));
     }
 
-    const { data: connections, error } = await supabase
+    const db = supabaseAdmin();
+    const { data: connections, error } = await db
       .from('messenger_connections')
       .select('*')
       .eq('workspace_id', workspaceId)
@@ -103,23 +100,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = createConnectionSchema.parse(body);
 
-    // Verify workspace membership with edit permission
-    const { data: membership } = await supabase
-      .from('workspace_members')
-      .select('role')
-      .eq('workspace_id', validated.workspace_id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
+    // Verify workspace membership with edit permission (use admin client to bypass RLS)
+    const membership = await requireWorkspaceMember(user.id, validated.workspace_id);
+    if (!membership.ok || !requireWorkspaceRole(membership.role, ['owner', 'admin'])) {
       return withCookies(NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }
       ));
     }
 
+    const db = supabaseAdmin();
+
     // Check for existing connection with same page_id
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('messenger_connections')
       .select('id')
       .eq('workspace_id', validated.workspace_id)
@@ -128,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       // Update existing connection
-      const { data: updated, error } = await supabase
+      const { data: updated, error } = await db
         .from('messenger_connections')
         .update({
           page_name: validated.page_name,
@@ -155,7 +148,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new connection
-    const { data: connection, error } = await supabase
+    const { data: connection, error } = await db
       .from('messenger_connections')
       .insert({
         workspace_id: validated.workspace_id,

@@ -16,7 +16,7 @@ const schema = z.object({
   workspaceId: z.string().uuid(),
   phoneNumberId: z.string().min(6),
   wabaId: z.string().min(3).optional().nullable(),
-  accessToken: z.string().min(10),
+  accessToken: z.string().min(10).optional(), // Optional when token already exists
   displayName: z.string().min(1).optional().nullable(),
 });
 
@@ -82,31 +82,45 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { error: deleteError } = await db
-    .from("meta_tokens")
-    .delete()
-    .eq("workspace_id", workspaceId)
-    .eq("provider", "meta_whatsapp");
-  if (deleteError) {
-    logger.warn("[meta-wa-connect] cleanup existing tokens failed", { message: deleteError.message });
-  }
+  // Only update token if a new one was provided
+  let tokenSet = false;
+  if (accessToken) {
+    const { error: deleteError } = await db
+      .from("meta_tokens")
+      .delete()
+      .eq("workspace_id", workspaceId)
+      .eq("provider", "meta_whatsapp");
+    if (deleteError) {
+      logger.warn("[meta-wa-connect] cleanup existing tokens failed", { message: deleteError.message });
+    }
 
-  const { error: tokenError } = await db.from("meta_tokens").insert({
-    workspace_id: workspaceId,
-    provider: "meta_whatsapp",
-    token_encrypted: accessToken,
-    scopes_json: { phone_number_id: phoneNumberId, waba_id: wabaId ?? null },
-    expires_at: null,
-  });
+    const { error: tokenError } = await db.from("meta_tokens").insert({
+      workspace_id: workspaceId,
+      provider: "meta_whatsapp",
+      token_encrypted: accessToken,
+      scopes_json: { phone_number_id: phoneNumberId, waba_id: wabaId ?? null },
+      expires_at: null,
+    });
 
-  if (tokenError) {
-    logger.error("[meta-wa-connect] token save failed", { message: tokenError.message });
-    return withCookies(
-      NextResponse.json(
-        { error: "db_error", reason: "token_save_failed" },
-        { status: 500 }
-      )
-    );
+    if (tokenError) {
+      logger.error("[meta-wa-connect] token save failed", { message: tokenError.message });
+      return withCookies(
+        NextResponse.json(
+          { error: "db_error", reason: "token_save_failed" },
+          { status: 500 }
+        )
+      );
+    }
+    tokenSet = true;
+  } else {
+    // Check if token already exists
+    const { data: existingToken } = await db
+      .from("meta_tokens")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("provider", "meta_whatsapp")
+      .maybeSingle();
+    tokenSet = Boolean(existingToken);
   }
 
   return withCookies(
@@ -115,7 +129,7 @@ export async function POST(req: NextRequest) {
       phoneNumberId: phone.phone_number_id,
       wabaId: phone.waba_id,
       displayName: phone.display_name,
-      tokenSet: true,
+      tokenSet,
       status: phone.status ?? "active",
       lastTestedAt: phone.last_tested_at,
       lastTestResult: phone.last_test_result,

@@ -4,7 +4,8 @@ import { MultiPlatformConnections } from "@/components/meta-hub/MultiPlatformCon
 import { FacebookSdkProvider } from "@/components/meta/FacebookSdkProvider";
 import { getAppContext } from "@/lib/app-context";
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
-import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
+import { getWebhookEventsSummary, getEventStatsBreakdown } from "@/lib/meta-hub/webhook-events";
+import { getBusinessIntelligence, getMonitorMetrics } from "@/lib/meta-hub/business-intelligence";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getWaSettings } from "@/lib/meta/wa-settings";
 
@@ -51,8 +52,13 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
     fallbackChannel: "unknown",
   });
 
-  // Fetch per-workspace sandbox settings
-  const sandboxSettings = await getWaSettings(workspaceId);
+  // Fetch per-workspace sandbox settings + business intelligence + event stats + monitor metrics
+  const [sandboxSettings, businessIntel, eventStats, monitorMetrics] = await Promise.all([
+    getWaSettings(workspaceId),
+    getBusinessIntelligence(workspaceId),
+    getEventStatsBreakdown(workspaceId),
+    getMonitorMetrics(workspaceId),
+  ]);
 
   const tokenSet = Boolean(tokenRow);
   const connection = phone
@@ -90,6 +96,9 @@ export default async function MetaHubConnectionsPage({ params }: Props) {
           webhookTestEnvMissing={envStatus.webhookPingMissing}
           sandboxEnabled={sandboxSettings.sandboxEnabled}
           sandboxWhitelist={sandboxSettings.whitelist}
+          businessIntel={businessIntel}
+          eventStats={eventStats}
+          monitorMetrics={monitorMetrics}
         />
         
         {/* Multi-Platform Connections (Instagram + Messenger) */}
