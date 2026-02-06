@@ -47,7 +47,7 @@ export default async function MetaHubEventsPage({ params }: Props) {
     .select("id, waba_id, dataset_id, event_name, event_time, status, error_message, created_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(100);
 
   const { data: tokenRow } = await db
     .from("meta_tokens")
@@ -61,7 +61,7 @@ export default async function MetaHubEventsPage({ params }: Props) {
     .select("id, event_type, source, referral_hash, received_at")
     .eq("workspace_id", workspaceId)
     .order("received_at", { ascending: false })
-    .limit(20);
+    .limit(100);
 
   const tokenStatus = {
     provider: tokenRow?.provider ?? (process.env.META_SYSTEM_USER_TOKEN ? "env_system_user" : null),
