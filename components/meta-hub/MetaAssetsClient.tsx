@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/components/ui/use-toast";
 
 type Business = { id?: string; name?: string };
-type Waba = { id?: string; name?: string };
+type Waba = { id?: string; name?: string; currency?: string; timezone_id?: string };
 type Phone = {
   id?: string;
   display_phone_number?: string;
@@ -41,6 +41,92 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
   const [businessId, setBusinessId] = useState<string>("");
   const [wabaId, setWabaId] = useState<string>(initialWabaId);
   const [loading, setLoading] = useState<string | null>(null);
+  const [bootstrapped, setBootstrapped] = useState(false);
+  const bootstrapRef = useRef(false);
+
+  /* ═══════════════════════════════════════════════════════════════════
+     BOOTSTRAP: Use known WABA ID to resolve business + WABA details
+     in one shot, bypassing the me/businesses cascade that fails with
+     WhatsApp-only tokens.
+     ═══════════════════════════════════════════════════════════════════ */
+  useEffect(() => {
+    if (bootstrapRef.current || !initialWabaId) return;
+    bootstrapRef.current = true;
+
+    async function bootstrap() {
+      setLoading("bootstrap");
+      try {
+        // 1. Fetch WABA info + owner business from the known WABA ID
+        const wabaRes = await fetch(
+          `/api/meta/assets/waba-info?workspaceId=${workspaceId}&wabaId=${initialWabaId}`
+        );
+        const wabaData = await wabaRes.json().catch(() => null);
+
+        if (wabaRes.ok && wabaData) {
+          // Set WABA data
+          if (wabaData.waba) {
+            setWabas([wabaData.waba]);
+            setWabaId(wabaData.waba.id || initialWabaId);
+          }
+
+          // Set business data from the WABA's owner
+          if (wabaData.business?.id) {
+            setBusinesses([wabaData.business]);
+            setBusinessId(wabaData.business.id);
+          }
+        }
+
+        // 2. Also try me/businesses in parallel (may work if token has business_management)
+        const bizRes = await fetch(
+          `/api/meta/assets/businesses?workspaceId=${workspaceId}`
+        );
+        const bizData = await bizRes.json().catch(() => null);
+        if (bizRes.ok && bizData?.data?.length > 0) {
+          setBusinesses((prev) => {
+            const existing = new Set(prev.map((b) => b.id));
+            const merged = [...prev];
+            for (const b of bizData.data as Business[]) {
+              if (b.id && !existing.has(b.id)) {
+                merged.push(b);
+                existing.add(b.id);
+              }
+            }
+            return merged;
+          });
+          // Auto-select if only one and none selected yet
+          if (bizData.data.length === 1 && bizData.data[0]?.id) {
+            setBusinessId((prev) => prev || bizData.data[0].id);
+          }
+        }
+
+        // 3. Fetch phones using known WABA ID
+        const phonesRes = await fetch(
+          `/api/meta/assets/phone-numbers?workspaceId=${workspaceId}&wabaId=${initialWabaId}`
+        );
+        const phonesData = await phonesRes.json().catch(() => null);
+        if (phonesRes.ok && phonesData?.data) {
+          setPhones(phonesData.data as Phone[]);
+        }
+      } catch {
+        // Bootstrap is best-effort; individual refreshes still work
+      } finally {
+        setLoading(null);
+        setBootstrapped(true);
+      }
+    }
+
+    bootstrap();
+  }, [initialWabaId, workspaceId]);
+
+  /* ═══════════════════════════════════════════════════════════════════
+     FALLBACK: If no WABA ID known, try me/businesses on mount
+     ═══════════════════════════════════════════════════════════════════ */
+  useEffect(() => {
+    if (initialWabaId || bootstrapRef.current) return;
+    bootstrapRef.current = true;
+    fetchBusinesses({ silent: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchBusinesses = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -56,7 +142,9 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
         }
         if (!opts?.silent) toast({ title: "Businesses loaded" });
       } catch (err) {
-        toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+        if (!opts?.silent) {
+          toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+        }
       } finally {
         setLoading(null);
       }
@@ -68,7 +156,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
     async (opts?: { silent?: boolean; businessOverride?: string }) => {
       const targetBusinessId = opts?.businessOverride ?? businessId;
       if (!targetBusinessId) {
-        toast({ title: "Select a business", variant: "destructive" });
+        if (!opts?.silent) toast({ title: "Select a business", variant: "destructive" });
         return;
       }
       setLoading("wabas");
@@ -79,13 +167,22 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
         const data = await res.json().catch(() => null);
         if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || "Failed to load WABA");
         const list = (data.data || []) as Waba[];
-        setWabas(list);
+        setWabas((prev) => {
+          // Merge with bootstrap data to avoid losing WABA details
+          const existing = new Map(prev.map((w) => [w.id, w]));
+          for (const w of list) {
+            if (w.id) existing.set(w.id, { ...existing.get(w.id), ...w });
+          }
+          return Array.from(existing.values());
+        });
         if (list.length === 1 && list[0]?.id) {
           setWabaId(list[0].id);
         }
         if (!opts?.silent) toast({ title: "WABAs loaded" });
       } catch (err) {
-        toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+        if (!opts?.silent) {
+          toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+        }
       } finally {
         setLoading(null);
       }
@@ -97,7 +194,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
     async (opts?: { silent?: boolean; wabaOverride?: string }) => {
       const targetWabaId = opts?.wabaOverride ?? wabaId;
       if (!targetWabaId) {
-        toast({ title: "Select a WABA", variant: "destructive" });
+        if (!opts?.silent) toast({ title: "Select a WABA", variant: "destructive" });
         return;
       }
       setLoading("phones");
@@ -110,7 +207,9 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
         setPhones((data.data || []) as Phone[]);
         if (!opts?.silent) toast({ title: "Phones loaded" });
       } catch (err) {
-        toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+        if (!opts?.silent) {
+          toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+        }
       } finally {
         setLoading(null);
       }
@@ -118,22 +217,32 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
     [toast, wabaId, workspaceId]
   );
 
+  // When user changes business dropdown, fetch WABAs for that business
   useEffect(() => {
-    fetchBusinesses({ silent: true });
-  }, [fetchBusinesses]);
-
-  useEffect(() => {
-    if (!businessId) return;
+    if (!bootstrapped || !businessId) return;
     fetchWabas({ silent: true, businessOverride: businessId });
-  }, [businessId, fetchWabas]);
+  }, [businessId, fetchWabas, bootstrapped]);
 
+  // When user changes WABA dropdown, fetch phones for that WABA
   useEffect(() => {
-    if (!wabaId) return;
+    if (!bootstrapped || !wabaId) return;
     fetchPhones({ silent: true, wabaOverride: wabaId });
-  }, [fetchPhones, wabaId]);
+  }, [wabaId, fetchPhones, bootstrapped]);
+
+  const isBootstrapping = loading === "bootstrap";
 
   return (
     <div className="space-y-6 text-[#f5f5dc]">
+      {/* Loading overlay during bootstrap */}
+      {isBootstrapping && (
+        <Card className="border border-emerald-500/30 bg-emerald-500/5">
+          <CardContent className="flex items-center gap-3 py-4">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+            <p className="text-sm text-emerald-300">Loading business assets from Meta Graph API...</p>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="border border-[#d4af37]/30 bg-[#0a1229]/70">
         <CardHeader>
           <CardTitle>Business Assets (server-side Graph)</CardTitle>
@@ -148,7 +257,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               <select
                 value={businessId}
                 onChange={(e) => setBusinessId(e.target.value)}
-                disabled={!canEdit || loading === "businesses"}
+                disabled={!canEdit || loading === "businesses" || isBootstrapping}
                 className="mt-1 w-full rounded-md border border-[#d4af37]/30 bg-[#050a18] p-2 text-[#f5f5dc] disabled:opacity-60"
               >
                 <option value="">Choose business</option>
@@ -160,7 +269,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               </select>
               <p className="mt-1 text-xs text-[#f5f5dc]/60">Auto-selects when only one business exists.</p>
             </div>
-            <Button onClick={() => fetchBusinesses()} disabled={!canEdit || loading === "businesses"}>
+            <Button onClick={() => fetchBusinesses()} disabled={!canEdit || loading === "businesses" || isBootstrapping}>
               {loading === "businesses" ? "Loading..." : "Refresh"}
             </Button>
           </div>
@@ -178,7 +287,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               <select
                 value={wabaId}
                 onChange={(e) => setWabaId(e.target.value)}
-                disabled={!canEdit || loading === "wabas"}
+                disabled={!canEdit || loading === "wabas" || isBootstrapping}
                 className="mt-1 w-full rounded-md border border-[#d4af37]/30 bg-[#050a18] p-2 text-[#f5f5dc] disabled:opacity-60"
               >
                 <option value="">Choose WABA</option>
@@ -190,10 +299,10 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               </select>
               <p className="mt-1 text-xs text-[#f5f5dc]/60">Loaded from owned_whatsapp_business_accounts.</p>
             </div>
-            <Button onClick={() => fetchWabas()} disabled={!canEdit || loading === "wabas"}>
+            <Button onClick={() => fetchWabas()} disabled={!canEdit || loading === "wabas" || isBootstrapping}>
               {loading === "wabas" ? "Loading..." : "Refresh WABAs"}
             </Button>
-            <Button onClick={() => fetchPhones()} disabled={!canEdit || loading === "phones"}>
+            <Button onClick={() => fetchPhones()} disabled={!canEdit || loading === "phones" || isBootstrapping}>
               {loading === "phones" ? "Loading..." : "Refresh Phones"}
             </Button>
           </div>
@@ -217,7 +326,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               {businesses.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="text-center text-[#f5f5dc]/50">
-                    No businesses loaded.
+                    {isBootstrapping ? "Loading..." : "No businesses loaded."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -250,7 +359,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               {wabas.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="text-center text-[#f5f5dc]/50">
-                    No WABAs loaded.
+                    {isBootstrapping ? "Loading..." : "No WABAs loaded."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -285,7 +394,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
               {phones.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-[#f5f5dc]/50">
-                    No phone numbers loaded.
+                    {isBootstrapping ? "Loading..." : "No phone numbers loaded."}
                   </TableCell>
                 </TableRow>
               ) : (
