@@ -1,14 +1,12 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { assertOpsEnabled } from "@/lib/ops/guard";
-import { getCurrentUser, isPlatformAdminById } from "@/lib/platform-admin/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 
 export const dynamic = "force-dynamic";
 
 export default async function PlatformAdminRedirect() {
-  const { userId } = await getCurrentUser();
-  if (!userId) notFound();
   assertOpsEnabled();
-  const platformAdmin = await isPlatformAdminById(userId);
-  if (!platformAdmin) notFound();
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) redirect("/");
   redirect("/ops/god-console");
 }

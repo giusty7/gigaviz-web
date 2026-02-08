@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { OpsShell } from "@/components/platform/OpsShell";
 import { EntitlementManagerClient } from "@/components/ops/EntitlementManagerClient";
 import { assertOpsEnabled } from "@/lib/ops/guard";
@@ -19,7 +19,7 @@ export default async function EntitlementManagerPage({ searchParams }: Props) {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
-  if (!admin.ok) notFound();
+  if (!admin.ok) redirect("/");
 
   const { workspaceId } = await searchParams;
 

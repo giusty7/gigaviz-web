@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { formatRelativeTime } from "@/lib/time";
 import { assertOpsEnabled } from "@/lib/ops/guard";
-import { getCurrentUser, isPlatformAdminById } from "@/lib/platform-admin/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { getWorkspaceTokenBalance, type WorkspaceEntitlementRow } from "@/lib/owner/ops";
 
 export const dynamic = "force-dynamic";
@@ -139,18 +139,16 @@ export default async function OpsWorkspaceDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { userId, email } = await getCurrentUser();
-  if (!userId) notFound();
   assertOpsEnabled();
-  const platformAdmin = await isPlatformAdminById(userId);
-  if (!platformAdmin) notFound();
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) redirect("/");
 
   const { id } = await params;
   const detail = await fetchWorkspaceDetail(id);
 
   if (!detail) {
     return (
-      <OpsShell actorEmail={email} actorRole="platform_admin">
+      <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
         <div className="rounded-2xl border border-border bg-card/80 p-6 text-sm text-muted-foreground">
           Workspace not found.
         </div>
@@ -163,7 +161,7 @@ export default async function OpsWorkspaceDetailPage({
   const tokenBalance = await getWorkspaceTokenBalance(workspace.id);
 
   return (
-    <OpsShell actorEmail={email} actorRole="platform_admin">
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <div className="space-y-4">
         <Card className="border-border bg-card/80">
           <CardHeader className="flex flex-row items-start justify-between space-y-0">

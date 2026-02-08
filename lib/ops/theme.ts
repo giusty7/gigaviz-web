@@ -77,8 +77,10 @@ export const opsTheme = {
       { label: "Workspaces", href: "/ops/workspaces", icon: "Building2", group: "core" },
       { label: "Customers", href: "/ops/customers", icon: "Users", group: "core" },
       { label: "Entitlements", href: "/ops/entitlements", icon: "Key", group: "core" },
+      { label: "Knowledge", href: "/ops/platform-kb", icon: "BookOpen", group: "core" },
       // Support
       { label: "Tickets", href: "/ops/tickets", icon: "Ticket", group: "support" },
+      { label: "Responses", href: "/ops/canned-responses", icon: "MessageSquareText", group: "support" },
       // Monitoring
       { label: "Health", href: "/ops/health", icon: "HeartPulse", group: "monitoring" },
       { label: "Logs", href: "/ops/audit", icon: "ScrollText", group: "monitoring" },

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { runAllHealthChecks } from "@/lib/ops/health";
+import { runAllHealthChecks, getStaleWorkers } from "@/lib/ops/health";
+import { listTickets } from "@/lib/ops/tickets";
 import { logger } from "@/lib/logging";
-import { alertHealthDegraded } from "@/lib/ops/alerts";
+import { alertHealthDegraded, alertWorkerStale, alertTicketSlaBreach } from "@/lib/ops/alerts";
 
 /**
  * GET /api/ops/health/check
@@ -10,7 +11,11 @@ import { alertHealthDegraded } from "@/lib/ops/alerts";
  */
 export async function GET() {
   try {
-    const results = await runAllHealthChecks();
+    const [results, staleWorkers, overdueTickets] = await Promise.all([
+      runAllHealthChecks(),
+      getStaleWorkers().catch(() => []),
+      listTickets({ overdue: true, limit: 10 }).catch(() => []),
+    ]);
 
     const statusCode = results.overall === "healthy" ? 200 : results.overall === "degraded" ? 200 : 503;
 
@@ -20,6 +25,28 @@ export async function GET() {
         .filter(([k, v]) => k !== "overall" && typeof v === "object" && v && "status" in v && v.status !== "healthy")
         .map(([k]) => k);
       alertHealthDegraded({ status: results.overall, failedChecks }).catch(() => {});
+    }
+
+    // Alert for stale workers
+    for (const worker of staleWorkers) {
+      alertWorkerStale({
+        workerName: worker.workerName,
+        lastSeen: worker.lastHeartbeat,
+        threshold: "10 minutes",
+      }).catch(() => {});
+    }
+
+    // Alert for overdue tickets (SLA breach)
+    for (const ticket of overdueTickets) {
+      const elapsedHours = ticket.dueAt
+        ? Math.round((Date.now() - new Date(ticket.dueAt).getTime()) / 3600000 * 10) / 10
+        : 0;
+      alertTicketSlaBreach({
+        ticketId: ticket.ticketNumber ?? ticket.id,
+        subject: ticket.subject,
+        slaType: `${ticket.priority} priority`,
+        elapsedHours,
+      }).catch(() => {});
     }
 
     return NextResponse.json(

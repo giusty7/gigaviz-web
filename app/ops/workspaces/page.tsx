@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Search, ShieldCheck, SquareArrowOutUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { OpsShell } from "@/components/platform/OpsShell";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { formatRelativeTime } from "@/lib/time";
 import { assertOpsEnabled } from "@/lib/ops/guard";
-import { getCurrentUser, isPlatformAdminById } from "@/lib/platform-admin/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 
 export const dynamic = "force-dynamic";
 
@@ -124,18 +124,16 @@ export default async function OpsWorkspacesPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { userId, email } = await getCurrentUser();
-  if (!userId) notFound();
   assertOpsEnabled();
-  const platformAdmin = await isPlatformAdminById(userId);
-  if (!platformAdmin) notFound();
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) redirect("/");
 
   const sp = await searchParams;
   const query = (sp.q ?? "").trim();
   const { workspaces, ownerEmails, lastActivity } = await fetchWorkspaces(query);
 
   return (
-    <OpsShell actorEmail={email} actorRole="platform_admin">
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <div className="space-y-4">
         <Card className="border-border bg-card/80">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">

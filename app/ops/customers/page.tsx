@@ -3,7 +3,7 @@ import CustomerSearchClient from "@/components/ops/CustomerSearchClient";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { getSearchHistory } from "@/lib/ops/customers";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export default async function CustomersPage() {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
-  if (!admin.ok) notFound();
+  if (!admin.ok) redirect("/");
 
   const searchHistory = await getSearchHistory(20);
 

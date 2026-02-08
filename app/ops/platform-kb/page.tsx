@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { OpsShell } from "@/components/platform/OpsShell";
 import { PlatformKnowledgeClient } from "@/components/ops/PlatformKnowledgeClient";
 import { assertOpsEnabled } from "@/lib/ops/guard";
@@ -16,7 +16,7 @@ export default async function PlatformKnowledgePage() {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
-  if (!admin.ok) notFound();
+  if (!admin.ok) redirect("/");
 
   // Load existing platform knowledge sources
   const db = supabaseAdmin();

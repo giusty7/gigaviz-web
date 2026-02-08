@@ -55,6 +55,7 @@ const menuCategories = [
     bgColor: "bg-blue-950/20",
     items: [
       { label: "Support Tickets", href: "/ops/tickets", icon: Ticket, description: "Manage tickets with SLA tracking" },
+      { label: "Canned Responses", href: "/ops/canned-responses", icon: Copy, description: "Manage support ticket response templates" },
     ],
   },
   {

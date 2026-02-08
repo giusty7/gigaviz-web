@@ -2,7 +2,7 @@ import { OpsShell } from "@/components/platform/OpsShell";
 import GodConsoleClient, {
   type GodWorkspaceCard,
 } from "@/components/god-console/GodConsoleClient";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -42,7 +42,7 @@ export default async function GodConsolePage({
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
-  if (!admin.ok) notFound();
+  if (!admin.ok) redirect("/");
 
   const supabase = await supabaseServer();
   const { data: workspaceRows } =
