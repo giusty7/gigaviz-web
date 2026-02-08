@@ -761,4 +761,86 @@ When tackling any task, always check if it helps close a gap from the scorecard 
 
 ---
 
+## Ops & Owner Console Audit (Feb 2026)
+
+Last audited: **February 8, 2026**
+
+### Ops Console Score: 7.2 / 10
+
+| Area | Score | Status | Notes |
+|------|-------|--------|-------|
+| Feature Completeness | 9/10 | ✅ | 26 pages, 25 API routes, 11 server actions, 22 lib modules |
+| Audit Trail | 8/10 | ✅ | All mutations logged with before/after snapshots |
+| Developer Tools | 8/10 | ✅ | SQL runner, API playground, webhook debugger, feature flags |
+| Monitoring | 7/10 | ✅ | Health checks, worker heartbeats, metrics snapshots |
+| Customer Support | 6/10 | ⚠️ | Tickets exist but internal-only, no customer-facing flow |
+| Auth & Access Control | 6/10 | ⚠️ | Works but inconsistent patterns across API routes |
+| Security Hardening | 5/10 | ⚠️ | No 2FA, no IP allowlist, no session hardening for ops |
+| Multi-Staff Scalability | 3/10 | 🔴 | Single role — every admin is god, no RBAC |
+| Alerting & Notifications | 2/10 | 🔴 | No Slack, email, or push alerts for critical events |
+| i18n | 1/10 | 🔴 | All hardcoded English |
+
+### Ops Feature Inventory
+
+| Category | Features | Status |
+|----------|----------|--------|
+| Workspace Mgmt | God Console, Workspace Browser, Detail, Bulk Ops, Templates | ✅ All functional |
+| Customer Ops | Customer Search, Support Tickets (SLA), Canned Responses | ✅ All functional |
+| Access Control | Entitlement Manager, Feature Flags (global + per-workspace), Claim | ✅ All functional |
+| Monitoring | System Health, Worker Heartbeats, Stale Worker Detection | ✅ All functional |
+| Analytics | Business Metrics, Data Exports (CSV/JSON), Saved Reports | ✅ All functional |
+| Dev Tools | SQL Runner (read-only), Webhook Debugger, API Playground | ✅ All functional |
+| Security | Impersonation (start/end/audit), Audit Trail + Export, Rate Limiting | ✅ All functional |
+| Knowledge | Platform KB with RAG (vector search + reindex) | ✅ All functional |
+
+### Ops Auth Architecture
+
+```
+TIER 1: Platform Ops (/ops)         — 26 pages, 25 APIs, 11 server actions
+├── Auth: platform_admins table + OPS_ENABLED env var
+├── Claim: GIGAVIZ_OWNER_EMAILS allowlist → /ops/claim → upsert platform_admins
+├── Guard: requirePlatformAdmin() → returns admin context + service-role DB
+├── Rate Limit: Upstash Redis (30 req/60s) via assertOpsRateLimit()
+└── Audit: All mutations → owner_audit_log with actor + before/after
+
+TIER 2: Owner (/owner)              — DEPRECATED, all 5 routes redirect to /ops
+
+TIER 3: Workspace Admin (/api/admin/*) — 31 API routes
+├── Auth: requireAdminOrSupervisorWorkspace() (workspace-scoped, NOT platform)
+└── Purpose: Inbox, CRM, teams management within a workspace
+```
+
+### Ops Critical Gaps
+
+1. **🔴 No RBAC within ops** — Every platform_admin has identical god-level access. Need: superadmin / ops_manager / support_agent / developer / viewer roles
+2. **🔴 Inconsistent auth patterns** — ~10 API routes use manual platform_admins check instead of requirePlatformAdmin(). Risk: auth bypass if patterns drift
+3. **🔴 Layout has no auth guard** — ops layout.tsx does NOT check auth. Each page must individually call requirePlatformAdmin(). Risk: new page without guard = exposed
+4. **🔴 No alerting** — Health checks exist but nobody gets notified on failure. No Slack/Discord/email integration
+5. **⚠️ SQL Runner whitelist too small** — Only 12 tables. Can't query inbox_messages, outbox_messages, meta_tokens, helper_*
+6. **⚠️ Impersonation has no UI button** — Full API exists but no button on workspace detail page
+7. **⚠️ Some pages return null instead of redirect** — `if (!admin) return null` instead of `redirect()`
+8. **⚠️ No ops activity dashboard** — Can't see who is doing what across the ops team
+9. **⚠️ Support tickets internal-only** — No customer-facing submission, no email-to-ticket
+
+### Ops Hardening Roadmap
+
+```
+Phase 0.5: OPS HARDENING (Do before Phase 1)
+├── 🔴 Add auth guard to ops layout.tsx (safety net)
+├── 🔴 Standardize ALL API routes to requirePlatformAdmin()
+├── 🔴 Fix pages returning null → use redirect()
+├── ⚠️ Expand SQL Runner whitelist (inbox, outbox, meta_*, helper_*)
+├── ⚠️ Add impersonation button to workspace detail UI
+├── ⚠️ Standardize console.log → logger in all ops routes
+└── ⚠️ Add Slack webhook alerts (health failures, ticket SLA, suspension)
+
+Phase 1 addition:
+├── 🔴 Ops RBAC (superadmin/ops_manager/support_agent/developer/viewer)
+├── ⚠️ Customer-facing ticket submission flow
+├── ⚠️ Revenue metrics (when Stripe lands)
+└── ⚠️ Ops activity dashboard (who did what, when)
+```
+
+---
+
 **Final Note**: If this guidance conflicts with actual code, CODE IS SOURCE OF TRUTH. Update this doc to reflect reality.
