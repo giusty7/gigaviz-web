@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Gigaviz Platform (Core OS)",
   description:

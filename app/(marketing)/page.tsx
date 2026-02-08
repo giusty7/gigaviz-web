@@ -1,9 +1,8 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 import { BadgeCheck } from "lucide-react";
-import { EcosystemOrbital } from "@/components/marketing/EcosystemOrbital";
-import { TrustConsole } from "@/components/marketing/trust-console";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 import { LatestUpdates } from "@/components/marketing/LatestUpdates";
@@ -11,6 +10,23 @@ import { moduleStatusLabel, topLevelModules } from "@/lib/modules/catalog";
 import TrackedLink from "@/components/analytics/tracked-link";
 import { getAppContext } from "@/lib/app-context";
 import { getTranslations } from "next-intl/server";
+
+/* ── Lazy-loaded heavy client components ─────────────────────── */
+const EcosystemOrbital = dynamic(
+  () =>
+    import("@/components/marketing/EcosystemOrbital").then(
+      (m) => m.EcosystemOrbital,
+    ),
+  { loading: () => <div className="h-[320px] animate-pulse rounded-xl bg-[color:var(--gv-surface)]" /> },
+);
+
+const TrustConsole = dynamic(
+  () =>
+    import("@/components/marketing/trust-console").then(
+      (m) => m.TrustConsole,
+    ),
+  { loading: () => <div className="h-[200px] animate-pulse rounded-xl bg-[color:var(--gv-surface)]" /> },
+);
 
 export const metadata: Metadata = {
   title: "Gigaviz Ecosystem — Technology Provider for WhatsApp Business Platform",

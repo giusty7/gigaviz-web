@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/components/contact/contact-form";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Contact Gigaviz",
   description:

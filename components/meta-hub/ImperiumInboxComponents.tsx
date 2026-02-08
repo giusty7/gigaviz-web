@@ -48,6 +48,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
@@ -1649,8 +1650,7 @@ function MessageBubble({ message, onReply, onStar, onForward }: MessageBubblePro
 
         {/* Media */}
         {message.media_url && message.media_type === "image" && (
-          // eslint-disable-next-line @next/next/no-img-element -- dynamic user-uploaded content with unknown dimensions
-          <img src={message.media_url} alt="Media" className="mb-2 max-w-full rounded-lg" />
+          <Image src={message.media_url} alt="Media" width={400} height={300} className="mb-2 max-w-full rounded-lg" unoptimized />
         )}
         {message.media_url && message.media_type === "video" && (
           <div className="mb-2 flex aspect-video items-center justify-center rounded-lg bg-[#050a18]/30">

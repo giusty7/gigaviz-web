@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import MediaKitCopyBlock from "@/components/marketing/media-kit-copy";
-import MediaKitLogos from "@/components/marketing/media-kit-logos";
+import dynamic from "next/dynamic";
+
+const MediaKitCopyBlock = dynamic(
+  () => import("@/components/marketing/media-kit-copy"),
+);
+
+const MediaKitLogos = dynamic(
+  () => import("@/components/marketing/media-kit-logos"),
+);
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Gigaviz Media Kit",

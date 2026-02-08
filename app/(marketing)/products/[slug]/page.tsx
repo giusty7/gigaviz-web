@@ -5,6 +5,8 @@ import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 import { getProductBySlug, productStatusLabel, products } from "@/lib/products";
 
+export const revalidate = 3600;
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
+
+export const revalidate = 3600;
 import { StatusBadge } from "@/components/marketing/status-badge";
 
 export const metadata: Metadata = {

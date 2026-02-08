@@ -1,6 +1,8 @@
 import { getAllUpdates, formatUpdateDate, type UpdateType } from "@/lib/updates";
 import { Sparkles, Zap, Shield, Wrench } from "lucide-react";
 
+export const revalidate = 3600;
+
 const typeIcons: Record<UpdateType, React.ComponentType<{ className?: string }>> = {
   shipped: Sparkles,
   improved: Zap,

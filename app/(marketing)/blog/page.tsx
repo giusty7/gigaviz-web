@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { formatBlogDate, getPublishedPosts } from "@/lib/blog";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Gigaviz Blog",
   description:

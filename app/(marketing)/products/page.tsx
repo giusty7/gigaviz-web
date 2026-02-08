@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ProductsOverview from "@/components/marketing/products-overview";
+import dynamic from "next/dynamic";
+
+const ProductsOverview = dynamic(
+  () => import("@/components/marketing/products-overview"),
+  { loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-[color:var(--gv-surface)]" /> },
+);
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Gigaviz Products",

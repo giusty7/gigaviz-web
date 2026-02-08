@@ -5,6 +5,8 @@ import { formatBlogDate, getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { renderMarkdown } from "@/lib/markdown";
 import { SCHEMA_CONTEXT, blogPostingSchema, faqPageSchema, type FAQItem } from "@/lib/seo/schema";
 
+export const revalidate = 3600;
+
 /**
  * FAQ data for specific blog posts that include FAQ sections.
  * The key is the slug of the post.

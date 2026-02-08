@@ -677,12 +677,12 @@ Last audited: **February 10, 2026** — update scores as improvements land.
 | Developer Experience | 8/10 | ✅ Good | Zod env validation, 55+ scripts, typecheck/lint, CI/CD pipeline, Vitest configured |
 | Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy done, NO payment gateway (Stripe/Xendit) |
 | Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
-| Performance & Optimization | 6/10 | ⚠️ Improved | loading.tsx + error.tsx on all 3 route groups (ops, app, marketing); still no ISR, dynamic imports, edge runtime |
+| Performance & Optimization | 8/10 | ✅ Strong | ISR on 26 marketing pages (revalidate=3600), dynamic imports for 7 heavy client components, CDN cache headers in vercel.json, Next.js Image optimization, loading.tsx + error.tsx on all route groups |
 | Error Handling & Monitoring | 8/10 | ✅ Strong | Sentry SDK wired into all error boundaries (client/server/edge), structured logging, Slack/Discord alerting |
 | Testing | 5/10 | ⚠️ In Progress | Vitest configured, 81 unit tests (SLA, time, entitlements, products, i18n format), CI runs on every PR; still needs Playwright E2E |
 | Internationalization (i18n) | 5/10 | ⚠️ In Progress | next-intl installed, 2 locales (en/id), message files, locale switcher, locale-aware formatting; still needs full string extraction |
 
-**Overall: 7.0 / 10**
+**Overall: 7.2 / 10**
 
 ### Module Status Map
 
@@ -719,12 +719,14 @@ Phase 2: LOCALIZATION (Month 2-3)
 └── ⚠️ Multi-currency support (USD, EUR, IDR, SGD) — formatCurrency() ready, pricing page pending
 
 Phase 3: SCALE (Month 3-6)
-├── ISR for marketing pages (revalidate = 3600)
-├── Edge runtime for webhooks
-├── CDN optimization for global latency
-├── Regional Supabase instances (US, EU, APAC)
-├── GDPR compliance (data residency, DPA, consent)
-└── SOC 2 readiness documentation
+├── ✅ ISR for marketing pages (revalidate=3600) — DONE (26 pages)
+├── ⚠️ Edge runtime for webhooks — BLOCKED (Node.js crypto dependency in webhook handler)
+├── ✅ CDN optimization for global latency — DONE (vercel.json cache headers, s-maxage + stale-while-revalidate)
+├── ✅ Dynamic imports for heavy client components — DONE (7 components: EcosystemOrbital, TrustConsole, EvidenceCarousel, GetStartedFunnel, ProductsOverview, MediaKitCopyBlock, MediaKitLogos)
+├── ✅ Next.js Image optimization — DONE (converted all <img> to <Image>)
+├── ⚠️ Regional Supabase instances (US, EU, APAC) — PLANNED (docs/GDPR_COMPLIANCE_PLAN.md)
+├── ⚠️ GDPR compliance (data residency, DPA, consent) — PLANNED (docs/GDPR_COMPLIANCE_PLAN.md)
+└── ⚠️ SOC 2 readiness documentation — PLANNED (docs/SOC2_READINESS_PLAN.md)
 
 Phase 4: MARKET EXPANSION (Month 6-12)
 ├── API documentation (OpenAPI/Swagger for 228+ endpoints)

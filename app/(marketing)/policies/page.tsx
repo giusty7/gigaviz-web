@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { policies } from "@/lib/policies";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Policies",
   description: "Gigaviz rules and policies to keep the service safe and trustworthy.",

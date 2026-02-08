@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -79,8 +80,7 @@ export default async function AppsPage({ params }: Props) {
                 <div className="mb-3 flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     {app.icon_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={app.icon_url} alt={app.name} className="h-10 w-10 rounded-lg" />
+                      <Image src={app.icon_url} alt={app.name} width={40} height={40} className="h-10 w-10 rounded-lg" unoptimized />
                     )}
                     <div>
                       <h3 className="font-semibold group-hover:text-primary">{app.name}</h3>

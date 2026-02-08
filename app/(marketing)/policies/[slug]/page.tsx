@@ -6,6 +6,8 @@ import { readFile } from "fs/promises";
 import { renderMarkdown } from "@/lib/markdown";
 import { getPolicyBySlug, policySlugs } from "@/lib/policies";
 
+export const revalidate = 3600;
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };

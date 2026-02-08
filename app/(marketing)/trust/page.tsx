@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { EvidenceCarousel } from "@/components/marketing/evidence-carousel";
+import dynamic from "next/dynamic";
+
+const EvidenceCarousel = dynamic(
+  () =>
+    import("@/components/marketing/evidence-carousel").then(
+      (m) => m.EvidenceCarousel,
+    ),
+  { loading: () => <div className="aspect-video animate-pulse rounded-xl bg-[color:var(--gv-surface)]" /> },
+);
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Verification & Trust — Gigaviz Ecosystem",

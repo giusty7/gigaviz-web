@@ -4,6 +4,8 @@ import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 import { studioChildren, moduleStatusLabel } from "@/lib/modules/catalog";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Gigaviz Studio - Office, Graph, Tracks",
   description: "Studio suite includes Office, Graph, and Tracks for creative and productive teams.",

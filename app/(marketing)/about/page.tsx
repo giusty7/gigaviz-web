@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SCHEMA_CONTEXT, personSchema } from "@/lib/seo/schema";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "About Gigaviz",
   description:

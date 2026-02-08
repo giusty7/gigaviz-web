@@ -3,6 +3,8 @@ import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Gigaviz Apps",
   description:

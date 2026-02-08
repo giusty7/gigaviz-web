@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import GetStartedFunnel from "@/components/marketing/get-started-funnel";
+import dynamic from "next/dynamic";
 import TrackedLink from "@/components/analytics/tracked-link";
+
+const GetStartedFunnel = dynamic(
+  () => import("@/components/marketing/get-started-funnel"),
+  { loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[color:var(--gv-surface)]" /> },
+);
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Get Started with Gigaviz",

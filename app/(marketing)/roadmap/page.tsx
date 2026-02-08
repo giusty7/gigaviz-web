@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { roadmap } from "@/lib/roadmap";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Gigaviz Roadmap",
   description: "Gigaviz module development plan from now through the long term.",
