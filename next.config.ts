@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 import { validateBuildEnv } from "./lib/env/build";
 
 // Fail fast if required env vars are missing or invalid
@@ -72,4 +73,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Suppress Sentry SDK build logs
+  silent: true,
+
+  // Only upload source maps when SENTRY_AUTH_TOKEN is set (auto-read from env)
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Disable source map uploads when no auth token is available (local dev)
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+});

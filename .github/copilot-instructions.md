@@ -665,7 +665,7 @@ Before submitting PR or marking work complete:
 
 ## Platform Audit Scorecard (Feb 2026)
 
-Last audited: **February 9, 2026** — update scores as improvements land.
+Last audited: **February 10, 2026** — update scores as improvements land.
 
 | Area | Score | Status | Notes |
 |------|-------|--------|-------|
@@ -674,15 +674,15 @@ Last audited: **February 9, 2026** — update scores as improvements land.
 | Database & Data Model | 8/10 | ✅ Mature | 85 migrations, RLS on all tables, pgvector for RAG |
 | Marketing & SEO | 8/10 | ✅ Good | JSON-LD, sitemap, robots, product pages, 6 policies |
 | Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks |
-| Developer Experience | 7/10 | ✅ Good | Zod env validation, 55+ scripts, typecheck/lint |
+| Developer Experience | 8/10 | ✅ Good | Zod env validation, 55+ scripts, typecheck/lint, CI/CD pipeline, Vitest configured |
 | Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy done, NO payment gateway (Stripe/Xendit) |
 | Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
 | Performance & Optimization | 6/10 | ⚠️ Improved | loading.tsx + error.tsx on all 3 route groups (ops, app, marketing); still no ISR, dynamic imports, edge runtime |
-| Error Handling & Monitoring | 6/10 | ⚠️ Improved | Error boundaries on all route groups, structured logging, Slack/Discord alerting; still no Sentry |
-| Testing | 2/10 | 🔴 Critical | npm test = "No tests configured yet", zero automated tests |
+| Error Handling & Monitoring | 8/10 | ✅ Strong | Sentry SDK wired into all error boundaries (client/server/edge), structured logging, Slack/Discord alerting |
+| Testing | 5/10 | ⚠️ In Progress | Vitest configured, 61 unit tests (SLA, time, entitlements, products), CI runs on every PR; still needs Playwright E2E |
 | Internationalization (i18n) | 2/10 | 🔴 Not Ready | Hardcoded Indonesian/English mix, no i18n framework |
 
-**Overall: 6.6 / 10**
+**Overall: 6.8 / 10**
 
 ### Module Status Map
 
@@ -703,9 +703,10 @@ Last audited: **February 9, 2026** — update scores as improvements land.
 
 ```
 Phase 1: FOUNDATION (Month 1-2) ← START HERE
-├── 🔴 Testing: Install Vitest + Playwright, 80%+ coverage on auth/security paths
-├── 🔴 Error monitoring: Integrate Sentry for error tracking + performance
-├── 🔴 CI/CD: GitHub Actions for build/lint/typecheck on every PR
+├── ✅ Testing: Vitest installed, 61 unit tests (SLA, time, entitlements, products), CI runs tests — DONE
+├── ⚠️ Testing (E2E): Playwright for auth/security paths (80%+ coverage target) — PENDING
+├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired — DONE
+├── ✅ CI/CD: GitHub Actions (lint + typecheck + test + build) on every PR — DONE
 ├── ✅ Loading states: loading.tsx + error.tsx on all 3 route groups (ops, app, marketing) — DONE
 └── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA)
 

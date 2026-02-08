@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -12,6 +13,7 @@ export default function MarketingError({
   reset: () => void;
 }) {
   useEffect(() => {
+    Sentry.captureException(error);
     console.error("[marketing-error]", error);
   }, [error]);
 
