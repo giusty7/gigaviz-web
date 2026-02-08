@@ -1,19 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { withSupabaseAuth } from "@/lib/supabase/middleware";
-import createMiddleware from "next-intl/middleware";
-import { routing } from "@/i18n/routing";
 
 const PROD =
   process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 
 const PUBLIC_FILE = /\.(.*)$/;
-
-/**
- * next-intl middleware for locale detection & routing.
- * Uses "as-needed" prefix: default locale (en) has no prefix,
- * non-default locales get /id/... prefix.
- */
-const intlMiddleware = createMiddleware(routing);
 
 export const config = {
   // Keep matcher simple (no complex regex / no capturing groups)
@@ -86,21 +77,6 @@ export async function proxy(req: NextRequest) {
     return withSupabaseAuth(req);
   }
 
-  // ✅ Marketing routes: apply next-intl locale detection + Supabase auth
-  const intlResponse = intlMiddleware(req);
-
-  // If intl middleware produced a redirect (e.g. adding locale prefix), return it
-  if (intlResponse.headers.get("x-middleware-rewrite") || intlResponse.status === 307 || intlResponse.status === 308) {
-    return intlResponse;
-  }
-
-  // Otherwise, continue with Supabase auth (merges cookies/headers)
-  const authResponse = await withSupabaseAuth(req);
-
-  // Merge intl headers into auth response
-  intlResponse.headers.forEach((value, key) => {
-    authResponse.headers.set(key, value);
-  });
-
-  return authResponse;
+  // ✅ Marketing routes: apply Supabase auth (locale is resolved by next-intl/server at render time)
+  return withSupabaseAuth(req);
 }
