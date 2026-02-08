@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runAllHealthChecks } from "@/lib/ops/health";
 import { logger } from "@/lib/logging";
+import { alertHealthDegraded } from "@/lib/ops/alerts";
 
 /**
  * GET /api/ops/health/check
@@ -12,6 +13,14 @@ export async function GET() {
     const results = await runAllHealthChecks();
 
     const statusCode = results.overall === "healthy" ? 200 : results.overall === "degraded" ? 200 : 503;
+
+    // Alert if not healthy
+    if (results.overall !== "healthy") {
+      const failedChecks = Object.entries(results)
+        .filter(([k, v]) => k !== "overall" && typeof v === "object" && v && "status" in v && v.status !== "healthy")
+        .map(([k]) => k);
+      alertHealthDegraded({ status: results.overall, failedChecks }).catch(() => {});
+    }
 
     return NextResponse.json(
       {

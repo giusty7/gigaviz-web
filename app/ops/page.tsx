@@ -25,6 +25,7 @@ import {
   Download,
   Key,
   BookOpen,
+  ActivitySquare,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,7 @@ const menuCategories = [
     items: [
       { label: "System Health", href: "/ops/health", icon: HeartPulse, description: "Real-time health dashboard" },
       { label: "System Logs", href: "/ops/audit", icon: ScrollText, description: "Audit trail and activity logs" },
+      { label: "Ops Activity", href: "/ops/activity", icon: ActivitySquare, description: "Who's doing what across the ops team" },
     ],
   },
   {

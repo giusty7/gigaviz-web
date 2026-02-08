@@ -11,6 +11,7 @@ import {
 import { assertOpsRateLimit } from "@/lib/ops/rate-limit";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
+import { alertWorkspaceSuspended } from "@/lib/ops/alerts";
 
 type ActionResult = { ok: boolean; error?: string };
 
@@ -305,6 +306,14 @@ export async function suspendWorkspaceAction(formData: FormData): Promise<Action
     after: updated ?? null,
     meta: { reason },
   });
+
+  // Send external alert
+  alertWorkspaceSuspended({
+    workspaceId,
+    workspaceName: updated?.id ?? workspaceId,
+    reason,
+    actorEmail: actorEmail ?? "unknown",
+  }).catch(() => {});
 
   refreshOpsPaths(workspaceId);
   return { ok: true };

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   ActivitySquare,
+  Activity,
   BarChart3,
   Building2,
   Code,
@@ -40,6 +41,7 @@ const iconMap: Record<string, LucideIcon> = {
   Code,
   LayoutPanelLeft,
   Ticket,
+  Activity,
 };
 
 // Group nav items with separators

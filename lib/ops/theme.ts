@@ -82,6 +82,7 @@ export const opsTheme = {
       // Monitoring
       { label: "Health", href: "/ops/health", icon: "HeartPulse", group: "monitoring" },
       { label: "Logs", href: "/ops/audit", icon: "ScrollText", group: "monitoring" },
+      { label: "Activity", href: "/ops/activity", icon: "Activity", group: "monitoring" },
       // Business
       { label: "Analytics", href: "/ops/analytics", icon: "BarChart3", group: "business" },
       { label: "Operations", href: "/ops/operations", icon: "Zap", group: "business" },

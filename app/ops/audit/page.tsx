@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, Download, FileJson, Filter, ScrollText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,8 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OpsShell } from "@/components/platform/OpsShell";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { assertOpsEnabled } from "@/lib/ops/guard";
-import { getCurrentUser, isPlatformAdminById } from "@/lib/platform-admin/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 
 export const dynamic = "force-dynamic";
 
@@ -85,11 +84,8 @@ export default async function OpsAuditPage({
     page?: string;
   }>;
 }) {
-  const { userId, email } = await getCurrentUser();
-  if (!userId) notFound();
-  assertOpsEnabled();
-  const platformAdmin = await isPlatformAdminById(userId);
-  if (!platformAdmin) notFound();
+  const admin = await requirePlatformAdmin();
+  if (!admin.ok) redirect("/");
 
   const sp = await searchParams;
   const { rows, total } = await fetchAuditRows(sp);
@@ -125,7 +121,7 @@ export default async function OpsAuditPage({
   };
 
   return (
-    <OpsShell actorEmail={email} actorRole="platform_admin">
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <div className="space-y-4">
         <Card className="border-border bg-card/80">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">

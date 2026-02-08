@@ -6,6 +6,7 @@ import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { logImpersonationStart, logImpersonationEnd } from "@/lib/ops/audit";
 import { logger } from "@/lib/logging";
+import { alertImpersonationStarted } from "@/lib/ops/alerts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -80,6 +81,15 @@ export async function POST(request: NextRequest) {
       reason,
       durationMinutes,
     });
+
+    // Send alert to configured channels
+    alertImpersonationStarted({
+      actorEmail: admin.user.email ?? "unknown",
+      targetEmail: targetUserId,
+      workspaceName: workspaceId,
+      reason,
+      durationMinutes,
+    }).catch(() => {});
 
     return NextResponse.json({
       impersonationId: result.impersonation_id,
