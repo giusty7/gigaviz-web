@@ -663,4 +663,102 @@ Before submitting PR or marking work complete:
 
 ---
 
+## Platform Audit Scorecard (Feb 2026)
+
+Last audited: **February 7, 2026** — update scores as improvements land.
+
+| Area | Score | Status | Notes |
+|------|-------|--------|-------|
+| Architecture & Code Quality | 7/10 | ✅ Solid | Next.js 16 + React 19, server-first, 381 routes |
+| Authentication & Security | 8/10 | ✅ Strong | 4-layer auth (proxy→middleware→guard→RLS), Zod on all routes |
+| Database & Data Model | 8/10 | ✅ Mature | 85 migrations, RLS on all tables, pgvector for RAG |
+| Marketing & SEO | 8/10 | ✅ Good | JSON-LD, sitemap, robots, product pages, 6 policies |
+| Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks |
+| Developer Experience | 7/10 | ✅ Good | Zod env validation, 55+ scripts, typecheck/lint |
+| Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy done, NO payment gateway (Stripe/Xendit) |
+| Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
+| Performance & Optimization | 5/10 | ⚠️ Gaps | No loading.tsx, no ISR, no dynamic imports, no edge runtime |
+| Error Handling & Monitoring | 4/10 | 🔴 Critical | No Sentry, no route-level error boundaries, console-only logging |
+| Testing | 2/10 | 🔴 Critical | npm test = "No tests configured yet", zero automated tests |
+| Internationalization (i18n) | 2/10 | 🔴 Not Ready | Hardcoded Indonesian/English mix, no i18n framework |
+
+**Overall: 6.3 / 10**
+
+### Module Status Map
+
+| Module | Status | Routes | Assessment |
+|--------|--------|--------|------------|
+| **Platform** | ✅ LIVE | 7 sub-routes | Full RBAC, audit, billing UI, workspace management |
+| **Meta Hub** | ✅ LIVE | 15 sub-routes, 60+ APIs | Flagship module. WhatsApp/IG/Messenger, AI reply, automation, CAPI |
+| **Helper** | ✅ BETA | 9 sub-routes, 18+ APIs | AI chat, knowledge base (RAG), CRM insights, workflows |
+| **Studio** | ⚠️ SCAFFOLD | 1 route | Route exists, submodules (Office, Graph, Tracks) under modules/ |
+| **Apps** | ⚠️ SCAFFOLD | 3 routes | Integration request form exists |
+| **Marketplace** | ⚠️ SCAFFOLD | 3 routes | Basic catalog structure |
+| **Arena** | 🔴 PLACEHOLDER | 0 | Page only |
+| **Pay** | 🔴 PLACEHOLDER | 0 | Page only — depends on payment gateway |
+| **Community** | 🔴 PLACEHOLDER | 0 | Page only |
+| **Trade** | 🔴 PLACEHOLDER | 0 | Page only |
+
+### Go International Roadmap
+
+```
+Phase 1: FOUNDATION (Month 1-2) ← START HERE
+├── 🔴 Testing: Install Vitest + Playwright, 80%+ coverage on auth/security paths
+├── 🔴 Error monitoring: Integrate Sentry for error tracking + performance
+├── 🔴 CI/CD: GitHub Actions for build/lint/typecheck on every PR
+├── ⚠️ Loading states: Add loading.tsx + error.tsx to all major route groups
+└── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA)
+
+Phase 2: LOCALIZATION (Month 2-3)
+├── Install next-intl (App Router i18n)
+├── 2 locales: id (Indonesian) + en (English)
+├── Extract hardcoded strings to JSON message files
+├── Multi-currency support (USD, EUR, IDR, SGD)
+└── Locale-aware date/number formatting
+
+Phase 3: SCALE (Month 3-6)
+├── ISR for marketing pages (revalidate = 3600)
+├── Edge runtime for webhooks
+├── CDN optimization for global latency
+├── Regional Supabase instances (US, EU, APAC)
+├── GDPR compliance (data residency, DPA, consent)
+└── SOC 2 readiness documentation
+
+Phase 4: MARKET EXPANSION (Month 6-12)
+├── API documentation (OpenAPI/Swagger for 228+ endpoints)
+├── Developer portal & partner/reseller program
+├── Additional languages (Spanish, Portuguese, Arabic)
+├── Enterprise features (SSO, SAML, custom domains)
+└── Marketplace launch (templates, plugins)
+```
+
+### Target Markets (Priority Order)
+
+1. 🇮🇩 Indonesia (current, expand)
+2. 🇸🇬🇲🇾🇹🇭 Southeast Asia (WhatsApp dominant)
+3. 🇧🇷🇲🇽 Latin America (WhatsApp massive)
+4. 🇮🇳 India (WhatsApp largest market)
+5. 🇪🇺 Europe (GDPR compliance required first)
+
+### Competitive Positioning
+
+Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (WhatsApp + Instagram + Messenger + CAPI + AI Reply) with multi-tenant workspace management.
+
+| Compete With | Gigaviz Advantage | Gap to Close |
+|-------------|-------------------|-------------|
+| Respond.io | AI Reply + CAPI integration | i18n, Stripe |
+| WATI | Multi-channel (IG, Messenger) | Testing, API docs |
+| Twilio | No-code setup, lower cost | Payment gateway, scale |
+| Bird (MessageBird) | Integrated CRM (Helper) | Enterprise features (SSO) |
+
+### When Working on Improvements
+
+When tackling any task, always check if it helps close a gap from the scorecard above. Prioritize:
+1. **Security & testing** (🔴 critical) — never skip tests for auth/workspace scoping changes
+2. **Error handling** (🔴 critical) — add Sentry, error boundaries, loading states
+3. **Payment integration** (⚠️ high) — Stripe/Xendit for real revenue
+4. **i18n readiness** (⚠️ high) — avoid new hardcoded strings, use constants/enums
+
+---
+
 **Final Note**: If this guidance conflicts with actual code, CODE IS SOURCE OF TRUTH. Update this doc to reflect reality.
