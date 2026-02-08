@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { addTicketComment } from "@/lib/ops/tickets";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ comment });
   } catch (err) {
-    console.error("[ops] Add comment error:", err);
+    logger.error("[ops] Add comment error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }

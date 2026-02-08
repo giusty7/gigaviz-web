@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getTicket, updateTicket, getTicketComments } from "@/lib/ops/tickets";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ticket, comments });
   } catch (err) {
-    console.error("[ops] Get ticket error:", err);
+    logger.error("[ops] Get ticket error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }
@@ -75,7 +76,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ticket });
   } catch (err) {
-    console.error("[ops] Update ticket error:", err);
+    logger.error("[ops] Update ticket error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }

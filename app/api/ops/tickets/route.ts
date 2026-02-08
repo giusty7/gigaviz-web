@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { createTicket, listTickets, getTicketStats } from "@/lib/ops/tickets";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ tickets, stats });
   } catch (err) {
-    console.error("[ops] List tickets error:", err);
+    logger.error("[ops] List tickets error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ticket });
   } catch (err) {
-    console.error("[ops] Create ticket error:", err);
+    logger.error("[ops] Create ticket error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }

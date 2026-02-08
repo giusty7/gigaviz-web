@@ -3,6 +3,7 @@ import { z } from "zod";
 import { setImpersonationCookie, clearImpersonationCookie } from "@/lib/impersonation/context";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[ops] Set impersonation cookie error:", err);
+    logger.error("[ops] Set impersonation cookie error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }
@@ -57,7 +58,7 @@ export async function DELETE() {
     await clearImpersonationCookie();
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[ops] Clear impersonation cookie error:", err);
+    logger.error("[ops] Clear impersonation cookie error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }

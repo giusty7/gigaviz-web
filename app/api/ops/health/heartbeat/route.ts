@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { updateWorkerHeartbeat } from "@/lib/ops/health";
 import { serverEnv } from "@/lib/env";
+import { logger } from "@/lib/logging";
 
 /**
  * POST /api/ops/health/heartbeat
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, heartbeatId });
   } catch (err) {
-    console.error("[ops] Worker heartbeat error:", err);
+    logger.error("[ops] Worker heartbeat error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }

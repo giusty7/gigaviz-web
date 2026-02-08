@@ -10,6 +10,7 @@ import {
   searchWorkspaces,
   getAllEntitlementKeys,
 } from "@/lib/ops/entitlement-grants";
+import { logger } from "@/lib/logging";
 
 const GrantSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err) {
-    console.error("[EntitlementGrants API] Error:", err);
+    logger.error("[EntitlementGrants API] Error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

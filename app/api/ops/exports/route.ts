@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import { assertOpsEnabled } from "@/lib/ops/guard";
 import {
   getExportJobs,
   createExportJob,
@@ -8,29 +8,16 @@ import {
   generateWorkspacesExport,
   generateUsersExport,
 } from "@/lib/ops/analytics";
+import { logger } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check platform admin
-    const { data: adminCheck } = await supabaseAdmin()
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!adminCheck) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -47,7 +34,7 @@ export async function GET(request: NextRequest) {
     const jobs = await getExportJobs({ status, limit });
     return NextResponse.json({ jobs });
   } catch (error) {
-    console.error("[ops] exports error:", error);
+    logger.error("[ops] exports error", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -57,24 +44,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check platform admin
-    const { data: adminCheck } = await supabaseAdmin()
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!adminCheck) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
     const body = await request.json();
@@ -92,7 +65,7 @@ export async function POST(request: NextRequest) {
       export_type,
       format,
       filters: filters || {},
-      created_by: user.id,
+      created_by: ctx.user.id,
     });
 
     // Process immediately for small exports (in real app, use background job)
@@ -141,7 +114,7 @@ export async function POST(request: NextRequest) {
       throw exportError;
     }
   } catch (error) {
-    console.error("[ops] exports error:", error);
+    logger.error("[ops] exports error", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

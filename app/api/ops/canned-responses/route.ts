@@ -5,6 +5,7 @@ import {
   createCannedResponse,
   searchCannedResponses,
 } from "@/lib/ops/canned-responses";
+import { logger } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ responses });
   } catch (error) {
-    console.error("List canned responses error:", error);
+    logger.error("List canned responses error:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to list canned responses" },
       { status: 500 }
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ response }, { status: 201 });
   } catch (error) {
-    console.error("Create canned response error:", error);
+    logger.error("Create canned response error:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to create canned response" },
       { status: 500 }

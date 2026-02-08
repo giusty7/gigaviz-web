@@ -5,6 +5,7 @@ import {
   updateCannedResponse,
   deleteCannedResponse,
 } from "@/lib/ops/canned-responses";
+import { logger } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export async function GET(
 
     return NextResponse.json({ response });
   } catch (error) {
-    console.error("Get canned response error:", error);
+    logger.error("Get canned response error:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to get canned response" },
       { status: 500 }
@@ -58,7 +59,7 @@ export async function PATCH(
 
     return NextResponse.json({ response });
   } catch (error) {
-    console.error("Update canned response error:", error);
+    logger.error("Update canned response error:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to update canned response" },
       { status: 500 }
@@ -81,7 +82,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Delete canned response error:", error);
+    logger.error("Delete canned response error:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to delete canned response" },
       { status: 500 }

@@ -10,6 +10,7 @@ import {
   WorkspaceStatusActions,
 } from "@/components/owner/OwnerActions";
 import { OwnerEntitlementsPanel, OwnerTokensPanel } from "@/components/owner/OwnerOpsPanels";
+import { ImpersonateButton } from "@/components/ops/ImpersonateButton";
 import { Button } from "@/components/ui/button";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { formatRelativeTime } from "@/lib/time";
@@ -210,6 +211,12 @@ export default async function OpsWorkspaceDetailPage({
             ) : null}
             <Separator />
             <WorkspaceStatusActions workspaceId={workspace.id} status={status} />
+            <Separator />
+            <ImpersonateButton
+              workspaceId={workspace.id}
+              ownerId={workspace.owner_id ?? null}
+              ownerEmail={ownerEmail}
+            />
           </CardContent>
         </Card>
 

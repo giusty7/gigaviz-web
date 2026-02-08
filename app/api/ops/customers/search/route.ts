@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchCustomers } from "@/lib/ops/customers";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     const results = await searchCustomers(query, limit);
     return NextResponse.json({ results, count: results.length });
   } catch (error) {
-    console.error("Customer search API error:", error);
+    logger.error("Customer search API error:", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "search failed" },
       { status: 500 }

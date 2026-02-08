@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { logImpersonationStart, logImpersonationEnd } from "@/lib/ops/audit";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("[ops] Start impersonation error:", error);
+      logger.error("[ops] Start impersonation error:", { error: error.message || "impersonation_failed" });
       return NextResponse.json(
         { error: error.message || "impersonation_failed" },
         { status: 500 }
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       expiresAt: result.expires_at,
     });
   } catch (err) {
-    console.error("[ops] Start impersonation exception:", err);
+    logger.error("[ops] Start impersonation exception:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }
@@ -132,7 +133,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (error) {
-      console.error("[ops] End impersonation error:", error);
+      logger.error("[ops] End impersonation error:", { error: error.message || "end_impersonation_failed" });
       return NextResponse.json(
         { error: error.message || "end_impersonation_failed" },
         { status: 500 }
@@ -151,7 +152,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ ended: data === true });
   } catch (err) {
-    console.error("[ops] End impersonation exception:", err);
+    logger.error("[ops] End impersonation exception:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "internal_error" },
       { status: 500 }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import { assertOpsEnabled } from "@/lib/ops/guard";
 import { executeSqlQuery, getSqlQueryHistory } from "@/lib/ops/sql-runner";
+import { logger } from "@/lib/logging";
 
 /**
  * GET /api/ops/sql-query
@@ -8,32 +10,19 @@ import { executeSqlQuery, getSqlQueryHistory } from "@/lib/ops/sql-runner";
  */
 export async function GET() {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
-    const { data: adminRow } = await supabase
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!adminRow) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
-    }
-
-    const history = await getSqlQueryHistory(user.id, 50);
+    const history = await getSqlQueryHistory(ctx.user.id, 50);
 
     return NextResponse.json({ history });
   } catch (err) {
-    console.error("[ops] sql-query GET error:", err);
+    logger.error("[ops] sql-query GET error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "internal_error" },
+      { error: "internal_error" },
       { status: 500 }
     );
   }
@@ -45,23 +34,10 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || !user.email) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
-    }
-
-    const { data: adminRow } = await supabase
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!adminRow) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
     const body = await request.json();
@@ -73,8 +49,8 @@ export async function POST(request: Request) {
 
     const result = await executeSqlQuery({
       query,
-      adminId: user.id,
-      adminEmail: user.email,
+      adminId: ctx.user.id,
+      adminEmail: ctx.actorEmail ?? ctx.user.email ?? "unknown",
     });
 
     if (result.error) {
@@ -91,9 +67,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[ops] sql-query POST error:", err);
+    logger.error("[ops] sql-query POST error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "internal_error" },
+      { error: "internal_error" },
       { status: 500 }
     );
   }

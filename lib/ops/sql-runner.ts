@@ -2,18 +2,41 @@ import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const ALLOWED_TABLES = [
+  // Core platform
   "workspaces",
   "workspace_memberships",
   "profiles",
   "subscriptions",
   "token_wallets",
   "workspace_entitlements",
+  // Messaging & CRM
   "wa_threads",
   "wa_messages",
   "wa_contacts",
+  "wa_templates",
+  "threads",
+  "inbox_messages",
+  "outbox_messages",
+  // Meta Hub
+  "meta_wa_connections",
+  "meta_event_logs",
+  // Helper / AI
+  "helper_conversations",
+  "helper_messages",
+  "helper_knowledge_sources",
+  "helper_knowledge_chunks",
+  "helper_workflows",
+  "helper_workflow_runs",
+  "helper_templates",
+  // Ops infrastructure
   "ops_support_tickets",
   "ops_webhook_logs",
   "ops_feature_flags",
+  "ops_impersonations",
+  "ops_sql_query_logs",
+  // Audit
+  "audit_logs",
+  "owner_audit_log",
 ];
 
 const BLOCKED_KEYWORDS = [

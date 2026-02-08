@@ -1,3 +1,7 @@
+import { redirect } from "next/navigation";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import { assertOpsEnabled } from "@/lib/ops/guard";
+
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -10,6 +14,15 @@ export const metadata = {
   },
 };
 
-export default function OpsLayout({ children }: { children: React.ReactNode }) {
+export default async function OpsLayout({ children }: { children: React.ReactNode }) {
+  // Kill switch: OPS_ENABLED must be "1" (defaults to "1" in dev)
+  assertOpsEnabled();
+
+  // Auth guard: only platform admins may access /ops/*
+  const ctx = await requirePlatformAdmin();
+  if (!ctx.ok) {
+    redirect(ctx.reason === "not_authenticated" ? "/login" : "/");
+  }
+
   return children;
 }

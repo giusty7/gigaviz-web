@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { OpsShell } from "@/components/platform/OpsShell";
 import Link from "next/link";
@@ -44,10 +45,7 @@ const tools = [
 
 export default async function OperationsPage() {
   const admin = await requirePlatformAdmin();
-
-  if (!admin) {
-    return null;
-  }
+  if (!admin.ok) redirect("/");
 
   return (
     <OpsShell>

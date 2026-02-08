@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import { assertOpsEnabled } from "@/lib/ops/guard";
 import {
   getBulkJobs,
   getBulkJob,
@@ -9,29 +9,16 @@ import {
   cancelBulkJob,
   previewBulkOperation,
 } from "@/lib/ops/bulk-ops";
+import { logger } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check platform admin
-    const { data: adminCheck } = await supabaseAdmin()
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!adminCheck) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -56,7 +43,7 @@ export async function GET(request: NextRequest) {
     const jobs = await getBulkJobs({ status, limit: 50 });
     return NextResponse.json({ jobs });
   } catch (error) {
-    console.error("[ops] bulk-jobs error:", error);
+    logger.error("[ops] bulk-jobs error", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -66,24 +53,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check platform admin
-    const { data: adminCheck } = await supabaseAdmin()
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!adminCheck) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
     const body = await request.json();
@@ -114,14 +87,14 @@ export async function POST(request: NextRequest) {
         target_filter,
         payload,
         scheduled_for,
-        created_by: user.id,
+        created_by: ctx.user.id,
       });
       return NextResponse.json(job);
     }
 
     if (action === "cancel") {
       const { job_id } = body;
-      const job = await cancelBulkJob(job_id, user.id);
+      const job = await cancelBulkJob(job_id, ctx.user.id);
       return NextResponse.json(job);
     }
 
@@ -135,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
-    console.error("[ops] bulk-jobs error:", error);
+    logger.error("[ops] bulk-jobs error", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

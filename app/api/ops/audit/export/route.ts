@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser, isPlatformAdminById } from "@/lib/platform-admin/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -90,14 +90,12 @@ function convertToCSV(rows: AuditRow[]): string {
 export async function GET(req: NextRequest) {
   assertOpsEnabled();
 
-  const { userId } = await getCurrentUser();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const platformAdmin = await isPlatformAdminById(userId);
-  if (!platformAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const ctx = await requirePlatformAdmin();
+  if (!ctx.ok) {
+    return NextResponse.json(
+      { error: ctx.reason },
+      { status: ctx.reason === "not_authenticated" ? 401 : 403 }
+    );
   }
 
   const { searchParams } = new URL(req.url);

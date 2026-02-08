@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requirePlatformAdmin } from "@/lib/platform-admin/require";
+import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getWebhookLogs, getWebhookLog } from "@/lib/ops/webhooks";
+import { logger } from "@/lib/logging";
 
 /**
  * GET /api/ops/webhooks
@@ -8,23 +10,10 @@ import { getWebhookLogs, getWebhookLog } from "@/lib/ops/webhooks";
  */
 export async function GET(request: Request) {
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
-    }
-
-    const { data: adminRow } = await supabase
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!adminRow) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    assertOpsEnabled();
+    const ctx = await requirePlatformAdmin();
+    if (!ctx.ok) {
+      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -55,9 +44,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[ops] webhooks error:", err);
+    logger.error("[ops] webhooks error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "internal_error" },
+      { error: "internal_error" },
       { status: 500 }
     );
   }

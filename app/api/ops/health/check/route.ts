@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runAllHealthChecks } from "@/lib/ops/health";
+import { logger } from "@/lib/logging";
 
 /**
  * GET /api/ops/health/check
@@ -21,7 +22,7 @@ export async function GET() {
       { status: statusCode }
     );
   } catch (err) {
-    console.error("[ops] Health check error:", err);
+    logger.error("[ops] Health check error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(
       {
         status: "unhealthy",
