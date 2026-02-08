@@ -665,24 +665,24 @@ Before submitting PR or marking work complete:
 
 ## Platform Audit Scorecard (Feb 2026)
 
-Last audited: **February 7, 2026** — update scores as improvements land.
+Last audited: **February 9, 2026** — update scores as improvements land.
 
 | Area | Score | Status | Notes |
 |------|-------|--------|-------|
 | Architecture & Code Quality | 7/10 | ✅ Solid | Next.js 16 + React 19, server-first, 381 routes |
-| Authentication & Security | 8/10 | ✅ Strong | 4-layer auth (proxy→middleware→guard→RLS), Zod on all routes |
+| Authentication & Security | 9/10 | ✅ Strong | 4-layer auth (proxy→middleware→guard→RLS), Zod on all routes, ops layout guard, standardized requirePlatformAdmin |
 | Database & Data Model | 8/10 | ✅ Mature | 85 migrations, RLS on all tables, pgvector for RAG |
 | Marketing & SEO | 8/10 | ✅ Good | JSON-LD, sitemap, robots, product pages, 6 policies |
 | Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks |
 | Developer Experience | 7/10 | ✅ Good | Zod env validation, 55+ scripts, typecheck/lint |
 | Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy done, NO payment gateway (Stripe/Xendit) |
 | Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
-| Performance & Optimization | 5/10 | ⚠️ Gaps | No loading.tsx, no ISR, no dynamic imports, no edge runtime |
-| Error Handling & Monitoring | 4/10 | 🔴 Critical | No Sentry, no route-level error boundaries, console-only logging |
+| Performance & Optimization | 6/10 | ⚠️ Improved | loading.tsx + error.tsx on all 3 route groups (ops, app, marketing); still no ISR, dynamic imports, edge runtime |
+| Error Handling & Monitoring | 6/10 | ⚠️ Improved | Error boundaries on all route groups, structured logging, Slack/Discord alerting; still no Sentry |
 | Testing | 2/10 | 🔴 Critical | npm test = "No tests configured yet", zero automated tests |
 | Internationalization (i18n) | 2/10 | 🔴 Not Ready | Hardcoded Indonesian/English mix, no i18n framework |
 
-**Overall: 6.3 / 10**
+**Overall: 6.6 / 10**
 
 ### Module Status Map
 
@@ -706,7 +706,7 @@ Phase 1: FOUNDATION (Month 1-2) ← START HERE
 ├── 🔴 Testing: Install Vitest + Playwright, 80%+ coverage on auth/security paths
 ├── 🔴 Error monitoring: Integrate Sentry for error tracking + performance
 ├── 🔴 CI/CD: GitHub Actions for build/lint/typecheck on every PR
-├── ⚠️ Loading states: Add loading.tsx + error.tsx to all major route groups
+├── ✅ Loading states: loading.tsx + error.tsx on all 3 route groups (ops, app, marketing) — DONE
 └── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA)
 
 Phase 2: LOCALIZATION (Month 2-3)
@@ -763,21 +763,21 @@ When tackling any task, always check if it helps close a gap from the scorecard 
 
 ## Ops & Owner Console Audit (Feb 2026)
 
-Last audited: **February 8, 2026**
+Last audited: **February 9, 2026**
 
-### Ops Console Score: 7.2 / 10
+### Ops Console Score: 8.1 / 10
 
 | Area | Score | Status | Notes |
 |------|-------|--------|-------|
-| Feature Completeness | 9/10 | ✅ | 26 pages, 25 API routes, 11 server actions, 22 lib modules |
+| Feature Completeness | 9/10 | ✅ | 28 pages, 25 API routes, 11 server actions, 23 lib modules |
 | Audit Trail | 8/10 | ✅ | All mutations logged with before/after snapshots |
-| Developer Tools | 8/10 | ✅ | SQL runner, API playground, webhook debugger, feature flags |
-| Monitoring | 7/10 | ✅ | Health checks, worker heartbeats, metrics snapshots |
+| Developer Tools | 9/10 | ✅ | SQL runner (33 tables), API playground, webhook debugger, feature flags |
+| Monitoring | 8/10 | ✅ | Health checks, worker heartbeats, metrics, activity dashboard, Slack/Discord alerts |
 | Customer Support | 6/10 | ⚠️ | Tickets exist but internal-only, no customer-facing flow |
-| Auth & Access Control | 6/10 | ⚠️ | Works but inconsistent patterns across API routes |
-| Security Hardening | 5/10 | ⚠️ | No 2FA, no IP allowlist, no session hardening for ops |
-| Multi-Staff Scalability | 3/10 | 🔴 | Single role — every admin is god, no RBAC |
-| Alerting & Notifications | 2/10 | 🔴 | No Slack, email, or push alerts for critical events |
+| Auth & Access Control | 9/10 | ✅ | Layout guard + all routes use requirePlatformAdmin(), null→redirect fixed |
+| Security Hardening | 6/10 | ⚠️ | Impersonation alerts, structured logging; still no 2FA, IP allowlist |
+| Multi-Staff Scalability | 4/10 | ⚠️ | Activity dashboard added; still single role, no RBAC |
+| Alerting & Notifications | 7/10 | ✅ | Slack/Discord/generic webhook alerts for health, impersonation, suspension |
 | i18n | 1/10 | 🔴 | All hardcoded English |
 
 ### Ops Feature Inventory
@@ -787,7 +787,7 @@ Last audited: **February 8, 2026**
 | Workspace Mgmt | God Console, Workspace Browser, Detail, Bulk Ops, Templates | ✅ All functional |
 | Customer Ops | Customer Search, Support Tickets (SLA), Canned Responses | ✅ All functional |
 | Access Control | Entitlement Manager, Feature Flags (global + per-workspace), Claim | ✅ All functional |
-| Monitoring | System Health, Worker Heartbeats, Stale Worker Detection | ✅ All functional |
+| Monitoring | System Health, Worker Heartbeats, Stale Worker Detection, Activity Dashboard, Slack/Discord Alerts | ✅ All functional |
 | Analytics | Business Metrics, Data Exports (CSV/JSON), Saved Reports | ✅ All functional |
 | Dev Tools | SQL Runner (read-only), Webhook Debugger, API Playground | ✅ All functional |
 | Security | Impersonation (start/end/audit), Audit Trail + Export, Rate Limiting | ✅ All functional |
@@ -813,32 +813,36 @@ TIER 3: Workspace Admin (/api/admin/*) — 31 API routes
 ### Ops Critical Gaps
 
 1. **🔴 No RBAC within ops** — Every platform_admin has identical god-level access. Need: superadmin / ops_manager / support_agent / developer / viewer roles
-2. **🔴 Inconsistent auth patterns** — ~10 API routes use manual platform_admins check instead of requirePlatformAdmin(). Risk: auth bypass if patterns drift
-3. **🔴 Layout has no auth guard** — ops layout.tsx does NOT check auth. Each page must individually call requirePlatformAdmin(). Risk: new page without guard = exposed
-4. **🔴 No alerting** — Health checks exist but nobody gets notified on failure. No Slack/Discord/email integration
-5. **⚠️ SQL Runner whitelist too small** — Only 12 tables. Can't query inbox_messages, outbox_messages, meta_tokens, helper_*
-6. **⚠️ Impersonation has no UI button** — Full API exists but no button on workspace detail page
-7. **⚠️ Some pages return null instead of redirect** — `if (!admin) return null` instead of `redirect()`
-8. **⚠️ No ops activity dashboard** — Can't see who is doing what across the ops team
+2. ~~**🔴 Inconsistent auth patterns**~~ — ✅ FIXED (commit e5f2b09): All API routes standardized to requirePlatformAdmin()
+3. ~~**🔴 Layout has no auth guard**~~ — ✅ FIXED (commit e5f2b09): ops/layout.tsx now has requirePlatformAdmin() guard
+4. ~~**🔴 No alerting**~~ — ✅ FIXED (commit 6558d98): lib/ops/alerts.ts with Slack/Discord/generic webhook support; wired into health, impersonation, suspension
+5. ~~**⚠️ SQL Runner whitelist too small**~~ — ✅ FIXED (commit e5f2b09): Expanded from 12 → 33 tables
+6. ~~**⚠️ Impersonation has no UI button**~~ — ✅ FIXED (commit e5f2b09): ImpersonateButton on workspace detail
+7. ~~**⚠️ Some pages return null instead of redirect**~~ — ✅ FIXED (commit e5f2b09): All 7 pages now use redirect()
+8. ~~**⚠️ No ops activity dashboard**~~ — ✅ FIXED (commit 6558d98): /ops/activity with stats, actors, timeline
 9. **⚠️ Support tickets internal-only** — No customer-facing submission, no email-to-ticket
 
 ### Ops Hardening Roadmap
 
 ```
-Phase 0.5: OPS HARDENING (Do before Phase 1)
-├── 🔴 Add auth guard to ops layout.tsx (safety net)
-├── 🔴 Standardize ALL API routes to requirePlatformAdmin()
-├── 🔴 Fix pages returning null → use redirect()
-├── ⚠️ Expand SQL Runner whitelist (inbox, outbox, meta_*, helper_*)
-├── ⚠️ Add impersonation button to workspace detail UI
-├── ⚠️ Standardize console.log → logger in all ops routes
-└── ⚠️ Add Slack webhook alerts (health failures, ticket SLA, suspension)
+Phase 0.5: OPS HARDENING — ✅ COMPLETE (commits e5f2b09 + 6558d98)
+├── ✅ Add auth guard to ops layout.tsx (safety net)
+├── ✅ Standardize ALL API routes to requirePlatformAdmin()
+├── ✅ Fix pages returning null → use redirect()
+├── ✅ Expand SQL Runner whitelist (12 → 33 tables)
+├── ✅ Add impersonation button to workspace detail UI
+├── ✅ Standardize console.log → logger in all ops routes (20 instances)
+├── ✅ Add Slack/Discord webhook alerts (health, impersonation, suspension)
+├── ✅ Add loading.tsx + error.tsx to all route groups
+├── ✅ Build ops activity dashboard (/ops/activity)
+└── ✅ Fix audit page auth to canonical requirePlatformAdmin()
 
-Phase 1 addition:
+Phase 1 addition (remaining):
 ├── 🔴 Ops RBAC (superadmin/ops_manager/support_agent/developer/viewer)
 ├── ⚠️ Customer-facing ticket submission flow
 ├── ⚠️ Revenue metrics (when Stripe lands)
-└── ⚠️ Ops activity dashboard (who did what, when)
+├── ⚠️ Wire alertTicketSlaBreach + alertWorkerStale into remaining flows
+└── ⚠️ Add 2FA / IP allowlist for ops console
 ```
 
 ---
