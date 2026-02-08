@@ -5,6 +5,8 @@ import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { GAPageView } from "@/components/analytics/ga-pageview";
 import { Toaster } from "@/components/ui/toaster";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -31,18 +33,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   const globalSchema = {
     "@context": SCHEMA_CONTEXT,
     "@graph": [organizationSchema(), websiteSchema()],
   };
 
   return (
-    <html lang="id">
+    <html lang={locale}>
       <body
         className={`min-h-screen bg-gigaviz-bg text-gigaviz-cream font-sans ${gvSans.variable} ${gvDisplay.variable}`}
       >
@@ -52,7 +57,9 @@ export default function RootLayout({
         />
         <GoogleAnalytics />
         <GAPageView />
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
         <Toaster />
       </body>
     </html>

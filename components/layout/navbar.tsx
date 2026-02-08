@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { products } from "@/lib/products";
 import { trackCta } from "@/lib/analytics";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 
 type NavItem = {
   href: string;
@@ -218,6 +219,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <LocaleSwitcher />
           {isMarketing ? (
             <>
               <Link

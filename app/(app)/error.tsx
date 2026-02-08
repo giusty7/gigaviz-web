@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 export default function AppError({
@@ -12,6 +13,8 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errors");
+
   useEffect(() => {
     Sentry.captureException(error);
     console.error("[app-error]", error);
@@ -25,10 +28,10 @@ export default function AppError({
         </div>
         <div>
           <h2 className="text-lg font-semibold text-foreground">
-            Terjadi Kesalahan
+            {t("somethingWrong")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Maaf, terjadi kesalahan saat memuat halaman ini. Silakan coba lagi.
+            {t("somethingWrongDesc")}
           </p>
         </div>
         {error.digest && (
@@ -40,7 +43,7 @@ export default function AppError({
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition"
           >
             <RefreshCw className="h-4 w-4" />
-            Coba Lagi
+            {t("tryAgain")}
           </button>
           <Link
             href="/dashboard"

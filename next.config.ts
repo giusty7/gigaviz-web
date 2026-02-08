@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from "next-intl/plugin";
 import { validateBuildEnv } from "./lib/env/build";
 
 // Fail fast if required env vars are missing or invalid
 validateBuildEnv();
+
+// next-intl plugin — points to the request-time i18n config
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -73,7 +77,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   // Suppress Sentry SDK build logs
   silent: true,
 

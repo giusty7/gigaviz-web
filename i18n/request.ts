@@ -1,0 +1,24 @@
+import { getRequestConfig } from "next-intl/server";
+import { routing } from "./routing";
+
+/**
+ * next-intl request-time configuration.
+ *
+ * Called once per request on the server to resolve the locale
+ * and load the corresponding message bundle.
+ */
+export default getRequestConfig(async ({ requestLocale }) => {
+  // requestLocale is provided by the middleware or routing
+  let locale = await requestLocale;
+
+  // Validate that the incoming locale is supported
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!locale || !routing.locales.includes(locale as any)) {
+    locale = routing.defaultLocale;
+  }
+
+  return {
+    locale,
+    messages: (await import(`../messages/${locale}.json`)).default,
+  };
+});

@@ -10,6 +10,7 @@ import { LatestUpdates } from "@/components/marketing/LatestUpdates";
 import { moduleStatusLabel, topLevelModules } from "@/lib/modules/catalog";
 import TrackedLink from "@/components/analytics/tracked-link";
 import { getAppContext } from "@/lib/app-context";
+import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: "Gigaviz Ecosystem — Technology Provider for WhatsApp Business Platform",
@@ -17,20 +18,7 @@ export const metadata: Metadata = {
     "A verified control plane for Growth, Build, and Community rooms. Workspace isolation, billing, audit, AI, and operations on one surface.",
 };
 
-const suites = [
-  {
-    title: "Growth Room",
-    desc: "Run campaigns, offers, and payments through Meta Hub, Pay, Trade, and Marketplace.",
-  },
-  {
-    title: "Build Room",
-    desc: "Create, design, and automate with Studio, Helper, Apps, all on the Platform control plane.",
-  },
-  {
-    title: "Community Room",
-    desc: "Host communities and engagement drops with Community and Arena in one place.",
-  },
-];
+// Suites are resolved inside the component with translations
 
 const moduleShortOverrides: Record<string, string> = {
   platform: "The control plane with auth, roles, billing, audit, and token governance.",
@@ -119,6 +107,15 @@ export default async function HomePage() {
     redirect(`/${ctx.currentWorkspace.slug}/dashboard`);
   }
 
+  const t = await getTranslations("home");
+  const tc = await getTranslations("common");
+
+  const suites = [
+    { title: t("suiteGrowth"), desc: t("suiteGrowthDesc") },
+    { title: t("suiteBuild"), desc: t("suiteBuildDesc") },
+    { title: t("suiteCommunity"), desc: t("suiteCommunityDesc") },
+  ];
+
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-[#d4af37]/15 hero-gradient text-[#f5f5dc]">
@@ -144,43 +141,43 @@ export default async function HomePage() {
                     className="h-5 w-5 text-emerald-500 drop-shadow-[0_0_8px_rgba(212,175,55,0.6)]" 
                     strokeWidth={2.5}
                   />
-                  <span>Official Meta Verified Technology Provider</span>
+                  <span>{t("badge")}</span>
                 </span>
               </div>
 
               <div className="space-y-5">
                 <h1 className="max-w-xl text-balance text-3xl font-gvDisplay font-semibold leading-tight tracking-tight bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent md:text-4xl lg:text-[2.85rem]">
-                  One verified control plane for Growth, Build, and Community.
+                  {t("heroTitle")}
                 </h1>
                 <p className="max-w-lg text-pretty text-sm leading-relaxed text-[#f5f5dc]/75 md:text-base">
-                  Activate the official Meta Cloud API, keep every workspace isolated, and run campaigns, creation, and community in one place with billing and audit already wired.
+                  {t("heroDescription")}
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
                   href="/get-started"
-                  label="Request onboarding"
+                  label={t("ctaOnboarding")}
                   location="homepage_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-7 py-3.5 text-sm font-semibold text-[#050a18] shadow-[0_8px_32px_-8px_rgba(212,175,55,0.5)] transition hover:shadow-[0_12px_40px_-8px_rgba(212,175,55,0.7)] focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050a18]"
                 >
-                  Request onboarding
+                  {t("ctaOnboarding")}
                 </TrackedLink>
                 <Link
                   href="#how-it-works"
                   className="inline-flex items-center justify-center rounded-2xl border border-[#d4af37]/30 bg-[#0a1229]/60 px-7 py-3.5 text-sm font-semibold text-[#d4af37] backdrop-blur-lg transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/10 focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050a18]"
                 >
-                  See product overview
+                  {t("ctaOverview")}
                 </Link>
               </div>
 
               {/* Feature tags - subtle Gold pills */}
               <div className="flex flex-wrap gap-2 text-xs">
                 {[
-                  "Meta Verified",
-                  "Growth / Build / Community",
-                  "Workspace isolation",
-                  "Audit + billing ready",
+                  t("tagMetaVerified"),
+                  t("tagRooms"),
+                  t("tagWorkspace"),
+                  t("tagAudit"),
                 ].map((tag) => (
                   <span
                     key={tag}
@@ -209,7 +206,7 @@ export default async function HomePage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Rooms</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Three rooms to run your business
+                  {t("suitesTitle")}
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-[#f5f5dc]/65">
                   Growth, Build, and Community all ride the same verified control plane with workspace isolation, billing, and audit baked in.
@@ -553,7 +550,7 @@ export default async function HomePage() {
                 aria-hidden
               />
               <div className="relative space-y-2">
-                <h2 className="text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">Ready to launch with Gigaviz</h2>
+                <h2 className="text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{t("ctaSectionTitle")}</h2>
                 <p className="max-w-md text-sm text-[#f5f5dc]/65">
                   We are an official Technology Provider for the WhatsApp Cloud API. Request onboarding to activate your rooms and products; use token usage for AI and API actions with governance in place.
                 </p>
@@ -561,17 +558,17 @@ export default async function HomePage() {
               <div className="relative mt-6 flex flex-wrap gap-3 md:mt-0">
                 <TrackedLink
                   href="/get-started"
-                  label="Request onboarding"
+                  label={t("ctaOnboarding")}
                   location="homepage_footer"
                   className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-6 py-3 text-sm font-semibold text-[#050a18] shadow-[0_8px_32px_-8px_#d4af37] transition hover:shadow-[0_12px_40px_-8px_#d4af37]"
                 >
-                  Request onboarding
+                  {t("ctaOnboarding")}
                 </TrackedLink>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-xl border border-[#f5f5dc]/20 bg-[#0a1229]/60 px-6 py-3 text-sm font-semibold text-[#f5f5dc] backdrop-blur transition hover:border-[#d4af37]/50"
                 >
-                  Contact sales
+                  {tc("learnMore")}
                 </Link>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 
 export function Footer() {
   return (
@@ -9,14 +10,17 @@ export function Footer() {
           <p>Built with Next.js, Tailwind, and a healthy amount of coffee.</p>
           <p>Built in Indonesia. Designed for global scale.</p>
         </div>
-        <nav className="flex flex-wrap gap-4 text-[color:var(--gv-muted)] md:justify-end">
-          <Link href="/contact" className="transition-colors hover:text-[color:var(--gv-text)]">
-            Contact
-          </Link>
-          <Link href="/media-kit" className="transition-colors hover:text-[color:var(--gv-text)]">
-            Media Kit
-          </Link>
-        </nav>
+        <div className="flex flex-col items-start gap-3 md:items-end">
+          <LocaleSwitcher />
+          <nav className="flex flex-wrap gap-4 text-[color:var(--gv-muted)] md:justify-end">
+            <Link href="/contact" className="transition-colors hover:text-[color:var(--gv-text)]">
+              Contact
+            </Link>
+            <Link href="/media-kit" className="transition-colors hover:text-[color:var(--gv-text)]">
+              Media Kit
+            </Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );

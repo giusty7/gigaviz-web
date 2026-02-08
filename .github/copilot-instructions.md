@@ -679,10 +679,10 @@ Last audited: **February 10, 2026** — update scores as improvements land.
 | Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
 | Performance & Optimization | 6/10 | ⚠️ Improved | loading.tsx + error.tsx on all 3 route groups (ops, app, marketing); still no ISR, dynamic imports, edge runtime |
 | Error Handling & Monitoring | 8/10 | ✅ Strong | Sentry SDK wired into all error boundaries (client/server/edge), structured logging, Slack/Discord alerting |
-| Testing | 5/10 | ⚠️ In Progress | Vitest configured, 61 unit tests (SLA, time, entitlements, products), CI runs on every PR; still needs Playwright E2E |
-| Internationalization (i18n) | 2/10 | 🔴 Not Ready | Hardcoded Indonesian/English mix, no i18n framework |
+| Testing | 5/10 | ⚠️ In Progress | Vitest configured, 81 unit tests (SLA, time, entitlements, products, i18n format), CI runs on every PR; still needs Playwright E2E |
+| Internationalization (i18n) | 5/10 | ⚠️ In Progress | next-intl installed, 2 locales (en/id), message files, locale switcher, locale-aware formatting; still needs full string extraction |
 
-**Overall: 6.8 / 10**
+**Overall: 7.0 / 10**
 
 ### Module Status Map
 
@@ -711,11 +711,12 @@ Phase 1: FOUNDATION (Month 1-2) ← START HERE
 └── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA)
 
 Phase 2: LOCALIZATION (Month 2-3)
-├── Install next-intl (App Router i18n)
-├── 2 locales: id (Indonesian) + en (English)
-├── Extract hardcoded strings to JSON message files
-├── Multi-currency support (USD, EUR, IDR, SGD)
-└── Locale-aware date/number formatting
+├── ✅ Install next-intl (App Router i18n) — DONE
+├── ✅ 2 locales: id (Indonesian) + en (English) — DONE (messages/en.json + messages/id.json)
+├── ✅ Locale switcher UI (navbar + footer) — DONE
+├── ✅ Locale-aware date/number/currency formatting (lib/i18n/format.ts) — DONE
+├── ⚠️ Extract hardcoded strings to JSON message files — IN PROGRESS (homepage done, remaining pages pending)
+└── ⚠️ Multi-currency support (USD, EUR, IDR, SGD) — formatCurrency() ready, pricing page pending
 
 Phase 3: SCALE (Month 3-6)
 ├── ISR for marketing pages (revalidate = 3600)

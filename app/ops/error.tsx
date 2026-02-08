@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 export default function OpsError({
@@ -12,6 +13,8 @@ export default function OpsError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errors");
+
   useEffect(() => {
     Sentry.captureException(error);
     console.error("[ops-error]", error);
@@ -25,10 +28,10 @@ export default function OpsError({
         </div>
         <div>
           <h2 className="text-lg font-semibold text-white">
-            Ops Console Error
+            {t("somethingWrong")}
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            Something went wrong while loading this page. The error has been logged.
+            {t("somethingWrongDesc")}
           </p>
         </div>
         {error.message && (
@@ -45,7 +48,7 @@ export default function OpsError({
             className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition"
           >
             <RefreshCw className="h-4 w-4" />
-            Retry
+            {t("tryAgain")}
           </button>
           <Link
             href="/ops"
