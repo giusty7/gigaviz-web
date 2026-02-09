@@ -1,5 +1,6 @@
 import { getAllUpdates, formatUpdateDate, type UpdateType } from "@/lib/updates";
 import { Sparkles, Zap, Shield, Wrench } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 
@@ -10,13 +11,6 @@ const typeIcons: Record<UpdateType, React.ComponentType<{ className?: string }>>
   security: Shield,
 };
 
-const typeLabels: Record<UpdateType, string> = {
-  shipped: "New",
-  improved: "Improved",
-  fixed: "Fixed",
-  security: "Security",
-};
-
 const typeColors: Record<UpdateType, string> = {
   shipped: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   improved: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -25,7 +19,15 @@ const typeColors: Record<UpdateType, string> = {
 };
 
 export default async function ChangelogPage() {
+  const t = await getTranslations("changelog");
   const updates = await getAllUpdates({ audience: "public", limit: 50 });
+
+  const typeLabels: Record<UpdateType, string> = {
+    shipped: t("typeShipped"),
+    improved: t("typeImproved"),
+    fixed: t("typeFixed"),
+    security: t("typeSecurity"),
+  };
 
   return (
     <main className="min-h-screen bg-[#050a18] py-24">
@@ -33,10 +35,10 @@ export default async function ChangelogPage() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-[#f5f5dc] sm:text-5xl">
-            Changelog
+            {t("title")}
           </h1>
           <p className="text-lg text-[#f5f5dc]/70">
-            Follow along as we build and improve Gigaviz
+            {t("subtitle")}
           </p>
         </div>
 
@@ -44,7 +46,7 @@ export default async function ChangelogPage() {
         <div className="space-y-8">
           {updates.length === 0 ? (
             <div className="rounded-2xl border border-[#d4af37]/15 bg-[#0a1229]/70 p-12 text-center">
-              <p className="text-[#f5f5dc]/60">No updates yet. Check back soon!</p>
+              <p className="text-[#f5f5dc]/60">{t("noUpdates")}</p>
             </div>
           ) : (
             updates.map((update) => {

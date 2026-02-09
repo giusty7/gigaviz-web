@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/components/contact/contact-form";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 
@@ -19,13 +20,11 @@ export const metadata: Metadata = {
   },
 };
 
-const contactNotes = [
-  "Include your main goal and business context.",
-  "Share your team size and the targets you want to reach.",
-  "If you need press assets, use the official Media Kit.",
-];
+export default async function ContactPage() {
+  const t = await getTranslations("contact");
 
-export default function ContactPage() {
+  const contactNotes = [t("note1"), t("note2"), t("note3")];
+
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
@@ -45,13 +44,13 @@ export default function ContactPage() {
           <div className="container relative z-10 py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Contact
+                {t("badge")}
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Contact Gigaviz
+                {t("title")}
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Send your questions or needs, and our team will respond as soon as possible.
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -62,10 +61,10 @@ export default function ContactPage() {
             <div className="space-y-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Quick guide
+                  {t("quickGuideBadge")}
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  What to include
+                  {t("quickGuideTitle")}
                 </h2>
                 <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                   {contactNotes.map((item) => (
@@ -79,29 +78,29 @@ export default function ContactPage() {
 
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <p className="font-semibold text-[color:var(--gv-text)]">
-                  Response time
+                  {t("responseTimeTitle")}
                 </p>
                 <p className="mt-2">
-                  1-2 business days for general questions, faster for priority needs.
+                  {t("responseTimeDesc")}
                 </p>
               </div>
 
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <p className="font-semibold text-[color:var(--gv-text)]">
-                  Additional resources
+                  {t("additionalResourcesTitle")}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3">
                   <Link
                     href="/media-kit"
                     className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                   >
-                    Media Kit
+                    {t("mediaKit")}
                   </Link>
                   <Link
                     href="/status"
                     className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                   >
-                    Product Status
+                    {t("productStatus")}
                   </Link>
                 </div>
               </div>

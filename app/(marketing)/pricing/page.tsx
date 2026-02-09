@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 
@@ -9,95 +10,63 @@ export const metadata: Metadata = {
     "Gigaviz subscription plans with flexible modules, guided onboarding, and transparent token usage reporting.",
 };
 
-const plans = [
-  {
-    name: "Starter",
-    price: "Rp 299.000",
-    note: "Starting from",
-    desc: "For small teams needing core modules and basic workflows.",
-    features: [
-      "Access to Core OS and Workspace",
-      "2 active modules",
-      "1 workspace",
-      "Basic email support",
-    ],
-  },
-  {
-    name: "Pro",
-    price: "Rp 799.000",
-    note: "Starting from",
-    desc: "For operational teams needing automation and inbox management.",
-    features: [
-      "All Starter features",
-      "5 active modules",
-      "Campaign scheduler",
-      "Priority support",
-    ],
-    highlight: "Most Popular",
-  },
-  {
-    name: "Business",
-    price: "Rp 1.900.000",
-    note: "Starting from",
-    desc: "For teams needing multi-workspace support and advanced integrations.",
-    features: [
-      "All Pro features",
-      "10 active modules",
-      "Multi-workspace support",
-      "Advanced roles and audit logs",
-    ],
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    note: "Contact Sales",
-    desc: "For enterprise needs, custom SLA, and specialized integrations.",
-    features: [
-      "All Business features",
-      "Custom SLA and onboarding",
-      "Custom integrations",
-      "Dedicated account manager",
-    ],
-  },
-];
+export default async function PricingPage() {
+  const t = await getTranslations("pricing");
+  const tc = await getTranslations("common");
 
-const platformIncludes = [
-  "Single sign-on and role management",
-  "Core operational workflow templates",
-  "Onboarding and quick training for core teams",
-  "Audit trail for critical activities",
-  "Product roadmap aligned with team needs",
-];
+  const plans = [
+    {
+      name: t("starterName"),
+      price: t("starterPrice"),
+      note: t("starterNote"),
+      desc: t("starterDesc"),
+      features: [t("starterF1"), t("starterF2"), t("starterF3"), t("starterF4")],
+    },
+    {
+      name: t("proName"),
+      price: t("proPrice"),
+      note: t("proNote"),
+      desc: t("proDesc"),
+      features: [t("proF1"), t("proF2"), t("proF3"), t("proF4")],
+      highlight: t("mostPopular"),
+    },
+    {
+      name: t("businessName"),
+      price: t("businessPrice"),
+      note: t("businessNote"),
+      desc: t("businessDesc"),
+      features: [t("businessF1"), t("businessF2"), t("businessF3"), t("businessF4")],
+    },
+    {
+      name: t("enterpriseName"),
+      price: t("enterprisePrice"),
+      note: t("enterpriseNote"),
+      desc: t("enterpriseDesc"),
+      features: [t("enterpriseF1"), t("enterpriseF2"), t("enterpriseF3"), t("enterpriseF4")],
+    },
+  ];
 
-const assuranceItems = [
-  {
-    title: "Phased Setup",
-    desc: "Staged implementation plan to ensure teams are ready without overwhelming them.",
-  },
-  {
-    title: "Budget Control",
-    desc: "Usage limits per workspace with periodic usage reports.",
-  },
-  {
-    title: "Priority Support",
-    desc: "Custom SLA for Business and Enterprise plans.",
-  },
-];
+  const platformIncludes = [t("include1"), t("include2"), t("include3"), t("include4"), t("include5")];
 
-export default function PricingPage() {
+  const assuranceItems = [
+    { title: t("assurancePhasedTitle"), desc: t("assurancePhasedDesc") },
+    { title: t("assuranceBudgetTitle"), desc: t("assuranceBudgetDesc") },
+    { title: t("assuranceSupportTitle"), desc: t("assuranceSupportDesc") },
+  ];
+
   return (
     <main className="flex-1">
       <section className="border-b border-[color:var(--gv-border)]">
           <div className="container py-16 md:py-24">
             <div className="mx-auto max-w-3xl space-y-4 text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Pricing
+                {t("badge")}
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Subscription plans for the entire ecosystem
+                {t("title")}
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Pricing below are starting prices and can be adjusted based on module requirements and usage volume.
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -144,7 +113,7 @@ export default function PricingPage() {
                     href="/get-started"
                     className="mt-6 inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                   >
-                    Get Started
+                    {tc("getStarted")}
                   </Link>
                 </div>
               ))}
@@ -157,13 +126,13 @@ export default function PricingPage() {
             <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-start">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Always Included
+                  {t("alwaysIncludedBadge")}
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Foundation of the Gigaviz ecosystem
+                  {t("alwaysIncludedTitle")}
                 </h2>
                 <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                  Every plan includes core modules and initial setup so your team can start operating immediately.
+                  {t("alwaysIncludedDesc")}
                 </p>
                 <ul className="mt-6 space-y-2 text-sm text-[color:var(--gv-muted)]">
                   {platformIncludes.map((item) => (
@@ -189,7 +158,7 @@ export default function PricingPage() {
                   </div>
                 ))}
                 <div className="rounded-3xl border border-[color:var(--gv-accent-2)] bg-[color:var(--gv-magenta-soft)] p-5 text-sm text-[color:var(--gv-text)]">
-                  Business & Enterprise plans receive quarterly roadmap reviews and module adjustments.
+                  {t("assuranceNote")}
                 </div>
               </div>
             </div>
@@ -201,21 +170,21 @@ export default function PricingPage() {
             <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Token Usage
+                  {t("tokenBadge")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
-                  Token-based AI generation pricing
+                  {t("tokenTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Tokens are used for AI features such as copy generation, summarization, and creative studio. Token pricing may change based on model costs and usage.
+                  {t("tokenDesc")}
                 </p>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-                <p className="font-semibold text-[color:var(--gv-text)]">Usage Notes</p>
+                <p className="font-semibold text-[color:var(--gv-text)]">{t("tokenNotesTitle")}</p>
                 <ul className="mt-3 space-y-2">
-                  <li>- Tokens are calculated per output or request.</li>
-                  <li>- Token pricing will be displayed before heavy usage.</li>
-                  <li>- You can set token limits per workspace.</li>
+                  <li>- {t("tokenNote1")}</li>
+                  <li>- {t("tokenNote2")}</li>
+                  <li>- {t("tokenNote3")}</li>
                 </ul>
               </div>
             </div>
@@ -227,10 +196,10 @@ export default function PricingPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Looking for a custom plan?
+                  {t("customPlanTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Contact our team for enterprise plans, custom SLA, and specialized integrations.
+                  {t("customPlanDesc")}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -238,13 +207,13 @@ export default function PricingPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Start subscription
+                  {tc("startSubscription")}
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Talk to sales
+                  {tc("talkToSales")}
                 </Link>
               </div>
             </div>

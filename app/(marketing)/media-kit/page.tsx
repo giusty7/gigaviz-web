@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { getTranslations } from "next-intl/server";
 
 const MediaKitCopyBlock = dynamic(
   () => import("@/components/marketing/media-kit-copy"),
@@ -26,13 +27,6 @@ export const metadata: Metadata = {
     url: "/media-kit",
   },
 };
-
-const brandSummary = [
-  "Gigaviz is a SaaS ecosystem for Create -> Automate -> Monetize -> Manage.",
-  "Indonesia-first and global-ready, with a modular approach.",
-  "Security-first: access control, audit, and workspace separation.",
-  "Operated by PT Gigaviz Digital Indonesia.",
-];
 
 const logoAssets = [
   {
@@ -86,33 +80,18 @@ const palette = [
   { name: "Cream", hex: "#f7f1e7" },
 ];
 
-const copyBlocks = [
-  {
-    title: "Short Description (50 words)",
-    text:
-      "Gigaviz is a SaaS ecosystem that unifies create, automate, monetize, and manage modules in one account. " +
-      "Built Indonesia-first and ready to scale globally, Gigaviz helps teams work fast without losing control, security, " +
-      "and visibility through consistent workspaces, billing, and audits for operations, creative, and customer comms " +
-      "so daily decisions stay measurable.",
-  },
-  {
-    title: "Standard Description (150 words)",
-    text:
-      "Gigaviz is a digital product ecosystem that helps businesses, creators, and ops teams run end-to-end processes: " +
-      "Create, Automate, Monetize, and Manage. With one account and workspace, teams can activate modules like Core OS " +
-      "for identity and billing, Meta Hub for WhatsApp Cloud API, Helper for AI, Office for documents, Studio for creative assets, " +
-      "plus Marketplace, Arena, Apps, Pay, and Community as growth layers. The Indonesia-first approach covers local needs, while " +
-      "modular architecture keeps it ready for global scale. Security is foundational: role-based access control, audit logs, and " +
-      "workspace-level data separation. Gigaviz is operated by PT Gigaviz Digital Indonesia and focuses on measurable outcomes—helping teams move fast without losing control. " +
-      "We provide transparent release statuses (Live, Beta, Coming Soon) so partners can plan implementations. Each module is built to interconnect, enabling data, access, and costs to be monitored from a single dashboard with concise reports and periodic audits.",
-  },
-  {
-    title: "Tagline",
-    text: "Integrated digital ecosystem for Create -> Automate -> Monetize -> Manage.",
-  },
-];
+export default async function MediaKitPage() {
+  const t = await getTranslations("mediaKit");
+  const tc = await getTranslations("common");
 
-export default function MediaKitPage() {
+  const brandSummary = [t("brand1"), t("brand2"), t("brand3"), t("brand4")];
+
+  const copyBlocks = [
+    { title: t("copyShortTitle"), text: t("copyShortText") },
+    { title: t("copyStandardTitle"), text: t("copyStandardText") },
+    { title: t("copyTaglineTitle"), text: t("copyTaglineText") },
+  ];
+
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
@@ -132,26 +111,26 @@ export default function MediaKitPage() {
           <div className="container relative z-10 py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Media Kit
+                {t("badge")}
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Gigaviz Media Kit
+                {t("title")}
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Official brand assets for press, partners, and community.
+                {t("subtitle")}
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <a
                   href="#logos"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Download Logos
+                  {tc("downloadLogos")}
                 </a>
                 <a
                   href="#copy"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Copy Descriptions
+                  {tc("copyDescriptions")}
                 </a>
               </div>
             </div>
@@ -163,10 +142,10 @@ export default function MediaKitPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Brand summary
+                  {t("brandBadge")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Gigaviz at a glance
+                  {t("brandTitle")}
                 </h2>
                 <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                   {brandSummary.map((item) => (
@@ -179,13 +158,13 @@ export default function MediaKitPage() {
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
                 <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  North Star
+                  {t("northStarBadge")}
                 </div>
                 <div className="mt-2 text-lg font-semibold text-[color:var(--gv-text)]">
-                  Create -&gt; Automate -&gt; Monetize -&gt; Manage
+                  {t("northStarTitle")}
                 </div>
                 <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                  Four pillars that guide module design and user experience.
+                  {t("northStarDesc")}
                 </p>
               </div>
             </div>
@@ -197,14 +176,14 @@ export default function MediaKitPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Logo assets
+                  {t("logoBadge")}
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Download official logos
+                  {t("logoTitle")}
                 </h2>
               </div>
               <div className="text-xs text-[color:var(--gv-muted)]">
-                Files are available in PNG format.
+                {t("logoFileFormat")}
               </div>
             </div>
 
@@ -213,30 +192,29 @@ export default function MediaKitPage() {
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Usage guide
+                  {t("usageGuideBadge")}
                 </div>
                 <ul className="mt-4 space-y-2">
                   <li className="flex gap-2">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                    <span>Keep clear space at least the height of the letter G.</span>
+                    <span>{t("usageGuide1")}</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                    <span>Do not rotate, stretch, or add effects.</span>
+                    <span>{t("usageGuide2")}</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                    <span>Use the mark for small sizes, horizontal logo for headers.</span>
+                    <span>{t("usageGuide3")}</span>
                   </li>
                 </ul>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
                 <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Background variations
+                  {t("bgVariationsBadge")}
                 </div>
                 <p className="mt-4">
-                  Use the gold variant on dark backgrounds and the dark variant on light backgrounds.
-                  If unsure, use the horizontal logo on a navy background with high contrast.
+                  {t("bgVariationsDesc")}
                 </p>
               </div>
             </div>
@@ -248,13 +226,13 @@ export default function MediaKitPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Official colors
+                  {t("colorsBadge")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Gigaviz color palette
+                  {t("colorsTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  The colors below follow the current Gigaviz design tokens in the UI.
+                  {t("colorsDesc")}
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -286,19 +264,15 @@ export default function MediaKitPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Typography
+                  {t("typoBadge")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Gigaviz primary fonts
+                  {t("typoTitle")}
                 </h2>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-                <p>
-                  Primary font: Plus Jakarta Sans (text and UI).
-                </p>
-                <p className="mt-2">
-                  Display font: Playfair Display (headlines).
-                </p>
+                <p>{t("typoPrimary")}</p>
+                <p className="mt-2">{t("typoDisplay")}</p>
               </div>
             </div>
           </div>
@@ -308,13 +282,13 @@ export default function MediaKitPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Official copy
+                {t("copyBadge")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Ready-to-use descriptions and tagline
+                {t("copyTitle")}
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Use these descriptions for press releases, partner decks, or product catalogs.
+                {t("copyDesc")}
               </p>
             </div>
             <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -330,27 +304,25 @@ export default function MediaKitPage() {
             <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Founder & contact
+                  {t("contactBadge")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Official Gigaviz contact
+                  {t("contactTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Founder: Giusty Adhyarachmat Eryan (Giusty).
+                  {t("contactFounder")}
                 </p>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Business entity: PT Gigaviz Digital Indonesia.
+                  {t("contactEntity")}
                 </p>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-                <p>
-                  For media questions, please reach us via the Contact page.
-                </p>
+                <p>{t("contactMediaDesc")}</p>
                 <Link
                   href="/contact"
                   className="mt-4 inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Open Contact
+                  {tc("openContact")}
                 </Link>
               </div>
             </div>
@@ -362,10 +334,10 @@ export default function MediaKitPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Ready to introduce Gigaviz?
+                  {t("ctaTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Download assets, use the official copy, and explore our modules.
+                  {t("ctaDesc")}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -373,13 +345,13 @@ export default function MediaKitPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Get Started
+                  {tc("getStarted")}
                 </Link>
                 <Link
                   href="/products"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  View Products
+                  {tc("viewProducts")}
                 </Link>
               </div>
             </div>

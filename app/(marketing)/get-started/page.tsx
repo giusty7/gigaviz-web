@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import TrackedLink from "@/components/analytics/tracked-link";
+import { getTranslations } from "next-intl/server";
 
 const GetStartedFunnel = dynamic(
   () => import("@/components/marketing/get-started-funnel"),
@@ -31,81 +32,56 @@ type ComparisonRow = {
   planned?: boolean;
 };
 
-const comparisonRows: ComparisonRow[] = [
-  {
-    label: "Account & workspace",
-    individu: "1 workspace, 1 user",
-    tim: "Multi workspace, multi member",
-  },
-  {
-    label: "Roles & permissions",
-    individu: "Basic owner access",
-    tim: "Owner, Admin, Member, Viewer",
-  },
-  {
-    label: "Billing & invoice",
-    individu: "Coming soon",
-    tim: "Coming soon",
-    planned: true,
-  },
-  {
-    label: "Audit log",
-    individu: "Coming soon",
-    tim: "Coming soon",
-    planned: true,
-  },
-  {
-    label: "Module access",
-    individu: "Limited by plan",
-    tim: "Broader based on plan",
-  },
-  {
-    label: "Support",
-    individu: "Documentation + community",
-    tim: "Priority based on plan",
-  },
-];
+export default async function GetStartedPage() {
+  const t = await getTranslations("getStarted");
+  const tc = await getTranslations("common");
 
-const trustPoints = [
-  "Security-first with input validation and access control.",
-  "Auditability for critical workspace activities.",
-  "Fair use and anti-abuse to maintain service quality.",
-];
+  const comparisonRows: ComparisonRow[] = [
+    {
+      label: t("rowAccountLabel"),
+      individu: t("rowAccountIndiv"),
+      tim: t("rowAccountTeam"),
+    },
+    {
+      label: t("rowRolesLabel"),
+      individu: t("rowRolesIndiv"),
+      tim: t("rowRolesTeam"),
+    },
+    {
+      label: t("rowBillingLabel"),
+      individu: tc("comingSoon"),
+      tim: tc("comingSoon"),
+      planned: true,
+    },
+    {
+      label: t("rowAuditLabel"),
+      individu: tc("comingSoon"),
+      tim: tc("comingSoon"),
+      planned: true,
+    },
+    {
+      label: t("rowModuleLabel"),
+      individu: t("rowModuleIndiv"),
+      tim: t("rowModuleTeam"),
+    },
+    {
+      label: t("rowSupportLabel"),
+      individu: t("rowSupportIndiv"),
+      tim: t("rowSupportTeam"),
+    },
+  ];
 
-const faqItems = [
-  {
-    question: "Can I sign up for free?",
-    answer:
-      "Yes. Free accounts have limited access (view-only/locked) until you activate a plan.",
-  },
-  {
-    question: "What's the difference between Individual and Team?",
-    answer:
-      "Individual is for solo creators with 1 workspace. Team provides multi-member access, RBAC, and more comprehensive controls.",
-  },
-  {
-    question: "What are token costs?",
-    answer:
-      "Tokens are AI and WhatsApp API usage charges calculated separately from subscriptions, based on actual usage.",
-  },
-  {
-    question: "Can I upgrade or downgrade?",
-    answer:
-      "Yes, your plan can be adjusted anytime based on your team's needs and activated modules.",
-  },
-  {
-    question: "Do I need a credit card?",
-    answer:
-      "Not always. Payment methods depend on your plan and applicable billing policies.",
-  },
-  {
-    question: "What about usage policies and security?",
-    answer:
-      "Gigaviz enforces usage policies, access controls, and auditing to maintain security and prevent abuse.",
-  },
-];
+  const trustPoints = [t("trust1"), t("trust2"), t("trust3")];
 
-export default function GetStartedPage() {
+  const faqItems = [
+    { question: t("faq1Q"), answer: t("faq1A") },
+    { question: t("faq2Q"), answer: t("faq2A") },
+    { question: t("faq3Q"), answer: t("faq3A") },
+    { question: t("faq4Q"), answer: t("faq4A") },
+    { question: t("faq5Q"), answer: t("faq5A") },
+    { question: t("faq6Q"), answer: t("faq6A") },
+  ];
+
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
@@ -125,13 +101,13 @@ export default function GetStartedPage() {
           <div className="container relative z-10 grid gap-10 py-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-24">
             <div className="space-y-5">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Get Started
+                {t("badge")}
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Get Started with Gigaviz
+                {t("title")}
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Choose the fastest way to join the ecosystem: Individual or Team (Workspace).
+                {t("subtitle")}
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <TrackedLink
@@ -140,7 +116,7 @@ export default function GetStartedPage() {
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Create an Account
+                  {tc("createAccount")}
                 </TrackedLink>
                 <TrackedLink
                   href="/dashboard"
@@ -148,36 +124,36 @@ export default function GetStartedPage() {
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Sign In
+                  {tc("signIn")}
                 </TrackedLink>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-sm text-[color:var(--gv-muted)]">
-                Specific features unlock based on your subscription plan. Token costs (AI/WhatsApp API) are calculated separately based on usage.
+                {t("featureNote")}
               </div>
             </div>
 
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Onboarding Summary
+                {t("onboardingBadge")}
               </div>
               <h2 className="mt-2 text-xl font-semibold text-[color:var(--gv-text)]">
-                Join the ecosystem in a few steps
+                {t("onboardingTitle")}
               </h2>
               <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-                Choose your plan, complete your account, then activate modules based on your needs.
+                {t("onboardingDesc")}
               </p>
               <ul className="mt-5 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Choose Individual or Team (Workspace).</span>
+                  <span>{t("step1")}</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Complete your account and verify your email.</span>
+                  <span>{t("step2")}</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-2 h-2 w-2 rounded-full bg-[color:var(--gv-accent)]" />
-                  <span>Activate modules, billing, and tokens based on your plan.</span>
+                  <span>{t("step3")}</span>
                 </li>
               </ul>
             </div>
@@ -190,13 +166,13 @@ export default function GetStartedPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                What You Get
+                {t("comparisonBadge")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Core features comparison
+                {t("comparisonTitle")}
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Modules and access are customized based on your chosen plan.
+                {t("comparisonSubtitle")}
               </p>
             </div>
             <div className="mt-8 overflow-hidden rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)]">
@@ -205,13 +181,13 @@ export default function GetStartedPage() {
                   <thead className="bg-[color:var(--gv-surface)] text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
                     <tr>
                       <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                        Feature
+                        {tc("feature")}
                       </th>
                       <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                        Individual
+                        {tc("individual")}
                       </th>
                       <th scope="col" className="px-5 py-4 text-[color:var(--gv-text)]">
-                        Team (Workspace)
+                        {tc("teamWorkspace")}
                       </th>
                     </tr>
                   </thead>
@@ -224,7 +200,7 @@ export default function GetStartedPage() {
                         <td className="px-5 py-4">
                           {row.planned ? (
                             <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                              Coming Soon
+                              {tc("comingSoon")}
                             </span>
                           ) : (
                             row.individu
@@ -233,7 +209,7 @@ export default function GetStartedPage() {
                         <td className="px-5 py-4">
                           {row.planned ? (
                             <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                              Coming Soon
+                              {tc("comingSoon")}
                             </span>
                           ) : (
                             row.tim
@@ -253,13 +229,13 @@ export default function GetStartedPage() {
             <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-center">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Trust & safety
+                  {t("trustBadge")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Security remains our priority
+                  {t("trustTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  We establish security foundations from the start of onboarding to keep the ecosystem safe as it grows.
+                  {t("trustDesc")}
                 </p>
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
@@ -280,10 +256,10 @@ export default function GetStartedPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                FAQ
+                {t("faqBadge")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Frequently asked questions
+                {t("faqTitle")}
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -309,10 +285,10 @@ export default function GetStartedPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Ready to get started?
+                  {t("ctaTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Create an account to choose your plan, then review pricing details if needed.
+                  {t("ctaDesc")}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -322,7 +298,7 @@ export default function GetStartedPage() {
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Create an Account
+                  {tc("createAccount")}
                 </TrackedLink>
                 <TrackedLink
                   href="/pricing"
@@ -330,7 +306,7 @@ export default function GetStartedPage() {
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  View Pricing
+                  {tc("viewPricing")}
                 </TrackedLink>
               </div>
             </div>

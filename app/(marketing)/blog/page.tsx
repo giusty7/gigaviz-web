@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { formatBlogDate, getPublishedPosts } from "@/lib/blog";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 
@@ -34,6 +35,8 @@ const FEATURED_POSTS = [
 ];
 
 export default async function BlogIndexPage() {
+  const t = await getTranslations("blog");
+  const tc = await getTranslations("common");
   const posts = await getPublishedPosts();
 
   return (
@@ -42,13 +45,13 @@ export default async function BlogIndexPage() {
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Gigaviz Blog
+                {t("badge")}
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Stories & Ecosystem Updates
+                {t("title")}
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                Journey notes, product insights, and stories behind Gigaviz.
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -58,7 +61,7 @@ export default async function BlogIndexPage() {
           <div className="container py-12 md:py-16">
             {posts.length === 0 && FEATURED_POSTS.length === 0 ? (
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-                No posts yet. Stay tuned for latest stories from the Gigaviz team.
+                {t("noPosts")}
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -80,7 +83,7 @@ export default async function BlogIndexPage() {
                         {post.isNew && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#d4af37] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#050a18]">
                             <Sparkles className="h-3 w-3" />
-                            New Release
+                            {tc("newRelease")}
                           </span>
                         )}
                       </div>

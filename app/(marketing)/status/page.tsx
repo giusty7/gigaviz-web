@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 
@@ -20,12 +21,6 @@ export const metadata: Metadata = {
 
 type StatusType = "available" | "beta" | "coming";
 
-const statusLabel: Record<StatusType, string> = {
-  available: "Live",
-  beta: "Beta",
-  coming: "Planned",
-};
-
 const statusStyles: Record<StatusType, string> = {
   available:
     "border-[color:var(--gv-accent)] bg-[color:var(--gv-accent-soft)] text-[color:var(--gv-accent)]",
@@ -34,133 +29,103 @@ const statusStyles: Record<StatusType, string> = {
     "border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] text-[color:var(--gv-muted)]",
 };
 
-const statusItems = [
-  {
-    slug: "platform",
-    name: "Gigaviz Platform (Core OS)",
-    status: "available",
-    available: [
-      "Account & SSO with unified identity.",
-      "Workspace for organization and billing.",
-      "Core RBAC and audit logs.",
-    ],
-    next: ["Audit export and compliance reports (planned)."],
-  },
-  {
-    slug: "meta-hub",
-    name: "Gigaviz Meta Hub",
-    status: "beta",
-    available: [
-      "WhatsApp Cloud API integration.",
-      "Template manager & webhook receiver.",
-      "Shared inbox + campaign scheduler.",
-    ],
-    next: ["Campaign segmentation and advanced analytics (planned)."],
-  },
-  {
-    slug: "helper",
-    name: "Gigaviz Helper",
-    status: "beta",
-    available: [
-      "AI chat for quick ideas.",
-      "Copy generator and reply drafts.",
-      "Summarizer for messages and documents.",
-    ],
-    next: ["Controlled browsing and workspace prompt sharing (planned)."],
-  },
-  {
-    slug: "office",
-    name: "Gigaviz Office",
-    status: "beta",
-    available: [
-      "Template library for docs and sheets.",
-      "Formula assistant and document generator.",
-      "Simple dashboard builder.",
-    ],
-    next: ["Phased import/export connectors (planned)."],
-  },
-  {
-    slug: "studio",
-    name: "Gigaviz Studio",
-    status: "beta",
-    available: [
-      "Generative images and asset library.",
-      "Prompt library and versioning.",
-      "Submodules: Graph (Gallery) & Tracks (Music).",
-    ],
-    next: ["Generative video & music, watermark controls (planned)."],
-    submodules: [
-      { label: "Graph (Gallery)", href: "/products/studio#graph" },
-      { label: "Tracks (Music)", href: "/products/studio#tracks" },
-    ],
-  },
-  {
-    slug: "marketplace",
-    name: "Gigaviz Marketplace",
-    status: "beta",
-    available: [
-      "Digital product listings ready to sell.",
-      "Personal and commercial licenses.",
-      "Discovery and basic bundling.",
-    ],
-    next: ["User reviews and creator payouts (planned)."],
-  },
-  {
-    slug: "arena",
-    name: "Gigaviz Arena",
-    status: "beta",
-    available: [
-      "Arena Play for curated games.",
-      "Commission requests for custom games.",
-      "Integration with Apps for ticketing.",
-    ],
-    next: ["Mini-game builder and gamification (planned)."],
-  },
-  {
-    slug: "apps",
-    name: "Gigaviz Apps",
-    status: "beta",
-    available: [
-      "App catalog and app requests.",
-      "Ticketing and status tracking.",
-      "Mini roadmap per workspace.",
-    ],
-    next: ["Attachment collaboration and SLA tiers (planned)."],
-  },
-  {
-    slug: "pay",
-    name: "Gigaviz Pay",
-    status: "beta",
-    available: [
-      "Invoice generator and payment links.",
-      "Subscription billing for plans.",
-      "Transaction history and exports.",
-    ],
-    next: ["Refunds and marketplace payouts (planned)."],
-  },
-  {
-    slug: "community",
-    name: "Gigaviz Community",
-    status: "coming",
-    available: [
-      "Community roadmap and initial curation.",
-      "Moderation guidelines and safety rules.",
-    ],
-    next: ["Forum & Q&A, feedback board, showcase (planned)."],
-  },
-] as const;
-
-function StatusPill({ status }: { status: StatusType }) {
+function StatusPill({ status, label }: { status: StatusType; label: string }) {
   return (
     <span
       className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${statusStyles[status]}`}
     >
-      {statusLabel[status]}
+      {label}
     </span>
   );
 }
 
-export default function StatusPage() {
+export default async function StatusPage() {
+  const t = await getTranslations("status");
+  const tc = await getTranslations("common");
+
+  const statusLabel: Record<StatusType, string> = {
+    available: t("legendLive"),
+    beta: t("legendBeta"),
+    coming: t("legendPlanned"),
+  };
+
+  const statusItems = [
+    {
+      slug: "platform",
+      name: t("platformName"),
+      status: "available" as StatusType,
+      available: [t("platformA1"), t("platformA2"), t("platformA3")],
+      next: [t("platformN1")],
+    },
+    {
+      slug: "meta-hub",
+      name: t("metaHubName"),
+      status: "beta" as StatusType,
+      available: [t("metaHubA1"), t("metaHubA2"), t("metaHubA3")],
+      next: [t("metaHubN1")],
+    },
+    {
+      slug: "helper",
+      name: t("helperName"),
+      status: "beta" as StatusType,
+      available: [t("helperA1"), t("helperA2"), t("helperA3")],
+      next: [t("helperN1")],
+    },
+    {
+      slug: "office",
+      name: t("officeName"),
+      status: "beta" as StatusType,
+      available: [t("officeA1"), t("officeA2"), t("officeA3")],
+      next: [t("officeN1")],
+    },
+    {
+      slug: "studio",
+      name: t("studioName"),
+      status: "beta" as StatusType,
+      available: [t("studioA1"), t("studioA2"), t("studioA3")],
+      next: [t("studioN1")],
+      submodules: [
+        { label: "Graph (Gallery)", href: "/products/studio#graph" },
+        { label: "Tracks (Music)", href: "/products/studio#tracks" },
+      ],
+    },
+    {
+      slug: "marketplace",
+      name: t("marketplaceName"),
+      status: "beta" as StatusType,
+      available: [t("marketplaceA1"), t("marketplaceA2"), t("marketplaceA3")],
+      next: [t("marketplaceN1")],
+    },
+    {
+      slug: "arena",
+      name: t("arenaName"),
+      status: "beta" as StatusType,
+      available: [t("arenaA1"), t("arenaA2"), t("arenaA3")],
+      next: [t("arenaN1")],
+    },
+    {
+      slug: "apps",
+      name: t("appsName"),
+      status: "beta" as StatusType,
+      available: [t("appsA1"), t("appsA2"), t("appsA3")],
+      next: [t("appsN1")],
+    },
+    {
+      slug: "pay",
+      name: t("payName"),
+      status: "beta" as StatusType,
+      available: [t("payA1"), t("payA2"), t("payA3")],
+      next: [t("payN1")],
+    },
+    {
+      slug: "community",
+      name: t("communityName"),
+      status: "coming" as StatusType,
+      available: [t("communityA1"), t("communityA2")],
+      next: [t("communityN1")],
+    },
+  ];
+
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
@@ -180,13 +145,13 @@ export default function StatusPage() {
           <div className="container relative z-10 py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Product Status
+                {t("badge")}
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                Gigaviz Product Status
+                {t("title")}
               </h1>
               <p className="text-sm text-[color:var(--gv-muted)] md:text-base">
-                This page shows the readiness status of Gigaviz v1.1 modules — from Live, Beta, to Planned.
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -195,11 +160,11 @@ export default function StatusPage() {
         <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
           <div className="container py-10">
             <div className="flex flex-wrap items-center gap-3">
-              <StatusPill status="available" />
-              <StatusPill status="beta" />
-              <StatusPill status="coming" />
+              <StatusPill status="available" label={statusLabel.available} />
+              <StatusPill status="beta" label={statusLabel.beta} />
+              <StatusPill status="coming" label={statusLabel.coming} />
               <span className="text-xs text-[color:var(--gv-muted)]">
-                Live = production-ready, Beta = limited access, Planned = not yet available.
+                {t("legendDesc")}
               </span>
             </div>
           </div>
@@ -215,7 +180,7 @@ export default function StatusPage() {
                 >
                   <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
                     <div className="space-y-3">
-                      <StatusPill status={item.status} />
+                      <StatusPill status={item.status} label={statusLabel[item.status]} />
                       <div className="space-y-2">
                         <h2 className="text-xl font-semibold text-[color:var(--gv-text)]">
                           {item.name}
@@ -224,14 +189,14 @@ export default function StatusPage() {
                           href={`/products/${item.slug}`}
                           className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                         >
-                          View Details
+                          {tc("viewDetails")}
                         </Link>
                       </div>
 
-                      {"submodules" in item ? (
+                      {"submodules" in item && item.submodules ? (
                         <div className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--gv-muted)]">
                           <span className="rounded-full border border-[color:var(--gv-border)] px-2.5 py-1">
-                            Submodule
+                            {tc("submodule")}
                           </span>
                           {item.submodules.map((submodule) => (
                             <Link
@@ -249,7 +214,7 @@ export default function StatusPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-4">
                         <div className="text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                          Available Now
+                          {tc("availableNow")}
                         </div>
                         <ul className="mt-3 space-y-2 text-sm text-[color:var(--gv-muted)]">
                           {item.available.map((point) => (
@@ -262,7 +227,7 @@ export default function StatusPage() {
                       </div>
                       <div className="rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-bg)] p-4">
                         <div className="text-xs uppercase tracking-[0.18em] text-[color:var(--gv-muted)]">
-                          Coming Next
+                          {tc("comingNext")}
                         </div>
                         <ul className="mt-3 space-y-2 text-sm text-[color:var(--gv-muted)]">
                           {item.next.map((point) => (
@@ -285,10 +250,10 @@ export default function StatusPage() {
           <div className="container py-10">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5 text-sm text-[color:var(--gv-muted)]">
-                Module access depends on your subscription plan.
+                {t("moduleAccessNote")}
               </div>
               <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-5 text-sm text-[color:var(--gv-muted)]">
-                Token costs (AI/WhatsApp API) are calculated separately based on usage.
+                {t("tokenCostNote")}
               </div>
             </div>
           </div>
@@ -299,10 +264,10 @@ export default function StatusPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Ready to join the Gigaviz ecosystem?
+                  {t("ctaTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Choose a plan that fits your needs and follow our development roadmap.
+                  {t("ctaDesc")}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -310,13 +275,13 @@ export default function StatusPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Get Started
+                  {tc("getStarted")}
                 </Link>
                 <Link
                   href="/roadmap"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  View Roadmap
+                  {tc("viewRoadmap")}
                 </Link>
               </div>
             </div>
