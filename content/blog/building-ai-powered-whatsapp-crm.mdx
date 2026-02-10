@@ -1,0 +1,105 @@
+---
+title: "Building an AI-Powered WhatsApp CRM: Lessons from Gigaviz Helper"
+description: "How we integrated RAG-based AI with WhatsApp Cloud API to create an intelligent CRM that learns from your knowledge base, auto-suggests replies, and helps agents respond faster."
+date: "2026-02-05"
+tags: ["AI", "CRM", "WhatsApp", "RAG", "Helper", "Knowledge Base", "Automation"]
+published: true
+---
+
+# Building an AI-Powered WhatsApp CRM: Lessons from Gigaviz Helper
+
+Every customer support team dreams of the same thing: respond faster, never miss a message, and sound like you actually know what you're talking about.
+
+The problem is that most CRM tools treat AI as an afterthought—a chatbot bolted onto the side. At Gigaviz, we built Helper as a core module that deeply integrates with Meta Hub's inbox, contacts, and conversation data.
+
+Here's what we learned.
+
+## The challenge: AI that understands YOUR business
+
+Generic AI assistants are impressive but useless for customer support. When a customer asks "what's the status of my order?" or "do you ship to Surabaya?", ChatGPT doesn't know your policies, your products, or your delivery zones.
+
+That's where RAG (Retrieval-Augmented Generation) comes in.
+
+## How RAG works in Gigaviz Helper
+
+RAG is a technique that gives AI access to your specific knowledge—without retraining the model. Here's how we implemented it:
+
+### 1. Knowledge Ingestion
+
+Upload your documents, FAQs, product catalogs, or internal wikis to Helper's Knowledge Base. We support:
+
+- PDF documents
+- Web pages (auto-crawled)
+- Plain text and markdown files
+- Internal documentation
+
+### 2. Vector Embeddings
+
+Each document is split into chunks and converted into vector embeddings using OpenAI's embedding model. These vectors are stored in PostgreSQL with pgvector—no external vector database required.
+
+### 3. Semantic Search at Reply Time
+
+When an agent gets a customer message, Helper searches the knowledge base for semantically relevant chunks. Not keyword matching—actual meaning matching.
+
+"Do you deliver to East Java?" finds relevant content even if the document says "Shipping coverage includes Jawa Timur province."
+
+### 4. AI-Generated Reply Suggestions
+
+The relevant knowledge chunks are combined with conversation history and fed to the language model. The result: a reply suggestion that sounds like your best agent, with accurate information from your actual docs.
+
+## Integration with WhatsApp Inbox
+
+Helper isn't a separate tool—it lives inside the inbox. When an agent opens a conversation:
+
+1. **Auto-suggestions appear** based on the latest customer message
+2. **One-click insert** adds the suggestion to the reply composer
+3. **Agent can edit** before sending (AI assists, human decides)
+4. **Feedback loop** tracks which suggestions were used, modified, or rejected
+
+This keeps the human in the loop while dramatically reducing response time.
+
+## CRM Insights: Beyond Individual Conversations
+
+Helper also analyzes patterns across your entire inbox:
+
+- **Common topics**: What questions are customers asking most?
+- **Response time trends**: Are you getting faster or slower?
+- **Sentiment analysis**: Which conversations need attention?
+- **Lead scoring**: Which contacts show buying intent?
+
+These insights feed into the CRM dashboard, helping managers make data-driven decisions about staffing, training, and product improvements.
+
+## What we got wrong (and fixed)
+
+### Embedding drift
+
+Early on, our knowledge base embeddings would become stale as documents were updated. We added a re-indexing pipeline (`npm run kb:index`) that detects changes and refreshes only the modified chunks.
+
+### Context window limits
+
+Long conversations would overflow the AI's context window. We now use smart summarization: recent messages are sent verbatim, older ones are compressed into a summary, and knowledge chunks are ranked by relevance.
+
+### Privacy boundaries
+
+AI should never leak data across workspaces. Every knowledge base query includes a `workspace_id` filter, and RAG results are scoped to the current workspace's documents only.
+
+## Results from early adopters
+
+Teams using Helper with their WhatsApp inbox report:
+
+- **60% faster first response time** (from minutes to seconds for common questions)
+- **40% reduction in training time** for new agents (the AI handles the knowledge gap)
+- **85% suggestion acceptance rate** (when the knowledge base is well-maintained)
+
+## Getting started with Helper
+
+1. Navigate to your workspace's Helper module
+2. Upload your key documents to the Knowledge Base
+3. Run the indexing pipeline
+4. Open any inbox conversation—suggestions appear automatically
+
+Helper is currently in beta. We're refining the workflow engine, adding template-based automation, and building deeper CRM analytics.
+
+---
+
+*Want to try AI-powered customer support? [Get started with Gigaviz Helper](/get-started) and connect your WhatsApp inbox in minutes.*

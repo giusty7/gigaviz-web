@@ -1,0 +1,31 @@
+---
+title: "Security Hardening: Auth Guards, Structured Logging & Alerting"
+date: "2026-02-04"
+summary: "Major security improvements across the platform — auth guards on all ops routes, structured JSON logging with PII scrubbing, and Slack/Discord alerting."
+audience: ["public", "app"]
+tags: ["security", "ops", "logging", "alerts"]
+type: "security"
+---
+
+We've completed a comprehensive security hardening pass across the entire platform.
+
+## Security improvements
+
+- **Auth guards on all ops routes**: Every platform admin route now uses `requirePlatformAdmin()` — no exceptions
+- **Ops layout guard**: Additional safety net at the layout level prevents unauthorized access
+- **Structured JSON logging**: All server logs now use structured format with correlation IDs and PII scrubbing
+- **Slack/Discord alerting**: Real-time alerts for health incidents, impersonation events, and account suspensions
+
+## Infrastructure changes
+
+- **Rate limiting**: Ops console now rate-limited at 30 requests/60 seconds via Upstash Redis
+- **Audit trail**: All admin mutations logged with before/after snapshots in `owner_audit_log`
+- **SQL Runner expansion**: Whitelisted tables expanded from 12 → 33 for better debugging access
+- **Error boundaries**: `loading.tsx` + `error.tsx` added to all route groups and sub-routes
+
+## What this means for customers
+
+- Faster incident detection and response
+- Stronger protection against unauthorized platform access
+- Better audit trail for compliance requirements
+- Zero impact on application performance

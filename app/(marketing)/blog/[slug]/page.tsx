@@ -29,6 +29,101 @@ const POST_FAQ_DATA: Record<string, FAQItem[]> = {
         "No platform can guarantee outcomes if policies are violated. Gigaviz focuses on policy-aligned design to reduce operational risk and improve long-term reliability.",
     },
   ],
+  "whatsapp-business-api-vs-whatsapp-web": [
+    {
+      question: "What is the difference between WhatsApp Web and WhatsApp Cloud API?",
+      answer:
+        "WhatsApp Web is a free consumer tool for personal and basic business use with one device. Cloud API is Meta's official business platform that supports multi-agent inboxes, message templates, automation, analytics, and CRM integration.",
+    },
+    {
+      question: "Do I need a separate phone number for Cloud API?",
+      answer:
+        "Yes, Cloud API uses a dedicated business phone number registered through Meta's Business Platform. Your personal WhatsApp number remains separate.",
+    },
+    {
+      question: "How much does WhatsApp Cloud API cost?",
+      answer:
+        "Cloud API access is free (hosted by Meta). You pay per conversation: marketing, utility, and authentication categories have different rates. Service conversations (customer-initiated) include 1,000 free per month.",
+    },
+    {
+      question: "Can Gigaviz help me migrate from WhatsApp Web to Cloud API?",
+      answer:
+        "Yes. Gigaviz Meta Hub handles the entire setup — connect your WhatsApp Business Platform account, import contacts, create templates, and start receiving messages in your unified inbox.",
+    },
+  ],
+  "whatsapp-message-templates-complete-guide": [
+    {
+      question: "How long does template approval take?",
+      answer:
+        "Template approval typically takes 24-48 hours. Utility and authentication templates tend to be approved faster than marketing templates.",
+    },
+    {
+      question: "Why was my template rejected?",
+      answer:
+        "Common reasons include wrong category classification, unclear variable usage, prohibited content, missing opt-out language for marketing templates, or duplicate template names.",
+    },
+    {
+      question: "Can I edit an approved template?",
+      answer:
+        "You cannot edit an approved template directly. You need to create a new version with a different name and submit it for approval. The old template remains active until you delete it.",
+    },
+    {
+      question: "How many templates can I have?",
+      answer:
+        "Meta allows up to 250 message templates per WhatsApp Business Account. Gigaviz Meta Hub's Template Manager helps you organize and track all of them.",
+    },
+  ],
+  "building-ai-powered-whatsapp-crm": [
+    {
+      question: "What is RAG and how does it work in Gigaviz Helper?",
+      answer:
+        "RAG (Retrieval-Augmented Generation) gives AI access to your specific business knowledge without retraining. Your documents are converted to vector embeddings and searched semantically when generating reply suggestions.",
+    },
+    {
+      question: "Does AI have access to other workspaces' data?",
+      answer:
+        "No. Every knowledge base query is scoped by workspace_id. AI can only access documents uploaded to your specific workspace.",
+    },
+    {
+      question: "Can I control what the AI suggests?",
+      answer:
+        "Yes. Agents can accept, edit, or reject AI suggestions. The AI assists but never sends messages automatically — humans always have the final say.",
+    },
+  ],
+  "how-to-build-whatsapp-customer-support-team": [
+    {
+      question: "How many agents do I need for my WhatsApp support team?",
+      answer:
+        "A general rule: divide your daily conversation volume by the number of conversations an agent can handle per hour (typically 8-12). For 100 daily conversations, you'd need 2-3 agents during business hours.",
+    },
+    {
+      question: "What SLA targets should I set?",
+      answer:
+        "For WhatsApp support, aim for under 5 minutes first response time during business hours, under 24 hours resolution time, and over 90% customer satisfaction. Adjust based on your industry and customer expectations.",
+    },
+    {
+      question: "Can I use Gigaviz for multiple WhatsApp numbers?",
+      answer:
+        "Yes. Gigaviz Meta Hub supports multiple WhatsApp Business Platform connections per workspace, each with its own phone number, templates, and inbox.",
+    },
+  ],
+  "why-multi-tenant-saas-architecture-matters": [
+    {
+      question: "What is multi-tenant architecture?",
+      answer:
+        "Multi-tenant architecture means multiple customers (tenants) share the same application infrastructure while their data remains completely isolated. Each workspace in Gigaviz is a separate tenant.",
+    },
+    {
+      question: "Is my data safe in a multi-tenant system?",
+      answer:
+        "Yes. Gigaviz enforces data isolation at three layers: database Row Level Security (RLS), application-level workspace scoping, and entitlement gating. Even platform administrators cannot access your data without explicit authorization.",
+    },
+    {
+      question: "Why not use a single-tenant (dedicated) setup?",
+      answer:
+        "Single-tenant setups are more expensive to operate and scale. Multi-tenant architecture provides the same security guarantees at lower cost, with faster updates and shared infrastructure improvements.",
+    },
+  ],
 };
 
 type PageProps = {

@@ -111,6 +111,39 @@ const modules = [
   "Community",
 ];
 
+const faqs = [
+  {
+    question: "What is Gigaviz Platform (Core OS)?",
+    answer:
+      "Core OS is the foundational module that provides identity management, workspace creation, billing, roles, and audit trails for the entire Gigaviz ecosystem. Every other module depends on it.",
+  },
+  {
+    question: "Do I need Core OS to use other modules?",
+    answer:
+      "Yes. Core OS is automatically included with every Gigaviz subscription. It handles authentication, workspace management, and billing for all modules.",
+  },
+  {
+    question: "How does workspace isolation work?",
+    answer:
+      "Every workspace has its own data boundary enforced by Row Level Security (RLS) at the database level. Data from one workspace is never accessible to another, even for platform administrators.",
+  },
+  {
+    question: "What roles are available?",
+    answer:
+      "Core OS provides four roles: Owner (full control), Admin (setup and configuration), Member (day-to-day operations), and Viewer (read-only access). Each role has granular permissions.",
+  },
+  {
+    question: "Is there single sign-on (SSO)?",
+    answer:
+      "Yes. One Gigaviz account gives you access to all modules without switching logins. Enterprise plans will support SAML/SSO integration with your existing identity provider.",
+  },
+  {
+    question: "How are audit logs used?",
+    answer:
+      "Audit logs record every important activity in your workspace — logins, role changes, billing updates, API key operations, and more. They're essential for compliance and security reviews.",
+  },
+];
+
 export default function PlatformProductPage() {
   return (
     <main className="flex-1">
@@ -386,6 +419,34 @@ export default function PlatformProductPage() {
                   </span>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
+          <div className="container py-12 md:py-16">
+            <div className="max-w-2xl space-y-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                FAQ
+              </p>
+              <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
+                Frequently asked questions
+              </h2>
+            </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {faqs.map((item) => (
+                <div
+                  key={item.question}
+                  className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6"
+                >
+                  <h3 className="text-base font-semibold text-[color:var(--gv-text)]">
+                    {item.question}
+                  </h3>
+                  <p className="mt-3 text-sm text-[color:var(--gv-muted)]">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

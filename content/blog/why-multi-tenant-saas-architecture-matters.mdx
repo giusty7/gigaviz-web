@@ -1,0 +1,82 @@
+---
+title: "Why Multi-Tenant SaaS Architecture Matters for Business Messaging"
+description: "A deep dive into how Gigaviz's multi-tenant architecture with workspace isolation, RLS-first security, and entitlement gating delivers enterprise-grade safety without enterprise-grade complexity."
+date: "2026-02-03"
+tags: ["Architecture", "SaaS", "Multi-Tenant", "Security", "Workspace Isolation", "Enterprise"]
+published: true
+---
+
+# Why Multi-Tenant SaaS Architecture Matters for Business Messaging
+
+When businesses send thousands of WhatsApp messages a day, every architectural decision becomes a trust decision. A leaked contact list, a miscounted invoice, or a misrouted message can end a relationship in seconds.
+
+At Gigaviz, we chose multi-tenant architecture from day one—not because it's trendy, but because it solves real problems that single-tenant setups simply can't.
+
+## The problem: shared infrastructure, separate concerns
+
+Most teams start with a simple setup: one database, one login, one admin panel. It works until your second client joins and asks "can you guarantee my data is never visible to anyone else?"
+
+That question is the dividing line between a prototype and a platform.
+
+## How Gigaviz handles workspace isolation
+
+Every query in Gigaviz is scoped by `workspace_id`. This isn't a convention—it's enforced at three layers:
+
+### 1. Row Level Security (RLS)
+
+Every user-facing table has PostgreSQL RLS policies that check workspace membership before returning data. Even if application code has a bug, the database itself blocks unauthorized access.
+
+### 2. App Context Resolution
+
+Server components call `getAppContext()` to resolve the authenticated user, their workspace, their role, and their entitlements—before any business logic runs. There's no way to skip this step.
+
+### 3. Entitlement Gating
+
+Features are gated by entitlements (like `meta_hub`, `helper`, `inbox`), which combine plan subscriptions with admin-granted overrides. You can't access what you haven't been granted.
+
+## Why this matters for WhatsApp operations
+
+WhatsApp Business Platform requires strict compliance. Messages must go through approved templates, contacts must be managed carefully, and delivery logs must be auditable.
+
+Multi-tenant isolation means:
+
+- **Your templates are yours.** No cross-workspace template leakage.
+- **Your contacts stay private.** RLS ensures contact data never crosses workspace boundaries.
+- **Your audit trail is clean.** Every webhook, delivery status, and agent action is logged per workspace.
+- **Your token usage is tracked.** AI and messaging tokens are deducted per workspace with full ledger history.
+
+## The cost of getting this wrong
+
+We've seen platforms where:
+
+- Agent A from Company X accidentally sees Company Y's inbox
+- A bulk message job sends to contacts from the wrong workspace
+- An admin panel exposes aggregate data without proper scoping
+
+These aren't hypothetical—they're the exact failure modes that multi-tenant architecture prevents.
+
+## What we sacrificed for safety
+
+Multi-tenant architecture adds complexity. Every database query needs an extra filter. Every API route needs context resolution. Every migration needs RLS policies.
+
+But we'd rather ship slower and ship safe than move fast and leak data.
+
+## For developers building similar systems
+
+If you're building a multi-tenant SaaS platform, here's our advice:
+
+1. **Start with RLS from day one.** Retrofitting it is painful.
+2. **Never trust client input for workspace_id.** Always resolve it server-side.
+3. **Use service role sparingly.** When you bypass RLS, you bypass safety.
+4. **Test with multiple workspaces.** A single-workspace test suite misses cross-tenant bugs.
+5. **Log everything per workspace.** Audit trails are useless without proper scoping.
+
+## What's next
+
+We're expanding our workspace isolation to support regional data residency (GDPR compliance), workspace-level encryption at rest, and cross-workspace collaboration features that maintain isolation boundaries.
+
+Gigaviz Platform (Core OS) is the foundation that makes all of this possible. Every module—Meta Hub, Helper, Studio, and beyond—inherits these safety guarantees automatically.
+
+---
+
+*Building a business messaging platform? [Start with Gigaviz](/get-started) and get multi-tenant isolation out of the box.*

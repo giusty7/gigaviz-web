@@ -1,19 +1,34 @@
+import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import { routing } from "./routing";
 
 /**
  * next-intl request-time configuration.
  *
- * Called once per request on the server to resolve the locale
- * and load the corresponding message bundle.
+ * This project uses the "without i18n routing" approach:
+ * - No [locale] folder in app/
+ * - Locale is determined by the NEXT_LOCALE cookie (set in proxy.ts)
+ * - The locale switcher sets the cookie + navigates
  */
 export default getRequestConfig(async ({ requestLocale }) => {
-  // requestLocale is provided by the middleware or routing
+  // 1. Try requestLocale from next-intl (may be set by middleware or plugin)
   let locale = await requestLocale;
 
-  // Validate that the incoming locale is supported
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!locale || !routing.locales.includes(locale as any)) {
+  // 2. Fallback: read NEXT_LOCALE cookie (set by proxy.ts on /id/* rewrites)
+  if (!locale || !routing.locales.includes(locale as (typeof routing.locales)[number])) {
+    try {
+      const store = await cookies();
+      const cookieLocale = store.get("NEXT_LOCALE")?.value;
+      if (cookieLocale && routing.locales.includes(cookieLocale as (typeof routing.locales)[number])) {
+        locale = cookieLocale;
+      }
+    } catch {
+      // cookies() may fail in certain contexts (e.g. static generation)
+    }
+  }
+
+  // 3. Final fallback to default locale
+  if (!locale || !routing.locales.includes(locale as (typeof routing.locales)[number])) {
     locale = routing.defaultLocale;
   }
 

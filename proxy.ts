@@ -6,6 +6,28 @@ const PROD =
 
 const PUBLIC_FILE = /\.(.*)$/;
 
+/** Supported locale prefixes */
+const LOCALE_SET = new Set(["en", "id"]);
+const DEFAULT_LOCALE = "en";
+
+/** Known marketing/public route segments (NOT workspace slugs) */
+const MARKETING_SEGMENTS = new Set([
+  "about",
+  "pricing",
+  "products",
+  "blog",
+  "changelog",
+  "contact",
+  "get-started",
+  "media-kit",
+  "status",
+  "policies",
+  "roadmap",
+  "trust",
+  "integrations",
+  "data-deletion",
+]);
+
 export const config = {
   // Keep matcher simple (no complex regex / no capturing groups)
   matcher: ["/:path*"],
@@ -48,35 +70,80 @@ export async function proxy(req: NextRequest) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
-  // ✅ Skip locale routing for authenticated app routes (workspace slugs)
-  //    and ops/owner/auth routes — these don't need locale prefix
-  const isAppRoute =
-    path.startsWith("/ops") ||
-    path.startsWith("/owner") ||
-    path.startsWith("/login") ||
-    path.startsWith("/register") ||
-    path.startsWith("/logout") ||
-    path.startsWith("/forgot-password") ||
-    path.startsWith("/reset-password") ||
-    path.startsWith("/verify-email") ||
-    path.startsWith("/invite") ||
-    path.startsWith("/auth") ||
-    path.startsWith("/onboarding") ||
-    path.startsWith("/dashboard");
+  // ✅ Detect locale prefix (e.g. /id/pricing → locale="id", rest="/pricing")
+  const localeMatch = path.match(/^\/(en|id)(\/|$)/);
+  const locale = localeMatch?.[1];
+  const normalizedPath = locale
+    ? path.replace(new RegExp(`^/${locale}`), "") || "/"
+    : path;
 
-  // For workspace routes like /my-workspace/inbox, detect workspace slug pattern
-  // Workspace slugs are lowercase alphanumeric + hyphens, 3+ chars
-  const segments = path.split("/").filter(Boolean);
+  // ✅ Skip locale routing for authenticated app routes
+  const isAppRoute =
+    normalizedPath.startsWith("/ops") ||
+    normalizedPath.startsWith("/owner") ||
+    normalizedPath.startsWith("/login") ||
+    normalizedPath.startsWith("/register") ||
+    normalizedPath.startsWith("/logout") ||
+    normalizedPath.startsWith("/forgot-password") ||
+    normalizedPath.startsWith("/reset-password") ||
+    normalizedPath.startsWith("/verify-email") ||
+    normalizedPath.startsWith("/invite") ||
+    normalizedPath.startsWith("/auth") ||
+    normalizedPath.startsWith("/onboarding") ||
+    normalizedPath.startsWith("/dashboard");
+
+  // Workspace slug detection (lowercase alphanumeric + hyphens, 3+ chars)
+  // Exclude known marketing segments and locale prefixes
+  const segments = normalizedPath.split("/").filter(Boolean);
   const firstSegment = segments[0] || "";
   const looksLikeWorkspaceSlug =
     /^[a-z0-9][a-z0-9-]{2,}$/.test(firstSegment) &&
-    !["en", "id"].includes(firstSegment); // Not a locale prefix
+    !LOCALE_SET.has(firstSegment) &&
+    !MARKETING_SEGMENTS.has(firstSegment);
+
+  // If locale prefix on app/workspace route, redirect to clean path
+  if (locale && (isAppRoute || looksLikeWorkspaceSlug)) {
+    const url = req.nextUrl.clone();
+    url.pathname = normalizedPath;
+    return NextResponse.redirect(url);
+  }
 
   if (isAppRoute || looksLikeWorkspaceSlug) {
-    // Skip locale routing, go straight to Supabase auth
     return withSupabaseAuth(req);
   }
 
-  // ✅ Marketing routes: apply Supabase auth (locale is resolved by next-intl/server at render time)
+  // ✅ Marketing routes — handle locale prefix via rewrite + cookie
+  //    This project does NOT use a [locale] folder, so we use the
+  //    "without i18n routing" approach: cookie-based locale in i18n/request.ts.
+
+  if (locale) {
+    // Default locale (en) shouldn't have a URL prefix → redirect to clean path
+    if (locale === DEFAULT_LOCALE) {
+      const url = req.nextUrl.clone();
+      url.pathname = normalizedPath;
+      const res = NextResponse.redirect(url);
+      res.cookies.set("NEXT_LOCALE", DEFAULT_LOCALE, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: "lax",
+      });
+      return res;
+    }
+
+    // Non-default locale (e.g. /id/pricing):
+    //   1. Set NEXT_LOCALE cookie so i18n/request.ts picks it up
+    //   2. Rewrite to the real path (strip prefix) so Next.js finds the route
+    const url = req.nextUrl.clone();
+    url.pathname = normalizedPath;
+    const res = NextResponse.rewrite(url);
+    res.cookies.set("NEXT_LOCALE", locale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+    return res;
+  }
+
+  // No locale prefix — serve normally (i18n/request.ts reads cookie for locale)
   return withSupabaseAuth(req);
 }

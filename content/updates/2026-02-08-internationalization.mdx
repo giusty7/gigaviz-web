@@ -1,0 +1,32 @@
+---
+title: "Internationalization: Full i18n Support with Indonesian & English"
+date: "2026-02-08"
+summary: "Gigaviz now fully supports Indonesian and English across all pages. Locale-aware formatting for dates, numbers, and currencies."
+audience: ["public", "app"]
+tags: ["i18n", "localization", "indonesian", "english"]
+type: "shipped"
+---
+
+Gigaviz is now fully internationalized with support for Indonesian (Bahasa Indonesia) and English.
+
+## What's new
+
+- **Full page translations**: All marketing pages, app UI, and settings translated to both languages
+- **Locale switcher**: Switch languages from the navbar or footer — preference saved automatically
+- **Locale-aware formatting**: Dates, numbers, and currencies adapt to your locale
+- **SEO hreflang**: Search engines serve the right language version to each visitor
+
+## Coverage
+
+- **28 message sections** translated across both locales
+- **Marketing pages**: Homepage, about, pricing, products, blog, contact, and more
+- **App UI**: Dashboard, inbox, settings, Meta Hub, Helper
+- **Auth flows**: Login, register, forgot password, email verification
+
+## Technical details
+
+- Built on `next-intl` for App Router compatibility
+- Message files: `messages/en.json` and `messages/id.json`
+- Locale-aware date/number/currency formatting via `lib/i18n/format.ts`
+- Sitemap entries include `hreflang` alternates for both locales
+- URL-based locale detection with cookie persistence

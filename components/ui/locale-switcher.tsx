@@ -1,22 +1,26 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { usePathname } from "next/navigation";
 import { locales, localeLabels, localeFlags, type Locale } from "@/i18n/config";
 import { Globe } from "lucide-react";
-import { useTransition, useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
+
+const DEFAULT_LOCALE = "en";
 
 /**
  * Compact locale switcher component.
  *
- * Displays current locale flag + dropdown to switch.
- * Works with next-intl's "as-needed" prefix strategy.
+ * Sets a NEXT_LOCALE cookie and navigates to the locale-prefixed URL.
+ * Works with the "without i18n routing" approach (no [locale] folder).
+ *
+ * URL strategy (localePrefix: "as-needed"):
+ *   - Default locale (en): no prefix → /pricing
+ *   - Non-default (id):    prefix   → /id/pricing
  */
 export function LocaleSwitcher({ className = "" }: { className?: string }) {
   const locale = useLocale() as Locale;
-  const router = useRouter();
   const pathname = usePathname();
-  const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -33,8 +37,29 @@ export function LocaleSwitcher({ className = "" }: { className?: string }) {
 
   function switchLocale(next: Locale) {
     setOpen(false);
-    startTransition(() => {
-      router.replace(pathname, { locale: next });
+
+    // Build the target URL
+    // Strip any existing locale prefix from the current pathname
+    let cleanPath = pathname;
+    for (const loc of locales) {
+      if (cleanPath === `/${loc}` || cleanPath.startsWith(`/${loc}/`)) {
+        cleanPath = cleanPath.slice(`/${loc}`.length) || "/";
+        break;
+      }
+    }
+
+    // Add locale prefix for non-default locale
+    const targetPath =
+      next === DEFAULT_LOCALE
+        ? cleanPath
+        : `/${next}${cleanPath === "/" ? "" : cleanPath}`;
+
+    // Set cookie + hard-navigate in a microtask to satisfy React compiler rules
+    // (document.cookie and window.location are intentional browser API mutations)
+    const cookieValue = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    queueMicrotask(() => {
+      document.cookie = cookieValue;
+      window.location.href = targetPath;
     });
   }
 
@@ -43,8 +68,7 @@ export function LocaleSwitcher({ className = "" }: { className?: string }) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        disabled={isPending}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d4af37]/20 bg-[#0a1229]/60 px-2.5 py-1.5 text-xs font-medium text-[#f5f5dc]/80 backdrop-blur-sm transition hover:border-[#d4af37]/40 hover:text-[#f5f5dc] disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-[#d4af37]/20 bg-[#0a1229]/60 px-2.5 py-1.5 text-xs font-medium text-[#f5f5dc]/80 backdrop-blur-sm transition hover:border-[#d4af37]/40 hover:text-[#f5f5dc]"
         aria-label="Switch language"
       >
         <Globe className="h-3.5 w-3.5" />

@@ -95,6 +95,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/changelog`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+      alternates: withAlternates("/changelog", baseUrl),
+    },
+    {
+      url: `${baseUrl}/trust`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: withAlternates("/trust", baseUrl),
+    },
+    {
+      url: `${baseUrl}/integrations`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+      alternates: withAlternates("/integrations", baseUrl),
+    },
     ...products.map((product) => ({
       url: `${baseUrl}/products/${product.slug}`,
       lastModified: now,

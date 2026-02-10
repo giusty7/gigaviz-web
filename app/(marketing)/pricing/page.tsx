@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { SCHEMA_CONTEXT, faqPageSchema, type FAQItem } from "@/lib/seo/schema";
 
 export const revalidate = 3600;
 
@@ -53,6 +54,22 @@ export default async function PricingPage() {
     { title: t("assuranceBudgetTitle"), desc: t("assuranceBudgetDesc") },
     { title: t("assuranceSupportTitle"), desc: t("assuranceSupportDesc") },
   ];
+
+  const faqs: FAQItem[] = [
+    { question: t("faq1Q"), answer: t("faq1A") },
+    { question: t("faq2Q"), answer: t("faq2A") },
+    { question: t("faq3Q"), answer: t("faq3A") },
+    { question: t("faq4Q"), answer: t("faq4A") },
+    { question: t("faq5Q"), answer: t("faq5A") },
+    { question: t("faq6Q"), answer: t("faq6A") },
+    { question: t("faq7Q"), answer: t("faq7A") },
+    { question: t("faq8Q"), answer: t("faq8A") },
+  ];
+
+  const faqJsonLd = {
+    "@context": SCHEMA_CONTEXT,
+    ...faqPageSchema(faqs),
+  };
 
   return (
     <main className="flex-1">
@@ -219,6 +236,42 @@ export default async function PricingPage() {
             </div>
           </div>
         </section>
+
+        <section className="border-t border-[color:var(--gv-border)] bg-[color:var(--gv-surface)]">
+          <div className="container py-12 md:py-16">
+            <div className="mx-auto max-w-3xl space-y-3 text-center">
+              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
+                FAQ
+              </p>
+              <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)]">
+                {t("faqTitle")}
+              </h2>
+              <p className="text-sm text-[color:var(--gv-muted)]">
+                {t("faqSubtitle")}
+              </p>
+            </div>
+            <div className="mx-auto mt-8 grid max-w-4xl gap-4 md:grid-cols-2">
+              {faqs.map((item) => (
+                <div
+                  key={item.question}
+                  className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6"
+                >
+                  <h3 className="text-base font-semibold text-[color:var(--gv-text)]">
+                    {item.question}
+                  </h3>
+                  <p className="mt-3 text-sm text-[color:var(--gv-muted)]">
+                    {item.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
     </main>
   );
 }

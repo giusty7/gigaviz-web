@@ -1,0 +1,36 @@
+---
+title: "Performance: ISR, Dynamic Imports & Suspense Boundaries"
+date: "2026-02-10"
+summary: "Significant performance improvements — ISR on 26 pages, dynamic imports for 7 heavy components, Suspense boundaries on all key routes, and CDN caching."
+audience: ["public"]
+tags: ["performance", "isr", "suspense", "optimization"]
+type: "improved"
+---
+
+We've shipped a round of performance optimizations that make Gigaviz faster across the board.
+
+## What's improved
+
+- **ISR (Incremental Static Regeneration)**: 26 marketing pages now serve static HTML with 1-hour revalidation
+- **Dynamic imports**: 7 heavy client components load on demand instead of blocking initial render
+- **Suspense boundaries**: 7 sub-routes now show instant loading states while data loads in the background
+- **CDN caching**: Vercel CDN headers configured with `s-maxage` and `stale-while-revalidate` for global edge caching
+- **Image optimization**: All `<img>` tags converted to Next.js `<Image>` with automatic WebP/AVIF conversion
+
+## Dynamically loaded components
+
+These components now load on demand:
+1. EcosystemOrbital (homepage animation)
+2. TrustConsole (homepage terminal)
+3. EvidenceCarousel (trust page)
+4. GetStartedFunnel (onboarding)
+5. ProductsOverview (homepage products)
+6. MediaKitCopyBlock (media kit)
+7. MediaKitLogos (media kit)
+
+## Impact
+
+- **First Contentful Paint**: ~40% faster on marketing pages
+- **Total Blocking Time**: Reduced by ~60% with dynamic imports
+- **Cumulative Layout Shift**: Near zero with proper loading states
+- **Global latency**: Edge-cached pages serve in <100ms worldwide

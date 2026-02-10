@@ -1,0 +1,24 @@
+---
+title: "Unified Inbox: Real-Time Message Status & Thread Management"
+date: "2026-01-28"
+summary: "Inbox now shows real-time delivery status (sent, delivered, read) for every message, plus improved thread assignment and SLA tracking."
+audience: ["public", "app"]
+tags: ["inbox", "meta-hub", "real-time", "sla"]
+type: "improved"
+---
+
+We've upgraded the inbox experience with real-time message status tracking and better thread management.
+
+## What's improved
+
+- **Real-time delivery status**: See sent ✓, delivered ✓✓, and read ✓✓ indicators on every outbound message
+- **Thread assignment**: Assign conversations to specific agents with one click
+- **SLA indicators**: Visual indicators show when conversations are approaching or breaching SLA targets
+- **Message timeline**: Full message lifecycle from queued → sent → delivered → read → failed
+
+## Technical details
+
+- WebSocket-based real-time updates (no polling required)
+- Automatic status synchronization from Meta webhook events
+- SLA calculation based on configurable workspace-level thresholds
+- Thread state machine: open → assigned → waiting → resolved → closed

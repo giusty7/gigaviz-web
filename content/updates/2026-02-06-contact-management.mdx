@@ -1,0 +1,32 @@
+---
+title: "Contact Management: Tags, Notes & Conversation History"
+date: "2026-02-06"
+summary: "CRM-style contact management is now live. Tag contacts, add internal notes, and view full conversation history across channels."
+audience: ["public", "app"]
+tags: ["contacts", "crm", "inbox", "meta-hub"]
+type: "shipped"
+---
+
+Contact management has graduated from basic to CRM-grade with tags, notes, and full conversation history.
+
+## What's new
+
+- **Contact tags**: Organize contacts with custom tags (VIP, lead, churned, etc.)
+- **Internal notes**: Add private notes to contacts visible only to your team
+- **Conversation history**: View all past threads with a contact in one timeline
+- **Phone normalization**: Automatic phone number formatting ensures no duplicate contacts
+- **Bulk import**: Import contacts from CSV with automatic deduplication
+
+## CRM features
+
+- **Contact detail panel**: Full profile view with tags, notes, and conversation summary
+- **Search and filter**: Find contacts by name, phone, tags, or last activity
+- **Workspace-scoped**: Each workspace has its own contact database — fully isolated
+- **Thread linking**: Every conversation thread is linked to a contact record
+
+## Technical details
+
+- Contacts stored in `wa_contacts` table with RLS policies
+- Phone numbers normalized to E.164 format (`+` prefix, digits only)
+- Full-text search with PostgreSQL `tsvector` indexing
+- Bulk operations support with workspace-scoped transactions

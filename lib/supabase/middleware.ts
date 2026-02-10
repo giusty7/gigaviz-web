@@ -14,6 +14,10 @@ export async function withSupabaseAuth(request: NextRequest) {
   const nextSafe = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
 
   const firstSegment = pathname.split("/")[1] ?? "";
+  
+  // Locale prefixes (e.g. /id/pricing, /en/about) should be treated as public
+  const locales = new Set(["id", "en"]);
+  
   const publicSegments = new Set([
     "",
     "about",
@@ -58,6 +62,12 @@ export async function withSupabaseAuth(request: NextRequest) {
     isInviteAcceptApi ||
     isWorkspaceInviteApi
   ) {
+    return NextResponse.next();
+  }
+
+  // Allow locale-prefixed routes (e.g. /id/pricing, /id/about)
+  // Check if the first segment is a locale — if so, treat the whole route as public
+  if (locales.has(firstSegment)) {
     return NextResponse.next();
   }
 
@@ -122,6 +132,7 @@ export async function withSupabaseAuth(request: NextRequest) {
       workspaceSlug &&
       workspaceSlug !== "onboarding" &&
       !publicSegments.has(workspaceSlug) &&
+      !locales.has(workspaceSlug) &&
       workspaceSlug !== "admin" &&
       workspaceSlug !== "api"
     ) {
@@ -195,7 +206,7 @@ export async function withSupabaseAuth(request: NextRequest) {
     return makeNext();
   }
 
-  const isProtectedArea = !publicSegments.has(firstSegment) && !isAdminPath && !pathname.startsWith("/api");
+  const isProtectedArea = !publicSegments.has(firstSegment) && !locales.has(firstSegment) && !isAdminPath && !pathname.startsWith("/api");
 
   /**
    * 2) Protect /admin/* dan /api/admin/*
