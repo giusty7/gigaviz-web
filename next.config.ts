@@ -37,6 +37,7 @@ const nextConfig: NextConfig = {
 
     const securityHeaders = [
       { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "DENY" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "X-DNS-Prefetch-Control", value: "off" },
       {
@@ -50,10 +51,10 @@ const nextConfig: NextConfig = {
     if (isProd) {
       securityHeaders.push({
         key: "Strict-Transport-Security",
-        value: "max-age=31536000; includeSubDomains",
+        value: "max-age=31536000; includeSubDomains; preload",
       });
       securityHeaders.push({
-        key: "Content-Security-Policy-Report-Only",
+        key: "Content-Security-Policy",
         value: cspDirectives,
       });
     }

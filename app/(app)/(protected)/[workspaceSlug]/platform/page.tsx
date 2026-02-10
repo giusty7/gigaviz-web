@@ -1,19 +1,18 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
-  BadgeCheck,
   Building2,
-  Circle,
-  Clock3,
   ShieldCheck,
   Sparkles,
   Users2,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GetStartedPanel } from "@/components/onboarding/get-started-panel";
 import { WorkspaceActions } from "@/components/platform/workspace-actions";
+import { PlatformAuditEvents, PlatformChecklist } from "@/components/platform/platform-suspense-sections";
+import { SkeletonList } from "@/components/ui/skeleton-card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getAppContext } from "@/lib/app-context";
 import {
   getOnboardingSignals,
@@ -31,21 +30,6 @@ type PlatformOverviewPageProps = {
   params: Promise<{ workspaceSlug: string }>;
 };
 
-function formatRelativeTime(input?: string | null) {
-  if (!input) return "Just now";
-  const date = new Date(input);
-  if (Number.isNaN(date.getTime())) return "Just now";
-  const diffMs = Date.now() - date.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 60) return "Just now";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin} min ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hr ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
-}
-
 export default async function PlatformOverviewPage({ params }: PlatformOverviewPageProps) {
   const { workspaceSlug } = await params;
   const ctx = await getAppContext(workspaceSlug);
@@ -59,41 +43,19 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
 
   await ensureWorkspaceCookie(workspace.id);
 
-  const planInfo = await getWorkspacePlan(workspace.id);
+  // Parallel fetch: plan info + onboarding signals + member count (for summary cards)
+  const [planInfo, onboardingSignals, memberResult] = await Promise.all([
+    getWorkspacePlan(workspace.id),
+    getOnboardingSignals(workspace.id),
+    supabaseAdmin()
+      .from("workspace_members")
+      .select("user_id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+  ]);
+
   const planLabel = planInfo.displayName;
-  const isPaid = planInfo.planId !== "free_locked";
-  const db = supabaseAdmin();
+  const memberCount = memberResult.count ?? 0;
 
-  const { count: memberCount } = await db
-    .from("workspace_members")
-    .select("user_id", { count: "exact", head: true })
-    .eq("workspace_id", workspace.id);
-
-  const { count: membersWithRole } = await db
-    .from("workspace_members")
-    .select("user_id", { count: "exact", head: true })
-    .eq("workspace_id", workspace.id)
-    .not("role", "is", null);
-
-  const { count: billingRequestCount } = await db
-    .from("billing_requests")
-    .select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspace.id);
-
-  const { count: auditEventCount } = await db
-    .from("audit_events")
-    .select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspace.id);
-
-  const { data: recentAudit } = await db
-    .from("audit_events")
-    .select("id, action, actor_email, created_at, meta")
-    .eq("workspace_id", workspace.id)
-    .order("created_at", { ascending: false })
-    .limit(6);
-
-  // Onboarding signals
-  const onboardingSignals = await getOnboardingSignals(workspace.id);
   const onboardingSteps = buildOnboardingSteps(onboardingSignals, workspaceSlug);
   const onboardingProgress = getOnboardingProgress(onboardingSteps);
   const nextOnboardingStep = getNextIncompleteStep(onboardingSteps);
@@ -153,36 +115,6 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
     },
   ];
 
-  const checklist = [
-    {
-      label: "Workspace created",
-      done: true,
-      helper: "You are inside an active workspace.",
-    },
-    {
-      label: "Invite at least 2 members",
-      done: (memberCount ?? 0) >= 2,
-      helper: (memberCount ?? 0) >= 2 ? "Team ready" : "Add a teammate to collaborate.",
-    },
-    {
-      label: "Assign roles",
-      done: (memberCount ?? 0) > 0 && (membersWithRole ?? 0) === (memberCount ?? 0),
-      helper:
-        (membersWithRole ?? 0) === (memberCount ?? 0)
-          ? "Roles applied to all members."
-          : "Set owner/admin/member per person.",
-    },
-    {
-      label: "Audit logging",
-      done: (auditEventCount ?? 0) > 0,
-      helper: (auditEventCount ?? 0) > 0 ? "Events captured." : "No audit events yet.",
-    },
-    {
-      label: "Billing ready",
-      done: isPaid || (billingRequestCount ?? 0) > 0,
-      helper: isPaid ? "Paid plan active." : "Submit an upgrade request to unlock paid features.",
-    },
-  ];
   return (
     <div className="relative space-y-6">
       {/* Cyber-Batik Pattern Background */}
@@ -289,96 +221,16 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="bg-card/85 border-border/80">
-          <CardHeader>
-            <CardTitle>Setup checklist</CardTitle>
-            <CardDescription>What’s left to unlock a secure, production-ready workspace.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-2 md:grid-cols-2">
-            {checklist.map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between rounded-xl border border-border/80 bg-background px-4 py-3 text-sm"
-              >
-                <div>
-                  <p className="font-semibold text-foreground">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.helper}</p>
-                </div>
-                <Badge
-                  variant={item.done ? "outline" : "secondary"}
-                  className={item.done ? "border-emerald-400/70 text-emerald-200" : "bg-gigaviz-surface text-muted-foreground"}
-                >
-                  {item.done ? "Done" : "TODO"}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {/* Checklist — streams independently via Suspense */}
+        <Suspense fallback={<Skeleton className="h-64 rounded-2xl bg-[#d4af37]/10" />}>
+          <PlatformChecklist workspaceId={workspace.id} />
+        </Suspense>
 
-        <Card className="bg-card/85 border-border/80">
-          <CardHeader className="flex flex-col gap-1">
-            <CardTitle>Recent audit events</CardTitle>
-            <CardDescription>Workspace-scoped actions recorded in the last 50 events.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {(recentAudit ?? []).length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#d4af37]/30 bg-[#050a18]/30 px-4 py-8 text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10">
-                  <Clock3 className="h-6 w-6 text-[#d4af37]" />
-                </div>
-                <p className="font-semibold text-[#d4af37]">Awaiting Sovereignty</p>
-                <p className="mt-1 text-xs text-[#f5f5dc]/50">
-                  Trigger actions like role updates or billing requests to populate the log.
-                </p>
-              </div>
-            ) : (
-              recentAudit!.map((evt) => (
-                <div
-                  key={evt.id}
-                  className="flex items-start justify-between rounded-xl border border-border/80 bg-background px-4 py-3"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-foreground">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gigaviz-surface/60 text-gigaviz-gold">
-                        <ScrollIndicator action={evt.action} />
-                      </span>
-                      <div>
-                        <p className="font-semibold leading-tight">{evt.action}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {evt.actor_email ?? "Unknown actor"}
-                        </p>
-                      </div>
-                    </div>
-                    {evt.meta ? (
-                      <p className="text-xs text-muted-foreground">
-                        {JSON.stringify(evt.meta)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className="text-xs text-muted-foreground">{formatRelativeTime(evt.created_at)}</span>
-                </div>
-              ))
-            )}
-
-            <Link
-              href={`/${workspace.slug}/platform/audit`}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-gigaviz-gold hover:underline"
-            >
-              View full audit log
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </CardContent>
-        </Card>
+        {/* Audit events — streams independently via Suspense */}
+        <Suspense fallback={<SkeletonList rows={4} />}>
+          <PlatformAuditEvents workspaceId={workspace.id} workspaceSlug={workspaceSlug} />
+        </Suspense>
       </div>
     </div>
   );
-}
-
-function ScrollIndicator({ action }: { action: string }) {
-  if (action.startsWith("member")) return <BadgeCheck className="h-4 w-4" />;
-  if (action.startsWith("billing")) return <Sparkles className="h-4 w-4" />;
-  if (action.includes("audit")) return <ShieldCheck className="h-4 w-4" />;
-  if (action.includes("workspace")) return <Building2 className="h-4 w-4" />;
-  if (action.includes("feature")) return <Circle className="h-4 w-4" />;
-  return <Clock3 className="h-4 w-4" />;
 }

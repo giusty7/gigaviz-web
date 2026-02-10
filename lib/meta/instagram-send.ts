@@ -87,7 +87,7 @@ export async function sendInstagramMessage(
       messageId: data.message_id,
     };
   } catch (error) {
-    console.error('[Instagram Send] Unexpected error:', error);
+    logger.error('[Instagram Send] Unexpected error:', error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -169,13 +169,13 @@ export async function sendInstagramTextMessage(params: {
       });
 
     if (insertError) {
-      console.error('[Instagram Send] Failed to store message:', insertError);
+      logger.error('[Instagram Send] Failed to store message:', insertError);
       // Message sent but not stored - non-fatal
     }
 
     return result;
   } catch (error) {
-    console.error('[Instagram Send] Unexpected error:', error);
+    logger.error('[Instagram Send] Unexpected error:', error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -265,12 +265,12 @@ export async function sendInstagramImageMessage(params: {
       });
 
     if (insertError) {
-      console.error('[Instagram Send] Failed to store image message:', insertError);
+      logger.error('[Instagram Send] Failed to store image message:', insertError);
     }
 
     return result;
   } catch (error) {
-    console.error('[Instagram Send] Image send error:', error);
+    logger.error('[Instagram Send] Image send error:', error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Unknown error',

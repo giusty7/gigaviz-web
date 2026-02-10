@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -58,7 +59,7 @@ export async function PATCH(
       .single();
 
     if (updateError) {
-      console.error("Workspace update error:", updateError);
+      logger.error("Workspace update error:", updateError);
       return NextResponse.json(
         { error: "Failed to update workspace" },
         { status: 500 }
@@ -82,7 +83,7 @@ export async function PATCH(
         { status: 400 }
       );
     }
-    console.error("PATCH /api/workspaces/[workspaceId]:", err);
+    logger.error("PATCH /api/workspaces/[workspaceId]:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -160,7 +161,7 @@ export async function DELETE(
       .eq("id", workspaceId);
 
     if (deleteError) {
-      console.error("Workspace deletion error:", deleteError);
+      logger.error("Workspace deletion error:", deleteError);
       return NextResponse.json(
         { error: "Failed to delete workspace" },
         { status: 500 }
@@ -172,7 +173,7 @@ export async function DELETE(
       message: "Workspace deleted successfully",
     });
   } catch (err) {
-    console.error("DELETE /api/workspaces/[workspaceId]:", err);
+    logger.error("DELETE /api/workspaces/[workspaceId]:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
@@ -106,7 +107,7 @@ Respond in JSON format:
       confidence: typeof result.confidence === "number" ? Math.min(1, Math.max(0, result.confidence)) : 0.5,
     };
   } catch (error) {
-    console.error("AI analysis failed:", error);
+    logger.error("AI analysis failed:", error);
     // Fallback to rule-based
     return {
       summary: fallbackSummary,

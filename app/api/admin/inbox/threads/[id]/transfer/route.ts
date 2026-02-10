@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   });
 
   if (eventErr) {
-    console.log("CONVERSATION_EVENT_INSERT_ERROR", eventErr.message);
+    logger.info("CONVERSATION_EVENT_INSERT_ERROR", eventErr.message);
   }
 
   const { data: updated, error: readErr } = await db

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { searchKnowledge } from "@/lib/helper/rag";
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
       count: results.length,
     });
   } catch (error) {
-    console.error("Search failed:", error);
+    logger.error("Search failed:", error);
     return NextResponse.json(
       { error: "Search failed" },
       { status: 500 }

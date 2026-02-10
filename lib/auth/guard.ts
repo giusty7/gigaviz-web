@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -66,7 +67,7 @@ export function getWorkspaceId(
   if (typeof bodyWorkspaceId === "string") {
     bodyId = bodyWorkspaceId;
     if (DEV) {
-      console.warn("[guard] workspaceId supplied from body (discouraged)");
+      logger.warn("[guard] workspaceId supplied from body (discouraged)");
     }
   }
   return paramId || queryId || headerId || bodyId;

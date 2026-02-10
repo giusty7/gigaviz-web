@@ -3,6 +3,7 @@
  * POST /api/beta/apply
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { z } from 'zod';
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[Beta API] Failed to create application:', error);
+      logger.error('[Beta API] Failed to create application:', error);
       return NextResponse.json(
         { error: 'Failed to submit application' },
         { status: 500 }
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ participant }, { status: 201 });
 
   } catch (err) {
-    console.error('[Beta API] Unexpected error:', err);
+    logger.error('[Beta API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -188,7 +189,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (err) {
-    console.error('[Beta API] Unexpected error:', err);
+    logger.error('[Beta API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

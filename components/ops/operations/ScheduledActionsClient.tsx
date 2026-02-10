@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Clock, Plus, X, RefreshCw, CheckCircle, XCircle, AlertCircle } from "lucide-react";
@@ -50,7 +51,7 @@ export default function ScheduledActionsClient() {
         setActions(data.actions || []);
       }
     } catch (err) {
-      console.error("Failed to fetch actions:", err);
+      logger.error("Failed to fetch actions:", err);
     } finally {
       setLoading(false);
     }
@@ -86,7 +87,7 @@ export default function ScheduledActionsClient() {
         fetchActions();
       }
     } catch (err) {
-      console.error("Create failed:", err);
+      logger.error("Create failed:", err);
     } finally {
       setCreating(false);
     }
@@ -105,7 +106,7 @@ export default function ScheduledActionsClient() {
       });
       fetchActions();
     } catch (err) {
-      console.error("Cancel failed:", err);
+      logger.error("Cancel failed:", err);
     }
   };
 

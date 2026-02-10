@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
     .limit(100);
 
   if (error) {
-    console.error("Failed to load sources:", error);
+    logger.error("Failed to load sources:", error);
     return NextResponse.json({ error: "Failed to load sources" }, { status: 500 });
   }
 
@@ -109,13 +110,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Failed to add source:", error);
+      logger.error("Failed to add source:", error);
       return NextResponse.json({ error: "Failed to add source" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, id: data.id });
   } catch (error) {
-    console.error("Add source error:", error);
+    logger.error("Add source error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -153,7 +154,7 @@ export async function DELETE(req: NextRequest) {
     .eq("workspace_id", workspaceId);
 
   if (error) {
-    console.error("Failed to delete source:", error);
+    logger.error("Failed to delete source:", error);
     return NextResponse.json({ error: "Failed to delete source" }, { status: 500 });
   }
 

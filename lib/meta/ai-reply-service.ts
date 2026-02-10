@@ -266,7 +266,7 @@ async function searchKnowledgeBase(
   try {
     const db = supabaseAdmin();
 
-    // Get OpenAI client for embeddings — use ada-002 to match stored embeddings
+    // Get OpenAI client for embeddings â€” use ada-002 to match stored embeddings
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const embeddingResponse = await openai.embeddings.create({
@@ -424,25 +424,25 @@ export async function processAIReply(params: {
   const { workspaceId, threadId, incomingMessage, contactName, connectionId, phoneNumber, messageId } = params;
   const startTime = Date.now();
 
-  console.log("[AI-REPLY] Starting processAIReply:", { workspaceId, threadId, messagePreview: incomingMessage.substring(0, 30) });
+  logger.info("ai-reply: starting processAIReply", { workspaceId, threadId, messagePreview: incomingMessage.substring(0, 30) });
 
   try {
     // 1. Get AI settings
     const settings = await getAIReplySettings(workspaceId);
-    console.log("[AI-REPLY] Settings loaded:", { 
+    logger.info("ai-reply: settings loaded", { 
       hasSettings: !!settings, 
       enabled: settings?.enabled,
       model: settings?.aiModel 
     });
     
     if (!settings || !settings.enabled) {
-      console.log("[AI-REPLY] SKIPPED: AI reply disabled");
+      logger.info("ai-reply: skipped  AI reply disabled");
       return { success: true, action: "skipped", reason: "AI reply disabled" };
     }
 
     // 2. Get/create thread state
     let threadState = await getThreadState(workspaceId, threadId);
-    console.log("[AI-REPLY] Thread state:", { hasState: !!threadState, aiEnabled: threadState?.aiEnabled });
+    logger.info("ai-reply: thread state", { hasState: !!threadState, aiEnabled: threadState?.aiEnabled });
     
     if (!threadState) {
       threadState = await upsertThreadState(workspaceId, threadId, {
@@ -450,44 +450,44 @@ export async function processAIReply(params: {
         messageCount: 0,
         contextWindow: [],
       });
-      console.log("[AI-REPLY] Created new thread state");
+      logger.info("ai-reply: created new thread state");
     }
 
     // 3. Check if AI is enabled for this thread
     if (!threadState.aiEnabled) {
-      console.log("[AI-REPLY] SKIPPED: AI disabled for this thread");
+      logger.info("ai-reply: skipped  AI disabled for this thread");
       return { success: true, action: "skipped", reason: "AI disabled for thread" };
     }
 
     // 4. Check if already handed off
     if (threadState.handedOff) {
-      console.log("[AI-REPLY] SKIPPED: Thread handed off to human");
+      logger.info("ai-reply: skipped  Thread handed off to human");
       return { success: true, action: "skipped", reason: "Thread handed off to human" };
     }
 
     // 5. Check active hours
     if (!isWithinActiveHours(settings)) {
-      console.log("[AI-REPLY] SKIPPED: Outside active hours");
+      logger.info("ai-reply: skipped  Outside active hours");
       return { success: true, action: "skipped", reason: "Outside active hours" };
     }
 
     // 6. Check cooldown
     if (await isWithinCooldown(settings, threadState)) {
-      console.log("[AI-REPLY] SKIPPED: Cooldown active");
+      logger.info("ai-reply: skipped  Cooldown active");
       return { success: true, action: "skipped", reason: "Cooldown active" };
     }
 
     // 7. Check daily limit
     const dailyCount = await getDailyReplyCount(workspaceId);
-    console.log("[AI-REPLY] Daily count:", dailyCount, "Max:", settings.maxMessagesPerDay);
+    logger.info("ai-reply: daily count", { dailyCount, maxPerDay: settings.maxMessagesPerDay });
     if (dailyCount >= settings.maxMessagesPerDay) {
-      console.log("[AI-REPLY] SKIPPED: Daily limit reached");
+      logger.info("ai-reply: skipped  Daily limit reached");
       return { success: true, action: "skipped", reason: "Daily limit reached" };
     }
 
     // 8. Check per-thread limit
     if (settings.maxMessagesPerThread && threadState.messageCount >= settings.maxMessagesPerThread) {
-      console.log("[AI-REPLY] SKIPPED: Thread message limit reached");
+      logger.info("ai-reply: skipped  Thread message limit reached");
       return { success: true, action: "skipped", reason: "Thread message limit reached" };
     }
 
@@ -506,7 +506,7 @@ export async function processAIReply(params: {
       return { success: true, action: "handoff", reason: "Auto-handoff triggered" };
     }
 
-    console.log("[AI-REPLY] All checks passed, generating AI response...");
+    logger.info("ai-reply: all checks passed, generating response");
 
     // 11. Search knowledge base for context
     let knowledgeContext: KnowledgeContext[] = [];
@@ -516,7 +516,7 @@ export async function processAIReply(params: {
         incomingMessage,
         settings.knowledgeConfidenceThreshold
       );
-      console.log("[AI-REPLY] Knowledge base results:", knowledgeContext.length);
+      logger.info("ai-reply: knowledge base results", { count: knowledgeContext.length });
     }
 
     // 12. Build conversation context
@@ -527,10 +527,10 @@ export async function processAIReply(params: {
     const recentContext = contextWindow.slice(-10);
 
     // 13. Generate AI response
-    console.log("[AI-REPLY] Calling OpenAI API with model:", settings.aiModel);
+    logger.info("ai-reply: calling OpenAI", { model: settings.aiModel });
 
     if (!process.env.OPENAI_API_KEY) {
-      console.error("[AI-REPLY] ERROR: OPENAI_API_KEY is not set!");
+      logger.error("ai-reply: OPENAI_API_KEY is not set");
       throw new Error("OPENAI_API_KEY is not configured");
     }
 
@@ -546,7 +546,7 @@ export async function processAIReply(params: {
       })),
     ];
 
-    console.log("[AI-REPLY] Sending request to OpenAI...");
+    logger.info("ai-reply: sending request to OpenAI");
     const completion = await openai.chat.completions.create({
       model: settings.aiModel,
       messages,
@@ -556,7 +556,7 @@ export async function processAIReply(params: {
 
     const aiResponse = completion.choices[0]?.message?.content;
     const tokensUsed = completion.usage?.total_tokens || 0;
-    console.log("[AI-REPLY] OpenAI response received:", { 
+    logger.info("ai-reply: OpenAI response received", { 
       hasResponse: !!aiResponse, 
       tokensUsed,
       responsePreview: aiResponse?.substring(0, 50)
@@ -567,9 +567,9 @@ export async function processAIReply(params: {
     }
 
     // 14. Send the response via WhatsApp
-    console.log("[AI-REPLY] Sending WhatsApp message to:", phoneNumber);
+    logger.info("ai-reply: sending WhatsApp message", { phoneNumber });
     await sendWhatsAppMessage(workspaceId, threadId, connectionId, phoneNumber, aiResponse);
-    console.log("[AI-REPLY] WhatsApp message queued successfully!");
+    logger.info("ai-reply: WhatsApp message queued");
 
     // 15. Update thread state
     const updatedContext = [...recentContext, { role: "assistant" as const, content: aiResponse }];
@@ -583,7 +583,7 @@ export async function processAIReply(params: {
     const responseTimeMs = Date.now() - startTime;
     await logAIReply(workspaceId, threadId, incomingMessage, aiResponse, "success", tokensUsed, responseTimeMs, undefined, messageId);
 
-    console.log("[AI-REPLY] SUCCESS! Response time:", responseTimeMs, "ms");
+    logger.info("ai-reply: success", { responseTimeMs });
     return {
       success: true,
       action: "replied",
@@ -593,7 +593,7 @@ export async function processAIReply(params: {
     };
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error";
-    console.error("[AI-REPLY] FAILED:", error);
+    logger.error("ai-reply: failed", { error });
     logger.error("[ai-reply] Error processing AI reply", { error, workspaceId, threadId });
     
     await logAIReply(workspaceId, threadId, incomingMessage, null, "failed", null, Date.now() - startTime, error, messageId);
@@ -632,11 +632,11 @@ function buildSystemPrompt(
 
   prompt += `\n\nGUIDELINES:
 - ALWAYS use the Knowledge Base information above to answer questions when relevant
-- If the Knowledge Base contains the answer, use it — do NOT say "I don't know" or "I can't access the internet"
+- If the Knowledge Base contains the answer, use it â€” do NOT say "I don't know" or "I can't access the internet"
 - Reply in the same language the customer uses (Indonesian/English)
 - Keep answers concise and WhatsApp-friendly (max 2-3 short paragraphs)
 - If the question is genuinely outside your knowledge, politely say you'll check with the team
-- Never reveal you are ChatGPT or OpenAI — you are the Gigaviz AI assistant
+- Never reveal you are ChatGPT or OpenAI â€” you are the Gigaviz AI assistant
 - Use emojis sparingly for a friendly tone`;
 
   return prompt;

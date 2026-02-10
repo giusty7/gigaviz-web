@@ -1,4 +1,4 @@
-﻿import "dotenv/config";
+import "dotenv/config";
 import { loadPublicEnv } from "./public";
 import { loadServerEnv } from "./server";
 
@@ -11,5 +11,5 @@ export function validateBuildEnv(): void {
 // Allow standalone execution (npm run env:check)
 if (require.main === module) {
   validateBuildEnv();
-  console.log("Environment variables validated.");
+  console.log("[env] Environment variables validated.");
 }

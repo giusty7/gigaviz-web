@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -59,7 +60,7 @@ async function lookupInvite(token: string) {
 
   if (hashRes.error) {
     if (DEV) {
-      console.warn("[invite-preview] token_hash lookup failed", {
+      logger.warn("[invite-preview] token_hash lookup failed", {
         error: hashRes.error.message,
         code: hashRes.error.code ?? null,
         missingColumn: hashMissing,
@@ -80,7 +81,7 @@ async function lookupInvite(token: string) {
 
     if (tokenRes.error) {
       if (DEV) {
-        console.warn("[invite-preview] token lookup failed", {
+        logger.warn("[invite-preview] token lookup failed", {
           error: tokenRes.error.message,
           code: tokenRes.error.code ?? null,
           missingColumn: tokenMissing,
@@ -115,7 +116,7 @@ async function accountExists(email: string | null | undefined) {
   const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (error) {
     if (DEV) {
-      console.warn("[invite-preview] listUsers failed", error.message);
+      logger.warn("[invite-preview] listUsers failed", error.message);
     }
     return false;
   }

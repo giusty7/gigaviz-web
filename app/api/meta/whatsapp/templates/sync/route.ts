@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import {
@@ -276,7 +277,7 @@ export async function POST(req: NextRequest) {
         upsertError.message?.includes("no unique") ||
         upsertError.message?.includes("unique or exclusion constraint");
       if (process.env.NODE_ENV === "development") {
-        console.error("[wa-templates-sync] upsert error", upsertError);
+        logger.error("[wa-templates-sync] upsert error", upsertError);
       }
       return withCookies(
         NextResponse.json(

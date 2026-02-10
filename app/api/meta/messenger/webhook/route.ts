@@ -1,6 +1,7 @@
 // Facebook Messenger Webhook Handler
 // Processes Messenger messages via Graph API webhooks
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   const challenge = searchParams.get('hub.challenge');
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    console.log('[Messenger] Webhook verified');
+    logger.info('[Messenger] Webhook verified');
     return new NextResponse(challenge, { status: 200 });
   }
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Verify signature
     if (!verifySignature(body, signature)) {
-      console.error('[Messenger] Invalid signature');
+      logger.error('[Messenger] Invalid signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Messenger] Webhook error:', error);
+    logger.error('[Messenger] Webhook error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { error: message },
@@ -105,7 +106,7 @@ async function handleMessageEvent(
       .single();
 
     if (!page) {
-      console.warn('[Messenger] Page not found:', pageId);
+      logger.warn('[Messenger] Page not found:', pageId);
       return;
     }
 
@@ -190,7 +191,7 @@ async function handleMessageEvent(
       },
     });
   } catch (error) {
-    console.error('[Messenger] Error processing message:', error);
+    logger.error('[Messenger] Error processing message:', error);
     throw error;
   }
 }
@@ -224,7 +225,7 @@ async function handleDeliveryEvent(
         .eq('message_id', mid);
     }
   } catch (error) {
-    console.error('[Messenger] Error processing delivery:', error);
+    logger.error('[Messenger] Error processing delivery:', error);
   }
 }
 
@@ -275,7 +276,7 @@ async function handleReadEvent(
       .eq('direction', 'outbound')
       .neq('status', 'read');
   } catch (error) {
-    console.error('[Messenger] Error processing read:', error);
+    logger.error('[Messenger] Error processing read:', error);
   }
 }
 

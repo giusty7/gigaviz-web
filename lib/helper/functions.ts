@@ -1,4 +1,5 @@
 import "server-only";
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type FunctionDefinition = {
@@ -49,7 +50,7 @@ export async function getAvailableFunctions(
   });
 
   if (error) {
-    console.error("Failed to get available functions:", error);
+    logger.error("Failed to get available functions:", error);
     return [];
   }
 
@@ -134,7 +135,7 @@ export async function createFunctionCall(
     .single();
 
   if (error || !data) {
-    console.error("Failed to create function call:", error);
+    logger.error("Failed to create function call:", error);
     return null;
   }
 

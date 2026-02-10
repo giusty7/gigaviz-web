@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { sendWorkspaceInviteEmail } from "@/lib/email";
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest, context: Ctx) {
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.warn("[invite] insert failed", {
+      logger.warn("[invite] insert failed", {
         message: insertErr.message,
         code,
         details: insertErr.details ?? null,
@@ -128,17 +129,17 @@ export async function POST(req: NextRequest, context: Ctx) {
     });
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`[invite] Email sent to ${email}`);
+      logger.info(`[invite] Email sent to ${email}`);
     }
   } catch (err) {
     if (process.env.NODE_ENV === "development") {
-      console.warn("[invite] Email send failed", { error: String(err) });
+      logger.warn("[invite] Email send failed", { error: String(err) });
     }
     // Even if email fails, invite already exists in DB so return success
   }
 
   if (process.env.NODE_ENV === "development") {
-    console.log(
+    logger.info(
       `[invite] Invite created email=${email} token=${token.slice(0, 8)}...`
     );
   }

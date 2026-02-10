@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
   // Execute sync jobs asynchronously
   for (const job of createdJobs ?? []) {
     executeSyncJobAsync(job.id, workspaceId).catch(err => {
-      console.error("Sync job failed:", err);
+      logger.error("Sync job failed:", err);
     });
   }
 

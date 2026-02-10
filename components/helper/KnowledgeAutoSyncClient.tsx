@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
@@ -66,9 +67,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 interface KnowledgeSource {
   id: string;
@@ -114,9 +115,9 @@ interface Props {
   initialSources?: KnowledgeSource[];
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MOCK DATA
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const mockSources: KnowledgeSource[] = [
   {
@@ -178,9 +179,9 @@ const mockSources: KnowledgeSource[] = [
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HELPER FUNCTIONS
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const getSourceIcon = (type: KnowledgeSource["type"]) => {
   switch (type) {
@@ -225,9 +226,9 @@ const getTimeUntil = (date: string): string => {
   return `in ${Math.floor(seconds / 86400)}d`;
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN COMPONENT
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 export function KnowledgeAutoSyncClient({
   workspaceId,
@@ -275,7 +276,7 @@ export function KnowledgeAutoSyncClient({
         }
       }
     } catch (error) {
-      console.error("[Knowledge] Failed to fetch sync jobs:", error);
+      logger.error("[Knowledge] Failed to fetch sync jobs:", error);
     }
   }, [workspaceId]);
 
@@ -298,7 +299,7 @@ export function KnowledgeAutoSyncClient({
 
   // Log workspace on init
   useEffect(() => {
-    console.log(`[Knowledge] Initialized for workspace: ${workspaceSlug} (${workspaceId})`);
+    logger.info(`[Knowledge] Initialized for workspace: ${workspaceSlug} (${workspaceId})`);
   }, [workspaceId, workspaceSlug]);
 
   // Calculate stats
@@ -346,7 +347,7 @@ export function KnowledgeAutoSyncClient({
         await fetchSyncJobs();
       }
     } catch (error) {
-      console.error("[Knowledge] Sync failed:", error);
+      logger.error("[Knowledge] Sync failed:", error);
     }
 
     setSources(prev => prev.map(s => 
@@ -693,7 +694,7 @@ export function KnowledgeAutoSyncClient({
                         <div className="flex-1">
                           <p className="font-medium text-[#f5f5dc]">{source.name}</p>
                           <p className="text-sm text-[#f5f5dc]/60">
-                            Syncs {source.syncInterval} • Last: {source.lastSyncAt ? getTimeAgo(source.lastSyncAt) : "Never"}
+                            Syncs {source.syncInterval} â€¢ Last: {source.lastSyncAt ? getTimeAgo(source.lastSyncAt) : "Never"}
                           </p>
                         </div>
                         <div className="text-right">

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { normalizePhone } from "@/lib/contacts/normalize";
@@ -306,7 +307,7 @@ export async function POST(req: NextRequest) {
           error: message,
         })
         .eq("id", eventId);
-      console.log(
+      logger.info(
         "META_EVENT_SEND_FAILED",
         JSON.stringify({ eventId, status: data?.status ?? null, error: message })
       );

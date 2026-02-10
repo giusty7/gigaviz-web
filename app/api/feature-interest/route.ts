@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     if (process.env.NODE_ENV === "development") {
-      console.warn("[feature-interest] insert failed", {
+      logger.warn("[feature-interest] insert failed", {
         message: error.message,
         code: error.code ?? null,
         details: error.details ?? null,

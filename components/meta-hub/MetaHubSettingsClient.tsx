@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -115,7 +116,7 @@ export function MetaHubSettingsClient({
 
       router.refresh();
     } catch (err) {
-      console.error("Sync failed:", err);
+      logger.error("Sync failed:", err);
       toast({
         title: "Sync failed",
         description: err instanceof Error ? err.message : "Please try again.",
@@ -139,7 +140,7 @@ export function MetaHubSettingsClient({
     const parts: string[] = [];
     if (conn.verifiedName) parts.push(conn.verifiedName);
     if (conn.displayPhoneNumber) parts.push(conn.displayPhoneNumber);
-    return parts.join(" • ") || "No metadata available";
+    return parts.join(" â€¢ ") || "No metadata available";
   };
 
   return (

@@ -31,7 +31,8 @@ export async function requireAdmin() {
 
   const adminEmails = parseAdminEmails();
   const email = (user.email || "").toLowerCase();
-  const isAdmin = adminEmails.length === 0 ? true : adminEmails.includes(email);
+  // SECURITY: default to false when ADMIN_EMAILS is empty (never grant admin to all)
+  const isAdmin = adminEmails.length > 0 && adminEmails.includes(email);
   if (!isAdmin) return { ok: false as const, reason: "not_admin" };
 
   return { ok: true as const, user };

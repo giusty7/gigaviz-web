@@ -4,10 +4,11 @@ import { recordAuditEvent } from "@/lib/audit";
 import { seedWorkspaceQuotas } from "@/lib/quotas";
 import { requireUser } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const userRes = await requireUser(req);
   if (!userRes.ok) return userRes.response;
   const { user, withCookies } = userRes;
@@ -77,4 +78,4 @@ export async function POST(req: NextRequest) {
   seedWorkspaceQuotas(data.id, "free_locked").catch(() => null);
 
   return withCookies(NextResponse.json({ ok: true, workspace: data }));
-}
+});

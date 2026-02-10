@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -126,7 +127,7 @@ export async function POST(req: NextRequest) {
       message: "Indexed with chunks",
     });
   } catch (error) {
-    console.error("Indexing failed:", error);
+    logger.error("Indexing failed:", error);
     return NextResponse.json(
       { error: "Failed to index content" },
       { status: 500 }
@@ -180,7 +181,7 @@ export async function DELETE(req: NextRequest) {
       message: "Removed from knowledge base",
     });
   } catch (error) {
-    console.error("Deletion failed:", error);
+    logger.error("Deletion failed:", error);
     return NextResponse.json(
       { error: "Failed to remove content" },
       { status: 500 }

@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 
+const createConversationSchema = z.object({
+  title: z.string().max(200).optional(),
+});
+
 export async function GET(req: NextRequest) {
+  try {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies } = guard;
@@ -30,15 +37,26 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, conversations: data ?? [] }));
+  } catch (err) {
+    logger.error("helper/conversations GET error", { error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
+  try {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies } = guard;
 
   const body = await req.json().catch(() => ({}));
-  const title = (body?.title as string | undefined)?.trim() || "New chat";
+  const parsed = createConversationSchema.safeParse(body);
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json({ ok: false, error: "invalid_payload", issues: parsed.error.flatten() }, { status: 400 })
+    );
+  }
+  const title = parsed.data.title?.trim() || "New chat";
 
   const db = supabaseAdmin();
   const { data, error } = await db
@@ -59,4 +77,8 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, conversation: data }));
+  } catch (err) {
+    logger.error("helper/conversations POST error", { error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
+  }
 }

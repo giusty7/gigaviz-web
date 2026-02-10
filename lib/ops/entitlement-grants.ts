@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { recordOwnerAudit } from "@/lib/owner/audit";
 import { ENTITLEMENT_KEYS, type EntitlementKey } from "@/lib/entitlements/payload-spec";
@@ -100,7 +101,7 @@ export async function grantEntitlement(params: GrantEntitlementParams): Promise<
   );
 
   if (error) {
-    console.error("[grantEntitlement] Error:", error);
+    logger.error("[grantEntitlement] Error:", error);
     return { success: false, error: error.message };
   }
 
@@ -152,7 +153,7 @@ export async function revokeEntitlement(params: RevokeEntitlementParams): Promis
     .eq("key", entitlementKey);
 
   if (error) {
-    console.error("[revokeEntitlement] Error:", error);
+    logger.error("[revokeEntitlement] Error:", error);
     return { success: false, error: error.message };
   }
 

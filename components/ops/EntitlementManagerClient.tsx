@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,9 +40,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 type WorkspaceSearchResult = {
   id: string;
@@ -72,26 +73,26 @@ type WorkspaceDetail = {
   entitlements: Entitlement[];
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ENTITLEMENT DISPLAY CONFIG
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const ENTITLEMENT_META: Record<string, { label: string; description: string; icon: string }> = {
-  core_os: { label: "Core OS", description: "Platform core functionality", icon: "🏠" },
-  meta_hub: { label: "Meta Hub", description: "WhatsApp, Instagram, Messenger integration", icon: "📱" },
-  studio: { label: "Studio", description: "Creative suite (Office, Graph, Tracks)", icon: "🎨" },
-  helper: { label: "Helper", description: "AI Assistant, Chat, RAG, Workflows", icon: "🤖" },
-  office: { label: "Office", description: "Document & spreadsheet tools", icon: "📄" },
-  marketplace: { label: "Marketplace", description: "Template & plugin marketplace", icon: "🛒" },
-  arena: { label: "Arena", description: "Competitive insights", icon: "🏆" },
-  pay: { label: "Pay", description: "Payment processing", icon: "💳" },
-  trade: { label: "Trade", description: "E-commerce features", icon: "🛍️" },
-  community: { label: "Community", description: "User forums & support", icon: "👥" },
+  core_os: { label: "Core OS", description: "Platform core functionality", icon: "ðŸ " },
+  meta_hub: { label: "Meta Hub", description: "WhatsApp, Instagram, Messenger integration", icon: "ðŸ“±" },
+  studio: { label: "Studio", description: "Creative suite (Office, Graph, Tracks)", icon: "ðŸŽ¨" },
+  helper: { label: "Helper", description: "AI Assistant, Chat, RAG, Workflows", icon: "ðŸ¤–" },
+  office: { label: "Office", description: "Document & spreadsheet tools", icon: "ðŸ“„" },
+  marketplace: { label: "Marketplace", description: "Template & plugin marketplace", icon: "ðŸ›’" },
+  arena: { label: "Arena", description: "Competitive insights", icon: "ðŸ†" },
+  pay: { label: "Pay", description: "Payment processing", icon: "ðŸ’³" },
+  trade: { label: "Trade", description: "E-commerce features", icon: "ðŸ›ï¸" },
+  community: { label: "Community", description: "User forums & support", icon: "ðŸ‘¥" },
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN CLIENT COMPONENT
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 type Props = {
   initialWorkspaceId?: string;
@@ -130,7 +131,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
         const data = await res.json();
         setAvailableKeys(data.keys ?? []);
       } catch (err) {
-        console.error("Failed to load entitlement keys:", err);
+        logger.error("Failed to load entitlement keys:", err);
       }
     }
     loadKeys();
@@ -148,7 +149,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
             setSelectedWorkspace(data.workspace);
           }
         } catch (err) {
-          console.error("Auto-load workspace error:", err);
+          logger.error("Auto-load workspace error:", err);
         } finally {
           setLoading(false);
         }
@@ -169,7 +170,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
         const data = await res.json();
         setSearchResults(data.workspaces ?? []);
       } catch (err) {
-        console.error("Search error:", err);
+        logger.error("Search error:", err);
       } finally {
         setSearching(false);
       }
@@ -191,7 +192,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
         toast({ title: "Error", description: "Workspace not found", variant: "destructive" });
       }
     } catch (err) {
-      console.error("Load workspace error:", err);
+      logger.error("Load workspace error:", err);
       toast({ title: "Error", description: "Failed to load workspace", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -209,7 +210,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
         setSelectedWorkspace(data.workspace);
       }
     } catch (err) {
-      console.error("Refresh error:", err);
+      logger.error("Refresh error:", err);
     } finally {
       setLoading(false);
     }
@@ -233,7 +234,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
       const data = await res.json();
       if (data.success) {
         toast({
-          title: "✅ Granted!",
+          title: "âœ… Granted!",
           description: `${ENTITLEMENT_META[selectedKey]?.label || selectedKey} unlocked for ${selectedWorkspace.name}`,
         });
         setSelectedKey("");
@@ -243,7 +244,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
         toast({ title: "Error", description: data.error, variant: "destructive" });
       }
     } catch (err) {
-      console.error("Grant error:", err);
+      logger.error("Grant error:", err);
       toast({ title: "Error", description: "Failed to grant entitlement", variant: "destructive" });
     } finally {
       setGranting(false);
@@ -274,7 +275,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
           const data = await res.json();
           if (data.success) {
             toast({
-              title: "🔒 Revoked",
+              title: "ðŸ”’ Revoked",
               description: `${ENTITLEMENT_META[key]?.label || key} locked for ${selectedWorkspace.name}`,
             });
             await refreshWorkspace();
@@ -282,7 +283,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
             toast({ title: "Error", description: data.error, variant: "destructive" });
           }
         } catch (err) {
-          console.error("Revoke error:", err);
+          logger.error("Revoke error:", err);
         } finally {
           setLoading(false);
         }
@@ -295,7 +296,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
     if (!selectedWorkspace) return;
     setConfirmDialog({
       open: true,
-      title: "🔥 Unlock All Products?",
+      title: "ðŸ”¥ Unlock All Products?",
       description: `This will grant access to ALL products for ${selectedWorkspace.name}. This is typically used for premium partners or internal testing.`,
       variant: "default",
       action: async () => {
@@ -313,7 +314,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
           const data = await res.json();
           if (data.success) {
             toast({
-              title: "🎉 All Products Unlocked!",
+              title: "ðŸŽ‰ All Products Unlocked!",
               description: `${data.granted?.length || 0} products granted to ${selectedWorkspace.name}`,
             });
             await refreshWorkspace();
@@ -321,7 +322,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
             toast({ title: "Error", description: data.errors?.join(", ") || "Failed", variant: "destructive" });
           }
         } catch (err) {
-          console.error("Grant all error:", err);
+          logger.error("Grant all error:", err);
         } finally {
           setLoading(false);
         }
@@ -334,7 +335,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
     if (!selectedWorkspace) return;
     setConfirmDialog({
       open: true,
-      title: "🔒 Reset to Plan?",
+      title: "ðŸ”’ Reset to Plan?",
       description: `This will REVOKE all grants and reset ${selectedWorkspace.name} to their subscription plan only. All manual grants will be removed.`,
       variant: "destructive",
       action: async () => {
@@ -360,7 +361,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
             toast({ title: "Error", description: data.errors?.join(", ") || "Failed", variant: "destructive" });
           }
         } catch (err) {
-          console.error("Reset error:", err);
+          logger.error("Reset error:", err);
         } finally {
           setLoading(false);
         }
@@ -520,7 +521,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
 
             <div className="grid gap-3 sm:grid-cols-2">
               {selectedWorkspace.entitlements.map((ent) => {
-                const meta = ENTITLEMENT_META[ent.key] || { label: ent.key, description: "", icon: "📦" };
+                const meta = ENTITLEMENT_META[ent.key] || { label: ent.key, description: "", icon: "ðŸ“¦" };
                 return (
                   <div
                     key={ent.key}

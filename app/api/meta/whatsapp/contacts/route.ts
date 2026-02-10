@@ -6,6 +6,7 @@
  * Create a new contact
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type {
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Contacts API GET] Membership query error:", {
+      logger.error("[Contacts API GET] Membership query error:", {
         error: membershipError,
         workspaceId,
         userId: user.id,
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[Contacts API GET] Access denied:", {
+      logger.warn("[Contacts API GET] Access denied:", {
         workspaceId,
         userId: user.id,
       });
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest) {
     const { data: contacts, error, count } = await query;
 
     if (error) {
-      console.error("[Contacts API] Query error:", error);
+      logger.error("[Contacts API] Query error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -154,7 +155,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("[Contacts API] Unexpected error:", error);
+    logger.error("[Contacts API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -199,7 +200,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Contacts API POST] Membership query error:", {
+      logger.error("[Contacts API POST] Membership query error:", {
         error: membershipError,
         workspaceId: body.workspaceId,
         userId: user.id,
@@ -211,7 +212,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[Contacts API POST] Access denied:", {
+      logger.warn("[Contacts API POST] Access denied:", {
         workspaceId: body.workspaceId,
         userId: user.id,
       });
@@ -267,13 +268,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("[Contacts API] Create error:", error);
+      logger.error("[Contacts API] Create error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(contact as WaContact, { status: 201 });
   } catch (error) {
-    console.error("[Contacts API] Unexpected error:", error);
+    logger.error("[Contacts API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { publicEnv } from "@/lib/env";
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error("Insert error:", insertError);
+      logger.error("Insert error:", insertError);
       return NextResponse.json(
         { error: "Failed to create item" },
         { status: 500 }
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, item });
   } catch (err) {
-    console.error("Marketplace item creation error:", err);
+    logger.error("Marketplace item creation error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -121,7 +122,7 @@ export async function GET(request: NextRequest) {
     const { data: items, error } = await query;
 
     if (error) {
-      console.error("Fetch error:", error);
+      logger.error("Fetch error:", error);
       return NextResponse.json(
         { error: "Failed to fetch items" },
         { status: 500 }
@@ -130,7 +131,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ items });
   } catch (err) {
-    console.error("Marketplace items fetch error:", err);
+    logger.error("Marketplace items fetch error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

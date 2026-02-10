@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Webhook, AlertCircle, CheckCircle2, Clock } from "lucide-react";
@@ -46,7 +47,7 @@ export default function WebhookDebuggerClient() {
       const data = await res.json();
       setLogs(data.logs || []);
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

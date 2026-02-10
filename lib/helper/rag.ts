@@ -1,4 +1,5 @@
 import "server-only";
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateEmbedding } from "./embeddings";
 
@@ -49,7 +50,7 @@ export async function searchKnowledge(
   });
 
   if (error) {
-    console.error("Knowledge search failed:", error);
+    logger.error("Knowledge search failed:", error);
     return [];
   }
 
@@ -140,7 +141,7 @@ async function searchWorkspaceKnowledge(
   });
 
   if (error) {
-    console.error("Workspace knowledge search failed:", error);
+    logger.error("Workspace knowledge search failed:", error);
     return [];
   }
 
@@ -173,7 +174,7 @@ async function searchPlatformKnowledge(
   });
 
   if (error) {
-    console.error("Platform knowledge search failed:", error);
+    logger.error("Platform knowledge search failed:", error);
     return [];
   }
 

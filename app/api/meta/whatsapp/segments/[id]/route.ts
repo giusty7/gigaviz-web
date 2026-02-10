@@ -6,6 +6,7 @@
  * Delete segment
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { UpdateSegmentRequest } from "@/types/wa-contacts";
@@ -62,7 +63,7 @@ export async function PATCH(
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Segments API PUT] Membership query error:", {
+      logger.error("[Segments API PUT] Membership query error:", {
         error: membershipError,
         workspaceId: body.workspaceId,
         userId: user.id,
@@ -75,7 +76,7 @@ export async function PATCH(
     }
 
     if (!membership) {
-      console.warn("[Segments API PUT] Access denied:", {
+      logger.warn("[Segments API PUT] Access denied:", {
         workspaceId: body.workspaceId,
         userId: user.id,
         segmentId: id,
@@ -123,13 +124,13 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error("[Segments API] Update error:", error);
+      logger.error("[Segments API] Update error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("[Segments API] Unexpected error:", error);
+    logger.error("[Segments API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -188,7 +189,7 @@ export async function DELETE(
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Segments API DELETE] Membership query error:", {
+      logger.error("[Segments API DELETE] Membership query error:", {
         error: membershipError,
         workspaceId,
         userId: user.id,
@@ -201,7 +202,7 @@ export async function DELETE(
     }
 
     if (!membership) {
-      console.warn("[Segments API DELETE] Access denied:", {
+      logger.warn("[Segments API DELETE] Access denied:", {
         workspaceId,
         userId: user.id,
         segmentId: id,
@@ -216,13 +217,13 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) {
-      console.error("[Segments API] Delete error:", error);
+      logger.error("[Segments API] Delete error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[Segments API] Unexpected error:", error);
+    logger.error("[Segments API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

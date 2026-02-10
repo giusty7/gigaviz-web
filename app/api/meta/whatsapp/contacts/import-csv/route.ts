@@ -3,6 +3,7 @@
  * Import contacts from CSV file
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { CSVImportRequest, CSVImportResponse } from "@/types/wa-contacts";
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[CSV Import API] Membership query error:", {
+      logger.error("[CSV Import API] Membership query error:", {
         error: membershipError,
         workspaceId: body.workspaceId,
         userId: user.id,
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[CSV Import API] Access denied:", {
+      logger.warn("[CSV Import API] Access denied:", {
         workspaceId: body.workspaceId,
         userId: user.id,
       });
@@ -207,7 +208,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("[CSV Import API] Unexpected error:", error);
+    logger.error("[CSV Import API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

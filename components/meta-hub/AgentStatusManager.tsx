@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ export function AgentStatusManager({ currentUserId }: Props) {
         setMyStatusMessage(mine.statusMessage || "");
       }
     } catch (err) {
-      console.error("Failed to fetch agent statuses:", err);
+      logger.error("Failed to fetch agent statuses:", err);
     } finally {
       setLoading(false);
     }
@@ -299,7 +300,7 @@ function AgentStatusRow({ agent }: { agent: AgentStatus }) {
           <span className={config.color}>{config.label}</span>
           {agent.statusMessage && (
             <>
-              <span>•</span>
+              <span>â€¢</span>
               <span className="truncate">{agent.statusMessage}</span>
             </>
           )}

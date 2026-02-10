@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Download, RefreshCw, FileJson, FileSpreadsheet, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
@@ -40,7 +41,7 @@ export default function ExportsClient() {
         setJobs(data.jobs || []);
       }
     } catch (err) {
-      console.error("Failed to fetch jobs:", err);
+      logger.error("Failed to fetch jobs:", err);
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export default function ExportsClient() {
         fetchJobs();
       }
     } catch (err) {
-      console.error("Export failed:", err);
+      logger.error("Export failed:", err);
     } finally {
       setExporting(false);
     }

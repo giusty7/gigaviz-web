@@ -229,7 +229,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
       error.message?.includes("no unique") ||
       error.message?.includes("unique or exclusion constraint");
     if (process.env.NODE_ENV === "development") {
-      console.error("[meta-webhook] upsert error", error);
+      logger.error("[meta-webhook] upsert error", error);
     }
     return NextResponse.json(
       {
@@ -335,7 +335,7 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
       }
     }
   } catch (aiTriggerErr) {
-    console.error("[AI-DEBUG] AI trigger exception:", aiTriggerErr);
+    logger.error("[AI-DEBUG] AI trigger exception:", aiTriggerErr);
     logger.warn("[meta-webhook] AI reply trigger failed", {
       workspaceId,
       message: aiTriggerErr instanceof Error ? aiTriggerErr.message : "unknown",

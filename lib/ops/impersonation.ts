@@ -1,4 +1,5 @@
 import "server-only";
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type ImpersonationSession = {
@@ -24,7 +25,7 @@ export async function getActiveImpersonation(
   });
 
   if (error) {
-    console.error("[ops] Get active impersonation error:", error);
+    logger.error("[ops] Get active impersonation error:", error);
     return null;
   }
 
@@ -73,7 +74,7 @@ export async function getImpersonationHistory(options: {
   const { data, error } = await query;
 
   if (error) {
-    console.error("[ops] Get impersonation history error:", error);
+    logger.error("[ops] Get impersonation history error:", error);
     return [];
   }
 

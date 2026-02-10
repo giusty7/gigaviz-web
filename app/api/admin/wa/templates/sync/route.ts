@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { fetchMetaTemplates } from "@/lib/wa/templates";
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   const templates = normalizeTemplates(metaResponse);
   const summary = buildSyncSummary(templates);
-  console.log("WA_TEMPLATE_SYNC_META", JSON.stringify({ workspaceId, ...summary }));
+  logger.info("WA_TEMPLATE_SYNC_META", JSON.stringify({ workspaceId, ...summary }));
   let updated = 0;
   let inserted = 0;
 
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (existingErr) {
-      console.log("wa_templates lookup failed (sync)", existingErr.message);
+      logger.info("wa_templates lookup failed (sync)", existingErr.message);
     }
 
     if (existingId) {
@@ -139,7 +140,7 @@ export async function POST(req: NextRequest) {
           created_by: user?.id ?? "system",
         });
         if (eventErr) {
-          console.log("wa_template_events insert failed (sync)", eventErr.message);
+          logger.info("wa_template_events insert failed (sync)", eventErr.message);
         }
       }
       continue;
@@ -166,7 +167,7 @@ export async function POST(req: NextRequest) {
 
     if (insertErr || !insertedRow) {
       if (insertErr) {
-        console.log("wa_templates insert failed (sync)", insertErr.message);
+        logger.info("wa_templates insert failed (sync)", insertErr.message);
       }
       continue;
     }
@@ -180,7 +181,7 @@ export async function POST(req: NextRequest) {
       created_by: user?.id ?? "system",
     });
     if (eventErr) {
-      console.log("wa_template_events insert failed (sync)", eventErr.message);
+      logger.info("wa_template_events insert failed (sync)", eventErr.message);
     }
   }
 

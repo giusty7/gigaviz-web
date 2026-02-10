@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
         attachmentsByMessage[a.message_id].push(a);
       });
     } else if (aErr) {
-      console.log("ATTACHMENTS_SELECT_ERROR", aErr.message);
+      logger.info("ATTACHMENTS_SELECT_ERROR", aErr.message);
     }
   }
 

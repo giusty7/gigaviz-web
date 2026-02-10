@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { generateEmbedding, generateEmbeddings } from "@/lib/helper/embeddings";
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error("Embedding generation failed:", error);
+    logger.error("Embedding generation failed:", error);
     return NextResponse.json(
       { error: "Failed to generate embeddings" },
       { status: 500 }

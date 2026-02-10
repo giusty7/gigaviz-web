@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
@@ -266,7 +267,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (insertErr) {
-      console.error("[send-text] DB insert failed:", insertErr);
+      logger.error("[send-text] DB insert failed:", insertErr);
     }
 
     await db

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
@@ -54,7 +55,7 @@ async function lookupInvite(token: string) {
 
   if (hashRes.error) {
     if (DEV) {
-      console.warn("[invite-accept] token_hash lookup failed", {
+      logger.warn("[invite-accept] token_hash lookup failed", {
         error: hashRes.error.message,
         code: hashRes.error.code ?? null,
         missingColumn: hashMissing,
@@ -79,7 +80,7 @@ async function lookupInvite(token: string) {
 
     if (tokenRes.error) {
       if (DEV) {
-        console.warn("[invite-accept] token lookup failed", {
+        logger.warn("[invite-accept] token lookup failed", {
           error: tokenRes.error.message,
           code: tokenRes.error.code ?? null,
           missingColumn: tokenMissing,
@@ -168,7 +169,7 @@ export async function POST(req: NextRequest) {
   const user = userData?.user;
   if (userErr || !user) {
     if (DEV) {
-      console.warn("[invite-accept] unauthorized", userErr?.message);
+      logger.warn("[invite-accept] unauthorized", userErr?.message);
     }
     return withCookies(
       NextResponse.json({ error: "unauthorized" }, { status: 401 })
@@ -228,7 +229,7 @@ export async function POST(req: NextRequest) {
 
   if (memberErr) {
     if (DEV) {
-      console.warn("[invite-accept] membership lookup failed", {
+      logger.warn("[invite-accept] membership lookup failed", {
         error: memberErr.message,
         code: memberErr.code ?? null,
       });
@@ -267,7 +268,7 @@ export async function POST(req: NextRequest) {
 
   if (upsertRes.error) {
     if (DEV) {
-      console.warn("[invite-accept] membership upsert failed", {
+      logger.warn("[invite-accept] membership upsert failed", {
         error: upsertRes.error.message,
         code: upsertRes.error.code ?? null,
       });
@@ -284,14 +285,14 @@ export async function POST(req: NextRequest) {
     .is("accepted_at", null);
 
   if (markErr && DEV) {
-    console.warn("[invite-accept] failed marking invite accepted", {
+    logger.warn("[invite-accept] failed marking invite accepted", {
       error: markErr.message,
       code: markErr.code ?? null,
     });
   }
 
   if (DEV) {
-    console.log("[invite-accept] invite accepted", { workspaceSlug, lookup });
+    logger.info("[invite-accept] invite accepted", { workspaceSlug, lookup });
   }
 
   return withCookies(NextResponse.json({ workspaceSlug }));

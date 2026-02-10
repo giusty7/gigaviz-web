@@ -3,6 +3,7 @@
  * List all distinct tags in workspace
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Contacts Tags API] Membership query error:", {
+      logger.error("[Contacts Tags API] Membership query error:", {
         error: membershipError,
         workspaceId,
         userId: user.id,
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[Contacts Tags API] Access denied:", {
+      logger.warn("[Contacts Tags API] Access denied:", {
         workspaceId,
         userId: user.id,
       });
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ tags });
   } catch (error) {
-    console.error("[Tags API] Unexpected error:", error);
+    logger.error("[Tags API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

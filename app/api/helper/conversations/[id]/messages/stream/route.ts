@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { streamHelperModel } from "@/lib/helper/providers/stream-router";
@@ -165,7 +166,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         ragContext = buildRagContext(searchResults);
       }
     } catch (error) {
-      console.error("RAG search failed:", error);
+      logger.error("RAG search failed:", error);
       // Continue without RAG context
     }
   }

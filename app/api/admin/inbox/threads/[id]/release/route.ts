@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     );
 
     if (rpcErr) {
-      console.log("CONVERSATION_AUTO_ASSIGN_ERROR", rpcErr.message);
+      logger.info("CONVERSATION_AUTO_ASSIGN_ERROR", rpcErr.message);
     } else {
       autoAssignedMemberId = assignedMemberId as string | null;
     }
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   });
 
   if (eventErr) {
-    console.log("CONVERSATION_EVENT_INSERT_ERROR", eventErr.message);
+    logger.info("CONVERSATION_EVENT_INSERT_ERROR", eventErr.message);
   }
 
   const { data: updated, error: readErr } = await db

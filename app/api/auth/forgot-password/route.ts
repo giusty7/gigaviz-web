@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn("[AUTH] RESEND_API_KEY missing, skip email send.");
+    logger.warn("[AUTH] RESEND_API_KEY missing, skip email send.");
     return NextResponse.json({ ok: true });
   }
 

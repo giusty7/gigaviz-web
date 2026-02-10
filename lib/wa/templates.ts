@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logging";
+
 // NOTE: verify against latest Meta docs for template endpoints/payload.
 type MetaTemplateComponent =
   | { type: "BODY"; text: string }
@@ -183,7 +185,7 @@ export async function fetchMetaTemplates() {
         typeof data?.error?.message === "string"
           ? data.error.message
           : `Meta API error (${res.status})`;
-      console.log(
+      logger.info(
         "WA_TEMPLATES_FETCH_FAILED",
         JSON.stringify({ url: url.toString(), status: res.status, message })
       );

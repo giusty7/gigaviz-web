@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createServerClient } from "@supabase/ssr";
@@ -76,13 +77,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Error inserting app request:", error);
+      logger.error("Error inserting app request:", error);
       return NextResponse.json({ error: "Failed to create request" }, { status: 500 });
     }
 
     return NextResponse.json({ request }, { status: 201 });
   } catch (err) {
-    console.error("POST /api/apps/requests error:", err);
+    logger.error("POST /api/apps/requests error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

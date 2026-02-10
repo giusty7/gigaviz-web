@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { logger } from "@/lib/logging";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -98,7 +99,7 @@ export function MetaHubStatusCard({
           setStatus(data);
         }
       } catch (error) {
-        console.error("Failed to refetch status:", error);
+        logger.error("Failed to refetch status:", error);
       }
     }
 

@@ -39,7 +39,11 @@ export type WaTemplateParamDef = {
   updated_at: string;
 };
 
-export type WaContact = {
+/**
+ * @deprecated Use WaContact from '@/types/wa-contacts' instead.
+ * Kept for backward compatibility with send job flows.
+ */
+export type WaContactLegacy = {
   id: string;
   workspace_id: string;
   wa_id: string;

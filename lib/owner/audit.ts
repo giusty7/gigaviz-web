@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type OwnerAuditInput = {
@@ -32,7 +33,7 @@ export async function recordOwnerAudit(input: OwnerAuditInput) {
 
   const { error } = await db.from("owner_audit_log").insert(payload);
   if (error && process.env.NODE_ENV !== "production") {
-    console.warn("[owner_audit] insert failed", {
+    logger.warn("[owner_audit] insert failed", {
       action: input.action,
       code: error.code,
       message: error.message,

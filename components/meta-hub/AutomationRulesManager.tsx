@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -89,7 +90,7 @@ export function AutomationRulesManager({
         setRules(data.rules);
       }
     } catch (error) {
-      console.error("Failed to fetch rules:", error);
+      logger.error("Failed to fetch rules:", error);
     } finally {
       setLoading(false);
     }

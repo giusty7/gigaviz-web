@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getMetaHubStatus } from "@/lib/meta-hub/getMetaHubStatus";
+import { logger } from "@/lib/logging";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     const status = await getMetaHubStatus(workspaceId);
     return NextResponse.json(status);
   } catch (error) {
-    console.error("[api/meta-hub/status] Error:", error);
+    logger.error("Meta Hub status API error", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

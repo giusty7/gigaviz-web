@@ -5,6 +5,7 @@
  * based on trigger events (new messages, tag changes, status updates, etc.)
  */
 
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // ========================================
@@ -285,12 +286,12 @@ export async function evaluateRulesForThread(params: {
       }
     }
 
-    console.log(`[AutomationEngine] Evaluated ${rules.length} rules for thread ${threadId} in ${Date.now() - startTime}ms`);
+    logger.info(`[AutomationEngine] Evaluated ${rules.length} rules for thread ${threadId} in ${Date.now() - startTime}ms`);
     return result;
 
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('[AutomationEngine] Fatal error:', errorMsg);
+    logger.error('[AutomationEngine] Fatal error:', errorMsg);
     result.errors.push(`Fatal error: ${errorMsg}`);
     return result;
   }
@@ -327,7 +328,7 @@ async function fetchThreadContext(
     .single();
 
   if (threadError || !thread) {
-    console.error('[AutomationEngine] Failed to fetch thread:', threadError);
+    logger.error('[AutomationEngine] Failed to fetch thread:', threadError);
     return null;
   }
 
@@ -409,7 +410,7 @@ function evaluateCondition(thread: ThreadContext, condition: Condition): boolean
       return typeof fieldValue === 'number' && typeof value === 'number' && fieldValue < value;
     
     default:
-      console.warn(`[AutomationEngine] Unknown operator: ${operator}`);
+      logger.warn(`[AutomationEngine] Unknown operator: ${operator}`);
       return false;
   }
 }
@@ -680,7 +681,7 @@ async function logExecution(
     .single();
 
   if (error) {
-    console.error('[AutomationEngine] Failed to log execution:', error);
+    logger.error('[AutomationEngine] Failed to log execution:', error);
     return null;
   }
 

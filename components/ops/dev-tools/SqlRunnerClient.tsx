@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Play, Clock, AlertCircle } from "lucide-react";
@@ -37,7 +38,7 @@ export default function SqlRunnerClient() {
       const data = await res.json();
       setHistory(data.history || []);
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -76,7 +77,7 @@ export default function SqlRunnerClient() {
 
       <div className="rounded-lg border border-yellow-900/50 bg-yellow-950/20 p-4">
         <p className="text-sm text-yellow-400">
-          ⚠️ <strong>Read-only mode:</strong> Only SELECT queries are allowed. Must include LIMIT clause (max 100).
+          âš ï¸ <strong>Read-only mode:</strong> Only SELECT queries are allowed. Must include LIMIT clause (max 100).
         </p>
       </div>
 

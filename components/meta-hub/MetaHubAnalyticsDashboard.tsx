@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -65,7 +66,7 @@ export function MetaHubAnalyticsDashboard({
 
       setData(responseData);
     } catch (error) {
-      console.error("Analytics fetch error:", error);
+      logger.error("Analytics fetch error:", error);
       toast({
         title: "Failed to load analytics",
         description: error instanceof Error ? error.message : "Unknown error",

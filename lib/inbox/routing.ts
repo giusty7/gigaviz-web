@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logging";
+
 type DbQuery = {
   select: (columns: string) => DbQuery;
   eq: (column: string, value: unknown) => DbQuery;
@@ -230,7 +232,7 @@ export async function routeToCategoryTeam(params: {
     }) as unknown as Promise<DbResult<unknown>>)) as DbResult<unknown>;
 
   if (eventErr) {
-    console.log("CONVERSATION_EVENT_INSERT_ERROR", eventErr.message);
+    logger.info("CONVERSATION_EVENT_INSERT_ERROR", eventErr.message);
   }
 
   const shouldAutoAssign = needsTeamUpdate || !conv.assigned_member_id;
@@ -240,7 +242,7 @@ export async function routeToCategoryTeam(params: {
       p_team_id: chosenTeam.id,
     });
     if (rpcErr) {
-      console.log("CONVERSATION_AUTO_ASSIGN_ERROR", rpcErr.message);
+      logger.info("CONVERSATION_AUTO_ASSIGN_ERROR", rpcErr.message);
     }
   }
 
@@ -298,7 +300,7 @@ export async function maybeAutoRouteInbound(params: {
   >;
 
   if (updErr) {
-    console.log("CONVERSATION_CATEGORY_UPDATE_ERROR", updErr.message);
+    logger.info("CONVERSATION_CATEGORY_UPDATE_ERROR", updErr.message);
     return;
   }
 

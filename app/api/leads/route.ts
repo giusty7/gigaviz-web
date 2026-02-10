@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -121,7 +122,7 @@ export async function POST(req: Request) {
         lead_id: a.lead_id ?? null,
       });
     } catch (e) {
-      console.error("[LEADS] attempt log failed:", e);
+      logger.error("[LEADS] attempt log failed:", e);
     }
   }
 
@@ -311,14 +312,14 @@ export async function POST(req: Request) {
       try {
         await sendWhatsAppText({ to: adminPhone, body: lines.join("\n") });
       } catch (waErr) {
-        console.error("[LEADS] WA notify failed:", waErr);
+        logger.error("[LEADS] WA notify failed:", waErr);
       }
     }
 
     return NextResponse.json({ ok: true, deduped: false }, { status: 200 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Server error";
-    console.error("[LEADS] Unexpected error:", err);
+    logger.error("[LEADS] Unexpected error:", err);
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }
 }

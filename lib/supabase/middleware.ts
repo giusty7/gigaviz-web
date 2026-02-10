@@ -157,8 +157,8 @@ export async function withSupabaseAuth(request: NextRequest) {
     ? `/verify-email?email=${encodeURIComponent(email)}`
     : "/verify-email";
 
-  // kalau ADMIN_EMAILS kosong -> anggap semua user yg login boleh admin (MVP)
-  const isAdmin = adminEmails.length === 0 ? true : adminEmails.includes(email);
+  // SECURITY: default to false when ADMIN_EMAILS is empty (never grant admin to all)
+  const isAdmin = adminEmails.length > 0 && adminEmails.includes(email);
 
   /**
    * 1) /login behavior

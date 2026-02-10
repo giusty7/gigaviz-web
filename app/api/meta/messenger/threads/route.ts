@@ -1,6 +1,7 @@
 // Messenger Threads API
 // GET /api/meta/messenger/threads - List threads
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
       threads: threadsWithTags || [],
     }));
   } catch (error) {
-    console.error('[Messenger] Error fetching threads:', error);
+    logger.error('[Messenger] Error fetching threads:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     const { withCookies } = createSupabaseRouteClient(request);
     return withCookies(NextResponse.json(

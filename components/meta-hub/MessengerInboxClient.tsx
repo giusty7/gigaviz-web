@@ -1,4 +1,5 @@
 'use client';
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -85,7 +86,7 @@ export function MessengerInboxClient() {
       const data = await res.json();
       setThreads(data.threads || []);
     } catch (error) {
-      console.error('Error loading threads:', error);
+      logger.error('Error loading threads:', error);
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ export function MessengerInboxClient() {
       const data = await res.json();
       setMessages(data.messages || []);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      logger.error('Error loading messages:', error);
     }
   }
 
@@ -125,7 +126,7 @@ export function MessengerInboxClient() {
       await loadMessages(selectedThread.id);
       await loadThreads();
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
       alert('Failed to send message');
     }
   }
@@ -145,7 +146,7 @@ export function MessengerInboxClient() {
         setSelectedThread({ ...selectedThread, status });
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      logger.error('Error updating status:', error);
     }
   }
 

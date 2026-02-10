@@ -3,6 +3,7 @@
  * Handles user-level customization of pinned modules in Quick Access section
  */
 
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type ModuleKey = string;
@@ -42,7 +43,7 @@ export async function getDashboardPreferences(
     .maybeSingle();
 
   if (error) {
-    console.warn("[dashboard] Failed to fetch preferences:", error);
+    logger.warn("[dashboard] Failed to fetch preferences:", error);
     return DEFAULT_PINNED_MODULES;
   }
 
@@ -109,7 +110,7 @@ export async function updatePinnedModules(
     );
 
   if (error) {
-    console.error("[dashboard] Failed to update preferences:", error);
+    logger.error("[dashboard] Failed to update preferences:", error);
     return { success: false, error: "Failed to save preferences" };
   }
 

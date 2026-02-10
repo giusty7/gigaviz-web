@@ -1,4 +1,5 @@
 import "server-only";
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -50,7 +51,7 @@ export async function searchCustomers(
 
   // Debug: Check auth context
   const { data: authCheck } = await supabase.rpc('auth.uid' as string).single();
-  console.log('[DEBUG] Customer search auth context:', {
+  logger.info('[DEBUG] Customer search auth context:', {
     userId,
     userEmail,
     authUid: authCheck,
@@ -65,7 +66,7 @@ export async function searchCustomers(
   });
 
   if (error) {
-    console.error("Customer search error:", error);
+    logger.error("Customer search error:", error);
     throw new Error(`Search failed: ${error.message}`);
   }
 
@@ -184,7 +185,7 @@ export async function getSearchHistory(limit = 20): Promise<SearchHistoryEntry[]
     .limit(limit);
 
   if (error) {
-    console.error("Failed to fetch search history:", error);
+    logger.error("Failed to fetch search history:", error);
     return [];
   }
 

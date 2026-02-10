@@ -1,4 +1,5 @@
 'use client';
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from 'react';
 import { useWorkspace } from '@/lib/hooks/use-workspace';
@@ -79,7 +80,7 @@ export function MetaAdsManagerClient() {
       setCampaigns(data.campaigns || []);
       setSummary(data.summary || null);
     } catch (error) {
-      console.error('Error loading ads data:', error);
+      logger.error('Error loading ads data:', error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +114,7 @@ export function MetaAdsManagerClient() {
       // Reload data after sync
       await loadData();
     } catch (error) {
-      console.error('Error syncing ads data:', error);
+      logger.error('Error syncing ads data:', error);
       toast({
         title: 'Sync Failed',
         description: error instanceof Error ? error.message : 'Failed to sync with Meta',

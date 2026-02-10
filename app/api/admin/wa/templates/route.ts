@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { buildTemplatePayload, createMetaTemplate, fetchMetaTemplates } from "@/lib/wa/templates";
@@ -191,7 +192,7 @@ export async function POST(req: NextRequest) {
     created_by: user?.id ?? "system",
   });
   if (eventErr) {
-    console.log("wa_template_events insert failed (create)", eventErr.message);
+    logger.info("wa_template_events insert failed (create)", eventErr.message);
   }
 
   return withCookies(NextResponse.json({ template: inserted }));

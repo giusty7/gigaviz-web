@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ export function EditConnectionDialog({
       onOpenChange(false);
       router.refresh();
     } catch (err) {
-      console.error("Failed to update connection:", err);
+      logger.error("Failed to update connection:", err);
       toast({
         title: "Update failed",
         description: err instanceof Error ? err.message : "Please try again.",

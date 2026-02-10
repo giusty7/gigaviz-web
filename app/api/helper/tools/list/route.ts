@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { getAvailableFunctions } from "@/lib/helper/functions";
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
       count: functions.length,
     });
   } catch (error) {
-    console.error("Failed to get functions:", error);
+    logger.error("Failed to get functions:", error);
     return NextResponse.json(
       { error: "Failed to retrieve functions" },
       { status: 500 }

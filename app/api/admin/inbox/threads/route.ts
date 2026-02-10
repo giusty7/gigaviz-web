@@ -1,23 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { buildMessageSearchQuery, mergeConversationIds } from "@/lib/inbox/search";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 
+/** Sanitize user input for use in PostgREST ilike/or filters (escape %, _, \) */
+function sanitizeIlike(input: string): string {
+  return input.replace(/[%_\\]/g, (ch) => `\\${ch}`);
+}
+
+const threadQuerySchema = z.object({
+  q: z.string().max(200).optional().default(""),
+  status: z.enum(["all", "open", "pending", "resolved", "closed", "snoozed"]).optional().default("all"),
+  agent: z.string().max(100).optional().default("all"),
+  tag: z.string().max(100).optional().default(""),
+  priority: z.enum(["all", "low", "normal", "high", "urgent"]).optional().default("all"),
+  archived: z.enum(["true", "false"]).optional(),
+  pinned: z.enum(["true", "false"]).optional(),
+});
+
 export async function GET(req: NextRequest) {
+  try {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
   const { searchParams } = req.nextUrl;
 
-  const q = searchParams.get("q")?.trim() || "";
-  const status = searchParams.get("status") || "all";
-  const agent = searchParams.get("agent") || "all";
-  const tag = searchParams.get("tag")?.trim() || "";
-  const priority = searchParams.get("priority") || "all";
-  const archivedParam = searchParams.get("archived");
-  const pinnedParam = searchParams.get("pinned");
+  const parsed = threadQuerySchema.safeParse({
+    q: searchParams.get("q")?.trim() || "",
+    status: searchParams.get("status") || "all",
+    agent: searchParams.get("agent") || "all",
+    tag: searchParams.get("tag")?.trim() || "",
+    priority: searchParams.get("priority") || "all",
+    archived: searchParams.get("archived") ?? undefined,
+    pinned: searchParams.get("pinned") ?? undefined,
+  });
+
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json({ error: "invalid_params", issues: parsed.error.flatten() }, { status: 400 })
+    );
+  }
+
+  const { q, status, agent, tag, priority, archived: archivedParam, pinned: pinnedParam } = parsed.data;
 
   let contactIds: string[] | null = null;
   if (q || tag) {
@@ -27,7 +55,8 @@ export async function GET(req: NextRequest) {
       .eq("workspace_id", workspaceId);
 
     if (q) {
-      contactQuery = contactQuery.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
+      const safeQ = sanitizeIlike(q);
+      contactQuery = contactQuery.or(`name.ilike.%${safeQ}%,phone.ilike.%${safeQ}%`);
     }
     if (tag) {
       contactQuery = contactQuery.contains("tags", [tag]);
@@ -75,7 +104,7 @@ export async function GET(req: NextRequest) {
         .from("messages")
         .select("conversation_id")
         .eq("workspace_id", workspaceId)
-        .ilike("text", `%${q}%`);
+        .ilike("text", `%${sanitizeIlike(q)}%`);
 
       if (fallbackErr) {
         return withCookies(
@@ -174,4 +203,8 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ items: data ?? [] }));
+  } catch (err) {
+    logger.error("admin/inbox/threads GET error", { error: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { createHash } from "crypto";
 import { readFile, readdir, stat } from "fs/promises";
 import path from "path";
@@ -298,7 +299,7 @@ export class KBIndexer {
     try {
       return await generateEmbedding(text);
     } catch (error) {
-      console.error("Embedding generation failed:", error);
+      logger.error("Embedding generation failed:", error);
       // Fallback to zero-vector if API fails
       return Array(this.config.embedDim).fill(0);
     }

@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Copy, Plus, RefreshCw, Settings, Trash2 } from "lucide-react";
@@ -25,7 +26,7 @@ export default function WorkspaceTemplatesClient() {
       // For now, showing empty state
       setTemplates([]);
     } catch (err) {
-      console.error("Failed to fetch templates:", err);
+      logger.error("Failed to fetch templates:", err);
     } finally {
       setLoading(false);
     }
@@ -128,10 +129,10 @@ export default function WorkspaceTemplatesClient() {
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
         <h4 className="font-medium text-white">Template Features</h4>
         <ul className="mt-2 space-y-1 text-sm text-zinc-400">
-          <li>• Pre-configured subscription plans</li>
-          <li>• Default module activations</li>
-          <li>• Workspace settings and preferences</li>
-          <li>• Entitlement overrides</li>
+          <li>â€¢ Pre-configured subscription plans</li>
+          <li>â€¢ Default module activations</li>
+          <li>â€¢ Workspace settings and preferences</li>
+          <li>â€¢ Entitlement overrides</li>
         </ul>
       </div>
     </div>

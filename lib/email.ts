@@ -16,6 +16,7 @@ export function getResendFromContact() {
   return from;
 }
 
+import { logger } from "@/lib/logging";
 import { Resend } from "resend";
 
 const resendClient = (() => {
@@ -31,14 +32,14 @@ export async function sendWorkspaceInviteEmail(opts: {
   acceptUrl: string;
 }) {
   if (!resendClient) {
-    console.warn("RESEND_API_KEY not set; skipping invite email");
+    logger.warn("RESEND_API_KEY not set; skipping invite email");
     return;
   }
 
   const from = getResendFromAuth();
   const acceptUrl = opts.acceptUrl?.trim();
   if (!acceptUrl) {
-    console.warn("sendWorkspaceInviteEmail missing acceptUrl");
+    logger.warn("sendWorkspaceInviteEmail missing acceptUrl");
     return;
   }
 
@@ -58,6 +59,6 @@ export async function sendWorkspaceInviteEmail(opts: {
       html,
     });
   } catch (err) {
-    console.error("sendWorkspaceInviteEmail failed", err);
+    logger.error("sendWorkspaceInviteEmail failed", err);
   }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 import { useState } from "react";
 
 type Invite = {
@@ -21,7 +22,7 @@ export default function PendingInvites({ invites }: { invites: Invite[] }) {
       if (!res.ok) throw new Error("revoke_failed");
       setItems((prev) => prev.filter((it) => it.id !== id));
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
       alert("Failed to revoke");
     }
   }
@@ -34,7 +35,7 @@ export default function PendingInvites({ invites }: { invites: Invite[] }) {
         <div key={invite.id} className="flex items-center justify-between rounded-md border bg-[color:var(--gv-card)] p-2">
           <div className="text-sm">
             <div className="font-semibold">{invite.email}</div>
-            <div className="text-xs text-gigaviz-muted">{invite.role} • {new Date(invite.created_at).toLocaleString()}</div>
+            <div className="text-xs text-gigaviz-muted">{invite.role} â€¢ {new Date(invite.created_at).toLocaleString()}</div>
           </div>
           <div>
             <button className="rounded-md bg-red-600 px-2 py-1 text-xs" onClick={() => revoke(invite.id)}>Revoke</button>

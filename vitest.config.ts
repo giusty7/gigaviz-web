@@ -5,13 +5,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    setupFiles: ["./vitest.setup.ts"],
     include: ["**/__tests__/**/*.test.ts", "**/*.test.ts"],
     exclude: [
       "node_modules",
       ".next",
       "supabase",
-      "lib/inbox/*.test.ts",
-      "lib/worker/*.test.ts",
     ],
     coverage: {
       provider: "v8",

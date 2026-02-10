@@ -5,6 +5,7 @@
  * Returns performance metrics for a specific template
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 
@@ -129,7 +130,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('[Template Analytics] Error:', error);
+    logger.error('[Template Analytics] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

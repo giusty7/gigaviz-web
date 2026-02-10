@@ -1,6 +1,7 @@
 // Instagram Webhook Handler
 // Processes Instagram Direct Messages via Graph API webhooks
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   const challenge = searchParams.get('hub.challenge');
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    console.log('[Instagram] Webhook verified');
+    logger.info('[Instagram] Webhook verified');
     return new NextResponse(challenge, { status: 200 });
   }
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Verify signature
     if (!verifySignature(body, signature)) {
-      console.error('[Instagram] Invalid signature');
+      logger.error('[Instagram] Invalid signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
 
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Instagram] Webhook error:', error);
+    logger.error('[Instagram] Webhook error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { error: message },
@@ -96,7 +97,7 @@ async function handleMessageEvent(event: {
       .single();
 
     if (!account) {
-      console.warn('[Instagram] Account not found:', event.account_id);
+      logger.warn('[Instagram] Account not found:', event.account_id);
       return;
     }
 
@@ -181,7 +182,7 @@ async function handleMessageEvent(event: {
       });
     }
   } catch (error) {
-    console.error('[Instagram] Error processing message:', error);
+    logger.error('[Instagram] Error processing message:', error);
     throw error;
   }
 }

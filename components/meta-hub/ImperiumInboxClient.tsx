@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { motion, type Variants } from "framer-motion";
@@ -29,17 +30,17 @@ import {
   type WorkspaceMember,
 } from "./ImperiumInboxComponents";
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    HYDRATION-SAFE MOUNT CHECK
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ANIMATION VARIANTS
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -72,9 +73,9 @@ function renderTemplateBody(body: string | null | undefined, variables: string[]
   });
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 interface ImperiumInboxClientProps {
   workspaceId: string;
@@ -147,9 +148,9 @@ type CapabilityState = {
   reason: string | null;
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN CLIENT COMPONENT
-   ═══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 export function ImperiumInboxClient({
   workspaceId: _workspaceId,
@@ -292,7 +293,7 @@ export function ImperiumInboxClient({
     } catch (err) {
       // Soft fail; keep previous telemetry if any
       if (process.env.NODE_ENV !== "production") {
-        console.warn("telemetry_load_failed", err);
+        logger.warn("telemetry_load_failed", err);
       }
     } finally {
       setTelemetryLoading(false);
@@ -1279,7 +1280,7 @@ export function ImperiumInboxClient({
   }, [fetchThreads]);
 
   // AI Auto-Reply is handled by the AI Reply Worker (scripts/ai-reply-worker.ts)
-  // No client-side polling needed — the worker runs independently.
+  // No client-side polling needed â€” the worker runs independently.
 
   // Realtime polling for messages (2.5s interval, pause when tab hidden)
   useEffect(() => {
@@ -1373,7 +1374,7 @@ export function ImperiumInboxClient({
               href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
               className="flex items-center gap-2 text-sm text-[#f5f5dc]/60 hover:text-[#d4af37] transition-colors"
             >
-              ← Back to Overview
+              â† Back to Overview
             </a>
           </div>
         )}
@@ -1396,7 +1397,7 @@ export function ImperiumInboxClient({
           <div className="border-b border-[#d4af37]/10 bg-[#0a1229]/50 px-6 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <span className="text-sm text-[#f5f5dc]/60">Lite view · 5 threads</span>
+                <span className="text-sm text-[#f5f5dc]/60">Lite view Â· 5 threads</span>
                 <label className="flex items-center gap-2 text-sm text-[#f5f5dc]/70 cursor-pointer hover:text-[#d4af37] transition-colors">
                   <input
                     type="checkbox"

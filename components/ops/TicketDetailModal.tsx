@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -50,7 +51,7 @@ export default function TicketDetailModal({
         setComments(data.comments || []);
       }
     } catch (err) {
-      console.error("Fetch ticket details error:", err);
+      logger.error("Fetch ticket details error:", err);
     } finally {
       setLoading(false);
     }
@@ -74,7 +75,7 @@ export default function TicketDetailModal({
         onUpdate();
       }
     } catch (err) {
-      console.error("Update status error:", err);
+      logger.error("Update status error:", err);
     } finally {
       setUpdating(false);
     }
@@ -94,7 +95,7 @@ export default function TicketDetailModal({
         onUpdate();
       }
     } catch (err) {
-      console.error("Update priority error:", err);
+      logger.error("Update priority error:", err);
     } finally {
       setUpdating(false);
     }
@@ -114,7 +115,7 @@ export default function TicketDetailModal({
         onUpdate();
       }
     } catch (err) {
-      console.error("Assign ticket error:", err);
+      logger.error("Assign ticket error:", err);
     } finally {
       setUpdating(false);
     }
@@ -139,7 +140,7 @@ export default function TicketDetailModal({
         await fetchTicketDetails();
       }
     } catch (err) {
-      console.error("Add comment error:", err);
+      logger.error("Add comment error:", err);
     } finally {
       setSubmittingComment(false);
     }
@@ -154,7 +155,7 @@ export default function TicketDetailModal({
         setCannedResponses(data.responses || []);
       }
     } catch (err) {
-      console.error("Fetch canned responses error:", err);
+      logger.error("Fetch canned responses error:", err);
     }
   }, [cannedSearchQuery]);
 

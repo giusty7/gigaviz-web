@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -129,7 +130,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
         }
       }
     } catch (error) {
-      console.error("Failed to load templates:", error);
+      logger.error("Failed to load templates:", error);
       setTemplates(initialTemplates);
     } finally {
       setIsLoading(false);
@@ -182,7 +183,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
       }
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      logger.error("Failed to save settings:", error);
       setSaveStatus("error");
     } finally {
       setIsSaving(false);
@@ -205,7 +206,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
         setPlaygroundResponse(prev => prev + (i > 0 ? " " : "") + words[i]);
       }
     } catch (error) {
-      console.error("Playground error:", error);
+      logger.error("Playground error:", error);
       setPlaygroundResponse("Error: Failed to generate response. Please check your API configuration.");
     } finally {
       setIsRunning(false);
@@ -753,7 +754,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   onClick={() => setSelectedTemplate(null)}
                   className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                 >
-                  ✕
+                  âœ•
                 </button>
               </div>
 
@@ -777,7 +778,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
               <div className="flex justify-between items-center">
                 <div className="text-xs text-gray-500 flex items-center gap-2">
                   <EyeIcon className="w-3 h-3" />
-                  Used {selectedTemplate.usage_count} times • Created {new Date(selectedTemplate.created_at).toLocaleDateString()}
+                  Used {selectedTemplate.usage_count} times â€¢ Created {new Date(selectedTemplate.created_at).toLocaleDateString()}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -911,7 +912,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                     setIsSaving(true);
                     try {
                       // In production, save via API to /api/helper/templates
-                      console.log("Saving template:", { 
+                      logger.info("Saving template:", { 
                         workspaceId, 
                         workspaceSlug,
                         name: newTemplateName, 
@@ -925,7 +926,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                       setSaveStatus("success");
                       setTimeout(() => setSaveStatus("idle"), 3000);
                     } catch (error) {
-                      console.error("Failed to save template:", error);
+                      logger.error("Failed to save template:", error);
                       setSaveStatus("error");
                     } finally {
                       setIsSaving(false);

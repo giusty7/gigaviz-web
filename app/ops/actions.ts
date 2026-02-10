@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/logging";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { recordOwnerAudit } from "@/lib/owner/audit";
@@ -31,7 +32,7 @@ function formatZodError(error: z.ZodError): string {
     return `${path}${i.message}`;
   });
   if (process.env.NODE_ENV === "development") {
-    console.warn("[Ops Action] Zod validation failed:", issues);
+    logger.warn("[Ops Action] Zod validation failed:", issues);
   }
   return `Invalid input: ${issues[0] ?? "validation failed"}`;
 }

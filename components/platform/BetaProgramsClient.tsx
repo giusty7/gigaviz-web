@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -65,7 +66,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
         setApplications(data.applications || []);
       }
     } catch (error) {
-      console.error("Failed to fetch beta programs:", error);
+      logger.error("Failed to fetch beta programs:", error);
     } finally {
       setLoading(false);
     }
@@ -203,7 +204,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
                   <h4 className="text-sm font-semibold text-[#f5f5dc] mb-2">Requirements</h4>
                   <ul className="text-sm text-[#f5f5dc]/60 space-y-1">
                     {JSON.parse(program.requirements).map((req: string, idx: number) => (
-                      <li key={idx}>• {req}</li>
+                      <li key={idx}>â€¢ {req}</li>
                     ))}
                   </ul>
                 </div>
@@ -214,7 +215,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
                   <h4 className="text-sm font-semibold text-[#f5f5dc] mb-2">Benefits</h4>
                   <ul className="text-sm text-[#f5f5dc]/60 space-y-1">
                     {JSON.parse(program.benefits).map((benefit: string, idx: number) => (
-                      <li key={idx}>• {benefit}</li>
+                      <li key={idx}>â€¢ {benefit}</li>
                     ))}
                   </ul>
                 </div>

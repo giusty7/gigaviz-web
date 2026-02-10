@@ -4,6 +4,7 @@
  * POST /api/meta/whatsapp/automation/rules
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { z } from 'zod';
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[Automation API] Failed to fetch rules:', error);
+      logger.error('[Automation API] Failed to fetch rules:', error);
       return NextResponse.json(
         { error: 'Failed to fetch automation rules' },
         { status: 500 }
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ rules: rules || [] });
 
   } catch (err) {
-    console.error('[Automation API] Unexpected error:', err);
+    logger.error('[Automation API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[Automation API] Failed to create rule:', error);
+      logger.error('[Automation API] Failed to create rule:', error);
       return NextResponse.json(
         { error: 'Failed to create automation rule' },
         { status: 500 }
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ rule: newRule }, { status: 201 });
 
   } catch (err) {
-    console.error('[Automation API] Unexpected error:', err);
+    logger.error('[Automation API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

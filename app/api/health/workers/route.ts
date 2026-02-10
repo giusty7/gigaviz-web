@@ -6,6 +6,7 @@
  * Returns status, last run times, and queue depths
  */
 
+import { logger } from "@/lib/logging";
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -159,7 +160,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('[Health Check] Unexpected error:', error);
+    logger.error('[Health Check] Unexpected error:', error);
     return NextResponse.json(
       {
         status: 'critical',

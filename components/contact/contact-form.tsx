@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -72,7 +73,7 @@ export function ContactForm() {
       setServerMessage(json?.message ?? "Message sent successfully.");
       reset();
     } catch (error) {
-      console.error(error);
+      logger.error(error instanceof Error ? error.message : String(error));
       setStatus("error");
       setServerMessage("Something went wrong. Please try again later.");
     }

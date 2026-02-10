@@ -1,6 +1,7 @@
 // Messenger Thread Update API
 // PATCH /api/meta/messenger/threads/[threadId] - Update thread status, assignment
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
@@ -74,7 +75,7 @@ export async function PATCH(
       })
     );
   } catch (error) {
-    console.error('[Messenger] Update thread error:', error);
+    logger.error('[Messenger] Update thread error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     const { withCookies } = createSupabaseRouteClient(request);
     return withCookies(

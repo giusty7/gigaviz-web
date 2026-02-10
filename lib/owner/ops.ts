@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logger } from "@/lib/logging";
 import { z } from "zod";
 import { validatePayload } from "@/lib/entitlements/payload-spec";
 import { recordOwnerAudit } from "@/lib/owner/audit";
@@ -120,7 +121,7 @@ export async function setWorkspaceEntitlement(
 
   if (error || !after) {
     // Log structured error for debugging
-    console.error("[Owner Ops] setWorkspaceEntitlement failed:", {
+    logger.error("[Owner Ops] setWorkspaceEntitlement failed:", {
       action: "setWorkspaceEntitlement",
       workspace_id: workspaceId,
       key,

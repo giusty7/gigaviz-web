@@ -1,6 +1,7 @@
 // Meta Ads Insights API
 // GET /api/meta/ads/insights - Get ad campaign insights
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
@@ -162,7 +163,7 @@ export async function GET(request: NextRequest) {
       summary,
     }));
   } catch (error) {
-    console.error('[Meta Ads] Error fetching insights:', error);
+    logger.error('[Meta Ads] Error fetching insights:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     const { withCookies } = createSupabaseRouteClient(request);
     return withCookies(NextResponse.json(

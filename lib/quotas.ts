@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // Quota keys used across the platform
@@ -79,7 +80,7 @@ export async function seedWorkspaceQuotas(
   });
 
   if (error && process.env.NODE_ENV === "development") {
-    console.warn("[quotas] seed failed", error);
+    logger.warn("[quotas] seed failed", error);
   }
 }
 
@@ -167,7 +168,7 @@ export async function incrementQuotaUsage(
   });
 
   if (error && process.env.NODE_ENV === "development") {
-    console.warn("[quotas] increment failed", error);
+    logger.warn("[quotas] increment failed", error);
   }
 }
 
@@ -189,7 +190,7 @@ export async function recordMetric(
   });
 
   if (error && process.env.NODE_ENV === "development") {
-    console.warn("[metrics] record failed", error);
+    logger.warn("[metrics] record failed", error);
   }
 }
 

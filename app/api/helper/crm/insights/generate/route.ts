@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -112,7 +113,7 @@ Respond in JSON format:
     const result = JSON.parse(content);
     return Array.isArray(result.insights) ? result.insights : [];
   } catch (error) {
-    console.error("AI insights generation failed:", error);
+    logger.error("AI insights generation failed:", error);
     // Return fallback insights
     return [
       {

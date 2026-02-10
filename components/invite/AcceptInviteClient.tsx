@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -125,7 +126,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       if (!active) return;
 
       if (userErr && DEV) {
-        console.warn("[invite] auth check failed", userErr.message);
+        logger.warn("[invite] auth check failed", userErr.message);
       }
 
       if (data?.user) {
@@ -173,7 +174,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
         return;
       }
       if (DEV) {
-        console.warn("[invite] accept failed", {
+        logger.warn("[invite] accept failed", {
           status: res.status,
           error: payload?.error,
         });

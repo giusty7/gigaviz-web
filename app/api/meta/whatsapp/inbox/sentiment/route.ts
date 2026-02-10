@@ -5,6 +5,7 @@
  * - Attempts external NLP via NLP_SENTIMENT_URL/NLP_API_URL + NLP_API_KEY.
  * - Falls back to lightweight heuristic when NLP is unavailable.
  */
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("sentiment_api_fallback", err);
+      logger.warn("sentiment_api_fallback", err);
     }
     return withCookies(NextResponse.json({ ok: true, ...fallback, source: "heuristic" }));
   }

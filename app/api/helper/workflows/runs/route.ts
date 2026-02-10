@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
 
   // Start execution asynchronously (in real implementation, this would be a background job)
   executeWorkflowAsync(run.id, workspaceId).catch(err => {
-    console.error("Workflow execution failed:", err);
+    logger.error("Workflow execution failed:", err);
   });
 
   return withCookies(NextResponse.json({ 

@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -91,7 +92,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
       if (!active) return;
 
       if (userErr && DEV) {
-        console.warn("[set-password] getUser failed", userErr.message);
+        logger.warn("[set-password] getUser failed", userErr.message);
       }
 
       const user = data?.user;
@@ -102,7 +103,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
 
       const needs = !hasPassword(user);
       if (DEV) {
-        console.log("[set-password] needsPassword", { needs });
+        logger.info("[set-password] needsPassword", { needs });
       }
       setNeedsPassword(needs);
       setOpen(needs && shouldPrompt);
@@ -124,7 +125,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
 
     if (updateError) {
       if (DEV) {
-        console.warn("[set-password] update failed", updateError.message);
+        logger.warn("[set-password] update failed", updateError.message);
       }
       setError(updateError.message ?? "Unable to set password.");
       return;

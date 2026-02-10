@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFromContact } from "@/lib/email";
@@ -67,17 +68,17 @@ export async function POST(req: Request) {
 
     // Honeypot: if "website" is filled, assume bot but still return success
     if (parsed.website && parsed.website.trim().length > 0) {
-      console.warn("[CONTACT] Spam detected (honeypot).", parsed);
+      logger.warn("[CONTACT] Spam detected (honeypot).", parsed);
       return NextResponse.json(
           { ok: true, message: "Thank you, we received your message." },
         { status: 200 }
       );
     }
 
-    // If API key is not set → never new Resend() during build
+    // If API key is not set â†’ never new Resend() during build
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.warn(
+      logger.warn(
           "[CONTACT] RESEND_API_KEY not set. Message logged only.",
         parsed
       );
@@ -120,21 +121,21 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      console.error("[CONTACT] Error sending email:", error);
+      logger.error("[CONTACT] Error sending email:", error);
       return NextResponse.json(
         { ok: false, message: "Failed to send email. Please try again later." },
         { status: 500 }
       );
     }
 
-    console.log("[CONTACT] Form submitted:", parsed);
+    logger.info("[CONTACT] Form submitted:", parsed);
 
     return NextResponse.json(
       { ok: true, message: "Thank you, we received your message." },
       { status: 200 }
     );
   } catch (err) {
-    console.error("[CONTACT] Unexpected error:", err);
+    logger.error("[CONTACT] Unexpected error:", err);
     return NextResponse.json(
       { ok: false, message: "An error occurred. Please try again later." },
       { status: 500 }

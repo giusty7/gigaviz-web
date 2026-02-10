@@ -2,6 +2,7 @@ import { fetchWhatsAppMediaUrl } from "@/lib/wa/cloud";
 import { recomputeConversationSla } from "@/lib/inbox/sla";
 import { maybeAutoRouteInbound } from "@/lib/inbox/routing";
 import { normalizePhone } from "@/lib/contacts/normalize";
+import { logger } from "@/lib/logging";
 
 function normalizeStatus(status?: string) {
   if (status === "sent") return "sent";
@@ -69,7 +70,7 @@ async function resolveMediaUrl(mediaId?: string) {
 }
 
 function safePhoneNorm(raw: string) {
-  // normalizePhone kadang balik undefined → kita paksa jadi string (bukan undefined)
+  // normalizePhone kadang balik undefined â†’ kita paksa jadi string (bukan undefined)
   const n = normalizePhone(raw);
   if (typeof n === "string" && n.length > 0) return n;
   const digits = raw.replace(/\D/g, "");
@@ -141,8 +142,8 @@ export async function processWhatsAppPayload(params: {
     if (pnKey) workspaceCache.set(pnKey, fallback);
     if (wabaKey) workspaceCache.set(wabaKey, fallback);
 
-    if (!fallback) console.log("WA_WORKSPACE_NOT_FOUND", JSON.stringify({ phoneNumberId, wabaId }));
-    else console.log("WA_WORKSPACE_FALLBACK_USED", JSON.stringify({ phoneNumberId, wabaId, fallback }));
+    if (!fallback) logger.warn("WA_WORKSPACE_NOT_FOUND", { phoneNumberId, wabaId });
+    else logger.info("WA_WORKSPACE_FALLBACK_USED", { phoneNumberId, wabaId, fallback });
 
     return fallback;
   };
@@ -176,7 +177,7 @@ export async function processWhatsAppPayload(params: {
           .maybeSingle()) as DbResult<{ id?: string | null; conversation_id?: string | null }>;
 
         if (updatedRes.error) {
-          console.log("WA_STATUS_UPDATE_FAILED", updatedRes.error.message);
+          logger.error("WA_STATUS_UPDATE_FAILED", { error: updatedRes.error.message });
           errors.push("status_update_failed");
           continue;
         }
@@ -192,7 +193,7 @@ export async function processWhatsAppPayload(params: {
             .maybeSingle()) as DbResult<unknown>;
 
           if (ev.error) {
-            console.log("WA_STATUS_EVENT_INSERT_FAILED", ev.error.message);
+            logger.error("WA_STATUS_EVENT_INSERT_FAILED", { error: ev.error.message });
             errors.push("status_event_insert_failed");
           }
         }
@@ -219,7 +220,7 @@ export async function processWhatsAppPayload(params: {
             .maybeSingle()) as DbResult<{ id?: string | null }>;
 
           if (existingRes.error) {
-            console.log("WA_MESSAGE_LOOKUP_FAILED", existingRes.error.message);
+            logger.error("WA_MESSAGE_LOOKUP_FAILED", { error: existingRes.error.message });
             errors.push("message_lookup_failed");
             continue;
           }
@@ -279,7 +280,7 @@ export async function processWhatsAppPayload(params: {
             .maybeSingle()) as DbResult<{ id?: string | null }>;
 
           if (contactByNorm.error) {
-            console.log("WA_CONTACT_LOOKUP_FAILED", contactByNorm.error.message);
+            logger.error("WA_CONTACT_LOOKUP_FAILED", { error: contactByNorm.error.message });
             errors.push("contact_lookup_failed");
           }
 
@@ -307,7 +308,7 @@ export async function processWhatsAppPayload(params: {
               .maybeSingle()) as DbResult<{ id?: string | null }>;
 
             if (upserted.error) {
-              console.log("WA_CONTACT_UPSERT_FAILED", upserted.error.message);
+              logger.error("WA_CONTACT_UPSERT_FAILED", { error: upserted.error.message });
               errors.push("contact_insert_failed");
             }
 
@@ -325,7 +326,7 @@ export async function processWhatsAppPayload(params: {
             .maybeSingle()) as DbResult<{ id?: string | null; unread_count?: number | null }>;
 
           if (convRes.error) {
-            console.log("WA_CONVERSATION_LOOKUP_FAILED", convRes.error.message);
+            logger.error("WA_CONVERSATION_LOOKUP_FAILED", { error: convRes.error.message });
             errors.push("conversation_lookup_failed");
           }
 
@@ -350,7 +351,7 @@ export async function processWhatsAppPayload(params: {
               .maybeSingle()) as DbResult<{ id?: string | null }>;
 
             if (insertedConv.error) {
-              console.log("WA_CONVERSATION_INSERT_FAILED", insertedConv.error.message);
+              logger.error("WA_CONVERSATION_INSERT_FAILED", { error: insertedConv.error.message });
               errors.push("conversation_insert_failed");
             }
 
@@ -381,7 +382,7 @@ export async function processWhatsAppPayload(params: {
             .maybeSingle()) as DbResult<{ id?: string | null }>;
 
           if (insertedMessage.error) {
-            console.log("WA_MESSAGE_INSERT_FAILED", insertedMessage.error.message);
+            logger.error("WA_MESSAGE_INSERT_FAILED", { error: insertedMessage.error.message });
             errors.push("message_insert_failed");
             continue;
           }
@@ -444,7 +445,7 @@ export async function processWhatsAppPayload(params: {
 
           processedMessages += 1;
         } catch (err: unknown) {
-          console.log("WEBHOOK_INBOUND_ERROR", err);
+          logger.error("WEBHOOK_INBOUND_ERROR", { error: err instanceof Error ? err.message : String(err) });
           errors.push(toErrorMessage(err));
         }
       }

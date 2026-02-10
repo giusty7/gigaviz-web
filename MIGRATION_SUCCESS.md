@@ -31,7 +31,7 @@ HTTP Request:
   
 HTTP Headers (click + Add):
   Key: Authorization
-  Value: Bearer da0e74520983b6504d7658a00f75890bdbd1371af9daedd8b8ec5b73be7f5eb6
+  Value: Bearer YOUR_SECRET_HERE_ROTATE_IMMEDIATELY
   
   Key: Content-Type
   Value: application/json
@@ -62,7 +62,7 @@ Secret: https://gigaviz.vercel.app
 **Secret 2:**
 ```
 Name: CRON_SECRET
-Secret: da0e74520983b6504d7658a00f75890bdbd1371af9daedd8b8ec5b73be7f5eb6
+Secret: YOUR_SECRET_HERE_ROTATE_IMMEDIATELY
 ```
 
 ---
@@ -149,13 +149,13 @@ FALLBACK: GitHub Actions every 5min catches any missed messages
 ## 🔧 Environment Variables (Already Set)
 
 ```bash
-✅ CRON_SECRET=da0e74520983b6504d7658a00f75890bdbd1371af9daedd8b8ec5b73be7f5eb6
+✅ CRON_SECRET=YOUR_SECRET_HERE_ROTATE_IMMEDIATELY
 ✅ DATABASE_URL=(configured)
 ✅ NEXT_PUBLIC_SUPABASE_URL=(configured)
 ✅ SUPABASE_SERVICE_ROLE_KEY=(configured)
 
 # Also set in Vercel:
-WEBHOOK_SECRET=da0e74520983b6504d7658a00f75890bdbd1371af9daedd8b8ec5b73be7f5eb6
+WEBHOOK_SECRET=YOUR_SECRET_HERE_ROTATE_IMMEDIATELY
 ENABLE_WA_SEND=true
 ```
 

@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,7 +71,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
 
       setThreads(data.threads || []);
     } catch (error) {
-      console.error("Failed to fetch threads:", error);
+      logger.error("Failed to fetch threads:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to load inbox",

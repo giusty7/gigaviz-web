@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
@@ -157,7 +158,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     .order("created_at", { ascending: false });
 
   if (eErr) {
-    console.log("ESCALATIONS_SELECT_ERROR", eErr.message);
+    logger.info("ESCALATIONS_SELECT_ERROR", eErr.message);
   }
 
   let teamName: string | null = null;
@@ -215,7 +216,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
         attachmentsByMessage[a.message_id].push(a);
       });
     } else if (aErr) {
-      console.log("ATTACHMENTS_SELECT_ERROR", aErr.message);
+      logger.info("ATTACHMENTS_SELECT_ERROR", aErr.message);
     }
   }
 

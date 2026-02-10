@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -51,7 +52,7 @@ async function lookupInvite(token: string) {
 
   if (hashRes.error) {
     if (DEV) {
-      console.warn("[invite-claim] token_hash lookup failed", {
+      logger.warn("[invite-claim] token_hash lookup failed", {
         error: hashRes.error.message,
         code: hashRes.error.code ?? null,
         missingColumn: hashMissing,
@@ -72,7 +73,7 @@ async function lookupInvite(token: string) {
 
     if (tokenRes.error) {
       if (DEV) {
-        console.warn("[invite-claim] token lookup failed", {
+        logger.warn("[invite-claim] token lookup failed", {
           error: tokenRes.error.message,
           code: tokenRes.error.code ?? null,
           missingColumn: tokenMissing,
@@ -107,7 +108,7 @@ async function accountExists(email: string | null | undefined) {
   const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (error) {
     if (DEV) {
-      console.warn("[invite-claim] listUsers failed", error.message);
+      logger.warn("[invite-claim] listUsers failed", error.message);
     }
     return false;
   }
@@ -174,7 +175,7 @@ export async function POST(req: NextRequest) {
 
   if (createError || !createData?.user) {
     if (DEV) {
-      console.warn("[invite-claim] createUser failed", createError?.message ?? "unknown");
+      logger.warn("[invite-claim] createUser failed", createError?.message ?? "unknown");
     }
     // If conflict slipped through
     if (createError?.message?.toLowerCase().includes("already")) {
@@ -204,7 +205,7 @@ export async function POST(req: NextRequest) {
 
   if (memberErr) {
     if (DEV) {
-      console.warn("[invite-claim] membership upsert failed", memberErr.message);
+      logger.warn("[invite-claim] membership upsert failed", memberErr.message);
     }
     return NextResponse.json({ error: "membership_failed" }, { status: 500 });
   }
@@ -216,7 +217,7 @@ export async function POST(req: NextRequest) {
     .is("accepted_at", null);
 
   if (markErr && DEV) {
-    console.warn("[invite-claim] failed marking invite accepted", markErr.message);
+    logger.warn("[invite-claim] failed marking invite accepted", markErr.message);
   }
 
   return NextResponse.json({

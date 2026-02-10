@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -91,7 +92,7 @@ export function CreateCampaignWizard({
           setTemplates(data.templates.filter((t: Template) => t.status === "APPROVED"));
         }
       } catch (error) {
-        console.error("Failed to fetch templates:", error);
+        logger.error("Failed to fetch templates:", error);
       } finally {
         setLoading(false);
       }
@@ -126,7 +127,7 @@ export function CreateCampaignWizard({
           setSegments(segmentsData.segments);
         }
       } catch (error) {
-        console.error("Failed to fetch audience data:", error);
+        logger.error("Failed to fetch audience data:", error);
       }
     }
     fetchAudienceData();
@@ -406,7 +407,7 @@ export function CreateCampaignWizard({
                           <div className="flex-1">
                             <h4 className="font-semibold text-[#f5f5dc]">{template.name}</h4>
                             <p className="mt-1 text-xs text-[#f5f5dc]/60">
-                              {template.language} · {template.category}
+                              {template.language} Â· {template.category}
                             </p>
                             {template.body && (
                               <p className="mt-2 text-sm text-[#f5f5dc]/80 line-clamp-2">{template.body}</p>
@@ -450,7 +451,7 @@ export function CreateCampaignWizard({
                 {paramMappings.map((mapping, index) => (
                   <div key={index} className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
                     <Label className="text-[#f5f5dc]">
-                      Parameter {index + 1} · <code className="text-[#f9d976]">{mapping.name}</code>
+                      Parameter {index + 1} Â· <code className="text-[#f9d976]">{mapping.name}</code>
                     </Label>
                     
                     <div className="mt-3 space-y-3">
@@ -706,7 +707,7 @@ export function CreateCampaignWizard({
                       {paramMappings.map((mapping, index) => (
                         <div key={index} className="flex items-center gap-2 text-sm">
                           <code className="text-[#f9d976]">{mapping.name}</code>
-                          <span className="text-[#f5f5dc]/60">→</span>
+                          <span className="text-[#f5f5dc]/60">â†’</span>
                           <span className="text-[#f5f5dc]">
                             {mapping.type === "manual" && mapping.value}
                             {mapping.type === "contact_field" && `{contact.${mapping.value}}`}

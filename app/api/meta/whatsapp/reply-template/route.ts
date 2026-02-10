@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
@@ -293,7 +294,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (outboxError || !outboxInsert) {
-    console.error("[reply-template] outbox insert failed:", outboxError);
+    logger.error("[reply-template] outbox insert failed:", outboxError);
     return withCookies(
       NextResponse.json(
         {

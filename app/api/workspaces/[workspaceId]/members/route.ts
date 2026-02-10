@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -52,7 +53,7 @@ export async function GET(
       .order("role", { ascending: false });
 
     if (membersError) {
-      console.error("Fetch members error:", membersError);
+      logger.error("Fetch members error:", membersError);
       return NextResponse.json(
         { error: "Failed to fetch members" },
         { status: 500 }
@@ -70,7 +71,7 @@ export async function GET(
 
     return NextResponse.json(transformedMembers ?? []);
   } catch (error) {
-    console.error("Get workspace members error:", error);
+    logger.error("Get workspace members error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

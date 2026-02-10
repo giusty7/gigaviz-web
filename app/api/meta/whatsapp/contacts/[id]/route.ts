@@ -6,6 +6,7 @@
  * Delete contact
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { UpdateContactRequest } from "@/types/wa-contacts";
@@ -63,7 +64,7 @@ export async function PATCH(
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Contacts API PUT] Membership query error:", {
+      logger.error("[Contacts API PUT] Membership query error:", {
         error: membershipError,
         workspaceId: body.workspaceId,
         userId: user.id,
@@ -76,7 +77,7 @@ export async function PATCH(
     }
 
     if (!membership) {
-      console.warn("[Contacts API PUT] Access denied:", {
+      logger.warn("[Contacts API PUT] Access denied:", {
         workspaceId: body.workspaceId,
         userId: user.id,
         contactId: id,
@@ -120,13 +121,13 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error("[Contacts API] Update error:", error);
+      logger.error("[Contacts API] Update error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("[Contacts API] Unexpected error:", error);
+    logger.error("[Contacts API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -185,7 +186,7 @@ export async function DELETE(
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Contacts API DELETE] Membership query error:", {
+      logger.error("[Contacts API DELETE] Membership query error:", {
         error: membershipError,
         workspaceId,
         userId: user.id,
@@ -198,7 +199,7 @@ export async function DELETE(
     }
 
     if (!membership) {
-      console.warn("[Contacts API DELETE] Access denied:", {
+      logger.warn("[Contacts API DELETE] Access denied:", {
         workspaceId,
         userId: user.id,
         contactId: id,
@@ -210,13 +211,13 @@ export async function DELETE(
     const { error } = await supabase.from("wa_contacts").delete().eq("id", id);
 
     if (error) {
-      console.error("[Contacts API] Delete error:", error);
+      logger.error("[Contacts API] Delete error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[Contacts API] Unexpected error:", error);
+    logger.error("[Contacts API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

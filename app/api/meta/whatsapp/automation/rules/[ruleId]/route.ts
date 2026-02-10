@@ -5,6 +5,7 @@
  * DELETE /api/meta/whatsapp/automation/rules/[ruleId]
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { z } from 'zod';
@@ -64,7 +65,7 @@ export async function GET(
     return NextResponse.json({ rule });
 
   } catch (err) {
-    console.error('[Automation API] Unexpected error:', err);
+    logger.error('[Automation API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -106,7 +107,7 @@ export async function PATCH(
       .single();
 
     if (error || !updatedRule) {
-      console.error('[Automation API] Failed to update rule:', error);
+      logger.error('[Automation API] Failed to update rule:', error);
       return NextResponse.json(
         { error: 'Failed to update automation rule' },
         { status: 500 }
@@ -116,7 +117,7 @@ export async function PATCH(
     return NextResponse.json({ rule: updatedRule });
 
   } catch (err) {
-    console.error('[Automation API] Unexpected error:', err);
+    logger.error('[Automation API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -143,7 +144,7 @@ export async function DELETE(
       .eq('id', ruleId);
 
     if (error) {
-      console.error('[Automation API] Failed to delete rule:', error);
+      logger.error('[Automation API] Failed to delete rule:', error);
       return NextResponse.json(
         { error: 'Failed to delete automation rule' },
         { status: 500 }
@@ -153,7 +154,7 @@ export async function DELETE(
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (err) {
-    console.error('[Automation API] Unexpected error:', err);
+    logger.error('[Automation API] Unexpected error:', err);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

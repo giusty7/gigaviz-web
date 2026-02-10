@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Filter, Plus, Star, Trash2, RefreshCw, Share2 } from "lucide-react";
@@ -43,7 +44,7 @@ export default function SavedFiltersClient() {
         setFilters(data.filters || []);
       }
     } catch (err) {
-      console.error("Failed to fetch filters:", err);
+      logger.error("Failed to fetch filters:", err);
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export default function SavedFiltersClient() {
       setIsShared(false);
       fetchFilters();
     } catch (err) {
-      console.error("Create failed:", err);
+      logger.error("Create failed:", err);
     }
   };
 
@@ -93,7 +94,7 @@ export default function SavedFiltersClient() {
       });
       fetchFilters();
     } catch (err) {
-      console.error("Delete failed:", err);
+      logger.error("Delete failed:", err);
     }
   };
 
@@ -111,7 +112,7 @@ export default function SavedFiltersClient() {
       });
       fetchFilters();
     } catch (err) {
-      console.error("Set default failed:", err);
+      logger.error("Set default failed:", err);
     }
   };
 

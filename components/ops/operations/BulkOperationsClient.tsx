@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import {
@@ -64,7 +65,7 @@ export default function BulkOperationsClient() {
         setJobs(data.jobs || []);
       }
     } catch (err) {
-      console.error("Failed to fetch jobs:", err);
+      logger.error("Failed to fetch jobs:", err);
     } finally {
       setLoading(false);
     }
@@ -94,7 +95,7 @@ export default function BulkOperationsClient() {
         setPreview(data);
       }
     } catch (err) {
-      console.error("Preview failed:", err);
+      logger.error("Preview failed:", err);
     } finally {
       setPreviewing(false);
     }
@@ -119,7 +120,7 @@ export default function BulkOperationsClient() {
         fetchJobs();
       }
     } catch (err) {
-      console.error("Create failed:", err);
+      logger.error("Create failed:", err);
     }
   };
 
@@ -263,7 +264,7 @@ export default function BulkOperationsClient() {
                   <tr key={job.id}>
                     <td className="py-3">
                       <span className="capitalize text-white">{job.operation_type.replace("_", " ")}</span>
-                      <span className="ml-2 text-zinc-500">→ {job.target_type}</span>
+                      <span className="ml-2 text-zinc-500">â†’ {job.target_type}</span>
                     </td>
                     <td className="py-3 text-white">{job.target_count ?? "-"}</td>
                     <td className="py-3">

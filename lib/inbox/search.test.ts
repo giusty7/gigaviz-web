@@ -1,21 +1,19 @@
+import { describe, it, expect } from "vitest";
 import { buildMessageSearchQuery, mergeConversationIds } from "@/lib/inbox/search";
 
-function assertEqual<T>(label: string, actual: T, expected: T) {
-  if (actual !== expected) {
-    throw new Error(`${label} expected=${String(expected)} actual=${String(actual)}`);
-  }
-}
+describe("buildMessageSearchQuery", () => {
+  it("trims and normalizes whitespace", () => {
+    expect(buildMessageSearchQuery("  hello   world ")).toBe("hello world");
+  });
 
-function assertArrayEqual(label: string, actual: string[], expected: string[]) {
-  const a = JSON.stringify(actual);
-  const b = JSON.stringify(expected);
-  if (a !== b) {
-    throw new Error(`${label} expected=${b} actual=${a}`);
-  }
-}
+  it("returns null for empty/whitespace-only input", () => {
+    expect(buildMessageSearchQuery("   ")).toBeNull();
+  });
+});
 
-assertEqual("trimmed query", buildMessageSearchQuery("  hello   world "), "hello world");
-assertEqual("empty query", buildMessageSearchQuery("   "), null);
-
-const merged = mergeConversationIds(["c1", "c2"], ["c2", "c3"], null, ["c3", "c4"]);
-assertArrayEqual("merge ids", merged, ["c1", "c2", "c3", "c4"]);
+describe("mergeConversationIds", () => {
+  it("deduplicates and merges arrays, handles null", () => {
+    const merged = mergeConversationIds(["c1", "c2"], ["c2", "c3"], null, ["c3", "c4"]);
+    expect(merged).toEqual(["c1", "c2", "c3", "c4"]);
+  });
+});

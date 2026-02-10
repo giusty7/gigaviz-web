@@ -4,6 +4,7 @@
  */
 
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect } from "react";
 import {
@@ -109,7 +110,7 @@ export function ContactsListClient({ workspaceId }: Props) {
         setTags(data.tags);
       }
     } catch {
-      console.error("Failed to load tags");
+      logger.error("Failed to load tags");
     }
   }, [workspaceId]);
 
@@ -123,7 +124,7 @@ export function ContactsListClient({ workspaceId }: Props) {
         setSegments(data.segments);
       }
     } catch {
-      console.error("Failed to load segments");
+      logger.error("Failed to load segments");
     }
   }, [workspaceId]);
 
@@ -359,7 +360,7 @@ export function ContactsListClient({ workspaceId }: Props) {
               contacts.map((contact) => (
                 <TableRow key={contact.id}>
                   <TableCell className="font-medium">
-                    {contact.display_name || "—"}
+                    {contact.display_name || "â€”"}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -391,7 +392,7 @@ export function ContactsListClient({ workspaceId }: Props) {
                           </Badge>
                         ))
                       ) : (
-                        <span className="text-gray-500 text-sm">—</span>
+                        <span className="text-gray-500 text-sm">â€”</span>
                       )}
                     </div>
                   </TableCell>
@@ -399,7 +400,7 @@ export function ContactsListClient({ workspaceId }: Props) {
                   <TableCell className="text-sm text-gray-400">
                     {contact.last_seen_at
                       ? new Date(contact.last_seen_at).toLocaleDateString()
-                      : "—"}
+                      : "â€”"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { createFunctionCall, getFunctionCall, updateFunctionCallStatus } from "@/lib/helper/functions";
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
       requiresConfirmation: true,
     });
   } catch (error) {
-    console.error("Function call failed:", error);
+    logger.error("Function call failed:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Call failed" },
       { status: 500 }
@@ -124,7 +125,7 @@ export async function GET(req: NextRequest) {
       call,
     });
   } catch (error) {
-    console.error("Failed to get call status:", error);
+    logger.error("Failed to get call status:", error);
     return NextResponse.json(
       { error: "Failed to retrieve call status" },
       { status: 500 }
@@ -186,7 +187,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
-    console.error("Failed to update call:", error);
+    logger.error("Failed to update call:", error);
     return NextResponse.json(
       { error: "Failed to update call" },
       { status: 500 }

@@ -88,7 +88,7 @@ export async function sendMessengerMessage(
       messageId: data.message_id,
     };
   } catch (error) {
-    console.error('[Messenger Send] Unexpected error:', error);
+    logger.error('[Messenger Send] Unexpected error:', error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -170,13 +170,13 @@ export async function sendMessengerTextMessage(params: {
       });
 
     if (insertError) {
-      console.error('[Messenger Send] Failed to store message:', insertError);
+      logger.error('[Messenger Send] Failed to store message:', insertError);
       // Message sent but not stored - non-fatal
     }
 
     return result;
   } catch (error) {
-    console.error('[Messenger Send] Unexpected error:', error);
+    logger.error('[Messenger Send] Unexpected error:', error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -256,12 +256,12 @@ export async function sendMessengerImageMessage(params: {
       });
 
     if (insertError) {
-      console.error('[Messenger Send] Failed to store image message:', insertError);
+      logger.error('[Messenger Send] Failed to store image message:', insertError);
     }
 
     return result;
   } catch (error) {
-    console.error('[Messenger Send] Image send error:', error);
+    logger.error('[Messenger Send] Image send error:', error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : 'Unknown error',

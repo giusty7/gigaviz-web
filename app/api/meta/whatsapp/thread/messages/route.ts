@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
@@ -8,7 +9,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 
 /**
- * Loose row type – we use select('*') so columns may or may not exist yet.
+ * Loose row type â€“ we use select('*') so columns may or may not exist yet.
  * All fields are optional to avoid runtime errors if DB schema is behind.
  */
 type MessageRow = {
@@ -113,7 +114,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (workspaceError) {
-      console.error("[wa-thread-messages] workspace lookup failed", { requestId, workspaceSlug, error: workspaceError });
+      logger.error("[wa-thread-messages] workspace lookup failed", { requestId, workspaceSlug, error: workspaceError });
       return withCookies(
         NextResponse.json(
           {
@@ -172,7 +173,7 @@ export async function GET(req: NextRequest) {
     .limit(200);
 
   if (messageError) {
-    console.error("[wa-thread-messages] message list failed", { requestId, workspaceId, threadId, error: messageError });
+    logger.error("[wa-thread-messages] message list failed", { requestId, workspaceId, threadId, error: messageError });
     return withCookies(
       NextResponse.json(
         {
@@ -207,7 +208,7 @@ export async function GET(req: NextRequest) {
       .in("external_message_id", waMessageIds);
 
     if (statusError) {
-      console.error("[wa-thread-messages] status events failed", { requestId, workspaceId, threadId, error: statusError });
+      logger.error("[wa-thread-messages] status events failed", { requestId, workspaceId, threadId, error: statusError });
       return withCookies(
         NextResponse.json(
           {
@@ -246,7 +247,7 @@ export async function GET(req: NextRequest) {
     .eq("thread_id", threadId);
 
   if (tagsError) {
-    console.error("[wa-thread-messages] tags fetch failed", { requestId, workspaceId, threadId, error: tagsError });
+    logger.error("[wa-thread-messages] tags fetch failed", { requestId, workspaceId, threadId, error: tagsError });
     return withCookies(
       NextResponse.json(
         {
@@ -270,7 +271,7 @@ export async function GET(req: NextRequest) {
 
   if (notesError) {
     // Log but don't fail - notes are not critical for message display
-    console.error("[wa-thread-messages] notes fetch failed", { requestId, workspaceId, threadId, error: notesError });
+    logger.error("[wa-thread-messages] notes fetch failed", { requestId, workspaceId, threadId, error: notesError });
   }
 
   const normalizedMessages =

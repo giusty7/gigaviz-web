@@ -1,6 +1,7 @@
 // Messenger Send Message API
 // POST /api/meta/messenger/threads/[threadId]/send - Send message via Messenger API
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
@@ -104,7 +105,7 @@ export async function POST(
       })
     );
   } catch (error) {
-    console.error('[Messenger] Send message error:', error);
+    logger.error('[Messenger] Send message error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     const { withCookies } = createSupabaseRouteClient(request);
     return withCookies(

@@ -1,6 +1,7 @@
 // Instagram Thread Messages API
 // GET /api/meta/instagram/threads/[threadId]/messages - Get messages for thread
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 
@@ -35,7 +36,7 @@ export async function GET(
       })
     );
   } catch (error) {
-    console.error('[Instagram] Error fetching messages:', error);
+    logger.error('[Instagram] Error fetching messages:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     const { withCookies } = createSupabaseRouteClient(request);
     return withCookies(

@@ -5,6 +5,7 @@
  * Should run once per hour via Vercel Cron
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -19,12 +20,12 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET || process.env.VERCEL_CRON_SECRET;
 
     if (!cronSecret) {
-      console.error('[Cron] CRON_SECRET not configured - blocking request');
+      logger.error('[Cron] CRON_SECRET not configured - blocking request');
       return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
     }
 
     if (authHeader !== `Bearer ${cronSecret}`) {
-      console.error('[Cron] Unauthorized request to materialized view refresh');
+      logger.error('[Cron] Unauthorized request to materialized view refresh');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -33,14 +34,14 @@ export async function GET(request: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('[Cron] Starting materialized view refresh...');
+    logger.info('[Cron] Starting materialized view refresh...');
     const startTime = Date.now();
 
     // Refresh the materialized view
     const { error } = await supabase.rpc('refresh_usage_stats_daily');
 
     if (error) {
-      console.error('[Cron] Failed to refresh materialized view:', error);
+      logger.error('[Cron] Failed to refresh materialized view:', error);
       return NextResponse.json(
         {
           success: false,
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[Cron] Materialized view refreshed successfully in ${duration}ms`);
+    logger.info(`[Cron] Materialized view refreshed successfully in ${duration}ms`);
 
     return NextResponse.json({
       success: true,
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[Cron] Unexpected error:', error);
+    logger.error('[Cron] Unexpected error:', error);
     return NextResponse.json(
       {
         success: false,

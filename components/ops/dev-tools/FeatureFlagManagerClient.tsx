@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
 import { Flag, Plus, Check, X } from "lucide-react";
@@ -49,7 +50,7 @@ export default function FeatureFlagManagerClient() {
       const data = await res.json();
       setFlags(data.flags || []);
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export default function FeatureFlagManagerClient() {
       const data = await res.json();
       setWorkspaceFlags(data.flags || []);
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -81,7 +82,7 @@ export default function FeatureFlagManagerClient() {
       if (!res.ok) throw new Error("Failed to update");
       await fetchWorkspaceFlags();
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
       alert("Failed to update flag");
     }
   }
@@ -105,7 +106,7 @@ export default function FeatureFlagManagerClient() {
       await fetchFlags();
       setShowNewFlag(false);
     } catch (err) {
-      console.error(err);
+      logger.error(err instanceof Error ? err.message : String(err));
       alert("Failed to create flag");
     }
   }
@@ -212,7 +213,7 @@ export default function FeatureFlagManagerClient() {
                 )}
                 <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                   <span>Default: {flag.defaultEnabled ? "ON" : "OFF"}</span>
-                  {override && <span className="text-blue-400">• Override active</span>}
+                  {override && <span className="text-blue-400">â€¢ Override active</span>}
                 </div>
               </div>
 

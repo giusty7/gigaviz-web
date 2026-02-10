@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
     .limit(50);
 
   if (error) {
-    console.error("Failed to load workflows:", error);
+    logger.error("Failed to load workflows:", error);
     return NextResponse.json({ error: "Failed to load workflows" }, { status: 500 });
   }
 
@@ -121,13 +122,13 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Failed to create workflow:", error);
+      logger.error("Failed to create workflow:", error);
       return NextResponse.json({ error: "Failed to create workflow" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, workflow });
   } catch (err) {
-    console.error("Create workflow error:", err);
+    logger.error("Create workflow error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -178,13 +179,13 @@ export async function PUT(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Failed to update workflow:", error);
+      logger.error("Failed to update workflow:", error);
       return NextResponse.json({ error: "Failed to update workflow" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, workflow });
   } catch (err) {
-    console.error("Update workflow error:", err);
+    logger.error("Update workflow error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -226,13 +227,13 @@ export async function PATCH(req: NextRequest) {
       .eq("workspace_id", workspaceId);
 
     if (error) {
-      console.error("Failed to toggle workflow:", error);
+      logger.error("Failed to toggle workflow:", error);
       return NextResponse.json({ error: "Failed to toggle workflow" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Patch workflow error:", err);
+    logger.error("Patch workflow error:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -269,7 +270,7 @@ export async function DELETE(req: NextRequest) {
     .eq("workspace_id", workspaceId);
 
   if (error) {
-    console.error("Failed to delete workflow:", error);
+    logger.error("Failed to delete workflow:", error);
     return NextResponse.json({ error: "Failed to delete workflow" }, { status: 500 });
   }
 

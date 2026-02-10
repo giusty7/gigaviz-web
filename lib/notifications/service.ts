@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type NotificationType =
@@ -82,7 +83,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
     if (error.code === "23505") {
       return { ok: true, skipped: true };
     }
-    console.error("[createNotification] Error:", error.message);
+    logger.error("[createNotification] Error:", error.message);
     return { ok: false };
   }
 
@@ -174,7 +175,7 @@ export async function listNotifications(
   const { data, error } = await query;
 
   if (error) {
-    console.error("[listNotifications] Error:", error.message);
+    logger.error("[listNotifications] Error:", error.message);
     return [];
   }
 
@@ -198,7 +199,7 @@ export async function markAsRead(workspaceId: string, userId: string, notificati
     .is("read_at", null);
 
   if (error) {
-    console.error("[markAsRead] Error:", error.message);
+    logger.error("[markAsRead] Error:", error.message);
     return { ok: false };
   }
 
@@ -219,7 +220,7 @@ export async function markAllAsRead(workspaceId: string, userId: string) {
     .is("read_at", null);
 
   if (error) {
-    console.error("[markAllAsRead] Error:", error.message);
+    logger.error("[markAllAsRead] Error:", error.message);
     return { ok: false };
   }
 

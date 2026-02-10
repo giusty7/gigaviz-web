@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -48,7 +49,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
         setStats(data.stats || null);
       }
     } catch (err) {
-      console.error("Fetch tickets error:", err);
+      logger.error("Fetch tickets error:", err);
     } finally {
       setLoading(false);
     }

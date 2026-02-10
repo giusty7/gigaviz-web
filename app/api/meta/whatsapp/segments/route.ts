@@ -6,6 +6,7 @@
  * Create a new segment
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { CreateSegmentRequest, ContactSegment } from "@/types/wa-contacts";
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Segments API GET] Membership query error:", {
+      logger.error("[Segments API GET] Membership query error:", {
         error: membershipError,
         workspaceId,
         userId: user.id,
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[Segments API GET] Access denied:", {
+      logger.warn("[Segments API GET] Access denied:", {
         workspaceId,
         userId: user.id,
       });
@@ -70,13 +71,13 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[Segments API] Query error:", error);
+      logger.error("[Segments API] Query error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ segments: segments || [] });
   } catch (error) {
-    console.error("[Segments API] Unexpected error:", error);
+    logger.error("[Segments API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Segments API POST] Membership query error:", {
+      logger.error("[Segments API POST] Membership query error:", {
         error: membershipError,
         workspaceId: body.workspaceId,
         userId: user.id,
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[Segments API POST] Access denied:", {
+      logger.warn("[Segments API POST] Access denied:", {
         workspaceId: body.workspaceId,
         userId: user.id,
       });
@@ -172,13 +173,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error("[Segments API] Create error:", error);
+      logger.error("[Segments API] Create error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(segment as ContactSegment, { status: 201 });
   } catch (error) {
-    console.error("[Segments API] Unexpected error:", error);
+    logger.error("[Segments API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

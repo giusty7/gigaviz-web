@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState } from "react";
 import { Download, FileJson, FileText } from "lucide-react";
@@ -43,7 +44,7 @@ export function AuditLogExport({ events, workspaceName }: AuditLogExportProps) {
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("CSV export failed:", err);
+      logger.error("CSV export failed:", err);
     } finally {
       setIsExporting(false);
     }
@@ -73,7 +74,7 @@ export function AuditLogExport({ events, workspaceName }: AuditLogExportProps) {
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("JSON export failed:", err);
+      logger.error("JSON export failed:", err);
     } finally {
       setIsExporting(false);
     }

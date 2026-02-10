@@ -3,6 +3,7 @@
  * Preview audience count and sample contacts based on filters
  */
 
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (membershipError) {
-      console.error("[Audience Preview API] Membership query error:", {
+      logger.error("[Audience Preview API] Membership query error:", {
         error: membershipError,
         workspaceId: body.workspaceId,
         userId: user.id,
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!membership) {
-      console.warn("[Audience Preview API] Access denied:", {
+      logger.warn("[Audience Preview API] Access denied:", {
         workspaceId: body.workspaceId,
         userId: user.id,
       });
@@ -181,7 +182,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("[Audience Preview API] Unexpected error:", error);
+    logger.error("[Audience Preview API] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

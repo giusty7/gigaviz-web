@@ -665,24 +665,24 @@ Before submitting PR or marking work complete:
 
 ## Platform Audit Scorecard (Feb 2026)
 
-Last audited: **February 10, 2026** — update scores as improvements land.
+Last audited: **February 11, 2026** — update scores as improvements land.
 
 | Area | Score | Status | Notes |
 |------|-------|--------|-------|
-| Architecture & Code Quality | 7/10 | ✅ Solid | Next.js 16 + React 19, server-first, 381 routes |
-| Authentication & Security | 9/10 | ✅ Strong | 4-layer auth (proxy→middleware→guard→RLS), Zod on all routes, ops layout guard, standardized requirePlatformAdmin |
+| Architecture & Code Quality | 8/10 | ✅ Strong | Next.js 16 + React 19, server-first, 381 routes, shared types barrel (`types/index.ts`), `withErrorHandler` API wrapper |
+| Authentication & Security | 10/10 | ✅ Hardened | 4-layer auth, admin bypass fixed (default-deny), health endpoint auth, CSP enforced, X-Frame-Options DENY, HSTS preload, hardcoded secrets removed, CodeQL + Dependabot |
 | Database & Data Model | 8/10 | ✅ Mature | 85 migrations, RLS on all tables, pgvector for RAG |
-| Marketing & SEO | 8/10 | ✅ Good | JSON-LD, sitemap, robots, product pages, 6 policies |
+| Marketing & SEO | 9/10 | ✅ Strong | JSON-LD, sitemap with hreflang alternates (en/id), Twitter cards, enhanced robots (googleBot), 6 policies |
 | Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks |
-| Developer Experience | 8/10 | ✅ Good | Zod env validation, 55+ scripts, typecheck/lint, CI/CD pipeline, Vitest configured |
+| Developer Experience | 9/10 | ✅ Strong | Zod env validation, 55+ scripts, typecheck/lint, CI/CD with coverage reporting, Vitest + mock factories (`lib/__tests__/test-utils.ts`) |
 | Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy done, NO payment gateway (Stripe/Xendit) |
 | Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
-| Performance & Optimization | 8/10 | ✅ Strong | ISR on 26 marketing pages (revalidate=3600), dynamic imports for 7 heavy client components, CDN cache headers in vercel.json, Next.js Image optimization, loading.tsx + error.tsx on all route groups |
-| Error Handling & Monitoring | 8/10 | ✅ Strong | Sentry SDK wired into all error boundaries (client/server/edge), structured logging, Slack/Discord alerting |
-| Testing | 5/10 | ⚠️ In Progress | Vitest configured, 81 unit tests (SLA, time, entitlements, products, i18n format), CI runs on every PR; still needs Playwright E2E |
+| Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, dynamic imports for 7 heavy components, CDN cache headers, Suspense boundaries on 7 sub-routes (platform, dashboard, meta-hub, connections, helper, settings, inbox), loading.tsx + error.tsx on all route groups + sub-routes |
+| Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + API wrapper, structured JSON logger with PII scrubbing & correlation IDs, Slack/Discord alerting |
+| Testing | 7/10 | ✅ Good | Vitest configured, **143 unit tests** across 17 files (SLA, time, entitlements, products, i18n, logging, API types, WA types, audit, admin, test-utils), CI runs with coverage on every PR; still needs Playwright E2E |
 | Internationalization (i18n) | 5/10 | ⚠️ In Progress | next-intl installed, 2 locales (en/id), message files, locale switcher, locale-aware formatting; still needs full string extraction |
 
-**Overall: 7.2 / 10**
+**Overall: 7.8 / 10**
 
 ### Module Status Map
 
@@ -703,11 +703,11 @@ Last audited: **February 10, 2026** — update scores as improvements land.
 
 ```
 Phase 1: FOUNDATION (Month 1-2) ← START HERE
-├── ✅ Testing: Vitest installed, 61 unit tests (SLA, time, entitlements, products), CI runs tests — DONE
+├── ✅ Testing: Vitest installed, 143 unit tests (17 files: SLA, time, entitlements, products, logging, API types, WA types, audit, admin, test-utils), CI runs with coverage — DONE
 ├── ⚠️ Testing (E2E): Playwright for auth/security paths (80%+ coverage target) — PENDING
-├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired — DONE
-├── ✅ CI/CD: GitHub Actions (lint + typecheck + test + build) on every PR — DONE
-├── ✅ Loading states: loading.tsx + error.tsx on all 3 route groups (ops, app, marketing) — DONE
+├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired, withErrorHandler API wrapper — DONE
+├── ✅ CI/CD: GitHub Actions (lint + typecheck + test + build + coverage) on every PR, Dependabot + CodeQL — DONE
+├── ✅ Loading states: loading.tsx + error.tsx on all 3 route groups + 7 sub-routes, Suspense boundaries on heavy pages — DONE
 └── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA)
 
 Phase 2: LOCALIZATION (Month 2-3)

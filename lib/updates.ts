@@ -5,6 +5,7 @@
  */
 
 import "server-only";
+import { logger } from "@/lib/logging";
 import { cache } from "react";
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -75,7 +76,7 @@ async function parseUpdateFile(filename: string): Promise<Update | null> {
       content: content.trim(),
     };
   } catch {
-    console.warn(`[updates] Failed to parse ${filename}`);
+    logger.warn(`[updates] Failed to parse ${filename}`);
     return null;
   }
 }

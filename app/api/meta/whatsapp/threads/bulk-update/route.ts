@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
         .in("id", threadIds);
 
       if (updateError) {
-        console.error("Bulk update error:", updateError);
+        logger.error("Bulk update error:", updateError);
         return NextResponse.json(
           { error: "Failed to update threads", details: updateError.message },
           { status: 500 }
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
       value,
     });
   } catch (error) {
-    console.error("Bulk update error:", error);
+    logger.error("Bulk update error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

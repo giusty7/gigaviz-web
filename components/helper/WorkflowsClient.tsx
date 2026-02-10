@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -207,7 +208,7 @@ export function WorkflowsClient({
         );
       }
     } catch (err) {
-      console.error("Toggle failed:", err);
+      logger.error("Toggle failed:", err);
     }
   }, [workspaceId]);
 
@@ -225,7 +226,7 @@ export function WorkflowsClient({
         setDeleteConfirm(null);
       }
     } catch (err) {
-      console.error("Delete failed:", err);
+      logger.error("Delete failed:", err);
     }
   }, [workspaceId, deleteConfirm]);
 
@@ -251,7 +252,7 @@ export function WorkflowsClient({
         );
       }
     } catch (err) {
-      console.error("Run failed:", err);
+      logger.error("Run failed:", err);
     }
   }, [workspaceId]);
 

@@ -1,9 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // SECURITY: Require bearer token for detailed health data
+  const authHeader = req.headers.get("authorization");
+  const expectedToken = process.env.CRON_SECRET || process.env.WEBHOOK_SECRET;
+
+  if (expectedToken) {
+    if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
+      return NextResponse.json(
+        { ok: true, status: "healthy" },
+        { status: 200 }
+      );
+    }
+  }
+
   const db = supabaseAdmin();
   const health = {
     ok: true,

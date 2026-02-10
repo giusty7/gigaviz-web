@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
@@ -232,7 +233,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       created_by: user?.id ?? "system",
     });
     if (eventErr) {
-      console.log("conversation_events insert failed (send_blocked)", eventErr.message);
+      logger.info("conversation_events insert failed (send_blocked)", eventErr.message);
     }
     return withCookies(
       NextResponse.json({ error: "contact_blacklisted" }, { status: 403 })
@@ -340,7 +341,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     payload: { template_name: templateName, language, conversation_id: id, outbox_id: outboxInsert?.id },
   });
   if (eventErr) {
-    console.log("message_events insert failed (send_queued)", eventErr.message);
+    logger.info("message_events insert failed (send_queued)", eventErr.message);
   }
 
   const waSendEnabled = isTruthy(process.env.ENABLE_WA_SEND);
@@ -355,13 +356,13 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   };
 
   if (!waSendEnabled) {
-    console.log("[WA_TEMPLATE_SEND] skipped (dry-run)", JSON.stringify(logPayload));
+    logger.info("[WA_TEMPLATE_SEND] skipped (dry-run)", JSON.stringify(logPayload));
     return withCookies(
       NextResponse.json({ ok: true, queued: true, message: mapMessage(inserted) }, { status: 200 })
     );
   }
 
-  console.log("[WA_TEMPLATE_SEND] attempting", JSON.stringify(logPayload));
+  logger.info("[WA_TEMPLATE_SEND] attempting", JSON.stringify(logPayload));
 
   let sendError: string | null = null;
   let waMessageId: string | null = null;
@@ -396,7 +397,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     .single();
 
   if (updErr) {
-    console.log("messages update failed (wa_template_send)", updErr.message);
+    logger.info("messages update failed (wa_template_send)", updErr.message);
   }
 
   if (outboxInsert?.id) {
@@ -411,7 +412,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       .eq("id", outboxInsert.id);
 
     if (outboxUpdateErr) {
-      console.log("outbox_messages update failed (wa_template_send)", outboxUpdateErr.message);
+      logger.info("outbox_messages update failed (wa_template_send)", outboxUpdateErr.message);
     }
   }
 
@@ -424,16 +425,16 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   });
 
   if (sendEventErr) {
-    console.log("message_events insert failed (send_result)", sendEventErr.message);
+    logger.info("message_events insert failed (send_result)", sendEventErr.message);
   }
 
   if (sendError) {
-    console.warn(
+    logger.warn(
       "[WA_TEMPLATE_SEND] failed",
       JSON.stringify({ ...logPayload, error: sendError })
     );
   } else {
-    console.log(
+    logger.info(
       "[WA_TEMPLATE_SEND] success",
       JSON.stringify({ ...logPayload, waMessageId })
     );

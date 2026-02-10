@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logging";
+
 type AuditParams = {
   db: unknown;
   workspaceId: string;
@@ -32,6 +34,6 @@ export async function logMetaAdminAudit(params: AuditParams) {
     .maybeSingle();
 
   if (error) {
-    console.log("meta_admin_audit insert failed", error.message);
+    logger.info("meta_admin_audit insert failed", error.message);
   }
 }

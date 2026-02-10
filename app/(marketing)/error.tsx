@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
@@ -17,7 +18,7 @@ export default function MarketingError({
 
   useEffect(() => {
     Sentry.captureException(error);
-    console.error("[marketing-error]", error);
+    logger.error("[marketing-error]", error);
   }, [error]);
 
   return (

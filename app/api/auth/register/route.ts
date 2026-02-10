@@ -4,6 +4,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getResendFromAuth } from "@/lib/email";
 import { registerSchema } from "@/lib/validation/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
 
@@ -22,7 +24,7 @@ function getBaseUrl(req: NextRequest) {
   return process.env.APP_BASE_URL ?? req.nextUrl.origin;
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   // Rate limit by IP
   const ip = getClientIP(req);
   const rateLimitResult = rateLimit(`signup:${ip}`, SIGNUP_RATE_LIMIT);
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn("[AUTH] RESEND_API_KEY missing, skip email send.");
+    logger.warn("RESEND_API_KEY missing, skipping email send");
     return NextResponse.json({ ok: true });
   }
 
@@ -94,4 +96,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
-}
+});

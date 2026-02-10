@@ -1,4 +1,5 @@
 "use client";
+import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -39,7 +40,7 @@ export default function CannedResponsesClient() {
         setResponses(data.responses || []);
       }
     } catch (err) {
-      console.error("Fetch canned responses error:", err);
+      logger.error("Fetch canned responses error:", err);
     } finally {
       setLoading(false);
     }
@@ -108,7 +109,7 @@ export default function CannedResponsesClient() {
         alert(data.error || "Failed to save response");
       }
     } catch (err) {
-      console.error("Save canned response error:", err);
+      logger.error("Save canned response error:", err);
       alert("Failed to save response");
     } finally {
       setSubmitting(false);
@@ -131,7 +132,7 @@ export default function CannedResponsesClient() {
         alert("Failed to delete response");
       }
     } catch (err) {
-      console.error("Delete canned response error:", err);
+      logger.error("Delete canned response error:", err);
       alert("Failed to delete response");
     }
   };
