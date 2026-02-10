@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
 
-type MergePayload = {
-  primary_contact_id?: unknown;
-  duplicate_contact_ids?: unknown;
-};
+const mergeSchema = z.object({
+  primary_contact_id: z.string().uuid(),
+  duplicate_contact_ids: z.array(z.string().uuid()).min(1),
+}).refine(
+  (data) => !data.duplicate_contact_ids.includes(data.primary_contact_id),
+  { message: "primary_in_duplicates", path: ["duplicate_contact_ids"] }
+);
 
 type ContactRow = {
   id: string;
   workspace_id: string;
   merged_into_contact_id: string | null;
 };
-
-function normalizeIds(value: unknown) {
-  if (!Array.isArray(value)) return [] as string[];
-  const ids = value.filter((id) => typeof id === "string") as string[];
-  return Array.from(new Set(ids));
-}
 
 export async function POST(req: NextRequest) {
   const auth = await requireAdminWorkspace(req);
@@ -28,16 +26,14 @@ export async function POST(req: NextRequest) {
     return withCookies(NextResponse.json({ error: "merge_disabled" }, { status: 403 }));
   }
 
-  const body = (await req.json().catch(() => null)) as MergePayload | null;
-  const primaryId = typeof body?.primary_contact_id === "string" ? body?.primary_contact_id : "";
-  const duplicateIds = normalizeIds(body?.duplicate_contact_ids);
-
-  if (!primaryId || duplicateIds.length === 0) {
-    return withCookies(NextResponse.json({ error: "invalid_payload" }, { status: 400 }));
+  const body = await req.json().catch(() => null);
+  const parsed = mergeSchema.safeParse(body);
+  if (!parsed.success) {
+    const msg = parsed.error.issues[0]?.message ?? "invalid_payload";
+    return withCookies(NextResponse.json({ error: msg }, { status: 400 }));
   }
-  if (duplicateIds.includes(primaryId)) {
-    return withCookies(NextResponse.json({ error: "primary_in_duplicates" }, { status: 400 }));
-  }
+  const primaryId = parsed.data.primary_contact_id;
+  const duplicateIds = Array.from(new Set(parsed.data.duplicate_contact_ids));
 
   const allIds = Array.from(new Set([primaryId, ...duplicateIds]));
   const { data: contacts, error: contactsErr } = await db

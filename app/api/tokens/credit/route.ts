@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { ensureProfile } from "@/lib/profiles";
 import { getUserWorkspaces } from "@/lib/workspaces";
 import { creditTokens } from "@/lib/tokens";
 import { rateLimit } from "@/lib/rate-limit";
+
+const creditSchema = z.object({
+  workspace_id: z.string().uuid("workspace_id must be a valid UUID"),
+  amount: z.number().positive("amount must be a positive number"),
+  note: z.string().optional(),
+});
 
 export async function POST(req: NextRequest) {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
@@ -35,17 +42,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  const workspaceId =
-    typeof body?.workspace_id === "string" ? body.workspace_id : null;
-  const amount = Number(body?.amount || 0);
-  const note = typeof body?.note === "string" ? body.note : null;
-
-  if (!workspaceId || !Number.isFinite(amount) || amount <= 0) {
+  const raw = await req.json().catch(() => null);
+  const parsed = creditSchema.safeParse(raw);
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "invalid_request" }, { status: 400 })
+      NextResponse.json(
+        { error: "invalid_request", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     );
   }
+  const { workspace_id: workspaceId, amount, note } = parsed.data;
 
   const workspaces = await getUserWorkspaces(user.id);
   const allowed = workspaces.some((ws) => ws.id === workspaceId);

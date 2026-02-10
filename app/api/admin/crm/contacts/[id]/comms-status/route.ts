@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+
+const commsStatusSchema = z.object({
+  comms_status: z.enum(["normal", "blacklisted", "whitelisted"]),
+});
+
+const paramSchema = z.object({ id: z.string().uuid() });
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -10,25 +17,24 @@ type ContactRow = {
   comms_status_updated_at: string | null;
 };
 
-function parseStatus(value: unknown) {
-  if (value === "normal" || value === "blacklisted" || value === "whitelisted") {
-    return value;
-  }
-  return null;
-}
-
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
-  const { id } = await params;
+  const rawParams = await params;
+  const paramsParsed = paramSchema.safeParse(rawParams);
+  if (!paramsParsed.success) {
+    return withCookies(NextResponse.json({ error: "invalid_contact_id" }, { status: 400 }));
+  }
+  const { id } = paramsParsed.data;
 
-  const body = (await req.json().catch(() => null)) as { comms_status?: unknown } | null;
-  const status = parseStatus(body?.comms_status);
-  if (!status) {
+  const body = await req.json().catch(() => null);
+  const parsed = commsStatusSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(NextResponse.json({ error: "invalid_status" }, { status: 400 }));
   }
+  const status = parsed.data.comms_status;
 
   const { data: contact, error: contactErr } = await db
     .from("contacts")

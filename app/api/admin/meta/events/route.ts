@@ -2,15 +2,17 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { normalizePhone } from "@/lib/contacts/normalize";
+import { z } from "zod";
+
+const eventSchema = z.object({
+  eventName: z.enum(["Lead", "Purchase", "AddToCart", "QualifiedProspect"]),
+  phoneE164: z.string().max(20).optional(),
+  contactId: z.string().uuid().optional(),
+  source: z.string().max(50).optional().default("inbox"),
+  customData: z.record(z.string(), z.unknown()).nullable().optional(),
+});
 
 export const runtime = "nodejs";
-
-const ALLOWED_EVENTS = new Set([
-  "Lead",
-  "Purchase",
-  "AddToCart",
-  "QualifiedProspect",
-]);
 
 type MetaEventRow = {
   id: string;
@@ -29,24 +31,12 @@ type ContactRow = {
   opted_out: boolean | null;
 };
 
-type BodyPayload = {
-  eventName?: unknown;
-  phoneE164?: unknown;
-  contactId?: unknown;
-  source?: unknown;
-  customData?: unknown;
-};
-
 type MetaGraphError = {
   message?: string;
   code?: number;
   error_subcode?: number;
   fbtrace_id?: string;
 };
-
-function asString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
 
 function toE164(raw: string) {
   const digits = normalizePhone(raw);
@@ -157,22 +147,19 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId, user } = auth;
-  const body = (await req.json().catch(() => ({}))) as BodyPayload;
-
-  const eventName = asString(body.eventName);
-  if (!eventName || !ALLOWED_EVENTS.has(eventName)) {
+  const body = await req.json().catch(() => ({}));
+  const parsed = eventSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "invalid_event_name" }, { status: 400 })
+      NextResponse.json({ error: parsed.error.issues[0]?.message ?? "invalid_input" }, { status: 400 })
     );
   }
 
-  const source = asString(body.source) || "inbox";
-  const contactId = asString(body.contactId);
-  const phoneInput = asString(body.phoneE164);
-  const customData =
-    body.customData && typeof body.customData === "object"
-      ? (body.customData as Record<string, unknown>)
-      : null;
+  const eventName = parsed.data.eventName;
+  const source = parsed.data.source ?? "inbox";
+  const contactId = parsed.data.contactId ?? "";
+  const phoneInput = parsed.data.phoneE164 ?? "";
+  const customData = parsed.data.customData as Record<string, unknown> | null ?? null;
 
   let contact: ContactRow | null = null;
   if (contactId) {

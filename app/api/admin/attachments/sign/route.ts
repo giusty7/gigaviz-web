@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
 export const runtime = "nodejs";
 
-type SignBody = {
-  attachmentIds?: unknown;
-};
+const signSchema = z.object({
+  attachmentIds: z.array(z.string().min(1)).min(1, "attachment_ids_required"),
+});
 
 type AttachmentRow = {
   id: string;
@@ -19,15 +20,14 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
-  const body = (await req.json().catch(() => null)) as SignBody | null;
-
-  const rawIds = Array.isArray(body?.attachmentIds) ? body?.attachmentIds : [];
-  const attachmentIds = rawIds.map((id) => String(id)).filter(Boolean);
-  if (attachmentIds.length === 0) {
+  const body = await req.json().catch(() => null);
+  const parsed = signSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "attachment_ids_required" }, { status: 400 })
+      NextResponse.json({ error: parsed.error.issues[0]?.message ?? "invalid_input" }, { status: 400 })
     );
   }
+  const attachmentIds = parsed.data.attachmentIds;
 
   const bucket = process.env.ATTACHMENTS_BUCKET || "inbox-attachments";
   const ttl = Number(process.env.ATTACHMENTS_SIGNED_URL_TTL || 600);

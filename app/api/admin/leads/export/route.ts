@@ -1,7 +1,19 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdminWorkspace } from "@/lib/supabase/route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const exportQuerySchema = z.object({
+  tab: z.enum(["leads", "attempts"]).optional().default("leads"),
+  q: z.string().max(200).optional().default(""),
+  need: z.string().max(100).optional().default(""),
+  source: z.string().max(100).optional().default(""),
+  status: z.string().max(50).optional().default(""),
+  pageSize: z.coerce.number().int().min(1).max(2000).optional().default(500),
+});
 
 function csvEscape(v: unknown) {
   const s = (v ?? "").toString();
@@ -20,14 +32,30 @@ function toCSV(headers: string[], rows: Array<Record<string, unknown>>) {
   return "\ufeff" + lines.join("\n");
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  // Auth check — this route was previously unprotected!
+  const auth = await requireAdminWorkspace(req);
+  if (!auth.ok) return auth.res;
+
+  const { withCookies } = auth;
+
   const url = new URL(req.url);
-  const tab = url.searchParams.get("tab") || "leads";
-  const q = (url.searchParams.get("q") || "").trim();
-  const need = (url.searchParams.get("need") || "").trim();
-  const source = (url.searchParams.get("source") || "").trim();
-  const status = (url.searchParams.get("status") || "").trim(); // untuk attempts
-  const pageSize = Math.min(parseInt(url.searchParams.get("pageSize") || "500", 10) || 500, 2000);
+  const queryParsed = exportQuerySchema.safeParse({
+    tab: url.searchParams.get("tab") ?? undefined,
+    q: url.searchParams.get("q") ?? undefined,
+    need: url.searchParams.get("need") ?? undefined,
+    source: url.searchParams.get("source") ?? undefined,
+    status: url.searchParams.get("status") ?? undefined,
+    pageSize: url.searchParams.get("pageSize") ?? undefined,
+  });
+
+  if (!queryParsed.success) {
+    return withCookies(
+      NextResponse.json({ error: queryParsed.error.issues[0]?.message ?? "invalid_query" }, { status: 400 })
+    );
+  }
+
+  const { tab, q, need, source, status, pageSize } = queryParsed.data;
 
   const supabase = supabaseAdmin();
 

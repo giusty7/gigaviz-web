@@ -1,23 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: Promise<{ id: string }> };
+const optInSchema = z.object({
+  source: z.string().max(100).optional().default("manual"),
+});
 
-function asString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
+const paramSchema = z.object({ id: z.string().uuid() });
+
+type Ctx = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId, user } = auth;
-  const { id: contactId } = await ctx.params;
+  const rawParams = await ctx.params;
+  const paramsParsed = paramSchema.safeParse(rawParams);
+  if (!paramsParsed.success) {
+    return withCookies(NextResponse.json({ error: "invalid_contact_id" }, { status: 400 }));
+  }
+  const contactId = paramsParsed.data.id;
 
-  const body = (await req.json().catch(() => ({}))) as { source?: unknown };
-  const source = asString(body.source) || "manual";
+  const body = await req.json().catch(() => ({}));
+  const parsed = optInSchema.safeParse(body);
+  const source = parsed.success ? parsed.data.source ?? "manual" : "manual";
   const nowIso = new Date().toISOString();
 
   const { data, error } = await db

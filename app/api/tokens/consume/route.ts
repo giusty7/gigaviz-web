@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { tokenRates } from "@/lib/tokenRates";
 import {
   consumeTokens,
@@ -9,6 +10,13 @@ import { recordUsage } from "@/lib/usage/server";
 import type { TokenActionKey } from "@/lib/tokenRates";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { assertEntitlement, assertTokenBudget } from "@/lib/billing/guards";
+
+const consumeSchema = z.object({
+  action: z.string().min(1, "action required"),
+  ref_type: z.string().optional(),
+  ref_id: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
@@ -27,29 +35,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = guard.body || (await req.json().catch(() => null));
-  const action = typeof body?.action === "string" ? body.action : null;
-  const refType = typeof body?.ref_type === "string" ? body.ref_type : null;
-  const refId = typeof body?.ref_id === "string" ? body.ref_id : null;
-  const metadata =
-    body && typeof body === "object" && typeof body?.metadata === "object"
-      ? (body.metadata as Record<string, unknown>)
-      : undefined;
-
+  const rawBody = guard.body || (await req.json().catch(() => null));
+  const parsed = consumeSchema.safeParse(rawBody);
   const allowedActions = Object.keys(tokenRates) as TokenActionKey[];
 
-  if (!action) {
+  if (!parsed.success) {
     return withCookies(
       NextResponse.json(
         {
           error: "invalid_request",
-          reason: "action_required",
+          reason: "validation_error",
+          details: parsed.error.flatten().fieldErrors,
           allowedActions,
         },
         { status: 400 }
       )
     );
   }
+
+  const { action, ref_type: refType, ref_id: refId, metadata } = parsed.data;
 
   if (!(action in tokenRates)) {
     return withCookies(

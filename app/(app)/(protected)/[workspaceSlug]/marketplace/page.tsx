@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { Store, ShoppingCart, TrendingUp, Star, Package, Download } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
+import { requireEntitlement } from "@/lib/entitlements/server";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
 
@@ -40,6 +42,8 @@ export default async function MarketplacePage({ params }: Props) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
+  const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "marketplace");
+
   const supabase = await supabaseServer();
 
   // Fetch approved marketplace items
@@ -76,6 +80,7 @@ export default async function MarketplacePage({ params }: Props) {
   const categories = Array.from(new Set(marketplaceItems.map((i) => i.category)));
 
   return (
+    <FeatureGate allowed={entitlement.allowed}>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -235,5 +240,6 @@ export default async function MarketplacePage({ params }: Props) {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 }

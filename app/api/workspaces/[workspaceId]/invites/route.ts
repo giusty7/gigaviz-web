@@ -1,10 +1,16 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import crypto from "node:crypto";
 import { sendWorkspaceInviteEmail } from "@/lib/email";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
 import { rateLimit } from "@/lib/rate-limit";
+
+const inviteSchema = z.object({
+  email: z.string().email("A valid email is required").transform((v) => v.trim().toLowerCase()),
+  role: z.enum(["admin", "member"]).optional().default("member"),
+});
 
 export const runtime = "nodejs";
 
@@ -31,17 +37,18 @@ export async function POST(req: NextRequest, context: Ctx) {
     );
   }
 
-  // Body
-  const body = await req.json().catch(() => null);
-  const rawEmail = typeof body?.email === "string" ? body.email.trim() : null;
-  const email = rawEmail ? rawEmail.toLowerCase() : null;
-  const role = body?.role === "admin" ? "admin" : "member";
-
-  if (!email) {
+  // Validate body
+  const raw = await req.json().catch(() => null);
+  const parsed = inviteSchema.safeParse(raw);
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "invalid_email" }, { status: 400 })
+      NextResponse.json(
+        { error: "invalid_email", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     );
   }
+  const { email, role } = parsed.data;
 
   const db = supabaseAdmin();
   const { data: memberRow, error: memberErr } = await db

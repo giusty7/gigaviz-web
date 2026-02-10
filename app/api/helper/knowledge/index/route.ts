@@ -1,19 +1,26 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateEmbedding, chunkText, estimateTokenCount } from "@/lib/helper/embeddings";
 
 export const runtime = "nodejs";
 
-type IndexRequest = {
-  workspaceId: string;
-  sourceType: string;
-  sourceId: string;
-  title?: string;
-  content: string;
-  metadata?: Record<string, unknown>;
-};
+const indexPostSchema = z.object({
+  workspaceId: z.string().min(1, "workspaceId required"),
+  sourceType: z.string().min(1, "sourceType required"),
+  sourceId: z.string().min(1, "sourceId required"),
+  title: z.string().optional(),
+  content: z.string().min(1, "content required"),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+const indexDeleteSchema = z.object({
+  workspaceId: z.string().min(1, "workspaceId required"),
+  sourceType: z.string().min(1, "sourceType required"),
+  sourceId: z.string().min(1, "sourceId required"),
+});
 
 /**
  * POST /api/helper/knowledge/index
@@ -26,15 +33,15 @@ export async function POST(req: NextRequest) {
   }
   const { user } = userRes;
 
-  const body = (await req.json()) as IndexRequest;
-  const { workspaceId, sourceType, sourceId, title, content, metadata } = body;
-
-  if (!workspaceId || !sourceType || !sourceId || !content) {
+  const raw = await req.json().catch(() => ({}));
+  const parsed = indexPostSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing required fields" },
+      { error: "validation_error", details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
+  const { workspaceId, sourceType, sourceId, title, content, metadata } = parsed.data;
 
   // Verify workspace access
   const membership = await requireWorkspaceMember(user.id, workspaceId);
@@ -147,16 +154,18 @@ export async function DELETE(req: NextRequest) {
   const { user } = userRes;
 
   const { searchParams } = new URL(req.url);
-  const workspaceId = searchParams.get("workspaceId");
-  const sourceType = searchParams.get("sourceType");
-  const sourceId = searchParams.get("sourceId");
-
-  if (!workspaceId || !sourceType || !sourceId) {
+  const parsed = indexDeleteSchema.safeParse({
+    workspaceId: searchParams.get("workspaceId"),
+    sourceType: searchParams.get("sourceType"),
+    sourceId: searchParams.get("sourceId"),
+  });
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Missing required parameters" },
+      { error: "validation_error", details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
+  const { workspaceId, sourceType, sourceId } = parsed.data;
 
   // Verify workspace access
   const membership = await requireWorkspaceMember(user.id, workspaceId);

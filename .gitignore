@@ -46,7 +46,7 @@ next-env.d.ts
 data/
 
 # temporary webhook file
-echo tmp-webhook.json >> .gitignore
+tmp-webhook.json
 
 # Supabase local backups / temp artifacts
 supabase/backups/

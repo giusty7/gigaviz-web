@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { runHelperModel } from "@/lib/helper/providers/router";
-import { HelperMode, ProviderName } from "@/lib/helper/providers/types";
 import { recordHelperUsage } from "@/lib/helper/usage";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+
+const postBodySchema = z.object({
+  conversationId: z.string().min(1, "conversationId required"),
+  content: z.string().min(1, "content required").max(32_000),
+  role: z.string().trim().optional().default("user"),
+  mode: z.enum(["chat", "copy", "summary"]).optional().default("chat"),
+  provider: z.enum(["auto", "openai", "anthropic", "gemini", "local"]).optional().default("auto"),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 export const runtime = "nodejs";
 
@@ -50,19 +59,18 @@ export async function POST(req: NextRequest) {
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies } = guard;
 
-  const body = await req.json().catch(() => ({}));
-  const conversationId = (body?.conversationId as string | undefined) ?? null;
-  const content = (body?.content as string | undefined)?.trim() ?? "";
-  const role = (body?.role as string | undefined)?.trim() || "user";
-  const mode = (body?.mode as HelperMode | undefined) ?? "chat";
-  const provider = (body?.provider as ProviderName | undefined) ?? "auto";
-
-  if (!conversationId) {
-    return withCookies(NextResponse.json({ ok: false, error: "conversationId required" }, { status: 400 }));
+  const raw = await req.json().catch(() => ({}));
+  const parsed = postBodySchema.safeParse(raw);
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json(
+        { ok: false, error: "validation_error", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    );
   }
-  if (!content) {
-    return withCookies(NextResponse.json({ ok: false, error: "content required" }, { status: 400 }));
-  }
+  const { conversationId, content, role, mode, provider } = parsed.data;
+  const body = raw;
 
   const limiter = rateLimit(`helper:messages:${workspaceId}:${user.id}`, { windowMs: 15_000, max: 20 });
   if (!limiter.ok) {

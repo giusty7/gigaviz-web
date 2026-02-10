@@ -1,10 +1,21 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { forbiddenResponse, requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { getHelperSettings } from "@/lib/helper/settings";
 import { insertToolRun, isIntentAllowed, signN8nPayload } from "@/lib/helper/tools";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+
+const executeSchema = z.object({
+  workspace_slug: z.string().trim().min(1, "workspace_slug required"),
+  conversation_id: z.string().optional(),
+  intent: z.string().trim().min(1, "intent required"),
+  params: z.record(z.string(), z.unknown()).optional().default({}),
+  correlation_id: z.string().optional(),
+  idempotency_key: z.string().optional(),
+  requested_by: z.enum(["user", "assistant"]).optional().default("user"),
+});
 
 export const runtime = "nodejs";
 
@@ -12,12 +23,18 @@ export async function POST(req: NextRequest) {
   const userRes = await requireUser(req);
   if (!userRes.ok) return userRes.response;
   const { user, withCookies } = userRes;
-  const body = await req.json().catch(() => ({}));
-
-  const workspaceSlug = (body?.workspace_slug as string | undefined)?.trim();
-  if (!workspaceSlug) {
-    return withCookies(NextResponse.json({ ok: false, error: "workspace_slug required" }, { status: 400 }));
+  const raw = await req.json().catch(() => ({}));
+  const parsed = executeSchema.safeParse(raw);
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json(
+        { ok: false, error: "validation_error", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    );
   }
+  const body = parsed.data;
+  const workspaceSlug = body.workspace_slug;
 
   const db = supabaseAdmin();
   const { data: workspace } = await db
@@ -55,17 +72,13 @@ export async function POST(req: NextRequest) {
   const payload = {
     workspace_slug: workspace.slug,
     workspace_id: workspace.id,
-    conversation_id: body?.conversation_id as string | undefined,
-    intent: (body?.intent as string | undefined)?.trim() ?? "",
-    params: (body?.params as Record<string, unknown> | undefined) ?? {},
-    correlation_id: (body?.correlation_id as string | undefined) ?? crypto.randomUUID(),
-    idempotency_key: (body?.idempotency_key as string | undefined) ?? crypto.randomUUID(),
-    requested_by: (body?.requested_by as "user" | "assistant" | undefined) ?? "user",
+    conversation_id: body.conversation_id,
+    intent: body.intent,
+    params: body.params,
+    correlation_id: body.correlation_id ?? crypto.randomUUID(),
+    idempotency_key: body.idempotency_key ?? crypto.randomUUID(),
+    requested_by: body.requested_by,
   } as const;
-
-  if (!payload.intent) {
-    return withCookies(NextResponse.json({ ok: false, error: "intent required" }, { status: 400 }));
-  }
   if (!isIntentAllowed(payload.intent)) {
     return withCookies(NextResponse.json({ ok: false, error: "intent_not_allowed" }, { status: 400 }));
   }

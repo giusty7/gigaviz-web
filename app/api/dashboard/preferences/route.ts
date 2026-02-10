@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
@@ -13,6 +14,11 @@ import {
   type ModuleKey,
 } from "@/lib/dashboard/preferences";
 import { modulesCatalog } from "@/lib/modules/catalog";
+
+const patchSchema = z.object({
+  workspace_id: z.string().min(1, "workspace_id is required"),
+  pinned_modules: z.array(z.string()).min(0),
+});
 
 export async function GET(request: NextRequest) {
   const supabase = await supabaseServer();
@@ -74,29 +80,17 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Parse request body
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const { workspace_id: workspaceId, pinned_modules: pinnedModules } = body;
-
-  if (!workspaceId) {
+  // Parse and validate request body
+  const raw = await request.json().catch(() => null);
+  const parsed = patchSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "workspace_id is required" },
+      { error: "validation_error", details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
 
-  if (!pinnedModules || !Array.isArray(pinnedModules)) {
-    return NextResponse.json(
-      { error: "pinned_modules must be an array" },
-      { status: 400 }
-    );
-  }
+  const { workspace_id: workspaceId, pinned_modules: pinnedModules } = parsed.data;
 
   // Verify user has access to this workspace
   // Use admin to bypass RLS recursion (pattern from lib/supabase/route.ts)

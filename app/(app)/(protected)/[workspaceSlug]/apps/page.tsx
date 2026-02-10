@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getAppContext } from "@/lib/app-context";
+import { requireEntitlement } from "@/lib/entitlements/server";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,8 @@ export default async function AppsPage({ params }: Props) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
+  const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "core_os");
+
   const db = supabaseAdmin();
   const { data: apps } = await db
     .from("apps_catalog")
@@ -41,6 +45,7 @@ export default async function AppsPage({ params }: Props) {
   const comingSoonApps = (apps || []).filter((app: AppCatalogRow) => app.status === "coming_soon");
 
   return (
+    <FeatureGate allowed={entitlement.allowed}>
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
       <div className="mb-8">
@@ -164,6 +169,7 @@ export default async function AppsPage({ params }: Props) {
         </div>
       )}
     </div>
+    </FeatureGate>
   );
 }
 

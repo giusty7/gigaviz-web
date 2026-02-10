@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { HubPreviewPage } from "@/components/hubs/HubPreviewPage";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { getAppContext } from "@/lib/app-context";
+import { requireEntitlement } from "@/lib/entitlements/server";
 import { HUBS } from "@/lib/hubs";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +17,14 @@ export default async function TradeHubPage({ params }: Props) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
+  const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "trade");
+
   const hub = HUBS.find((item) => item.slug === "trade");
   if (!hub) return <div className="text-sm text-muted-foreground">Hub not found.</div>;
 
-  return <HubPreviewPage hub={hub} workspaceSlug={ctx.currentWorkspace.slug} />;
+  return (
+    <FeatureGate allowed={entitlement.allowed}>
+      <HubPreviewPage hub={hub} workspaceSlug={ctx.currentWorkspace.slug} />
+    </FeatureGate>
+  );
 }
