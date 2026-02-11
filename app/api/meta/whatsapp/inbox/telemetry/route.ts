@@ -1,21 +1,5 @@
-/**
- * Telemetry endpoint for Imperial Inbox.
- * Returns aggregated stats for a workspace:
- * - incomingToday: inbound count since UTC 00:00
- * - avgResponseMs: average inbound→outbound latency
- * - automationRate: % of outbound messages marked as automated/template
- * - throughput: counts per hour for the last 24h
- * - slaHours: SLA breach threshold (derived from env)
- */
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  requireWorkspaceMember,
-  unauthorizedResponse,
-  workspaceRequiredResponse,
-} from "@/lib/auth/guard";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -40,47 +24,11 @@ type ThroughputBucket = {
 };
 
 export async function GET(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
-  }
-
-  const url = new URL(req.url);
-  const parsed = z
-    .object({
-      workspaceSlug: z.string().min(1),
-    })
-    .safeParse({ workspaceSlug: url.searchParams.get("workspaceSlug") });
-
-  if (!parsed.success) {
-    return workspaceRequiredResponse(withCookies);
-  }
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies } = guard;
 
   const db = supabaseAdmin();
-  const { data: workspace, error: workspaceError } = await db
-    .from("workspaces")
-    .select("id")
-    .eq("slug", parsed.data.workspaceSlug)
-    .maybeSingle();
-
-  if (workspaceError) {
-    return withCookies(
-      NextResponse.json(
-        { ok: false, error: "db_error", reason: "workspace_lookup_failed" },
-        { status: 500 }
-      )
-    );
-  }
-
-  if (!workspace?.id) {
-    return workspaceRequiredResponse(withCookies);
-  }
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspace.id);
-  if (!membership.ok) {
-    return forbiddenResponse(withCookies);
-  }
 
   const now = new Date();
   const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -90,7 +38,7 @@ export async function GET(req: NextRequest) {
   const { count: inboundTodayCount } = await db
     .from("wa_messages")
     .select("id", { count: "exact", head: true })
-    .eq("workspace_id", workspace.id)
+    .eq("workspace_id", workspaceId)
     .in("direction", ["in", "inbound"])
     .gte("created_at", startOfDay.toISOString());
 
@@ -98,7 +46,7 @@ export async function GET(req: NextRequest) {
   const { data: recentMessages, error: recentError } = await db
     .from("wa_messages")
     .select("id, thread_id, direction, msg_type, payload_json, wa_timestamp, sent_at, created_at")
-    .eq("workspace_id", workspace.id)
+    .eq("workspace_id", workspaceId)
     .gte("created_at", lookbackStart.toISOString())
     .limit(5000);
 

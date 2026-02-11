@@ -1,8 +1,7 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
@@ -40,25 +39,10 @@ const PatchWorkflowSchema = z.object({
  * List workflows for a workspace
  */
 export async function GET(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
-  const { searchParams } = new URL(req.url);
-  const workspaceId = searchParams.get("workspaceId");
-
-  if (!workspaceId) {
-    return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
-  }
-
-  const membership = await requireWorkspaceMember(user.id, workspaceId);
-  if (!membership.ok) {
-    return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-  }
-
-  const db = supabaseAdmin();
   const { data: workflows, error } = await db
     .from("helper_workflows")
     .select("id, name, description, trigger_type, trigger_config, steps, is_active, run_count, last_run_at, created_at")
@@ -68,10 +52,10 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     logger.error("Failed to load workflows:", error);
-    return NextResponse.json({ error: "Failed to load workflows" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Failed to load workflows" }, { status: 500 }));
   }
 
-  return NextResponse.json({ ok: true, workflows });
+  return withCookies(NextResponse.json({ ok: true, workflows }));
 }
 
 /**
@@ -79,31 +63,25 @@ export async function GET(req: NextRequest) {
  * Create a new workflow
  */
 export async function POST(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
 
   try {
-    const body = await req.json();
+    const body = guard.body ?? await req.json();
     const parsed = CreateWorkflowSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.issues },
-        { status: 400 }
+      return withCookies(
+        NextResponse.json(
+          { error: "Invalid input", details: parsed.error.issues },
+          { status: 400 }
+        )
       );
     }
 
-    const { workspaceId, name, description, triggerType, triggerConfig, steps } = parsed.data;
+    const { name, description, triggerType, triggerConfig, steps } = parsed.data;
 
-    const membership = await requireWorkspaceMember(user.id, workspaceId);
-    if (!membership.ok) {
-      return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-    }
-
-    const db = supabaseAdmin();
     const { data: workflow, error } = await db
       .from("helper_workflows")
       .insert({
@@ -123,13 +101,13 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       logger.error("Failed to create workflow:", error);
-      return NextResponse.json({ error: "Failed to create workflow" }, { status: 500 });
+      return withCookies(NextResponse.json({ error: "Failed to create workflow" }, { status: 500 }));
     }
 
-    return NextResponse.json({ ok: true, workflow });
+    return withCookies(NextResponse.json({ ok: true, workflow }));
   } catch (err) {
     logger.error("Create workflow error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Internal error" }, { status: 500 }));
   }
 }
 
@@ -138,31 +116,25 @@ export async function POST(req: NextRequest) {
  * Update an existing workflow
  */
 export async function PUT(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   try {
-    const body = await req.json();
+    const body = guard.body ?? await req.json();
     const parsed = UpdateWorkflowSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.issues },
-        { status: 400 }
+      return withCookies(
+        NextResponse.json(
+          { error: "Invalid input", details: parsed.error.issues },
+          { status: 400 }
+        )
       );
     }
 
-    const { workspaceId, id, name, description, triggerType, triggerConfig, steps } = parsed.data;
+    const { id, name, description, triggerType, triggerConfig, steps } = parsed.data;
 
-    const membership = await requireWorkspaceMember(user.id, workspaceId);
-    if (!membership.ok) {
-      return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-    }
-
-    const db = supabaseAdmin();
     const { data: workflow, error } = await db
       .from("helper_workflows")
       .update({
@@ -180,13 +152,13 @@ export async function PUT(req: NextRequest) {
 
     if (error) {
       logger.error("Failed to update workflow:", error);
-      return NextResponse.json({ error: "Failed to update workflow" }, { status: 500 });
+      return withCookies(NextResponse.json({ error: "Failed to update workflow" }, { status: 500 }));
     }
 
-    return NextResponse.json({ ok: true, workflow });
+    return withCookies(NextResponse.json({ ok: true, workflow }));
   } catch (err) {
     logger.error("Update workflow error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Internal error" }, { status: 500 }));
   }
 }
 
@@ -195,31 +167,25 @@ export async function PUT(req: NextRequest) {
  * Toggle workflow active status
  */
 export async function PATCH(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   try {
-    const body = await req.json();
+    const body = guard.body ?? await req.json();
     const parsed = PatchWorkflowSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.issues },
-        { status: 400 }
+      return withCookies(
+        NextResponse.json(
+          { error: "Invalid input", details: parsed.error.issues },
+          { status: 400 }
+        )
       );
     }
 
-    const { workspaceId, id, isActive } = parsed.data;
+    const { id, isActive } = parsed.data;
 
-    const membership = await requireWorkspaceMember(user.id, workspaceId);
-    if (!membership.ok) {
-      return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-    }
-
-    const db = supabaseAdmin();
     const { error } = await db
       .from("helper_workflows")
       .update({ is_active: isActive, updated_at: new Date().toISOString() })
@@ -228,13 +194,13 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       logger.error("Failed to toggle workflow:", error);
-      return NextResponse.json({ error: "Failed to toggle workflow" }, { status: 500 });
+      return withCookies(NextResponse.json({ error: "Failed to toggle workflow" }, { status: 500 }));
     }
 
-    return NextResponse.json({ ok: true });
+    return withCookies(NextResponse.json({ ok: true }));
   } catch (err) {
     logger.error("Patch workflow error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Internal error" }, { status: 500 }));
   }
 }
 
@@ -243,26 +209,17 @@ export async function PATCH(req: NextRequest) {
  * Delete a workflow
  */
 export async function DELETE(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const { searchParams } = new URL(req.url);
-  const workspaceId = searchParams.get("workspaceId");
   const id = searchParams.get("id");
 
-  if (!workspaceId || !id) {
-    return NextResponse.json({ error: "workspaceId and id required" }, { status: 400 });
+  if (!id) {
+    return withCookies(NextResponse.json({ error: "id required" }, { status: 400 }));
   }
 
-  const membership = await requireWorkspaceMember(user.id, workspaceId);
-  if (!membership.ok) {
-    return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-  }
-
-  const db = supabaseAdmin();
   const { error } = await db
     .from("helper_workflows")
     .delete()
@@ -271,8 +228,8 @@ export async function DELETE(req: NextRequest) {
 
   if (error) {
     logger.error("Failed to delete workflow:", error);
-    return NextResponse.json({ error: "Failed to delete workflow" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Failed to delete workflow" }, { status: 500 }));
   }
 
-  return NextResponse.json({ ok: true });
+  return withCookies(NextResponse.json({ ok: true }));
 }

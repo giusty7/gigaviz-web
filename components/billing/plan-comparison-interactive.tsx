@@ -20,7 +20,7 @@ type Plan = {
 };
 
 type Props = {
-  workspaceSlug: string;
+  workspaceId: string;
   currentPlanCode: string | null;
   plans: Plan[];
 };
@@ -32,7 +32,7 @@ const planIcons = {
   business: TrendingUp,
 };
 
-export function PlanComparisonInteractive({ workspaceSlug, currentPlanCode, plans }: Props) {
+export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans }: Props) {
   const { toast } = useToast();
   const [billingMode, setBillingMode] = useState<"individual" | "team">("individual");
   const [upgrading, setUpgrading] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export function PlanComparisonInteractive({ workspaceSlug, currentPlanCode, plan
       const res = await fetch("/api/billing/subscription/set", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceSlug, planCode }),
+        body: JSON.stringify({ workspaceId, planCode }),
       });
 
       const data = await res.json();

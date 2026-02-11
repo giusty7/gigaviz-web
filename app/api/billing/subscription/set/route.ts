@@ -1,31 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  requireWorkspaceMember,
-  requireWorkspaceRole,
-  unauthorizedResponse,
-} from "@/lib/auth/guard";
+import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { findWorkspaceBySlug } from "@/lib/meta/wa-connections";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 const schema = z.object({
-  workspaceSlug: z.string().min(1),
   planCode: z.string().min(1),
 });
 
 export async function POST(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, role, user, withCookies } = guard;
+
+  if (!requireWorkspaceRole(role, ["owner", "admin"])) {
+    return withCookies(
+      NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 })
+    );
   }
 
-  const limiter = rateLimit(`billing-subscription-set:${userData.user.id}`, {
+  const limiter = rateLimit(`billing-subscription-set:${user.id}`, {
     windowMs: 60_000,
     max: 10,
   });
@@ -35,7 +31,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => null);
+  const body = guard.body ?? await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return withCookies(
@@ -46,23 +42,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceSlug, planCode } = parsed.data;
+  const { planCode } = parsed.data;
+  // plans + subscriptions need service-role for lookups and upserts
   const adminDb = supabaseAdmin();
-  const { data: workspace } = await findWorkspaceBySlug(adminDb, workspaceSlug);
-  if (!workspace) {
-    return withCookies(
-      NextResponse.json(
-        { ok: false, code: "workspace_not_found", message: "Workspace tidak ditemukan" },
-        { status: 404 }
-      )
-    );
-  }
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspace.id);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin"])) {
-    return forbiddenResponse(withCookies);
-  }
-
   const { data: plan } = await adminDb
     .from("plans")
     .select("code, type, seat_limit, is_active")
@@ -92,7 +74,7 @@ export async function POST(req: NextRequest) {
   periodEnd.setUTCDate(periodEnd.getUTCDate() + 30);
 
   const payload = {
-    workspace_id: workspace.id,
+    workspace_id: workspaceId,
     plan_id: plan.code,
     plan_code: plan.code,
     status: "active",

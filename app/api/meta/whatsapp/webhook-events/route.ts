@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  getWorkspaceId,
-  requireWorkspaceMember,
-  requireWorkspaceRole,
-  unauthorizedResponse,
-  workspaceRequiredResponse,
-} from "@/lib/auth/guard";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -25,22 +17,11 @@ export const runtime = "nodejs";
  * Returns: { ok: boolean, events: [...], stats: { total24h, errors24h, lastEventAt } }
  */
 export async function GET(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
-  }
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies } = guard;
 
   const url = new URL(req.url);
-  const workspaceId = getWorkspaceId(req);
-  if (!workspaceId) {
-    return workspaceRequiredResponse(withCookies);
-  }
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin", "member"])) {
-    return forbiddenResponse(withCookies);
-  }
 
   const limitParam = url.searchParams.get("limit");
   const limit = Math.min(Math.max(parseInt(limitParam ?? "50", 10) || 50, 1), 200);

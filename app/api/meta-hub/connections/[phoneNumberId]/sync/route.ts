@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
-  forbiddenResponse,
-  requireWorkspaceMember,
+  guardWorkspace,
   requireWorkspaceRole,
-  unauthorizedResponse,
 } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
 import { metaGraphFetch } from "@/lib/meta/graph";
@@ -14,19 +10,17 @@ import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
 
 export const runtime = "nodejs";
 
-const syncSchema = z.object({
-  workspaceId: z.string().uuid(),
-});
-
 type RouteContext = {
   params: Promise<{ phoneNumberId: string }>;
 };
 
 export async function POST(req: NextRequest, context: RouteContext) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, role, withCookies } = guard;
+
+  if (!requireWorkspaceRole(role, ["owner", "admin"])) {
+    return withCookies(NextResponse.json({ error: "forbidden" }, { status: 403 }));
   }
 
   const params = await context.params;
@@ -38,24 +32,6 @@ export async function POST(req: NextRequest, context: RouteContext) {
         { status: 400 }
       )
     );
-  }
-
-  const body = await req.json().catch(() => null);
-  const parsed = syncSchema.safeParse(body);
-  if (!parsed.success) {
-    return withCookies(
-      NextResponse.json(
-        { error: "bad_request", reason: "invalid_payload", issues: parsed.error.flatten() },
-        { status: 400 }
-      )
-    );
-  }
-
-  const { workspaceId } = parsed.data;
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin"])) {
-    return forbiddenResponse(withCookies);
   }
 
   const db = supabaseAdmin();

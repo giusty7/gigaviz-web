@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { logger } from "@/lib/logging";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -30,17 +30,17 @@ import {
   type WorkspaceMember,
 } from "./ImperiumInboxComponents";
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    HYDRATION-SAFE MOUNT CHECK
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 
 const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    ANIMATION VARIANTS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -73,9 +73,9 @@ function renderTemplateBody(body: string | null | undefined, variables: string[]
   });
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    TYPES
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 
 interface ImperiumInboxClientProps {
   workspaceId: string;
@@ -148,12 +148,12 @@ type CapabilityState = {
   reason: string | null;
 };
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    MAIN CLIENT COMPONENT
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 
 export function ImperiumInboxClient({
-  workspaceId: _workspaceId,
+  workspaceId,
   workspaceSlug,
   userId,
   canEdit,
@@ -170,7 +170,6 @@ export function ImperiumInboxClient({
 }: ImperiumInboxClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
-  void _workspaceId;
 
   // User preferences
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -274,7 +273,7 @@ export function ImperiumInboxClient({
   const fetchTelemetry = useCallback(async () => {
     setTelemetryLoading(true);
     try {
-      const params = new URLSearchParams({ workspaceSlug });
+      const params = new URLSearchParams({ workspaceId });
       const res = await fetch(`/api/meta/whatsapp/inbox/telemetry?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok || data?.ok === false) {
@@ -298,7 +297,7 @@ export function ImperiumInboxClient({
     } finally {
       setTelemetryLoading(false);
     }
-  }, [workspaceSlug, slaHours]);
+  }, [workspaceId, slaHours]);
 
   // Canned responses (for slash commands)
   const cannedResponses: CannedResponse[] = useMemo(() => {
@@ -353,10 +352,10 @@ export function ImperiumInboxClient({
 
   // Fetch saved views on mount
   useEffect(() => {
-    if (!_workspaceId || !mounted) return;
+    if (!workspaceId || !mounted) return;
     async function fetchSavedViews() {
       try {
-        const res = await fetch(`/api/meta/whatsapp/saved-views?workspaceId=${_workspaceId}`);
+        const res = await fetch(`/api/meta/whatsapp/saved-views?workspaceId=${workspaceId}`);
         const data = await res.json();
         if (res.ok && Array.isArray(data.views)) {
           setSavedViews(data.views);
@@ -366,14 +365,14 @@ export function ImperiumInboxClient({
       }
     }
     fetchSavedViews();
-  }, [_workspaceId, mounted]);
+  }, [workspaceId, mounted]);
 
   // Fetch available tags
   useEffect(() => {
-    if (!_workspaceId || !mounted) return;
+    if (!workspaceId || !mounted) return;
     async function fetchTags() {
       try {
-        const res = await fetch(`/api/meta/whatsapp/tags?workspaceId=${_workspaceId}`);
+        const res = await fetch(`/api/meta/whatsapp/tags?workspaceId=${workspaceId}`);
         const data = await res.json();
         if (res.ok && Array.isArray(data.tags)) {
           setAvailableTags(data.tags);
@@ -383,14 +382,14 @@ export function ImperiumInboxClient({
       }
     }
     fetchTags();
-  }, [_workspaceId, mounted]);
+  }, [workspaceId, mounted]);
 
   // Fetch workspace members
   useEffect(() => {
-    if (!_workspaceId || !mounted) return;
+    if (!workspaceId || !mounted) return;
     async function fetchMembers() {
       try {
-        const res = await fetch(`/api/workspaces/${_workspaceId}/members`);
+        const res = await fetch(`/api/workspaces/${workspaceId}/members`);
         const data = await res.json();
         if (res.ok && Array.isArray(data.members)) {
           setWorkspaceMembers(data.members);
@@ -400,17 +399,17 @@ export function ImperiumInboxClient({
       }
     }
     fetchMembers();
-  }, [_workspaceId, mounted]);
+  }, [workspaceId, mounted]);
 
   // Saved views handlers
   const handleSaveView = useCallback(async (name: string, filters: Partial<FilterState>) => {
-    if (!_workspaceId) return;
+    if (!workspaceId) return;
     try {
       const res = await fetch("/api/meta/whatsapp/saved-views", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workspaceId: _workspaceId,
+          workspaceId: workspaceId,
           name,
           filters,
         }),
@@ -430,15 +429,15 @@ export function ImperiumInboxClient({
         variant: "destructive",
       });
     }
-  }, [_workspaceId, toast]);
+  }, [workspaceId, toast]);
 
   const handleDeleteView = useCallback(async (viewId: string) => {
-    if (!_workspaceId) return;
+    if (!workspaceId) return;
     try {
       const res = await fetch(`/api/meta/whatsapp/saved-views/${viewId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: _workspaceId }),
+        body: JSON.stringify({ workspaceId: workspaceId }),
       });
       if (res.ok) {
         setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
@@ -454,7 +453,7 @@ export function ImperiumInboxClient({
         variant: "destructive",
       });
     }
-  }, [_workspaceId, activeViewId, toast]);
+  }, [workspaceId, activeViewId, toast]);
 
   const handleApplyView = useCallback((view: SavedView) => {
     setFilter((prev) => ({
@@ -468,7 +467,7 @@ export function ImperiumInboxClient({
 
   // Bulk actions handler
   const handleBulkAction = useCallback(async (action: string, value?: string) => {
-    if (!_workspaceId || selectedThreadIds.size === 0) return;
+    if (!workspaceId || selectedThreadIds.size === 0) return;
     
     try {
       const threadIds = Array.from(selectedThreadIds);
@@ -477,13 +476,13 @@ export function ImperiumInboxClient({
 
       if (action === "status") {
         endpoint = "/api/meta/whatsapp/threads/bulk-update";
-        body = { workspaceId: _workspaceId, threadIds, status: value };
+        body = { workspaceId: workspaceId, threadIds, status: value };
       } else if (action === "assign") {
         endpoint = "/api/meta/whatsapp/threads/bulk-update";
-        body = { workspaceId: _workspaceId, threadIds, assignedTo: value };
+        body = { workspaceId: workspaceId, threadIds, assignedTo: value };
       } else if (action === "tag") {
         endpoint = "/api/meta/whatsapp/threads/bulk-tag";
-        body = { workspaceId: _workspaceId, threadIds, tag: value };
+        body = { workspaceId: workspaceId, threadIds, tag: value };
       }
 
       const res = await fetch(endpoint, {
@@ -507,7 +506,7 @@ export function ImperiumInboxClient({
         variant: "destructive",
       });
     }
-  }, [_workspaceId, selectedThreadIds, toast]);
+  }, [workspaceId, selectedThreadIds, toast]);
 
   const handleToggleBulkSelection = useCallback((threadId: string) => {
     setSelectedThreadIds((prev) => {
@@ -542,7 +541,7 @@ export function ImperiumInboxClient({
     setThreadsLoading(true);
     setConnectionStatus("connecting");
     try {
-      const params = new URLSearchParams({ workspaceSlug });
+      const params = new URLSearchParams({ workspaceId });
       const res = await fetch(`/api/meta/whatsapp/threads?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -561,14 +560,14 @@ export function ImperiumInboxClient({
     } finally {
       setThreadsLoading(false);
     }
-  }, [workspaceSlug, toast]);
+  }, [workspaceId, toast]);
 
   // Fetch messages for selected thread
   const fetchMessages = useCallback(async (threadId: string) => {
     setMessagesLoading(true);
     setMessagesError(null);
     try {
-      const params = new URLSearchParams({ threadId, workspaceSlug });
+      const params = new URLSearchParams({ threadId, workspaceId });
       const res = await fetch(`/api/meta/whatsapp/thread/messages?${params.toString()}`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -616,13 +615,13 @@ export function ImperiumInboxClient({
     } finally {
       setMessagesLoading(false);
     }
-  }, [toast, workspaceSlug, fetchTelemetry]);
+  }, [toast, workspaceId, fetchTelemetry]);
 
   const refreshMessages = useCallback(
     async (threadId: string | null) => {
       if (!threadId) return;
       try {
-        const params = new URLSearchParams({ threadId, workspaceSlug });
+        const params = new URLSearchParams({ threadId, workspaceId });
         const res = await fetch(`/api/meta/whatsapp/thread/messages?${params.toString()}`, { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.messages) {
@@ -632,7 +631,7 @@ export function ImperiumInboxClient({
         // silent refresh failure
       }
     },
-    [workspaceSlug]
+    [workspaceId]
   );
 
   // Build contact details from thread
@@ -885,7 +884,7 @@ export function ImperiumInboxClient({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            workspaceSlug,
+            workspaceId,
             threadId: selectedThread.id,
             body,
           }),
@@ -919,7 +918,7 @@ export function ImperiumInboxClient({
         });
       }
     },
-    [selectedThread, workspaceSlug, userId, contactDetails, toast]
+    [selectedThread, workspaceId, userId, contactDetails, toast]
   );
 
   // Handle thread selection
@@ -942,7 +941,7 @@ export function ImperiumInboxClient({
         fetch("/api/meta/whatsapp/thread/mark-read", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ threadId: thread.id, workspaceSlug }),
+          body: JSON.stringify({ threadId: thread.id, workspaceId }),
         }).catch(() => {});
 
         // Optimistic update
@@ -951,7 +950,7 @@ export function ImperiumInboxClient({
         );
       }
     },
-    [buildContactDetails, fetchMessages, workspaceSlug, soundEnabled]
+    [buildContactDetails, fetchMessages, workspaceId, soundEnabled]
   );
 
   // Keyboard shortcuts
@@ -1200,7 +1199,7 @@ export function ImperiumInboxClient({
       const res = await fetch("/api/meta/whatsapp/thread/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceSlug, threadId: selectedThread.id, status: "escalated" }),
+        body: JSON.stringify({ workspaceId, threadId: selectedThread.id, status: "escalated" }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.error) {
@@ -1218,7 +1217,7 @@ export function ImperiumInboxClient({
     } finally {
       setEscalating(false);
     }
-  }, [selectedThread, toast, workspaceSlug]);
+  }, [selectedThread, toast, workspaceId]);
 
   const handleTemplatePicked = useCallback((template: ApprovedTemplate) => {
     const count = getPlaceholderCount(template.body);
@@ -1280,7 +1279,7 @@ export function ImperiumInboxClient({
   }, [fetchThreads]);
 
   // AI Auto-Reply is handled by the AI Reply Worker (scripts/ai-reply-worker.ts)
-  // No client-side polling needed â€” the worker runs independently.
+  // No client-side polling needed Ã¢â‚¬â€ the worker runs independently.
 
   // Realtime polling for messages (2.5s interval, pause when tab hidden)
   useEffect(() => {
@@ -1292,7 +1291,7 @@ export function ImperiumInboxClient({
     const poll = async () => {
       if (!isVisible || !selectedThread) return;
       try {
-        const params = new URLSearchParams({ threadId: selectedThread.id, workspaceSlug });
+        const params = new URLSearchParams({ threadId: selectedThread.id, workspaceId });
         const res = await fetch(`/api/meta/whatsapp/thread/messages?${params.toString()}`, { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.ok && data.messages) {
@@ -1329,7 +1328,7 @@ export function ImperiumInboxClient({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (pollTimer) clearInterval(pollTimer);
     };
-  }, [selectedThread, workspaceSlug]);
+  }, [selectedThread, workspaceId]);
 
   if (!mounted) {
     return (
@@ -1374,7 +1373,7 @@ export function ImperiumInboxClient({
               href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
               className="flex items-center gap-2 text-sm text-[#f5f5dc]/60 hover:text-[#d4af37] transition-colors"
             >
-              â† Back to Overview
+              Ã¢â€ Â Back to Overview
             </a>
           </div>
         )}
@@ -1389,7 +1388,7 @@ export function ImperiumInboxClient({
 
         {/* Agent Status Panel */}
         <div className="border-b border-[#d4af37]/10 bg-[#0a1229]/80 px-6 py-2">
-          <AgentStatusPanel workspaceId={_workspaceId} currentUserId={userId} />
+          <AgentStatusPanel workspaceId={workspaceId} currentUserId={userId} />
         </div>
 
         {/* Overview Mode CTA */}
@@ -1397,7 +1396,7 @@ export function ImperiumInboxClient({
           <div className="border-b border-[#d4af37]/10 bg-[#0a1229]/50 px-6 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <span className="text-sm text-[#f5f5dc]/60">Lite view Â· 5 threads</span>
+                <span className="text-sm text-[#f5f5dc]/60">Lite view Ã‚Â· 5 threads</span>
                 <label className="flex items-center gap-2 text-sm text-[#f5f5dc]/70 cursor-pointer hover:text-[#d4af37] transition-colors">
                   <input
                     type="checkbox"
@@ -1443,7 +1442,7 @@ export function ImperiumInboxClient({
               currentUserId={userId}
               slaHours={slaHours}
               nowMs={nowMs}
-              workspaceId={_workspaceId}
+              workspaceId={workspaceId}
               savedViews={savedViews}
               onSaveView={handleSaveView}
               onDeleteView={handleDeleteView}

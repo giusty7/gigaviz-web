@@ -80,7 +80,7 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-6">
-      <BillingSummaryClient workspaceSlug={workspaceSlug} initialSummary={summary} />
+      <BillingSummaryClient workspaceId={ctx.currentWorkspace.id} workspaceSlug={workspaceSlug} initialSummary={summary} />
 
       {!billing.subscription ? (
         <Alert>

@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  requireWorkspaceMember,
-  requireWorkspaceRole,
-  unauthorizedResponse,
-} from "@/lib/auth/guard";
+import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
-import { findWorkspaceBySlug } from "@/lib/meta/wa-connections";
 
 export const runtime = "nodejs";
 
 const schema = z.object({
-  workspaceSlug: z.string().min(1),
   packageId: z.string().optional(),
   customAmountIdr: z.number().int().min(10_000).max(10_000_000).optional(),
 });
@@ -26,13 +18,17 @@ const packages: Record<string, { amountIdr: number; tokens: number; label: strin
 };
 
 export async function POST(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, role, user, withCookies } = guard;
+
+  if (!requireWorkspaceRole(role, ["owner", "admin"])) {
+    return withCookies(
+      NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 })
+    );
   }
 
-  const limiter = rateLimit(`billing-topup:${userData.user.id}`, {
+  const limiter = rateLimit(`billing-topup:${user.id}`, {
     windowMs: 60_000,
     max: 10,
   });
@@ -42,7 +38,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => null);
+  const body = guard.body ?? await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return withCookies(
@@ -53,22 +49,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceSlug, packageId, customAmountIdr } = parsed.data;
-  const adminDb = supabaseAdmin();
-  const { data: workspace } = await findWorkspaceBySlug(adminDb, workspaceSlug);
-  if (!workspace) {
-    return withCookies(
-      NextResponse.json(
-        { ok: false, code: "workspace_not_found", message: "Workspace tidak ditemukan" },
-        { status: 404 }
-      )
-    );
-  }
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspace.id);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin"])) {
-    return forbiddenResponse(withCookies);
-  }
+  const { packageId, customAmountIdr } = parsed.data;
 
   let amountIdr = 0;
   let tokens = 0;
@@ -91,10 +72,12 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
+  // payment_intents needs service-role for inserts
+  const adminDb = supabaseAdmin();
   const { data: intent, error } = await adminDb
     .from("payment_intents")
     .insert({
-      workspace_id: workspace.id,
+      workspace_id: workspaceId,
       kind: "topup",
       amount_idr: amountIdr,
       status: "pending",

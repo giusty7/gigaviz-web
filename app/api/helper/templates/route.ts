@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -24,14 +23,12 @@ const updateTemplateSchema = createTemplateSchema.partial().extend({
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const category = url.searchParams.get("category");
   const activeOnly = url.searchParams.get("active") !== "false";
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 100);
-
-  const db = supabaseAdmin();
   let query = db
     .from("helper_templates")
     .select("id, workspace_id, name, description, prompt, category, variables, icon, visibility, use_count, is_active, created_at, updated_at, created_by")
@@ -59,7 +56,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, user, withCookies } = guard;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
   const userId = user.id;
 
   const body = await req.json().catch(() => ({}));
@@ -78,7 +75,6 @@ export async function POST(req: NextRequest) {
     variables = [...new Set(Array.from(matches).map(m => m[1]))];
   }
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_templates")
     .insert({
@@ -109,7 +105,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
   const parsed = updateTemplateSchema.safeParse(body);
@@ -134,7 +130,6 @@ export async function PUT(req: NextRequest) {
     dbUpdates.initial_messages = [{ role: "user", content: updates.prompt }];
   }
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_templates")
     .update(dbUpdates)
@@ -154,7 +149,7 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, role, withCookies } = guard;
+  const { workspaceId, role, withCookies, supabase: db } = guard;
 
   if (!requireWorkspaceRole(role, ["owner", "admin"])) {
     return withCookies(NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 }));
@@ -167,7 +162,6 @@ export async function DELETE(req: NextRequest) {
     return withCookies(NextResponse.json({ ok: false, error: "Template ID required" }, { status: 400 }));
   }
 
-  const db = supabaseAdmin();
   const { error } = await db
     .from("helper_templates")
     .delete()

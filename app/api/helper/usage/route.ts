@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -11,9 +10,8 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
-  const db = supabaseAdmin();
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = today.slice(0, 7) + "-01";
 

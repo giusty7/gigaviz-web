@@ -9,11 +9,12 @@ import { useToast } from "@/components/ui/use-toast";
 import type { BillingSummary } from "@/lib/billing/summary";
 
 type Props = {
+  workspaceId: string;
   workspaceSlug: string;
   initialSummary?: BillingSummary | null;
 };
 
-export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
+export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummary }: Props) {
   const { toast } = useToast();
   const [summary, setSummary] = useState<BillingSummary | null>(initialSummary ?? null);
   const [loading, setLoading] = useState(!initialSummary);
@@ -31,7 +32,7 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
   async function fetchSummary() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/billing/summary?workspaceSlug=${workspaceSlug}`, {
+      const res = await fetch(`/api/billing/summary?workspaceId=${workspaceId}`, {
         cache: "no-store",
       });
       const data = await res.json().catch(() => null);
@@ -53,7 +54,7 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
   useEffect(() => {
     fetchSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspaceSlug]);
+  }, [workspaceId]);
 
   async function handleUpgrade() {
     setUpgrading(true);
@@ -61,7 +62,7 @@ export function BillingSummaryClient({ workspaceSlug, initialSummary }: Props) {
       const res = await fetch("/api/billing/subscription/set", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceSlug, planCode: upgradePlanCode }),
+        body: JSON.stringify({ workspaceId, planCode: upgradePlanCode }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {

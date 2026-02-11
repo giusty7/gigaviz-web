@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
-  forbiddenResponse,
-  requireWorkspaceMember,
+  guardWorkspace,
   requireWorkspaceRole,
-  unauthorizedResponse,
 } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
 
@@ -23,10 +20,12 @@ type RouteContext = {
 };
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, role, withCookies } = guard;
+
+  if (!requireWorkspaceRole(role, ["owner", "admin"])) {
+    return withCookies(NextResponse.json({ error: "forbidden" }, { status: 403 }));
   }
 
   const params = await context.params;
@@ -40,8 +39,10 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  const parsed = patchSchema.safeParse(body);
+  const db = supabaseAdmin();
+
+  // Validate body
+  const parsed = patchSchema.safeParse(guard.body);
   if (!parsed.success) {
     return withCookies(
       NextResponse.json(
@@ -51,14 +52,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     );
   }
 
-  const { workspaceId, displayName, notes } = parsed.data;
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin"])) {
-    return forbiddenResponse(withCookies);
-  }
-
-  const db = supabaseAdmin();
+  const { displayName, notes } = parsed.data;
 
   // Verify connection exists and belongs to workspace
   const { data: existing, error: findErr } = await db

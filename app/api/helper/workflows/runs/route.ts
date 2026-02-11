@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const workflowId = url.searchParams.get("workflow_id");
@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
   const offset = parseInt(url.searchParams.get("offset") || "0", 10);
 
-  const db = supabaseAdmin();
   let query = db
     .from("helper_workflow_runs")
     .select(`
@@ -60,7 +59,7 @@ const runWorkflowSchema = z.object({
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, user, withCookies } = guard;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
   const userId = user.id;
 
   const body = await req.json().catch(() => ({}));
@@ -71,8 +70,6 @@ export async function POST(req: NextRequest) {
       NextResponse.json({ ok: false, error: "Invalid request", details: parsed.error.flatten() }, { status: 400 })
     );
   }
-
-  const db = supabaseAdmin();
 
   // Get workflow
   const { data: workflow, error: workflowError } = await db

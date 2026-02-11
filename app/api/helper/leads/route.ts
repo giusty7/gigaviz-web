@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -76,7 +75,7 @@ function calculateLeadScore(lead: {
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status") || "active";
@@ -86,7 +85,6 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
   const offset = parseInt(url.searchParams.get("offset") || "0", 10);
 
-  const db = supabaseAdmin();
   let query = db
     .from("helper_leads")
     .select("*", { count: "exact" })
@@ -126,7 +124,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
   const parsed = createLeadSchema.safeParse(body);
@@ -144,7 +142,6 @@ export async function POST(req: NextRequest) {
     estimated_value: parsed.data.estimated_value,
   });
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_leads")
     .insert({
@@ -179,7 +176,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
   const parsed = updateLeadSchema.safeParse(body);
@@ -192,7 +189,6 @@ export async function PUT(req: NextRequest) {
 
   const { id, ...updates } = parsed.data;
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_leads")
     .update(updates)
@@ -212,7 +208,7 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, role, withCookies } = guard;
+  const { workspaceId, role, withCookies, supabase: db } = guard;
 
   if (!requireWorkspaceRole(role, ["owner", "admin"])) {
     return withCookies(NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 }));
@@ -225,7 +221,6 @@ export async function DELETE(req: NextRequest) {
     return withCookies(NextResponse.json({ ok: false, error: "Lead ID required" }, { status: 400 }));
   }
 
-  const db = supabaseAdmin();
   const { error } = await db
     .from("helper_leads")
     .delete()

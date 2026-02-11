@@ -3,7 +3,6 @@ import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { runHelperModel } from "@/lib/helper/providers/router";
 import { recordHelperUsage } from "@/lib/helper/usage";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 
 const postBodySchema = z.object({
@@ -20,7 +19,7 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const conversationId = url.searchParams.get("conversationId");
@@ -28,7 +27,6 @@ export async function GET(req: NextRequest) {
     return withCookies(NextResponse.json({ ok: false, error: "conversationId required" }, { status: 400 }));
   }
 
-  const db = supabaseAdmin();
   const { data: convo } = await db
     .from("helper_conversations")
     .select("id")
@@ -57,7 +55,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, user, withCookies } = guard;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
 
   const raw = await req.json().catch(() => ({}));
   const parsed = postBodySchema.safeParse(raw);
@@ -81,8 +79,6 @@ export async function POST(req: NextRequest) {
       )
     );
   }
-
-  const db = supabaseAdmin();
 
   // Budget check: verify workspace has not exceeded monthly cap
   const today = new Date().toISOString().slice(0, 10);

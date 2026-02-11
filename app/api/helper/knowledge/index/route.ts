@@ -1,8 +1,7 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { generateEmbedding, chunkText, estimateTokenCount } from "@/lib/helper/embeddings";
 
 export const runtime = "nodejs";
@@ -27,29 +26,21 @@ const indexDeleteSchema = z.object({
  * Index content into knowledge base
  */
 export async function POST(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
-  const raw = await req.json().catch(() => ({}));
+  const raw = guard.body ?? await req.json().catch(() => ({}));
   const parsed = indexPostSchema.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "validation_error", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+    return withCookies(
+      NextResponse.json(
+        { error: "validation_error", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     );
   }
-  const { workspaceId, sourceType, sourceId, title, content, metadata } = parsed.data;
-
-  // Verify workspace access
-  const membership = await requireWorkspaceMember(user.id, workspaceId);
-  if (!membership.ok) {
-    return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-  }
-
-  const db = supabaseAdmin();
+  const { sourceType, sourceId, title, content, metadata } = parsed.data;
 
   try {
     // If content is short, index as single source
@@ -75,12 +66,12 @@ export async function POST(req: NextRequest) {
 
       if (error) throw error;
 
-      return NextResponse.json({
+      return withCookies(NextResponse.json({
         ok: true,
         sourceId: data.id,
         chunks: 0,
         message: "Indexed successfully",
-      });
+      }));
     }
 
     // Long content: chunk and index
@@ -127,17 +118,19 @@ export async function POST(req: NextRequest) {
 
     if (chunksError) throw chunksError;
 
-    return NextResponse.json({
+    return withCookies(NextResponse.json({
       ok: true,
       sourceId: source.id,
       chunks: chunks.length,
       message: "Indexed with chunks",
-    });
+    }));
   } catch (error) {
     logger.error("Indexing failed:", error);
-    return NextResponse.json(
-      { error: "Failed to index content" },
-      { status: 500 }
+    return withCookies(
+      NextResponse.json(
+        { error: "Failed to index content" },
+        { status: 500 }
+      )
     );
   }
 }
@@ -147,33 +140,25 @@ export async function POST(req: NextRequest) {
  * Remove content from knowledge base
  */
 export async function DELETE(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const { searchParams } = new URL(req.url);
   const parsed = indexDeleteSchema.safeParse({
-    workspaceId: searchParams.get("workspaceId"),
+    workspaceId: workspaceId,
     sourceType: searchParams.get("sourceType"),
     sourceId: searchParams.get("sourceId"),
   });
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "validation_error", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+    return withCookies(
+      NextResponse.json(
+        { error: "validation_error", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     );
   }
-  const { workspaceId, sourceType, sourceId } = parsed.data;
-
-  // Verify workspace access
-  const membership = await requireWorkspaceMember(user.id, workspaceId);
-  if (!membership.ok) {
-    return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-  }
-
-  const db = supabaseAdmin();
+  const { sourceType, sourceId } = parsed.data;
 
   try {
     const { error } = await db
@@ -185,15 +170,17 @@ export async function DELETE(req: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({
+    return withCookies(NextResponse.json({
       ok: true,
       message: "Removed from knowledge base",
-    });
+    }));
   } catch (error) {
     logger.error("Deletion failed:", error);
-    return NextResponse.json(
-      { error: "Failed to remove content" },
-      { status: 500 }
+    return withCookies(
+      NextResponse.json(
+        { error: "Failed to remove content" },
+        { status: 500 }
+      )
     );
   }
 }

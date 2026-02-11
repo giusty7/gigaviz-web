@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 
 export const runtime = "nodejs";
@@ -14,12 +13,10 @@ export async function GET(req: NextRequest) {
   try {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const query = url.searchParams.get("q")?.trim();
-
-  const db = supabaseAdmin();
   let builder = db
     .from("helper_conversations")
     .select("id, title, created_at, updated_at")
@@ -47,7 +44,7 @@ export async function POST(req: NextRequest) {
   try {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, user, withCookies } = guard;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
   const parsed = createConversationSchema.safeParse(body);
@@ -57,8 +54,6 @@ export async function POST(req: NextRequest) {
     );
   }
   const title = parsed.data.title?.trim() || "New chat";
-
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_conversations")
     .insert({

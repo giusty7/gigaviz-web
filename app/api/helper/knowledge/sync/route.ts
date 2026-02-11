@@ -10,14 +10,13 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const sourceId = url.searchParams.get("source_id");
   const status = url.searchParams.get("status");
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "20", 10), 100);
 
-  const db = supabaseAdmin();
   let query = db
     .from("helper_knowledge_sync_jobs")
     .select(`
@@ -53,7 +52,7 @@ const syncSchema = z.object({
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, role, withCookies } = guard;
+  const { workspaceId, role, withCookies, supabase: db } = guard;
 
   if (!requireWorkspaceRole(role, ["owner", "admin"])) {
     return withCookies(NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 }));
@@ -68,7 +67,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const db = supabaseAdmin();
   const jobType = parsed.data.job_type ?? "incremental";
 
   // Get sources to sync

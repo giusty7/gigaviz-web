@@ -2,7 +2,6 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -126,7 +125,7 @@ Respond in JSON format:
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
   const parsed = scoreSchema.safeParse(body);
@@ -136,8 +135,6 @@ export async function POST(req: NextRequest) {
       NextResponse.json({ ok: false, error: "Invalid request", details: parsed.error.flatten() }, { status: 400 })
     );
   }
-
-  const db = supabaseAdmin();
 
   // Get lead
   const { data: lead, error: leadError } = await db

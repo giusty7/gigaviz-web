@@ -1,10 +1,9 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { forbiddenResponse, requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { getHelperSettings } from "@/lib/helper/settings";
 import { insertToolRun, isIntentAllowed, signN8nPayload } from "@/lib/helper/tools";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 
 const executeSchema = z.object({
@@ -20,10 +19,11 @@ const executeSchema = z.object({
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) return userRes.response;
-  const { user, withCookies } = userRes;
-  const raw = await req.json().catch(() => ({}));
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
+
+  const raw = guard.body ?? await req.json().catch(() => ({}));
   const parsed = executeSchema.safeParse(raw);
   if (!parsed.success) {
     return withCookies(
@@ -34,22 +34,16 @@ export async function POST(req: NextRequest) {
     );
   }
   const body = parsed.data;
-  const workspaceSlug = body.workspace_slug;
 
-  const db = supabaseAdmin();
+  // Resolve workspace slug to get the slug for payload
   const { data: workspace } = await db
     .from("workspaces")
     .select("id, slug")
-    .eq("slug", workspaceSlug)
+    .eq("id", workspaceId)
     .maybeSingle();
 
   if (!workspace) {
     return withCookies(NextResponse.json({ ok: false, error: "workspace not found" }, { status: 404 }));
-  }
-
-  const membership = await requireWorkspaceMember(user.id, workspace.id);
-  if (!membership.ok) {
-    return withCookies(forbiddenResponse(withCookies));
   }
 
   const settings = await getHelperSettings(workspace.id);

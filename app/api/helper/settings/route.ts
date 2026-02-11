@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -33,9 +32,8 @@ const settingsSchema = z.object({
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_settings")
     .select("*")
@@ -71,7 +69,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, role, withCookies } = guard;
+  const { workspaceId, role, withCookies, supabase: db } = guard;
 
   if (!requireWorkspaceRole(role, ["owner", "admin"])) {
     return withCookies(NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 }));
@@ -100,7 +98,6 @@ export async function POST(req: NextRequest) {
   if (parsed.data.system_prompt !== undefined) updates.system_prompt = parsed.data.system_prompt;
   if (parsed.data.features !== undefined) updates.features = parsed.data.features;
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_settings")
     .upsert(updates, { onConflict: "workspace_id" })

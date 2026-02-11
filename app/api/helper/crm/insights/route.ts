@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -8,14 +7,12 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const url = new URL(req.url);
   const type = url.searchParams.get("type");
   const activeOnly = url.searchParams.get("active") !== "false";
   const limit = Math.min(parseInt(url.searchParams.get("limit") || "20", 10), 50);
-
-  const db = supabaseAdmin();
   let query = db
     .from("helper_crm_insights")
     .select("*")
@@ -43,7 +40,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
   const { id, action } = body;
@@ -51,8 +48,6 @@ export async function POST(req: NextRequest) {
   if (!id || !action) {
     return withCookies(NextResponse.json({ ok: false, error: "Missing id or action" }, { status: 400 }));
   }
-
-  const db = supabaseAdmin();
 
   if (action === "dismiss") {
     const { error } = await db

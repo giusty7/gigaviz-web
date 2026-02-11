@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import { forbiddenResponse, requireWorkspaceMember, requireWorkspaceRole, unauthorizedResponse, workspaceRequiredResponse } from "@/lib/auth/guard";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
 import { logger } from "@/lib/logging";
 
 const schema = z.object({
-  workspaceSlug: z.string().min(1),
   threadId: z.string().uuid(),
   assignedTo: z.string().uuid().nullable().optional(),
   status: z.string().optional(),
@@ -16,14 +14,11 @@ const schema = z.object({
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
-  }
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, user, withCookies } = guard;
 
-  const body = await req.json().catch(() => null);
-  const parsed = schema.safeParse(body);
+  const parsed = schema.safeParse(guard.body);
   if (!parsed.success) {
     return withCookies(
       NextResponse.json(
@@ -33,24 +28,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceSlug, threadId, assignedTo, status } = parsed.data;
+  const { threadId, assignedTo, status } = parsed.data;
   const db = supabaseAdmin();
-  const { data: workspaceRow, error: workspaceError } = await db
-    .from("workspaces")
-    .select("id")
-    .eq("slug", workspaceSlug)
-    .maybeSingle();
-
-  if (workspaceError || !workspaceRow?.id) {
-    return workspaceRequiredResponse(withCookies);
-  }
-
-  const workspaceId = workspaceRow.id;
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin", "member"])) {
-    return forbiddenResponse(withCookies);
-  }
 
   const updatePayload: Record<string, unknown> = {};
   if (status) updatePayload.status = status;
@@ -82,7 +61,7 @@ export async function POST(req: NextRequest) {
       triggerType: 'status_changed',
       triggerData: { 
         newStatus: status,
-        changedBy: userData.user.id,
+        changedBy: user.id,
       },
     }).catch((error) => {
       logger.warn('[update-api] Automation rules evaluation failed (status)', {
@@ -99,7 +78,7 @@ export async function POST(req: NextRequest) {
       triggerType: 'assigned',
       triggerData: { 
         assignedTo: assignedTo ?? null,
-        assignedBy: userData.user.id,
+        assignedBy: user.id,
       },
     }).catch((error) => {
       logger.warn('[update-api] Automation rules evaluation failed (assigned)', {

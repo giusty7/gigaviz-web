@@ -7,7 +7,7 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
+import { guardWorkspace } from '@/lib/auth/guard';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { z } from 'zod';
 
@@ -36,58 +36,30 @@ export type UnifiedThread = {
 
 export async function GET(request: NextRequest) {
   try {
+    const guard = await guardWorkspace(request);
+    if (!guard.ok) return guard.response;
+    const { workspaceId, withCookies } = guard;
+
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get('workspaceId');
     const status = searchParams.get('status') || undefined;
     const channel = searchParams.get('channel') || 'all';
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: 'workspaceId is required' },
-        { status: 400 }
-      );
-    }
-
     const parsed = QuerySchema.safeParse({ workspaceId, status, channel, limit, offset });
     if (!parsed.success) {
-      return NextResponse.json(
+      return withCookies(NextResponse.json(
         { error: 'Invalid parameters', details: parsed.error.issues },
         { status: 400 }
-      );
+      ));
     }
 
-    const { supabase } = createSupabaseRouteClient(request);
-
-    // Verify user has access to workspace
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Use admin client to bypass RLS recursion on workspace_members
+    // Use admin client for cross-table thread queries (wa_threads, instagram_threads, messenger_threads)
     const adminDb = supabaseAdmin();
-    const { data: membership } = await adminDb
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('workspace_id', workspaceId)
-      .eq('user_id', userData.user.id)
-      .single();
-
-    if (!membership) {
-      return NextResponse.json(
-        { error: 'Workspace not found or access denied' },
-        { status: 404 }
-      );
-    }
 
     const threads: UnifiedThread[] = [];
 
-    // Fetch WhatsApp threads (use admin client to bypass RLS)
+    // Fetch WhatsApp threads
     if (channel === 'all' || channel === 'whatsapp') {
       const { data: waThreads } = await adminDb
         .from('wa_threads')
@@ -197,12 +169,12 @@ export async function GET(request: NextRequest) {
     // Apply limit
     const paginatedThreads = threads.slice(0, limit);
 
-    return NextResponse.json({
+    return withCookies(NextResponse.json({
       threads: paginatedThreads,
       total: threads.length,
       limit,
       offset,
-    });
+    }));
 
   } catch (err) {
     logger.error('[Unified Inbox API] Unexpected error:', err);

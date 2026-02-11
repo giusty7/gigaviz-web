@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import { forbiddenResponse, requireWorkspaceMember, unauthorizedResponse } from "@/lib/auth/guard";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -10,28 +9,9 @@ export const runtime = "nodejs";
  * Returns distinct tags used in the workspace for filtering
  */
 export async function GET(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
-  }
-
-  const url = new URL(req.url);
-  const workspaceId = url.searchParams.get("workspaceId");
-
-  if (!workspaceId) {
-    return withCookies(
-      NextResponse.json(
-        { error: "bad_request", reason: "workspace_id_required" },
-        { status: 400 }
-      )
-    );
-  }
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok) {
-    return forbiddenResponse(withCookies);
-  }
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies } = guard;
 
   const db = supabaseAdmin();
   

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -15,11 +14,10 @@ interface RouteParams {
 export async function GET(req: NextRequest, { params }: RouteParams) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const { id } = await params;
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_conversations")
     .select("id, title, created_at, updated_at")
@@ -45,7 +43,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
@@ -55,7 +53,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return withCookies(NextResponse.json({ ok: false, error: "Title is required" }, { status: 400 }));
   }
 
-  const db = supabaseAdmin();
   const { data, error } = await db
     .from("helper_conversations")
     .update({ title, updated_at: new Date().toISOString() })
@@ -82,11 +79,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, withCookies } = guard;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const { id } = await params;
-
-  const db = supabaseAdmin();
 
   // Delete messages first (cascade should handle this, but explicit for safety)
   await db.from("helper_messages").delete().eq("conversation_id", id);

@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
-import {
-  forbiddenResponse,
-  getWorkspaceId,
-  requireWorkspaceMember,
-  requireWorkspaceRole,
-  unauthorizedResponse,
-  workspaceRequiredResponse,
-} from "@/lib/auth/guard";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
 import { logger } from "@/lib/logging";
 
 const schema = z.object({
-  workspaceId: z.string().uuid(),
   threadId: z.string().uuid(),
   tags: z.array(z.string()).default([]),
 });
@@ -22,14 +13,11 @@ const schema = z.object({
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const { supabase, withCookies } = createSupabaseRouteClient(req);
-  const { data: userData, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userData?.user) {
-    return unauthorizedResponse(withCookies);
-  }
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, user, withCookies } = guard;
 
-  const body = await req.json().catch(() => null);
-  const parsed = schema.safeParse(body);
+  const parsed = schema.safeParse(guard.body);
   if (!parsed.success) {
     return withCookies(
       NextResponse.json(
@@ -39,16 +27,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { workspaceId: bodyWorkspaceId, threadId, tags } = parsed.data;
-  const workspaceId = getWorkspaceId(req, undefined, bodyWorkspaceId);
-  if (!workspaceId) {
-    return workspaceRequiredResponse(withCookies);
-  }
-
-  const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
-  if (!membership.ok || !requireWorkspaceRole(membership.role, ["owner", "admin", "member"])) {
-    return forbiddenResponse(withCookies);
-  }
+  const { threadId, tags } = parsed.data;
 
   const db = supabaseAdmin();
   await db
@@ -82,7 +61,7 @@ export async function POST(req: NextRequest) {
     triggerType: 'tag_added',
     triggerData: { 
       tags: rows.map((r) => r.tag),
-      addedBy: userData.user.id,
+      addedBy: user.id,
     },
   }).catch((error) => {
     logger.warn('[tags-api] Automation rules evaluation failed', {

@@ -1,7 +1,6 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -139,13 +138,11 @@ Respond in JSON format:
 export async function POST(req: NextRequest) {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
-  const { workspaceId, role, withCookies } = guard;
+  const { workspaceId, role, withCookies, supabase: db } = guard;
 
   if (!requireWorkspaceRole(role, ["owner", "admin"])) {
     return withCookies(NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 }));
   }
-
-  const db = supabaseAdmin();
 
   // Fetch leads
   const { data: leads } = await db

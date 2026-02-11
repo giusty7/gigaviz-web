@@ -1,8 +1,7 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { guardWorkspace } from "@/lib/auth/guard";
 import { generateEmbedding } from "@/lib/helper/embeddings";
 import { randomUUID } from "crypto";
 
@@ -21,26 +20,10 @@ const AddSourceSchema = z.object({
  * List knowledge sources for a workspace
  */
 export async function GET(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
-  const { searchParams } = new URL(req.url);
-  const workspaceId = searchParams.get("workspaceId");
-
-  if (!workspaceId) {
-    return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
-  }
-
-  // Verify workspace access
-  const membership = await requireWorkspaceMember(user.id, workspaceId);
-  if (!membership.ok) {
-    return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-  }
-
-  const db = supabaseAdmin();
   const { data: sources, error } = await db
     .from("helper_knowledge_sources")
     .select("id, source_type, source_id, title, content_text, metadata, indexed_at, is_active, created_at")
@@ -50,10 +33,10 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     logger.error("Failed to load sources:", error);
-    return NextResponse.json({ error: "Failed to load sources" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Failed to load sources" }, { status: 500 }));
   }
 
-  return NextResponse.json({ ok: true, sources });
+  return withCookies(NextResponse.json({ ok: true, sources }));
 }
 
 /**
@@ -61,35 +44,28 @@ export async function GET(req: NextRequest) {
  * Add a new knowledge source with embedding
  */
 export async function POST(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, user, withCookies, supabase: db } = guard;
 
   try {
-    const body = await req.json();
+    const body = guard.body ?? await req.json();
     const parsed = AddSourceSchema.safeParse(body);
     
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.issues },
-        { status: 400 }
+      return withCookies(
+        NextResponse.json(
+          { error: "Invalid input", details: parsed.error.issues },
+          { status: 400 }
+        )
       );
     }
 
-    const { workspaceId, sourceType, title, content, metadata } = parsed.data;
-
-    // Verify workspace access
-    const membership = await requireWorkspaceMember(user.id, workspaceId);
-    if (!membership.ok) {
-      return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-    }
+    const { sourceType, title, content, metadata } = parsed.data;
 
     // Generate embedding for the content
     const embedding = await generateEmbedding(content);
 
-    const db = supabaseAdmin();
     const sourceId = randomUUID();
 
     // Insert the knowledge source
@@ -111,13 +87,13 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       logger.error("Failed to add source:", error);
-      return NextResponse.json({ error: "Failed to add source" }, { status: 500 });
+      return withCookies(NextResponse.json({ error: "Failed to add source" }, { status: 500 }));
     }
 
-    return NextResponse.json({ ok: true, id: data.id });
+    return withCookies(NextResponse.json({ ok: true, id: data.id }));
   } catch (error) {
     logger.error("Add source error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Internal server error" }, { status: 500 }));
   }
 }
 
@@ -126,27 +102,17 @@ export async function POST(req: NextRequest) {
  * Delete a knowledge source
  */
 export async function DELETE(req: NextRequest) {
-  const userRes = await requireUser(req);
-  if (!userRes.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { user } = userRes;
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return guard.response;
+  const { workspaceId, withCookies, supabase: db } = guard;
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const workspaceId = searchParams.get("workspaceId");
 
-  if (!id || !workspaceId) {
-    return NextResponse.json({ error: "id and workspaceId required" }, { status: 400 });
+  if (!id) {
+    return withCookies(NextResponse.json({ error: "id required" }, { status: 400 }));
   }
 
-  // Verify workspace access
-  const membership = await requireWorkspaceMember(user.id, workspaceId);
-  if (!membership.ok) {
-    return NextResponse.json({ error: "Workspace access denied" }, { status: 403 });
-  }
-
-  const db = supabaseAdmin();
   const { error } = await db
     .from("helper_knowledge_sources")
     .delete()
@@ -155,8 +121,8 @@ export async function DELETE(req: NextRequest) {
 
   if (error) {
     logger.error("Failed to delete source:", error);
-    return NextResponse.json({ error: "Failed to delete source" }, { status: 500 });
+    return withCookies(NextResponse.json({ error: "Failed to delete source" }, { status: 500 }));
   }
 
-  return NextResponse.json({ ok: true });
+  return withCookies(NextResponse.json({ ok: true }));
 }

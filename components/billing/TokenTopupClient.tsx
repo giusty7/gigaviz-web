@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import type { BillingSummary } from "@/lib/billing/summary";
 
 type Props = {
-  workspaceSlug: string;
+  workspaceId: string;
   initialSummary?: BillingSummary | null;
   canEdit: boolean;
 };
@@ -19,7 +19,7 @@ const packages = [
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 
-export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Props) {
+export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props) {
   const { toast } = useToast();
   const [summary, setSummary] = useState<BillingSummary | null>(initialSummary ?? null);
   const [loading, setLoading] = useState(!initialSummary);
@@ -32,7 +32,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
   async function fetchSummary() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/billing/summary?workspaceSlug=${workspaceSlug}`, {
+      const res = await fetch(`/api/billing/summary?workspaceId=${workspaceId}`, {
         cache: "no-store",
       });
       const data = await res.json().catch(() => null);
@@ -54,7 +54,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
   async function fetchPending() {
     if (!canEdit) return;
     try {
-      const res = await fetch(`/api/billing/topup/pending?workspaceSlug=${workspaceSlug}`, {
+      const res = await fetch(`/api/billing/topup/pending?workspaceId=${workspaceId}`, {
         cache: "no-store",
       });
       const data = await res.json().catch(() => null);
@@ -83,12 +83,12 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
   useEffect(() => {
     fetchSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspaceSlug]);
+  }, [workspaceId]);
 
   useEffect(() => {
     fetchPending();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspaceSlug, canEdit]);
+  }, [workspaceId, canEdit]);
 
   async function handleTopup(packageId: string) {
     setActive(packageId);
@@ -96,7 +96,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       const res = await fetch("/api/billing/topup/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceSlug, packageId }),
+        body: JSON.stringify({ workspaceId, packageId }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
@@ -130,7 +130,7 @@ export function TokenTopupClient({ workspaceSlug, initialSummary, canEdit }: Pro
       const res = await fetch("/api/billing/topup/mark-paid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceSlug, paymentIntentId: intentId }),
+        body: JSON.stringify({ workspaceId, paymentIntentId: intentId }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
