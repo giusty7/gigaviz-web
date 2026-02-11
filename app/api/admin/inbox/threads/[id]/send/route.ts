@@ -1,10 +1,17 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { computeFirstResponseAt } from "@/lib/inbox/first-response";
 import { sendWhatsAppText } from "@/lib/wa/cloud";
+
+const sendSchema = z.object({
+  text: z.string().min(1, "text_required").max(4096, "text_too_long"),
+  idempotencyKey: z.string().max(256).optional(),
+  idempotency_key: z.string().max(256).optional(),
+});
 
 export const runtime = "nodejs";
 
@@ -72,14 +79,22 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId, user } = auth;
   const { id } = await params;
 
-  const body = await req.json().catch(() => ({}));
-  const text = String(body?.text ?? "").trim();
-  if (!text) {
-    return withCookies(NextResponse.json({ error: "text_required" }, { status: 400 }));
+  const rawBody = await req.json().catch(() => ({}));
+  const parsed = sendSchema.safeParse(rawBody);
+
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
+        { status: 400 }
+      )
+    );
   }
 
+  const { text } = parsed.data;
+
   const rawKey =
-    String(body?.idempotencyKey ?? body?.idempotency_key ?? "").trim() ||
+    String(parsed.data.idempotencyKey ?? parsed.data.idempotency_key ?? "").trim() ||
     String(req.headers.get("Idempotency-Key") || "").trim();
   const bucket = Math.floor(Date.now() / 30_000);
   const autoKeySeed = `${workspaceId}|${id}|${text}|${bucket}`;

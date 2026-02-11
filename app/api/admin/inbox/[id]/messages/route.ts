@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+
+const messageSchema = z.object({
+  text: z.string().min(1, "text_required").max(4096, "text_too_long"),
+});
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -51,14 +56,19 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId } = auth;
   const { id: conversationId } = await params;
 
-  const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
-  const rawText = body && "text" in body ? body.text : "";
-  const text = String(rawText ?? "").trim();
-  if (!text) {
+  const rawBody = await req.json().catch(() => null);
+  const parsed = messageSchema.safeParse(rawBody);
+
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "text_required" }, { status: 400 })
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "text_required" },
+        { status: 400 }
+      )
     );
   }
+
+  const { text } = parsed.data;
 
   const { data: inserted, error: insErr } = await db
     .from("messages")

@@ -1,9 +1,29 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { computeFirstResponseAt } from "@/lib/inbox/first-response";
+
+const templateComponentSchema = z.object({
+  type: z.enum(["header", "body", "button"]),
+  parameters: z.array(
+    z.object({
+      type: z.string().max(50),
+    }).passthrough()
+  ).max(20).optional(),
+  sub_type: z.string().max(50).optional(),
+  index: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+
+const sendTemplateSchema = z.object({
+  templateName: z.string().min(1, "template_name_required").max(512),
+  language: z.string().max(10).optional().default("id"),
+  components: z.array(templateComponentSchema).max(10).optional().default([]),
+  idempotencyKey: z.string().max(256).optional(),
+  idempotency_key: z.string().max(256).optional(),
+});
 
 export const runtime = "nodejs";
 
@@ -164,29 +184,23 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId, user } = auth;
   const { id } = await params;
 
-  const body = (await req.json().catch(() => ({}))) as {
-    templateName?: unknown;
-    language?: unknown;
-    components?: unknown;
-    idempotencyKey?: unknown;
-    idempotency_key?: unknown;
-  };
+  const rawBody = await req.json().catch(() => ({}));
+  const parsed = sendTemplateSchema.safeParse(rawBody);
 
-  const templateName = String(body?.templateName ?? "").trim();
-  const language = String(body?.language ?? "").trim() || "id";
-  const components = Array.isArray(body?.components)
-    ? (body.components as TemplateComponent[])
-    : [];
-
-  if (!templateName) {
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "template_name_required" }, { status: 400 })
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
+        { status: 400 }
+      )
     );
   }
 
+  const { templateName, language, components } = parsed.data;
+
   const templateText = `Template: ${templateName}`;
   const rawKey =
-    String(body?.idempotencyKey ?? body?.idempotency_key ?? "").trim() ||
+    String(parsed.data.idempotencyKey ?? parsed.data.idempotency_key ?? "").trim() ||
     String(req.headers.get("Idempotency-Key") || "").trim();
   const bucket = Math.floor(Date.now() / 30_000);
   const componentsHash = hashIdempotencySeed(JSON.stringify(components));

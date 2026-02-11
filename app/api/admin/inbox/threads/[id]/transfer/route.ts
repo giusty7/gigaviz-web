@@ -1,6 +1,11 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+
+const transferSchema = z.object({
+  team_id: z.string().uuid("invalid_team_id"),
+});
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -11,13 +16,19 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId, user, role } = auth;
   const { id: conversationId } = await params;
 
-  const body = (await req.json().catch(() => null)) as { team_id?: unknown } | null;
-  const teamId = body?.team_id ? String(body.team_id) : null;
-  if (!teamId) {
+  const rawBody = await req.json().catch(() => null);
+  const parsed = transferSchema.safeParse(rawBody);
+
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "team_id_required" }, { status: 400 })
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "team_id_required" },
+        { status: 400 }
+      )
     );
   }
+
+  const teamId = parsed.data.team_id;
 
   const { data: team, error: teamErr } = await db
     .from("teams")

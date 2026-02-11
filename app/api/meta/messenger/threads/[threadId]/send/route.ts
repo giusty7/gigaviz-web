@@ -3,9 +3,18 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
 import { sendMessengerTextMessage, sendMessengerImageMessage } from '@/lib/meta/messenger-send';
+
+const sendSchema = z.object({
+  text: z.string().max(4096).optional(),
+  imageUrl: z.string().url().max(2048).optional(),
+}).refine(
+  (d) => (d.text && d.text.trim().length > 0) || d.imageUrl,
+  { message: "text or imageUrl is required" }
+);
 
 export async function POST(
   request: NextRequest,
@@ -14,8 +23,16 @@ export async function POST(
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { threadId } = await params;
-    const body = await request.json();
-    const { text, imageUrl } = body;
+
+    // Validate body
+    const body = await request.json().catch(() => ({}));
+    const parsed = sendSchema.safeParse(body);
+    if (!parsed.success) {
+      return withCookies(
+        NextResponse.json({ error: parsed.error.issues[0]?.message ?? "invalid_input" }, { status: 400 })
+      );
+    }
+    const { text, imageUrl } = parsed.data;
 
     // Auth check
     const {
@@ -23,12 +40,6 @@ export async function POST(
     } = await supabase.auth.getUser();
     if (!user) {
       return withCookies(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
-    }
-
-    if (!text?.trim() && !imageUrl) {
-      return withCookies(
-        NextResponse.json({ error: 'text or imageUrl is required' }, { status: 400 })
-      );
     }
 
     // Get thread info to verify workspace access
@@ -73,7 +84,7 @@ export async function POST(
         supabase,
         workspaceId: thread.workspace_id,
         threadId,
-        text,
+        text: text!,
       });
     }
 

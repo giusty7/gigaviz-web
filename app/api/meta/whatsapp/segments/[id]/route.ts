@@ -8,8 +8,19 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { UpdateSegmentRequest } from "@/types/wa-contacts";
+
+const updateSegmentSchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspaceId"),
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).optional(),
+  rules: z.record(z.string(), z.unknown()).optional(),
+});
+
+const deleteQuerySchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspaceId"),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -29,16 +40,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as UpdateSegmentRequest & {
-      workspaceId: string;
-    };
+    const rawBody = await request.json().catch(() => null);
+    const parsed = updateSegmentSchema.safeParse(rawBody);
 
-    if (!body.workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
         { status: 400 }
       );
     }
+
+    const { workspaceId } = parsed.data;
 
     // Verify workspace access & segment ownership
     const { data: segment } = await supabase
@@ -51,21 +63,21 @@ export async function PATCH(
       return NextResponse.json({ error: "Segment not found" }, { status: 404 });
     }
 
-    if (segment.workspace_id !== body.workspaceId) {
+    if (segment.workspace_id !== workspaceId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { data: membership, error: membershipError } = await supabase
       .from("workspace_memberships")
       .select("workspace_id")
-      .eq("workspace_id", body.workspaceId)
+      .eq("workspace_id", workspaceId)
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (membershipError) {
       logger.error("[Segments API PUT] Membership query error:", {
         error: membershipError,
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
         segmentId: id,
       });
@@ -77,7 +89,7 @@ export async function PATCH(
 
     if (!membership) {
       logger.warn("[Segments API PUT] Access denied:", {
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
         segmentId: id,
       });
@@ -87,13 +99,13 @@ export async function PATCH(
     // Build update object
     const updates: Record<string, unknown> = {};
 
-    if (body.name !== undefined) {
+    if (parsed.data.name !== undefined) {
       // Check for duplicate name
       const { data: existing } = await supabase
         .from("wa_contact_segments")
         .select("id")
-        .eq("workspace_id", body.workspaceId)
-        .eq("name", body.name)
+        .eq("workspace_id", workspaceId)
+        .eq("name", parsed.data.name)
         .neq("id", id)
         .single();
 
@@ -104,15 +116,15 @@ export async function PATCH(
         );
       }
 
-      updates.name = body.name;
+      updates.name = parsed.data.name;
     }
 
-    if (body.description !== undefined) {
-      updates.description = body.description;
+    if (parsed.data.description !== undefined) {
+      updates.description = parsed.data.description;
     }
 
-    if (body.rules !== undefined) {
-      updates.rules = body.rules;
+    if (parsed.data.rules !== undefined) {
+      updates.rules = parsed.data.rules;
     }
 
     // Update segment
@@ -157,14 +169,18 @@ export async function DELETE(
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const workspaceId = searchParams.get("workspaceId");
+    const parsed = deleteQuerySchema.safeParse({
+      workspaceId: searchParams.get("workspaceId"),
+    });
 
-    if (!workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "workspaceId required" },
         { status: 400 }
       );
     }
+
+    const workspaceId = parsed.data.workspaceId;
 
     // Verify workspace access & segment ownership
     const { data: segment } = await supabase

@@ -8,9 +8,21 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { UpdateContactRequest } from "@/types/wa-contacts";
 import { sanitizeTags } from "@/lib/meta/wa-contacts-utils";
+
+const updateContactSchema = z.object({
+  workspaceId: z.string().uuid(),
+  display_name: z.string().max(200).optional(),
+  tags: z.array(z.string().max(50)).max(50).optional(),
+  custom_fields: z.record(z.string(), z.unknown()).optional(),
+  opt_in_status: z.enum(["opted_in", "opted_out", "unknown"]).optional(),
+});
+
+const deleteQuerySchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspaceId"),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -30,16 +42,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as UpdateContactRequest & {
-      workspaceId: string;
-    };
+    const body = await request.json().catch(() => null);
+    const parsed = updateContactSchema.safeParse(body);
 
-    if (!body.workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
         { status: 400 }
       );
     }
+
+    const workspaceId = parsed.data.workspaceId;
 
     // Verify workspace access & contact ownership
     const { data: contact } = await supabase
@@ -52,21 +65,21 @@ export async function PATCH(
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
-    if (contact.workspace_id !== body.workspaceId) {
+    if (contact.workspace_id !== workspaceId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { data: membership, error: membershipError } = await supabase
       .from("workspace_memberships")
       .select("workspace_id")
-      .eq("workspace_id", body.workspaceId)
+      .eq("workspace_id", workspaceId)
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (membershipError) {
       logger.error("[Contacts API PUT] Membership query error:", {
         error: membershipError,
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
         contactId: id,
       });
@@ -78,7 +91,7 @@ export async function PATCH(
 
     if (!membership) {
       logger.warn("[Contacts API PUT] Access denied:", {
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
         contactId: id,
       });
@@ -88,25 +101,25 @@ export async function PATCH(
     // Build update object
     const updates: Record<string, unknown> = {};
 
-    if (body.display_name !== undefined) {
-      updates.display_name = body.display_name;
+    if (parsed.data.display_name !== undefined) {
+      updates.display_name = parsed.data.display_name;
     }
 
-    if (body.tags !== undefined) {
-      updates.tags = sanitizeTags(body.tags);
+    if (parsed.data.tags !== undefined) {
+      updates.tags = sanitizeTags(parsed.data.tags);
     }
 
-    if (body.custom_fields !== undefined) {
-      updates.custom_fields = body.custom_fields;
+    if (parsed.data.custom_fields !== undefined) {
+      updates.custom_fields = parsed.data.custom_fields;
     }
 
-    if (body.opt_in_status !== undefined) {
-      updates.opt_in_status = body.opt_in_status;
+    if (parsed.data.opt_in_status !== undefined) {
+      updates.opt_in_status = parsed.data.opt_in_status;
       
-      if (body.opt_in_status === "opted_in") {
+      if (parsed.data.opt_in_status === "opted_in") {
         updates.opt_in_at = new Date().toISOString();
         updates.opt_out_at = null;
-      } else if (body.opt_in_status === "opted_out") {
+      } else if (parsed.data.opt_in_status === "opted_out") {
         updates.opt_out_at = new Date().toISOString();
         updates.opt_in_at = null;
       }
@@ -154,14 +167,18 @@ export async function DELETE(
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const workspaceId = searchParams.get("workspaceId");
+    const parsed = deleteQuerySchema.safeParse({
+      workspaceId: searchParams.get("workspaceId"),
+    });
 
-    if (!workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "workspaceId required" },
         { status: 400 }
       );
     }
+
+    const workspaceId = parsed.data.workspaceId;
 
     // Verify workspace access & contact ownership
     const { data: contact } = await supabase

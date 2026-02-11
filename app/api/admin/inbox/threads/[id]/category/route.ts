@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { isSkillRoutingEnabled, routeToCategoryTeam } from "@/lib/inbox/routing";
+
+const categorySchema = z.object({
+  category_id: z.union([
+    z.string().uuid("invalid_category_id"),
+    z.literal(""),
+    z.null(),
+  ]),
+});
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -11,18 +20,23 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId, user } = auth;
   const { id: conversationId } = await params;
 
-  const body = (await req.json().catch(() => null)) as { category_id?: unknown } | null;
-  if (!body || !Object.prototype.hasOwnProperty.call(body, "category_id")) {
+  const rawBody = await req.json().catch(() => null);
+  const parsed = categorySchema.safeParse(rawBody);
+
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "category_id_required" }, { status: 400 })
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "category_id_required" },
+        { status: 400 }
+      )
     );
   }
 
   let categoryId: string | null = null;
-  if (body.category_id === null || body.category_id === "") {
+  if (parsed.data.category_id === null || parsed.data.category_id === "") {
     categoryId = null;
   } else {
-    categoryId = String(body.category_id);
+    categoryId = parsed.data.category_id;
   }
 
   if (categoryId) {

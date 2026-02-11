@@ -8,17 +8,36 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import type {
   ContactsListResponse,
-  OptInStatus,
-  CreateContactRequest,
   WaContact,
 } from "@/types/wa-contacts";
 import {
   validatePhone,
   sanitizeTags,
 } from "@/lib/meta/wa-contacts-utils";
+
+const getQuerySchema = z.object({
+  workspaceId: z.string().uuid(),
+  search: z.string().max(200).optional().default(""),
+  tag: z.string().max(100).optional().default(""),
+  segmentId: z.string().uuid().optional(),
+  optInStatus: z.enum(["opted_in", "opted_out", "unknown", ""]).optional().default(""),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+});
+
+const createContactSchema = z.object({
+  workspaceId: z.string().uuid(),
+  phone: z.string().min(1).max(20),
+  display_name: z.string().max(200).optional(),
+  tags: z.array(z.string().max(50)).max(50).optional(),
+  custom_fields: z.record(z.string(), z.unknown()).optional().default({}),
+  opt_in_status: z.enum(["opted_in", "opted_out", "unknown"]).optional().default("unknown"),
+  source: z.string().max(50).optional().default("manual"),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,16 +53,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get workspace from query or headers
+    // Parse and validate query params
     const searchParams = request.nextUrl.searchParams;
-    const workspaceId = searchParams.get("workspaceId");
+    const queryParsed = getQuerySchema.safeParse({
+      workspaceId: searchParams.get("workspaceId") ?? undefined,
+      search: searchParams.get("search") ?? undefined,
+      tag: searchParams.get("tag") ?? undefined,
+      segmentId: searchParams.get("segmentId") ?? undefined,
+      optInStatus: searchParams.get("optInStatus") ?? undefined,
+      page: searchParams.get("page") ?? undefined,
+      limit: searchParams.get("limit") ?? undefined,
+    });
 
-    if (!workspaceId) {
+    if (!queryParsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: queryParsed.error.issues[0]?.message ?? "invalid_query" },
         { status: 400 }
       );
     }
+
+    const { workspaceId, search, tag, segmentId, optInStatus, page, limit } = queryParsed.data;
 
     // Verify workspace access
     const { data: membership, error: membershipError } = await supabase
@@ -72,14 +101,6 @@ export async function GET(request: NextRequest) {
       });
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    // Parse filters
-    const search = searchParams.get("search") || "";
-    const tag = searchParams.get("tag") || "";
-    const segmentId = searchParams.get("segmentId") || "";
-    const optInStatus = searchParams.get("optInStatus") as OptInStatus | "";
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "50");
 
     const offset = (page - 1) * limit;
 
@@ -180,29 +201,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as CreateContactRequest & {
-      workspaceId: string;
-    };
+    const body = await request.json().catch(() => null);
+    const parsed = createContactSchema.safeParse(body);
 
-    if (!body.workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
         { status: 400 }
       );
     }
+
+    const workspaceId = parsed.data.workspaceId;
 
     // Verify workspace access
     const { data: membership, error: membershipError } = await supabase
       .from("workspace_memberships")
       .select("workspace_id")
-      .eq("workspace_id", body.workspaceId)
+      .eq("workspace_id", workspaceId)
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (membershipError) {
       logger.error("[Contacts API POST] Membership query error:", {
         error: membershipError,
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
       });
       return NextResponse.json(
@@ -213,14 +235,14 @@ export async function POST(request: NextRequest) {
 
     if (!membership) {
       logger.warn("[Contacts API POST] Access denied:", {
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
       });
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Validate phone
-    const phoneValidation = validatePhone(body.phone);
+    const phoneValidation = validatePhone(parsed.data.phone);
     if (!phoneValidation.valid) {
       return NextResponse.json(
         { error: phoneValidation.error },
@@ -235,7 +257,7 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await supabase
       .from("wa_contacts")
       .select("id")
-      .eq("workspace_id", body.workspaceId)
+      .eq("workspace_id", workspaceId)
       .eq("wa_id", wa_id)
       .single();
 
@@ -247,22 +269,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize tags
-    const tags = body.tags ? sanitizeTags(body.tags) : [];
+    const tags = parsed.data.tags ? sanitizeTags(parsed.data.tags) : [];
 
     // Create contact
     const { data: contact, error } = await supabase
       .from("wa_contacts")
       .insert({
-        workspace_id: body.workspaceId,
+        workspace_id: workspaceId,
         wa_id,
         normalized_phone: normalized,
-        display_name: body.display_name || null,
+        display_name: parsed.data.display_name || null,
         tags,
-        custom_fields: body.custom_fields || {},
-        opt_in_status: body.opt_in_status || "unknown",
+        custom_fields: parsed.data.custom_fields,
+        opt_in_status: parsed.data.opt_in_status,
         opt_in_at:
-          body.opt_in_status === "opted_in" ? new Date().toISOString() : null,
-        source: body.source || "manual",
+          parsed.data.opt_in_status === "opted_in" ? new Date().toISOString() : null,
+        source: parsed.data.source,
       })
       .select()
       .single();

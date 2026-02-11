@@ -1,29 +1,26 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { z } from "zod";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+const appRequestSchema = z.object({
+  app_name: z.string().min(1).max(200),
+  description: z.string().min(1).max(4000),
+  use_case: z.string().max(2000).optional(),
+  priority: z.enum(["low", "medium", "high"]).optional().default("medium"),
+});
 
 /**
  * POST /api/apps/requests
  * Submit a new app request
+ *
+ * SECURITY: workspace_id and user_id derived from auth context, never from client body.
  */
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-    const supabase = createServerClient(url, anon, {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: () => {
-          // middleware handles session refresh
-        },
-      },
-    });
+    const supabase = await supabaseServer();
 
     const {
       data: { user },
@@ -33,24 +30,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { workspace_id, user_id, app_name, description, use_case, priority } = body;
-
-    // Validate required fields
-    if (!workspace_id || !user_id || !app_name || !description) {
+    // Resolve workspace from cookie (set by proxy middleware)
+    const workspaceId = req.cookies.get("gv_workspace_id")?.value;
+    if (!workspaceId) {
       return NextResponse.json(
-        { error: "Missing required fields: workspace_id, user_id, app_name, description" },
+        { error: "No workspace selected" },
         { status: 400 }
       );
     }
 
-    // Verify user is member of workspace
-    const db = supabaseAdmin();
-    const { data: membership } = await db
+    // Verify user is member of workspace (via RLS-scoped client)
+    const { data: membership } = await supabase
       .from("workspace_memberships")
       .select("id")
-      .eq("workspace_id", workspace_id)
-      .eq("user_id", user_id)
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", user.id)
       .single();
 
     if (!membership) {
@@ -60,16 +54,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Insert app request
-    const { data: request, error } = await db
+    // Validate input with Zod
+    const body = await req.json().catch(() => null);
+    const parsed = appRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
+        { status: 400 }
+      );
+    }
+
+    // Insert — workspace_id and user_id from auth context, NOT client body
+    const { data: appRequest, error } = await supabase
       .from("apps_requests")
       .insert({
-        workspace_id,
-        user_id,
-        app_name,
-        description,
-        use_case: use_case || null,
-        priority: priority || "medium",
+        workspace_id: workspaceId,
+        user_id: user.id,
+        app_name: parsed.data.app_name,
+        description: parsed.data.description,
+        use_case: parsed.data.use_case || null,
+        priority: parsed.data.priority,
         status: "pending",
         upvotes: 0,
       })
@@ -77,11 +81,11 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      logger.error("Error inserting app request:", error);
+      logger.error("Error inserting app request:", { error, workspaceId });
       return NextResponse.json({ error: "Failed to create request" }, { status: 500 });
     }
 
-    return NextResponse.json({ request }, { status: 201 });
+    return NextResponse.json({ request: appRequest }, { status: 201 });
   } catch (err) {
     logger.error("POST /api/apps/requests error:", err);
     return NextResponse.json(

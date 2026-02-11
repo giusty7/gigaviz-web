@@ -1,28 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { recomputeConversationSla } from "@/lib/inbox/sla";
 import { parsePriority, parseTicketStatus } from "@/lib/inbox/validators";
 
-type Ctx = { params: Promise<{ id: string }> };
+const conversationPatchSchema = z.object({
+  ticketStatus: z.unknown().optional(),
+  ticket_status: z.unknown().optional(),
+  priority: z.unknown().optional(),
+  assignedTo: z.unknown().optional(),
+  assigned_to: z.unknown().optional(),
+  assigned_member_id: z.unknown().optional(),
+  team_id: z.unknown().optional(),
+  unreadCount: z.unknown().optional(),
+  unread_count: z.unknown().optional(),
+  isArchived: z.unknown().optional(),
+  is_archived: z.unknown().optional(),
+  pinned: z.unknown().optional(),
+  snoozedUntil: z.unknown().optional(),
+  snoozed_until: z.unknown().optional(),
+  lastReadAt: z.unknown().optional(),
+  last_read_at: z.unknown().optional(),
+}).strict();
 
-type ConversationPatchBody = {
-  ticketStatus?: unknown;
-  ticket_status?: unknown;
-  priority?: unknown;
-  assignedTo?: unknown;
-  assigned_to?: unknown;
-  assigned_member_id?: unknown;
-  team_id?: unknown;
-  unreadCount?: unknown;
-  unread_count?: unknown;
-  isArchived?: unknown;
-  is_archived?: unknown;
-  pinned?: unknown;
-  snoozedUntil?: unknown;
-  snoozed_until?: unknown;
-  lastReadAt?: unknown;
-  last_read_at?: unknown;
-};
+type Ctx = { params: Promise<{ id: string }> };
 
 type ConversationPatch = {
   ticket_status?: string;
@@ -64,7 +65,19 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   const { db, withCookies, workspaceId } = auth;
   const { id } = await params;
 
-  const body = (await req.json().catch(() => null)) as ConversationPatchBody | null;
+  const rawBody = await req.json().catch(() => null);
+  const parsed = conversationPatchSchema.safeParse(rawBody);
+
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
+        { status: 400 }
+      )
+    );
+  }
+
+  const body = parsed.data;
 
   const patch: ConversationPatch = {};
   if (body?.ticketStatus !== undefined || body?.ticket_status !== undefined) {

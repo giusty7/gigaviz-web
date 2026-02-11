@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+
+const autoAssignSchema = z.object({
+  team_id: z.string().uuid("invalid_team_id").optional(),
+});
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -12,8 +17,19 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
   const url = new URL(req.url);
   const queryTeamId = url.searchParams.get("team_id");
-  const body = (await req.json().catch(() => null)) as { team_id?: unknown } | null;
-  const rawTeamId = queryTeamId ?? (body?.team_id ? String(body.team_id) : null);
+  const rawBody = await req.json().catch(() => null);
+  const parsed = autoAssignSchema.safeParse(rawBody ?? {});
+
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "invalid_team_id" },
+        { status: 400 }
+      )
+    );
+  }
+
+  const rawTeamId = queryTeamId ?? parsed.data.team_id ?? null;
 
   let teamId = rawTeamId;
   if (!teamId) {

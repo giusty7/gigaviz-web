@@ -8,8 +8,20 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { CreateSegmentRequest, ContactSegment } from "@/types/wa-contacts";
+import type { ContactSegment } from "@/types/wa-contacts";
+
+const getQuerySchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspaceId"),
+});
+
+const createSegmentSchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspaceId"),
+  name: z.string().min(1, "Segment name required").max(200),
+  description: z.string().max(2000).optional(),
+  rules: z.record(z.string(), z.unknown()).optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,14 +38,18 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const workspaceId = searchParams.get("workspaceId");
+    const parsed = getQuerySchema.safeParse({
+      workspaceId: searchParams.get("workspaceId"),
+    });
 
-    if (!workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "workspaceId required" },
         { status: 400 }
       );
     }
+
+    const workspaceId = parsed.data.workspaceId;
 
     // Verify workspace access
     const { data: membership, error: membershipError } = await supabase
@@ -99,36 +115,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as CreateSegmentRequest & {
-      workspaceId: string;
-    };
+    const rawBody = await request.json().catch(() => null);
+    const parsed = createSegmentSchema.safeParse(rawBody);
 
-    if (!body.workspaceId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
         { status: 400 }
       );
     }
 
-    if (!body.name || body.name.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Segment name required" },
-        { status: 400 }
-      );
-    }
+    const { workspaceId, name, description, rules } = parsed.data;
 
     // Verify workspace access
     const { data: membership, error: membershipError } = await supabase
       .from("workspace_memberships")
       .select("workspace_id")
-      .eq("workspace_id", body.workspaceId)
+      .eq("workspace_id", workspaceId)
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (membershipError) {
       logger.error("[Segments API POST] Membership query error:", {
         error: membershipError,
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
       });
       return NextResponse.json(
@@ -139,7 +149,7 @@ export async function POST(request: NextRequest) {
 
     if (!membership) {
       logger.warn("[Segments API POST] Access denied:", {
-        workspaceId: body.workspaceId,
+        workspaceId,
         userId: user.id,
       });
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -149,8 +159,8 @@ export async function POST(request: NextRequest) {
     const { data: existing } = await supabase
       .from("wa_contact_segments")
       .select("id")
-      .eq("workspace_id", body.workspaceId)
-      .eq("name", body.name)
+      .eq("workspace_id", workspaceId)
+      .eq("name", name)
       .single();
 
     if (existing) {
@@ -164,10 +174,10 @@ export async function POST(request: NextRequest) {
     const { data: segment, error } = await supabase
       .from("wa_contact_segments")
       .insert({
-        workspace_id: body.workspaceId,
-        name: body.name,
-        description: body.description || null,
-        rules: body.rules || {},
+        workspace_id: workspaceId,
+        name,
+        description: description || null,
+        rules: rules || {},
       })
       .select()
       .single();

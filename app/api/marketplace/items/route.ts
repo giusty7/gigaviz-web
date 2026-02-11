@@ -1,90 +1,95 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { publicEnv } from "@/lib/env";
+import { z } from "zod";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-function getSupabaseClient(request: NextRequest) {
-  const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const marketplaceItemSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().min(1).max(4000),
+  category: z.string().min(1).max(100),
+  subcategory: z.string().max(100).optional(),
+  price_usd: z.number().min(0).max(999999).optional().default(0),
+  tags: z.array(z.string().max(50)).max(20).optional().default([]),
+  compatible_with: z.array(z.string().max(100)).max(10).optional().default([]),
+  license_type: z.enum(["single_use", "multi_use", "subscription", "free"]).optional().default("single_use"),
+});
 
-  return createServerClient(url, anon, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookies) {
-        cookies.forEach((c) => {
-          request.cookies.set(c.name, c.value);
-        });
-      },
-    },
-  });
-}
-
+/**
+ * POST /api/marketplace/items
+ * Create a new marketplace item
+ *
+ * SECURITY: workspace_id and user_id derived from auth context, never from client body.
+ */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient(request);
+    const supabase = await supabaseServer();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      workspace_id,
-      user_id,
-      title,
-      description,
-      category,
-      subcategory,
-      price_usd,
-      tags,
-      compatible_with,
-      license_type,
-    } = body;
+    // Resolve workspace from cookie (set by proxy middleware)
+    const workspaceId = request.cookies.get("gv_workspace_id")?.value;
+    if (!workspaceId) {
+      return NextResponse.json({ error: "No workspace selected" }, { status: 400 });
+    }
 
-    // Validate required fields
-    if (!workspace_id || !title || !description || !category) {
+    // Verify workspace membership
+    const { data: membership } = await supabase
+      .from("workspace_memberships")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!membership) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Validate input with Zod
+    const body = await request.json().catch(() => null);
+    const parsed = marketplaceItemSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: parsed.error.issues[0]?.message ?? "invalid_input" },
         { status: 400 }
       );
     }
 
     // Generate slug from title
-    const slug = title
+    const slug = parsed.data.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")
       + `-${Date.now().toString(36)}`;
 
-    // Insert marketplace item
+    // Insert — workspace_id and user_id from auth context, NOT client body
     const { data: item, error: insertError } = await supabase
       .from("marketplace_items")
       .insert({
-        creator_workspace_id: workspace_id,
-        creator_user_id: user_id,
-        title,
+        creator_workspace_id: workspaceId,
+        creator_user_id: user.id,
+        title: parsed.data.title,
         slug,
-        description,
-        category,
-        subcategory,
-        price_usd: price_usd || 0,
-        price_idr: Math.round((price_usd || 0) * 15), // Approximate IDR conversion
+        description: parsed.data.description,
+        category: parsed.data.category,
+        subcategory: parsed.data.subcategory || null,
+        price_usd: parsed.data.price_usd,
+        price_idr: Math.round(parsed.data.price_usd * 15800),
         currency: "USD",
-        tags: tags || [],
-        compatible_with: compatible_with || [],
-        license_type: license_type || "single_use",
-        status: "under_review", // Goes to review queue
+        tags: parsed.data.tags,
+        compatible_with: parsed.data.compatible_with,
+        license_type: parsed.data.license_type,
+        status: "under_review",
       })
       .select()
       .single();
 
     if (insertError) {
-      logger.error("Insert error:", insertError);
+      logger.error("Marketplace insert error:", { error: insertError, workspaceId });
       return NextResponse.json(
         { error: "Failed to create item" },
         { status: 500 }
@@ -101,9 +106,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * GET /api/marketplace/items
+ * List marketplace items (public, filtered by status)
+ */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient(request);
+    const supabase = await supabaseServer();
     const { searchParams } = new URL(request.url);
     const workspace_id = searchParams.get("workspace_id");
     const status = searchParams.get("status") || "approved";
@@ -114,7 +123,6 @@ export async function GET(request: NextRequest) {
       .eq("status", status)
       .order("created_at", { ascending: false });
 
-    // Filter by creator workspace if provided
     if (workspace_id) {
       query = query.eq("creator_workspace_id", workspace_id);
     }
@@ -122,7 +130,7 @@ export async function GET(request: NextRequest) {
     const { data: items, error } = await query;
 
     if (error) {
-      logger.error("Fetch error:", error);
+      logger.error("Marketplace fetch error:", error);
       return NextResponse.json(
         { error: "Failed to fetch items" },
         { status: 500 }

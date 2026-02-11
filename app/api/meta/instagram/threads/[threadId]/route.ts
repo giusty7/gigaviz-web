@@ -3,8 +3,14 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
+
+const threadUpdateSchema = z.object({
+  status: z.enum(["open", "closed", "snoozed", "pending"]).optional(),
+  assigned_to: z.string().uuid().nullable().optional(),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -13,8 +19,15 @@ export async function PATCH(
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { threadId } = await params;
-    const body = await request.json();
-    const { status, assigned_to } = body;
+
+    // Validate body
+    const body = await request.json().catch(() => ({}));
+    const parsed = threadUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return withCookies(
+        NextResponse.json({ error: parsed.error.issues[0]?.message ?? "invalid_input" }, { status: 400 })
+      );
+    }
 
     // Auth check
     const {
@@ -35,17 +48,31 @@ export async function PATCH(
       return withCookies(NextResponse.json({ error: 'Thread not found' }, { status: 404 }));
     }
 
+    // Verify workspace membership
+    const { data: membership } = await supabase
+      .from('workspace_memberships')
+      .select('workspace_id')
+      .eq('workspace_id', thread.workspace_id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!membership) {
+      return withCookies(
+        NextResponse.json({ error: 'Access denied to this workspace' }, { status: 403 })
+      );
+    }
+
     // Build update object
     const updates: Record<string, string | null> = {
       updated_at: new Date().toISOString(),
     };
 
-    if (status !== undefined) {
-      updates.status = status;
+    if (parsed.data.status !== undefined) {
+      updates.status = parsed.data.status;
     }
 
-    if (assigned_to !== undefined) {
-      updates.assigned_to = assigned_to;
+    if (parsed.data.assigned_to !== undefined) {
+      updates.assigned_to = parsed.data.assigned_to;
     }
 
     // Update thread
