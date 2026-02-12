@@ -679,6 +679,48 @@
     "tryAgain": "Coba lagi",
     "goHome": "Ke beranda"
   },
+  "app": {
+    "sidebar": {
+      "dashboard": "Dasbor",
+      "inbox": "Kotak Masuk",
+      "products": "Produk",
+      "tokens": "Token",
+      "workspace": "Ruang Kerja",
+      "subscription": "Langganan",
+      "settings": "Pengaturan",
+      "managementConsole": "Konsol Manajemen",
+      "staffMode": "Mode Staf Gigaviz",
+      "secureLinkActive": "Tautan Aman Aktif",
+      "operational": "OPERASIONAL",
+      "collapseMenu": "Tutup menu",
+      "expandMenu": "Buka menu"
+    },
+    "loading": "Memuat...",
+    "enterImperium": "Masuk ke Imperium",
+    "imperiumDesc": "Gerbang tunggal Anda ke 10 platform digital yang saling terhubung.",
+    "loginFailed": "Gagal masuk",
+    "registerFailed": "Gagal mendaftar",
+    "resending": "Mengirim ulang...",
+    "continueWithGoogle": "Lanjutkan dengan Google",
+    "fullName": "Nama lengkap (opsional)",
+    "passwordRequirements": "8+ karakter dengan huruf besar, huruf kecil, dan angka",
+    "passwordWeak": "Lemah",
+    "passwordFair": "Cukup",
+    "passwordGood": "Baik",
+    "passwordStrong": "Kuat",
+    "passwordSecure": "Aman",
+    "passwordsMatch": "Kata sandi cocok",
+    "passwordsNoMatch": "Kata sandi tidak cocok",
+    "agreeTerms": "Dengan melanjutkan, Anda menyetujui",
+    "termsOfService": "Ketentuan Layanan",
+    "privacyPolicy": "Kebijakan Privasi"
+  },
+  "ops": {
+    "loading": "Memuat...",
+    "errorTitle": "Terjadi kesalahan",
+    "errorDesc": "Terjadi kesalahan tak terduga di konsol ops.",
+    "retry": "Coba Lagi"
+  },
   "time": {
     "justNow": "baru saja",
     "minutesAgo": "{count} menit lalu",

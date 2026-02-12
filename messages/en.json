@@ -679,6 +679,48 @@
     "tryAgain": "Try again",
     "goHome": "Go to homepage"
   },
+  "app": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "inbox": "Inbox",
+      "products": "Products",
+      "tokens": "Tokens",
+      "workspace": "Workspace",
+      "subscription": "Subscription",
+      "settings": "Settings",
+      "managementConsole": "Management Console",
+      "staffMode": "Gigaviz Staff Mode",
+      "secureLinkActive": "Secure Link Active",
+      "operational": "OPERATIONAL",
+      "collapseMenu": "Collapse menu",
+      "expandMenu": "Expand menu"
+    },
+    "loading": "Loading...",
+    "enterImperium": "Enter the Imperium",
+    "imperiumDesc": "Your single gateway to 10 interconnected digital powerhouses.",
+    "loginFailed": "Login failed",
+    "registerFailed": "Registration failed",
+    "resending": "Resending...",
+    "continueWithGoogle": "Continue with Google",
+    "fullName": "Full name (optional)",
+    "passwordRequirements": "8+ characters with uppercase, lowercase, and number",
+    "passwordWeak": "Weak",
+    "passwordFair": "Fair",
+    "passwordGood": "Good",
+    "passwordStrong": "Strong",
+    "passwordSecure": "Secure",
+    "passwordsMatch": "Passwords match",
+    "passwordsNoMatch": "Passwords do not match",
+    "agreeTerms": "By continuing, you agree to our",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "ops": {
+    "loading": "Loading...",
+    "errorTitle": "Something went wrong",
+    "errorDesc": "An unexpected error occurred in the ops console.",
+    "retry": "Try Again"
+  },
   "time": {
     "justNow": "just now",
     "minutesAgo": "{count}m ago",

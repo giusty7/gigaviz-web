@@ -1,53 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-type FieldType = "text" | "number" | "bool" | "date" | "select";
+const fieldSchema = z.object({
+  id: z.string().uuid().optional(),
+  key: z.string().trim().min(1, "Key is required").max(100),
+  label: z.string().trim().min(1, "Label is required").max(200),
+  type: z.enum(["text", "number", "bool", "date", "select"]),
+  options: z.record(z.string(), z.unknown()).nullable().optional(),
+  is_required: z.boolean().optional().default(false),
+});
 
-type FieldInput = {
-  id?: unknown;
-  workspace_id?: unknown;
-  key?: unknown;
-  label?: unknown;
-  type?: unknown;
-  options?: unknown;
-  is_required?: unknown;
-};
-
-function parseType(value: unknown): FieldType | null {
-  if (value === "text" || value === "number" || value === "bool" || value === "date") {
-    return value;
-  }
-  if (value === "select") return value;
-  return null;
-}
-
-function parseOptions(value: unknown) {
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "object") return null;
-  return value;
-}
-
-function normalizeField(input: FieldInput, workspaceId: string) {
-  const key = typeof input.key === "string" ? input.key.trim() : "";
-  const label = typeof input.label === "string" ? input.label.trim() : "";
-  const type = parseType(input.type);
-  const options = parseOptions(input.options);
-  const isRequired =
-    input.is_required === true || input.is_required === "true" ? true : false;
-  const id = typeof input.id === "string" ? input.id : undefined;
-
-  if (!key || !label || !type) return null;
-  return {
-    id,
-    workspace_id: workspaceId,
-    key,
-    label,
-    type,
-    options,
-    is_required: isRequired,
-  };
-}
+const fieldsBodySchema = z.object({
+  field: fieldSchema.optional(),
+  fields: z.array(fieldSchema).optional(),
+  workspace_id: z.string().uuid().optional(),
+}).refine(
+  (d) => d.field || (d.fields && d.fields.length > 0),
+  { message: "Provide 'field' or 'fields'" }
+);
 
 export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireAdminWorkspace(req);
@@ -80,43 +52,27 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
-  const body = (await req.json().catch(() => null)) as
-    | { field?: FieldInput; fields?: FieldInput[]; workspace_id?: unknown }
-    | null;
+  const raw = await req.json();
+  const body = fieldsBodySchema.parse(raw);
 
-  const requestedWorkspace =
-    typeof body?.workspace_id === "string" ? body?.workspace_id : workspaceId;
+  const requestedWorkspace = body.workspace_id ?? workspaceId;
   if (requestedWorkspace !== workspaceId) {
     return withCookies(
       NextResponse.json({ error: "workspace_mismatch" }, { status: 403 })
     );
   }
 
-  const list = Array.isArray(body?.fields)
-    ? body?.fields
-    : body?.field
-      ? [body.field]
-      : [];
+  const list = body.fields ?? (body.field ? [body.field] : []);
 
-  if (list.length === 0) {
-    return withCookies(NextResponse.json({ error: "no_fields" }, { status: 400 }));
-  }
-
-  const payload = list
-    .map((item) => normalizeField(item, workspaceId))
-    .filter(Boolean) as Array<{
-    id?: string;
-    workspace_id: string;
-    key: string;
-    label: string;
-    type: FieldType;
-    options: unknown | null;
-    is_required: boolean;
-  }>;
-
-  if (payload.length === 0) {
-    return withCookies(NextResponse.json({ error: "invalid_fields" }, { status: 400 }));
-  }
+  const payload = list.map((item) => ({
+    id: item.id,
+    workspace_id: workspaceId,
+    key: item.key,
+    label: item.label,
+    type: item.type,
+    options: item.options ?? null,
+    is_required: item.is_required ?? false,
+  }));
 
   const { data, error } = await db
     .from("crm_fields")

@@ -679,10 +679,10 @@ Last audited: **February 12, 2026** — update scores as improvements land.
 | Module Completion | 7/10 | ⚠️ 4 Placeholders | 6 modules LIVE/BETA (Platform, Meta Hub, Helper, Inbox, Apps, Marketplace), 2 scaffold (Studio, Office), 4 placeholder (Arena, Pay, Community, Trade) |
 | Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 5 dynamic import pages (7 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 26 loading.tsx + 41 error.tsx, font optimization |
 | Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (507 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 210/225 API routes (15 intentionally skipped: webhooks/SSE/auth callbacks) |
-| Testing | 5/10 | ⚠️ Weak | 17 test files with 5,246 assertions but **4.3% statement coverage** (224/5,240). All tests in lib/ only — zero API route, component, or E2E tests. No Playwright |
-| Internationalization (i18n) | 4/10 | ⚠️ Weak | next-intl wired, 2 locales (698-line message files), locale switcher, cookie-based detection — but only 6 `useTranslations` calls, ~61 hardcoded English strings in components |
+| Testing | 6/10 | ⚠️ Growing | 22 test files with 204 assertions, 4.96% statement coverage. Playwright E2E framework installed (2 spec files: marketing + API). Vitest: lib/ unit tests (with-error-handler, zod-schemas, workspace-scoping, security-patterns, rate-limit). No component tests yet |
+| Internationalization (i18n) | 5/10 | ⚠️ Progressing | next-intl wired, 2 locales (730+ line message files), locale switcher, cookie-based detection. 10+ `useTranslations`/`getTranslations` calls (login, register, loading, error, marketing). ~50 hardcoded English strings remain in app components |
 
-**Overall: 7.9 / 10** (prev 7.6 — withErrorHandler rollout 210/225 routes, Zod validation on 10 critical routes, ops loading/error states)
+**Overall: 8.0 / 10** (prev 7.9 — Playwright E2E framework, 22 test files / 204 tests, Zod on 4 more high-risk routes, i18n wiring on login/register/loading/error)
 
 ### Module Status Map
 
@@ -705,8 +705,8 @@ Last audited: **February 12, 2026** — update scores as improvements land.
 
 ```
 Phase 1: FOUNDATION (Month 1-2) ← START HERE
-├── ⚠️ Testing: 17 test files, 5,246 assertions BUT 4.3% coverage — NEEDS expansion to API routes + components
-├── ⚠️ Testing (E2E): Playwright for auth/security paths (80%+ coverage target) — PENDING
+├── ⚠️ Testing: 22 test files, 204 assertions, 4.96% coverage — expanded with Vitest unit tests (with-error-handler, zod-schemas, workspace-scoping, security, rate-limit)
+├── ⚠️ Testing (E2E): Playwright installed + 2 spec files (marketing-and-auth, api-endpoints) — needs CI integration
 ├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired — DONE
 ├── ✅ Error handling: withErrorHandler on 210/225 API routes (15 skipped: webhooks/SSE/callbacks) — DONE
 ├── ✅ CI/CD: GitHub Actions (5 workflows: lint + typecheck + test + build + coverage + CodeQL + cron workers) — DONE
@@ -718,7 +718,7 @@ Phase 2: LOCALIZATION (Month 2-3)
 ├── ✅ 2 locales: id (Indonesian) + en (English) — DONE (698-line message files each)
 ├── ✅ Locale switcher UI (navbar + footer) — DONE
 ├── ✅ Locale-aware date/number/currency formatting (lib/i18n/format.ts) — DONE
-├── ⚠️ Extract hardcoded strings to JSON message files — BARELY STARTED (only 6 useTranslations calls, ~61 hardcoded strings remain)
+├── ⚠️ Extract hardcoded strings to JSON message files — IN PROGRESS (10+ getTranslations/useTranslations calls, login/register/loading/error wired, ~50 hardcoded strings remain)
 └── ⚠️ Multi-currency support (USD, EUR, IDR, SGD) — formatCurrency() ready, pricing page pending
 
 Phase 3: SCALE (Month 3-6)
@@ -762,10 +762,10 @@ Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (Whats
 ### When Working on Improvements
 
 When tackling any task, always check if it helps close a gap from the scorecard above. Prioritize:
-1. **Testing coverage** (🔴 critical) — 4.3% coverage is a liability. Add API route tests, component tests, and Playwright E2E
+1. **Testing coverage** (🔴 critical) — 4.96% coverage (22 test files, 204 tests). Playwright framework ready. Need: API route integration tests, component tests, Playwright CI
 2. **Payment integration** (🔴 critical) — Stripe/Xendit for real revenue. Infrastructure is ready (payment_intents, webhooks)
-3. **i18n string extraction** (⚠️ high) — Only 6 `useTranslations` calls. Extract ~61 hardcoded strings from components
-4. **Zod validation gap** (⚠️ medium) — ~132/225 API routes validated (59%). 10 critical routes added. Close remaining 41%
+3. **i18n string extraction** (⚠️ high) — 10+ translation calls wired. Extract remaining ~50 hardcoded strings from app components
+4. **Zod validation gap** (⚠️ medium) — ~146/225 API routes validated (65%). 14 critical routes added across Sprint 1+2. Close remaining 35%
 5. ~~**withErrorHandler rollout**~~ ✅ DONE — 210/225 routes wrapped (15 intentionally skipped)
 
 ---

@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const mappingItemSchema = z.object({
+  team_id: z.string().uuid("Invalid team ID"),
+  category_id: z.string().uuid("Invalid category ID"),
+  is_active: z.boolean().optional().default(true),
+});
+
+const mappingsBodySchema = z.object({
+  mapping: mappingItemSchema.optional(),
+  mappings: z.array(mappingItemSchema).optional(),
+}).refine(
+  (d) => d.mapping || (d.mappings && d.mappings.length > 0),
+  { message: "Provide 'mapping' or 'mappings'" }
+);
 
 type MappingInput = {
   team_id?: unknown;
@@ -100,19 +115,10 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   if (!auth.ok) return auth.res;
 
   const { db, withCookies, workspaceId } = auth;
-  const body = (await req.json().catch(() => null)) as
-    | { mapping?: MappingInput; mappings?: MappingInput[] }
-    | null;
+  const raw = await req.json();
+  const body = mappingsBodySchema.parse(raw);
 
-  const list = Array.isArray(body?.mappings)
-    ? body?.mappings
-    : body?.mapping
-      ? [body.mapping]
-      : [];
-
-  if (list.length === 0) {
-    return withCookies(NextResponse.json({ error: "no_mappings" }, { status: 400 }));
-  }
+  const list = body.mappings ?? (body.mapping ? [body.mapping] : []);
 
   const { data: teamsRaw, error: teamErr } = await db
     .from("teams")

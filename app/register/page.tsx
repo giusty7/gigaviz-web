@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { AUTH_DISCLAIMER_LINES } from "@/lib/copy";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -22,10 +23,12 @@ export default async function RegisterPage() {
     redirect("/app");
   }
 
+  const t = await getTranslations("app");
+
   return (
     <AuthLayout
-      title="Enter the Imperium"
-      description="Your single gateway to 10 interconnected digital powerhouses."
+      title={t("enterImperium")}
+      description={t("imperiumDesc")}
       disclaimerLines={AUTH_DISCLAIMER_LINES}
     >
       <RegisterForm />
