@@ -29,13 +29,11 @@ export default defineConfig({
     },
   ],
 
-  /* Start dev server before tests if not in CI */
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: "npm run dev",
-        url: "http://localhost:3000",
-        reuseExistingServer: true,
-        timeout: 120_000,
-      },
+  /* Start server before tests: production build in CI, dev server locally */
+  webServer: {
+    command: process.env.CI ? "npm start" : "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });

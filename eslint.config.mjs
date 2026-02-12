@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Scripts use Node.js style
     "scripts/**",
+    // Generated coverage reports
+    "coverage/**",
   ]),
 ]);
 
