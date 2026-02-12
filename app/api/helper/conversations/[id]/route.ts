@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const patchConversationSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+});
 
 export const runtime = "nodejs";
 
@@ -48,11 +53,11 @@ export const PATCH = withErrorHandler(async (req: NextRequest, { params }: Route
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const title = (body?.title as string | undefined)?.trim();
-
-  if (!title) {
-    return withCookies(NextResponse.json({ ok: false, error: "Title is required" }, { status: 400 }));
+  const parsed = patchConversationSchema.safeParse(body);
+  if (!parsed.success) {
+    return withCookies(NextResponse.json({ ok: false, error: "Title is required", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 }));
   }
+  const { title } = parsed.data;
 
   const { data, error } = await db
     .from("helper_conversations")

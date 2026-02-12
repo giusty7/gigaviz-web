@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useTranslations } from "next-intl";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,11 +36,11 @@ function normalizeSlug(input: string) {
 
 const slugPattern = /^[a-z0-9-]{3,32}$/;
 
-function SubmitButton({ label }: { label: string }) {
+function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "Working..." : label}
+      {pending ? pendingLabel : label}
     </Button>
   );
 }
@@ -62,10 +63,11 @@ export default function OnboardingForm({
   const [workspaceType, setWorkspaceType] = useState<"individual" | "team">(
     "individual"
   );
+  const t = useTranslations("onboarding");
 
   const message = useMemo(() => {
     if (error === "slug_taken") {
-      return "Slug already taken. Choose another.";
+      return t("errorSlugTaken");
     }
     if (error?.includes("invalid")) {
       return decodeURIComponent(error);
@@ -74,7 +76,7 @@ export default function OnboardingForm({
       return decodeURIComponent(error);
     }
     return null;
-  }, [error]);
+  }, [error, t]);
 
   const slugValue = slugEdited ? slug : normalizeSlug(name);
   const slugValid = slugPattern.test(slugValue);
@@ -131,15 +133,15 @@ export default function OnboardingForm({
 
   const statusLabel =
     status === "available"
-      ? "Available"
+      ? t("slugAvailable")
       : status === "taken"
-      ? "Already in use"
+      ? t("slugTaken")
       : status === "checking"
-      ? "Checking..."
+      ? t("slugChecking")
       : status === "invalid"
-      ? "Invalid slug"
+      ? t("slugInvalid")
       : status === "error"
-      ? "Slug check failed"
+      ? t("slugError")
       : "";
 
   const statusClass =
@@ -154,15 +156,15 @@ export default function OnboardingForm({
       <form action={actionInvite} className="space-y-4 rounded-xl border border-gigaviz-border bg-gigaviz-card p-6">
         {message ? (
           <Alert variant="destructive">
-            <AlertTitle>Invite error</AlertTitle>
+            <AlertTitle>{t("inviteError")}</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
         ) : null}
 
         <div>
-          <label className="text-sm font-medium">Invite teammates</label>
+          <label className="text-sm font-medium">{t("inviteLabel")}</label>
           <p className="text-xs text-gigaviz-muted">
-            Add team member emails (one per line). Optional for now.
+            {t("inviteHelper")}
           </p>
         </div>
 
@@ -175,10 +177,10 @@ export default function OnboardingForm({
         />
 
         <div className="flex flex-col gap-2">
-          <SubmitButton label="Save invites" />
+          <SubmitButton label={t("saveInvites")} pendingLabel={t("working")} />
           {workspaceSlug ? (
             <Button type="button" variant="secondary" asChild>
-              <a href={`/${workspaceSlug}/dashboard`}>Skip for now</a>
+              <a href={`/${workspaceSlug}/dashboard`}>{t("skipForNow")}</a>
             </Button>
           ) : null}
         </div>
@@ -190,13 +192,13 @@ export default function OnboardingForm({
     <form action={actionCreate} className="space-y-4 rounded-xl border border-gigaviz-border bg-gigaviz-card p-6">
       {message ? (
         <Alert variant="destructive">
-          <AlertTitle>Setup error</AlertTitle>
+          <AlertTitle>{t("setupError")}</AlertTitle>
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       ) : null}
 
       <div>
-        <label className="text-sm font-medium">Workspace name</label>
+        <label className="text-sm font-medium">{t("workspaceNameLabel")}</label>
         <Input
           name="workspace_name"
           placeholder="Gigaviz Studio"
@@ -207,7 +209,7 @@ export default function OnboardingForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Workspace slug</label>
+        <label className="text-sm font-medium">{t("slugLabel")}</label>
         <Input
           name="workspace_slug"
           placeholder="gigaviz-studio"
@@ -223,7 +225,7 @@ export default function OnboardingForm({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Workspace type</label>
+        <label className="text-sm font-medium">{t("workspaceTypeLabel")}</label>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <label className="flex items-center gap-2 rounded-lg border border-gigaviz-border bg-gigaviz-surface px-3 py-2 text-sm">
             <input
@@ -233,7 +235,7 @@ export default function OnboardingForm({
               checked={workspaceType === "individual"}
               onChange={() => setWorkspaceType("individual")}
             />
-            Individual
+            {t("individual")}
           </label>
           <label className="flex items-center gap-2 rounded-lg border border-gigaviz-border bg-gigaviz-surface px-3 py-2 text-sm">
             <input
@@ -243,12 +245,12 @@ export default function OnboardingForm({
               checked={workspaceType === "team"}
               onChange={() => setWorkspaceType("team")}
             />
-            Team
+            {t("team")}
           </label>
         </div>
       </div>
 
-      <SubmitButton label="Create workspace" />
+      <SubmitButton label={t("createButton")} pendingLabel={t("working")} />
     </form>
   );
 }

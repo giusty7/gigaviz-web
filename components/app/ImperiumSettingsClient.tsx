@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import {
   User,
   Shield,
@@ -84,10 +85,10 @@ type ImperiumSettingsClientProps = {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const tabs = [
-  { id: "profile", label: "Profile", icon: <User className="h-4 w-4" /> },
-  { id: "security", label: "Security", icon: <Shield className="h-4 w-4" /> },
-  { id: "members", label: "Members", icon: <Users className="h-4 w-4" /> },
-  { id: "billing", label: "Billing", icon: <CreditCard className="h-4 w-4" /> },
+  { id: "profile", labelKey: "tabs.profile", icon: <User className="h-4 w-4" /> },
+  { id: "security", labelKey: "tabs.security", icon: <Shield className="h-4 w-4" /> },
+  { id: "members", labelKey: "tabs.members", icon: <Users className="h-4 w-4" /> },
+  { id: "billing", labelKey: "tabs.billing", icon: <CreditCard className="h-4 w-4" /> },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -112,23 +113,29 @@ export function ImperiumSettingsClient({
   const [activeTab, setActiveTab] = useState("profile");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const t = useTranslations("settings");
 
   // Get user initials for avatar
   const initials = profile?.full_name
     ? profile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
     : userEmail.slice(0, 2).toUpperCase();
 
+  const translatedTabs = tabs.map((tab) => ({
+    ...tab,
+    label: t(tab.labelKey),
+  }));
+
   const navLinks = [
-    { href: `/${workspace.slug}/billing`, label: "Billing Details" },
-    { href: `/${workspace.slug}/tokens`, label: "Token Usage" },
-    { href: `/${workspace.slug}/settings/design-tokens`, label: "Design Tokens" },
+    { href: `/${workspace.slug}/billing`, label: t("navBillingDetails") },
+    { href: `/${workspace.slug}/tokens`, label: t("navTokenUsage") },
+    { href: `/${workspace.slug}/settings/design-tokens`, label: t("navDesignTokens") },
   ];
 
   return (
     <ImperiumSettingsLayout
-      title="Settings"
-      description="Manage your account and workspace preferences."
-      tabs={tabs}
+      title={t("title")}
+      description={t("pageDescription")}
+      tabs={translatedTabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       navLinks={navLinks}
@@ -139,8 +146,8 @@ export function ImperiumSettingsClient({
       {activeTab === "profile" && (
         <>
           <ImperiumCard
-            title="Profile Settings"
-            description="Your personal account information"
+            title={t("profile.title")}
+            description={t("profile.description")}
             icon={<User className="h-4 w-4" />}
           >
             <div className="flex flex-col gap-6 md:flex-row md:items-start">
@@ -164,7 +171,7 @@ export function ImperiumSettingsClient({
                   </div>
                 </div>
                 <button className="text-xs text-[#d4af37] hover:underline">
-                  Change avatar
+                  {t("profile.changeAvatar")}
                 </button>
               </div>
 
@@ -173,29 +180,29 @@ export function ImperiumSettingsClient({
                 <div className="grid gap-4 md:grid-cols-2">
                   <ImperiumInput
                     name="full_name"
-                    label="Full Name"
-                    placeholder="Enter your full name"
+                    label={t("profile.fullName")}
+                    placeholder={t("profile.fullNamePlaceholder")}
                     defaultValue={profile?.full_name ?? ""}
                   />
                   <ImperiumInput
-                    label="Email Address"
+                    label={t("profile.emailAddress")}
                     value={profile?.email ?? userEmail}
                     readOnly
                     className="cursor-not-allowed opacity-70"
                   />
                   <ImperiumInput
-                    label="Business Entity"
-                    placeholder="e.g., PT Glorious Victorious"
+                    label={t("profile.businessEntity")}
+                    placeholder={t("profile.businessEntityPlaceholder")}
                     defaultValue=""
                   />
                   <ImperiumInput
-                    label="Phone Number"
+                    label={t("profile.phoneNumber")}
                     placeholder="+62 xxx xxxx xxxx"
                     defaultValue=""
                   />
                 </div>
                 <div className="flex justify-end">
-                  <ImperiumButton type="submit">Save Profile</ImperiumButton>
+                  <ImperiumButton type="submit">{t("profile.saveButton")}</ImperiumButton>
                 </div>
               </form>
             </div>
@@ -203,22 +210,22 @@ export function ImperiumSettingsClient({
 
           {/* Workspace Settings */}
           <ImperiumCard
-            title="Workspace Settings"
-            description="Only owners and admins can update workspace data"
+            title={t("workspace.title")}
+            description={t("workspace.description")}
             icon={<Building2 className="h-4 w-4" />}
-            badge={canEditWorkspace ? "Admin Access" : undefined}
+            badge={canEditWorkspace ? t("workspace.adminAccessBadge") : undefined}
           >
             <form action={updateWorkspaceAction} className="space-y-4">
               <input type="hidden" name="workspace_id" value={workspace.id} />
               <div className="grid gap-4 md:grid-cols-2">
                 <ImperiumInput
                   name="workspace_name"
-                  label="Workspace Name"
+                  label={t("workspace.nameLabel")}
                   defaultValue={workspace.name}
                   disabled={!canEditWorkspace}
                 />
                 <ImperiumInput
-                  label="Workspace Slug"
+                  label={t("workspace.slugLabel")}
                   value={workspace.slug}
                   readOnly
                   className="cursor-not-allowed opacity-70"
@@ -226,7 +233,7 @@ export function ImperiumSettingsClient({
               </div>
               <div className="flex justify-end">
                 <ImperiumButton type="submit" disabled={!canEditWorkspace}>
-                  Save Workspace
+                  {t("workspace.saveButton")}
                 </ImperiumButton>
               </div>
             </form>
@@ -240,16 +247,16 @@ export function ImperiumSettingsClient({
       {activeTab === "security" && (
         <>
           <ImperiumCard
-            title="Two-Factor Authentication"
-            description="Add an extra layer of security to your account"
+            title={t("securityTab.twoFactorTitle")}
+            description={t("securityTab.twoFactorDescription")}
             icon={<Shield className="h-4 w-4" />}
           >
             <div className="space-y-4">
               <ImperiumToggle
                 checked={twoFactorEnabled}
                 onChange={setTwoFactorEnabled}
-                label="Enable 2FA"
-                description="Require a verification code when signing in"
+                label={t("securityTab.enable2fa")}
+                description={t("securityTab.enable2faDescription")}
               />
               {twoFactorEnabled && (
                 <motion.div
@@ -258,11 +265,11 @@ export function ImperiumSettingsClient({
                   className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-4"
                 >
                   <p className="text-sm text-[#f5f5dc]/70">
-                    Two-factor authentication is enabled. You&apos;ll need to enter a code from your authenticator app when signing in.
+                    {t("securityTab.twoFactorEnabledMessage")}
                   </p>
                   <ImperiumButton variant="secondary" size="sm" className="mt-3">
                     <Key className="mr-2 h-3 w-3" />
-                    View Backup Codes
+                    {t("securityTab.viewBackupCodes")}
                   </ImperiumButton>
                 </motion.div>
               )}
@@ -270,46 +277,46 @@ export function ImperiumSettingsClient({
           </ImperiumCard>
 
           <ImperiumCard
-            title="Password Settings"
-            description="Update your password or reset it"
+            title={t("securityTab.passwordTitle")}
+            description={t("securityTab.passwordDescription")}
             icon={<Lock className="h-4 w-4" />}
           >
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <ImperiumInput
                   type="password"
-                  label="Current Password"
-                  placeholder="Enter current password"
+                  label={t("securityTab.currentPassword")}
+                  placeholder={t("securityTab.currentPassword")}
                 />
                 <div />
                 <ImperiumInput
                   type="password"
-                  label="New Password"
-                  placeholder="Enter new password"
+                  label={t("securityTab.newPassword")}
+                  placeholder={t("securityTab.newPassword")}
                 />
                 <ImperiumInput
                   type="password"
-                  label="Confirm New Password"
-                  placeholder="Confirm new password"
+                  label={t("securityTab.confirmNewPassword")}
+                  placeholder={t("securityTab.confirmNewPassword")}
                 />
               </div>
               <div className="flex justify-end">
-                <ImperiumButton>Update Password</ImperiumButton>
+                <ImperiumButton>{t("securityTab.updatePasswordButton")}</ImperiumButton>
               </div>
             </div>
           </ImperiumCard>
 
           <ImperiumCard
-            title="Notifications"
-            description="Manage how you receive notifications"
+            title={t("securityTab.notificationsTitle")}
+            description={t("securityTab.notificationsDescription")}
             icon={<Mail className="h-4 w-4" />}
           >
             <div className="space-y-3">
               <ImperiumToggle
                 checked={emailNotifications}
                 onChange={setEmailNotifications}
-                label="Email Notifications"
-                description="Receive important updates via email"
+                label={t("securityTab.emailNotifications")}
+                description={t("securityTab.emailNotificationsDescription")}
               />
             </div>
           </ImperiumCard>
@@ -325,10 +332,10 @@ export function ImperiumSettingsClient({
       {activeTab === "members" && (
         <>
           <ImperiumCard
-            title="Team Members"
-            description={`${members.length} member(s) in this workspace`}
+            title={t("members.title")}
+            description={t("members.description", { count: members.length })}
             icon={<Users className="h-4 w-4" />}
-            badge={canManageMembers ? "Can Manage" : undefined}
+            badge={canManageMembers ? t("members.canManageBadge") : undefined}
           >
             <div className="space-y-4">
               {/* Invite Button */}
@@ -341,10 +348,10 @@ export function ImperiumSettingsClient({
               {/* Members Table */}
               {members.length === 0 ? (
                 <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/40 p-6 text-center text-sm text-[#f5f5dc]/50">
-                  No other members yet.
+                  {t("members.empty")}
                 </div>
               ) : (
-                <ImperiumTable headers={["Member", "Role", "Actions"]}>
+                <ImperiumTable headers={[t("members.colMember"), t("members.colRole"), t("members.colActions")]}>
                   {members.map((member) => (
                     <ImperiumTableRow key={member.user_id}>
                       <ImperiumTableCell>
@@ -358,7 +365,7 @@ export function ImperiumSettingsClient({
                               {member.displayName}
                               {member.isSelf && (
                                 <span className="rounded-full bg-[#d4af37]/15 px-2 py-0.5 text-[9px] uppercase text-[#d4af37]">
-                                  You
+                                  {t("members.youTag")}
                                 </span>
                               )}
                             </div>
@@ -377,12 +384,12 @@ export function ImperiumSettingsClient({
                             <form action={leaveWorkspaceAction}>
                               <input type="hidden" name="workspace_id" value={workspace.id} />
                               <ImperiumButton variant="secondary" size="sm">
-                                Leave
+                                {t("members.leaveButton")}
                               </ImperiumButton>
                             </form>
                           ) : (
                             <span className="text-xs text-[#f5f5dc]/40">
-                              {member.isLastOwner ? "Last owner" : "Owner"}
+                              {member.isLastOwner ? t("members.lastOwner") : t("members.ownerLabel")}
                             </span>
                           )
                         ) : canManageMembers ? (
@@ -394,11 +401,11 @@ export function ImperiumSettingsClient({
                               size="sm"
                               disabled={member.isLastOwner}
                             >
-                              Remove
+                              {t("members.removeButton")}
                             </ImperiumButton>
                           </form>
                         ) : (
-                          <span className="text-xs text-[#f5f5dc]/40">No access</span>
+                          <span className="text-xs text-[#f5f5dc]/40">{t("members.noAccess")}</span>
                         )}
                       </ImperiumTableCell>
                     </ImperiumTableRow>
@@ -407,7 +414,7 @@ export function ImperiumSettingsClient({
               )}
 
               <div className="text-xs text-[#f5f5dc]/40">
-                Owners and admins can remove members. You can leave the workspace if you are not the owner.
+                {t("members.helpText")}
               </div>
             </div>
           </ImperiumCard>
@@ -415,8 +422,8 @@ export function ImperiumSettingsClient({
           {/* Pending Invites */}
           {canManageMembers && pendingInvites.length > 0 && (
             <ImperiumCard
-              title="Pending Invites"
-              description={`${pendingInvites.length} invite(s) waiting for acceptance`}
+              title={t("members.pendingInvitesTitle")}
+              description={t("members.pendingInvitesDescription", { count: pendingInvites.length })}
               icon={<Mail className="h-4 w-4" />}
             >
               {pendingInvitesSlot}
@@ -431,25 +438,25 @@ export function ImperiumSettingsClient({
       {activeTab === "billing" && (
         <>
           <ImperiumCard
-            title="Current Plan"
-            description="Your active subscription"
+            title={t("billingTab.currentPlanTitle")}
+            description={t("billingTab.currentPlanDescription")}
             icon={<Crown className="h-4 w-4" />}
-            badge="Active"
+            badge={t("billingTab.activeBadge")}
           >
             <div className="space-y-6">
               {/* Plan Info */}
               <div className="flex items-center justify-between rounded-xl border border-[#d4af37]/30 bg-gradient-to-r from-[#d4af37]/10 to-[#f9d976]/5 p-5">
                 <div>
                   <div className="text-lg font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-                    Imperium Founder Edition
+                    {t("billingTab.planName")}
                   </div>
                   <div className="mt-1 text-sm text-[#f5f5dc]/60">
-                    Full access to all modules and features
+                    {t("billingTab.planDescription")}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-[#d4af37]">$49</div>
-                  <div className="text-xs text-[#f5f5dc]/40">/month</div>
+                  <div className="text-xs text-[#f5f5dc]/40">{t("billingTab.perMonth")}</div>
                 </div>
               </div>
 
@@ -457,12 +464,12 @@ export function ImperiumSettingsClient({
               <div className="flex flex-wrap gap-3">
                 <Link href={`/${workspace.slug}/billing`}>
                   <ImperiumButton variant="secondary">
-                    Manage Subscription
+                    {t("billingTab.manageSubscription")}
                   </ImperiumButton>
                 </Link>
                 <ImperiumButton variant="secondary">
                   <Download className="mr-2 h-4 w-4" />
-                  Download Invoice
+                  {t("billingTab.downloadInvoice")}
                 </ImperiumButton>
               </div>
             </div>
@@ -470,28 +477,28 @@ export function ImperiumSettingsClient({
 
           {/* Billing History */}
           <ImperiumCard
-            title="Billing History"
-            description="Recent transactions and invoices"
+            title={t("billingTab.historyTitle")}
+            description={t("billingTab.historyDescription")}
             icon={<CreditCard className="h-4 w-4" />}
           >
-            <ImperiumTable headers={["Date", "Description", "Amount", "Status"]}>
+            <ImperiumTable headers={[t("billingTab.colDate"), t("billingTab.colDescription"), t("billingTab.colAmount"), t("billingTab.colStatus")]}>
               <ImperiumTableRow>
                 <ImperiumTableCell>Jan 1, 2026</ImperiumTableCell>
-                <ImperiumTableCell>Imperium Founder - Monthly</ImperiumTableCell>
+                <ImperiumTableCell>{t("billingTab.historyItemDescription")}</ImperiumTableCell>
                 <ImperiumTableCell>$49.00</ImperiumTableCell>
                 <ImperiumTableCell align="right">
                   <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-400">
-                    Paid
+                    {t("billingTab.statusPaid")}
                   </span>
                 </ImperiumTableCell>
               </ImperiumTableRow>
               <ImperiumTableRow>
                 <ImperiumTableCell>Dec 1, 2025</ImperiumTableCell>
-                <ImperiumTableCell>Imperium Founder - Monthly</ImperiumTableCell>
+                <ImperiumTableCell>{t("billingTab.historyItemDescription")}</ImperiumTableCell>
                 <ImperiumTableCell>$49.00</ImperiumTableCell>
                 <ImperiumTableCell align="right">
                   <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-400">
-                    Paid
+                    {t("billingTab.statusPaid")}
                   </span>
                 </ImperiumTableCell>
               </ImperiumTableRow>

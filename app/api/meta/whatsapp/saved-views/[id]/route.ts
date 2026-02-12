@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { forbiddenResponse, requireWorkspaceMember, unauthorizedResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const deleteSavedViewSchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspace ID"),
+});
+
+const updateSavedViewSchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspace ID"),
+  name: z.string().min(1).max(255).optional(),
+  filters: z.record(z.string(), z.unknown()).optional(),
+  isDefault: z.boolean().optional(),
+});
 
 export const runtime = "nodejs";
 
@@ -26,16 +38,16 @@ export const DELETE = withErrorHandler(async (req: NextRequest, { params }: Para
   const { id: viewId } = await params;
   
   const body = await req.json().catch(() => ({}));
-  const workspaceId = body.workspaceId;
-
-  if (!workspaceId) {
+  const parsed = deleteSavedViewSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(
       NextResponse.json(
-        { error: "bad_request", reason: "workspace_id_required" },
+        { error: "bad_request", reason: "workspace_id_required", fieldErrors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     );
   }
+  const { workspaceId } = parsed.data;
 
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
   if (!membership.ok) {
@@ -93,16 +105,16 @@ export const PUT = withErrorHandler(async (req: NextRequest, { params }: Params)
   const { id: viewId } = await params;
   
   const body = await req.json().catch(() => ({}));
-  const { workspaceId, name, filters, isDefault } = body;
-
-  if (!workspaceId) {
+  const parsed = updateSavedViewSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(
       NextResponse.json(
-        { error: "bad_request", reason: "workspace_id_required" },
+        { error: "bad_request", reason: "workspace_id_required", fieldErrors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     );
   }
+  const { workspaceId, name, filters, isDefault } = parsed.data;
 
   const membership = await requireWorkspaceMember(userData.user.id, workspaceId);
   if (!membership.ok) {

@@ -10,6 +10,12 @@ import {
 } from "@/lib/auth/guard";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { z } from "zod";
+
+const processEventsSchema = z.object({
+  workspaceId: z.string().uuid().optional().nullable(),
+  reconcile: z.boolean().optional(),
+});
 
 export const runtime = "nodejs";
 
@@ -26,9 +32,10 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
 
   const url = new URL(req.url);
   const body = await req.json().catch(() => ({}));
+  const parsed = processEventsSchema.safeParse(body);
   const reconcile =
-    url.searchParams.get("reconcile") === "1" || Boolean(body?.reconcile);
-  const workspaceId = getWorkspaceId(req, undefined, body.workspaceId);
+    url.searchParams.get("reconcile") === "1" || Boolean(parsed.success && parsed.data.reconcile);
+  const workspaceId = getWorkspaceId(req, undefined, parsed.success ? parsed.data.workspaceId : undefined);
   if (!workspaceId) {
     return workspaceRequiredResponse(withCookies);
   }

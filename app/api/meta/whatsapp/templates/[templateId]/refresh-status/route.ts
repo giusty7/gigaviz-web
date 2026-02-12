@@ -18,6 +18,14 @@ import {
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { z } from "zod";
+
+const refreshStatusSchema = z.object({
+  workspaceSlug: z.string().min(1).max(100).optional().nullable(),
+  workspaceId: z.string().uuid().optional().nullable(),
+  connectionId: z.string().uuid().optional().nullable(),
+  phoneNumberId: z.string().min(1).max(100).optional().nullable(),
+});
 
 export const runtime = "nodejs";
 
@@ -113,10 +121,11 @@ export const POST = withErrorHandler(async (
   const { templateId } = await params;
   const body = await req.json().catch(() => ({}));
   const url = new URL(req.url);
-  const workspaceSlug = body.workspaceSlug ?? url.searchParams.get("workspaceSlug");
-  const workspaceIdParam = body.workspaceId ?? url.searchParams.get("workspaceId");
-  const connectionId = body.connectionId ?? url.searchParams.get("connectionId");
-  const phoneNumberId = body.phoneNumberId ?? url.searchParams.get("phoneNumberId");
+  const parsed = refreshStatusSchema.safeParse(body);
+  const workspaceSlug = (parsed.success ? parsed.data.workspaceSlug : null) ?? url.searchParams.get("workspaceSlug");
+  const workspaceIdParam = (parsed.success ? parsed.data.workspaceId : null) ?? url.searchParams.get("workspaceId");
+  const connectionId = (parsed.success ? parsed.data.connectionId : null) ?? url.searchParams.get("connectionId");
+  const phoneNumberId = (parsed.success ? parsed.data.phoneNumberId : null) ?? url.searchParams.get("phoneNumberId");
 
   const adminDb = supabaseAdmin();
   const resolved = await resolveWorkspaceId(

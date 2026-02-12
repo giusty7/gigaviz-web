@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { products } from "@/lib/products";
 import { trackCta } from "@/lib/analytics";
 import { LocaleSwitcher } from "@/components/ui/locale-switcher";
@@ -19,15 +20,15 @@ type NavbarProps = {
   variant?: "default" | "marketing";
 };
 
-const navItems: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/blog", label: "Blog" },
-  { href: "/changelog", label: "Changelog" },
-  { href: "/status", label: "Status" },
-  { href: "/roadmap", label: "Roadmap" },
-  { href: "/policies", label: "Policies" },
-  { href: "/pricing", label: "Pricing" },
+const navItemKeys = [
+  { href: "/", key: "home" },
+  { href: "/about", key: "about" },
+  { href: "/blog", key: "blog" },
+  { href: "/changelog", key: "changelog" },
+  { href: "/status", key: "status" },
+  { href: "/roadmap", key: "roadmap" },
+  { href: "/policies", key: "policies" },
+  { href: "/pricing", key: "pricing" },
 ];
 
 const productNavOrder = [
@@ -43,15 +44,8 @@ const productNavOrder = [
   "trade",
 ];
 
-const productNav: NavItem[] = [
-  { href: "/products", label: "Overview" },
-  ...productNavOrder.map((slug) => {
-    const product = products.find((item) => item.slug === slug);
-    return {
-      href: `/products/${slug}`,
-      label: product?.name ?? slug,
-    };
-  }),
+const productNavBase = [
+  { href: "/products", labelKey: "overview" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -64,6 +58,20 @@ export function Navbar({ variant = "default" }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [productsMobileOpen, setProductsMobileOpen] = useState(false);
+  const t = useTranslations("nav");
+
+  const navItems: NavItem[] = navItemKeys.map((item) => ({
+    href: item.href,
+    label: t(item.key),
+  }));
+
+  const productNav: NavItem[] = [
+    ...productNavBase.map((item) => ({ href: item.href, label: t(item.labelKey) })),
+    ...productNavOrder.map((slug) => {
+      const product = products.find((item) => item.slug === slug);
+      return { href: `/products/${slug}`, label: product?.name ?? slug };
+    }),
+  ];
 
   const isMarketing = variant === "marketing";
 
@@ -112,7 +120,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               priority
             />
             <span className={`mt-1 hidden text-[11px] md:block ${taglineClass}`}>
-              Unified Digital Ecosystem
+              {t("tagline")}
             </span>
           </div>
         </Link>
@@ -158,7 +166,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               onClick={() => setProductsOpen((value) => !value)}
               onMouseEnter={() => setProductsOpen(true)}
             >
-              Products
+              {t("products")}
               <span className="text-xs">+</span>
             </button>
 
@@ -173,7 +181,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               ].join(" ")}
             >
               <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                Gigaviz Ecosystem
+                {t("ecosystemHeading")}
               </div>
               <div className="mt-3 grid gap-2">
                 {productNav.map((item) => (
@@ -227,14 +235,14 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
                 onClick={() => trackCta("Sign In", "navbar", "/dashboard")}
               >
-                Sign In
+                {t("signIn")}
               </Link>
               <Link
                 href="/get-started"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
                 onClick={() => trackCta("Get Started", "navbar", "/get-started")}
               >
-                Get Started
+                {t("getStarted")}
               </Link>
             </>
           ) : (
@@ -244,14 +252,14 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                 className={`rounded-2xl px-3 py-1.5 text-xs font-medium ${ctaGhost}`}
                 onClick={() => trackCta("View Plans", "navbar", "/pricing")}
               >
-                View Plans
+                {t("viewPlans")}
               </Link>
               <Link
                 href="/get-started"
                 className={`rounded-2xl px-3 py-1.5 text-xs font-semibold shadow-sm ${ctaPrimary}`}
                 onClick={() => trackCta("Get Started", "navbar", "/get-started")}
               >
-                Get Started
+                {t("getStarted")}
               </Link>
             </>
           )}
@@ -264,11 +272,11 @@ export function Navbar({ variant = "default" }: NavbarProps) {
               ? "inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] bg-transparent px-3 py-2 text-xs font-medium text-[color:var(--gv-text)] md:hidden"
               : "inline-flex items-center justify-center rounded-2xl border border-slate-700/70 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/60 md:hidden"
           }
-          aria-label="Open menu"
+          aria-label={t("openMenu")}
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
         >
-          {open ? "Close" : "Menu"}
+          {open ? t("close") : t("menu")}
         </button>
       </div>
 
@@ -319,7 +327,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                 aria-expanded={productsMobileOpen}
                 onClick={() => setProductsMobileOpen((value) => !value)}
               >
-                <span className="font-medium">Products</span>
+                <span className="font-medium">{t("products")}</span>
                 <span className={isMarketing ? "text-[color:var(--gv-muted)]" : "text-slate-400"}>
                   {productsMobileOpen ? "-" : "+"}
                 </span>
@@ -383,7 +391,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                       closeMenu();
                     }}
                   >
-                    Sign In
+                    {t("signIn")}
                   </Link>
                   <Link
                     href="/get-started"
@@ -393,7 +401,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                       closeMenu();
                     }}
                   >
-                    Get Started
+                    {t("getStarted")}
                   </Link>
                 </>
               ) : (
@@ -406,7 +414,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                       closeMenu();
                     }}
                   >
-                    View Plans
+                    {t("viewPlans")}
                   </Link>
                   <Link
                     href="/get-started"
@@ -416,7 +424,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                       closeMenu();
                     }}
                   >
-                    Get Started
+                    {t("getStarted")}
                   </Link>
                 </>
               )}
@@ -427,7 +435,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
                 ? "mt-3 text-center text-xs text-[color:var(--gv-muted)]"
                 : "mt-3 text-center text-xs text-slate-400"
             }>
-              One account, one dashboard for the entire Gigaviz ecosystem.
+              {t("mobileFooter")}
             </div>
           </div>
         </div>

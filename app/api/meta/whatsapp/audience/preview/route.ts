@@ -5,12 +5,33 @@
 
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import type {
   AudiencePreviewRequest,
   AudiencePreviewResponse,
 } from "@/types/wa-contacts";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const customFieldFilterSchema = z.object({
+  field: z.string().min(1),
+  operator: z.enum(["equals", "contains", "exists"]),
+  value: z.string().optional(),
+});
+
+const segmentRulesSchema = z.object({
+  includeTags: z.array(z.string()).optional(),
+  excludeTags: z.array(z.string()).optional(),
+  customFieldFilters: z.array(customFieldFilterSchema).optional(),
+  optInOnly: z.boolean().optional(),
+});
+
+const audiencePreviewSchema = z.object({
+  workspaceId: z.string().uuid("Invalid workspace ID"),
+  tags: z.array(z.string()).optional(),
+  segmentId: z.string().uuid().optional(),
+  rules: segmentRulesSchema.optional(),
+});
 
 export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
@@ -26,16 +47,15 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as AudiencePreviewRequest & {
-      workspaceId: string;
-    };
-
-    if (!body.workspaceId) {
+    const rawBody = await request.json();
+    const parsed = audiencePreviewSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "workspaceId required" },
+        { error: "workspaceId required", fieldErrors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
+    const body = parsed.data as AudiencePreviewRequest & { workspaceId: string };
 
     // Verify workspace access
     const { data: membership, error: membershipError } = await supabase

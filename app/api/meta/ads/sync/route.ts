@@ -8,6 +8,12 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { recordAuditEvent } from '@/lib/audit';
 import { logger } from '@/lib/logging';
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { z } from "zod";
+
+const adsSyncSchema = z.object({
+  workspace_id: z.string().min(1, "workspace_id is required"),
+  date_range: z.enum(["today", "yesterday", "last_7_days", "last_30_days", "last_90_days"]).default("last_7_days"),
+});
 
 const META_GRAPH_URL = 'https://graph.facebook.com/v21.0';
 
@@ -35,14 +41,14 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { workspace_id: workspaceIdOrSlug, date_range = 'last_7_days' } = body;
-
-    if (!workspaceIdOrSlug) {
+    const parsed = adsSyncSchema.safeParse(body);
+    if (!parsed.success) {
       return withCookies(NextResponse.json(
-        { error: 'workspace_id required' },
+        { error: 'workspace_id required', fieldErrors: parsed.error.flatten().fieldErrors },
         { status: 400 }
       ));
     }
+    const { workspace_id: workspaceIdOrSlug, date_range } = parsed.data;
 
     const workspaceId = await resolveWorkspaceId(supabase, workspaceIdOrSlug);
     if (!workspaceId) {

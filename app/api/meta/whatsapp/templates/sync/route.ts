@@ -15,6 +15,12 @@ import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { findTokenForConnection } from "@/lib/meta/wa-connections";
 import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { z } from "zod";
+
+const templateSyncSchema = z.object({
+  connectionId: z.string().uuid().optional().nullable(),
+  workspaceId: z.string().uuid().optional().nullable(),
+});
 
 type MetaTemplate = {
   name?: string;
@@ -37,8 +43,9 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   const body = await req.json().catch(() => ({}));
-  const connectionId = typeof body?.connectionId === "string" ? body.connectionId : null;
-  let workspaceId = getWorkspaceId(req, undefined, body.workspaceId);
+  const parsed = templateSyncSchema.safeParse(body);
+  const connectionId = parsed.success ? (parsed.data.connectionId ?? null) : null;
+  let workspaceId = getWorkspaceId(req, undefined, parsed.success ? parsed.data.workspaceId : undefined);
 
   const adminDb = supabaseAdmin();
   const connection = connectionId
