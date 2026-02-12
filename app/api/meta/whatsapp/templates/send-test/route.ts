@@ -16,6 +16,7 @@ import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { findConnectionById, getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
 import { getWaSettings } from "@/lib/meta/wa-settings";
 import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -30,7 +31,7 @@ export const runtime = "nodejs";
 
 const ALLOW_PENDING = process.env.META_HUB_ALLOW_PENDING_TEST === "true";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -223,4 +224,4 @@ export async function POST(req: NextRequest) {
       to: toPhone,
     })
   );
-}
+});

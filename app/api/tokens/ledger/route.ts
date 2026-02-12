@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { listTokenLedger } from "@/lib/tokens";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const searchParams = req.nextUrl.searchParams;
   const workspaceIdParam = searchParams.get("workspaceId") || undefined;
   const guard = await guardWorkspace(req, { workspaceId: workspaceIdParam });
@@ -26,4 +27,4 @@ export async function GET(req: NextRequest) {
   });
 
   return withCookies(NextResponse.json({ ledger }));
-}
+});

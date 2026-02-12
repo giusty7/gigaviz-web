@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { z } from "zod";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const eventSchema = z.object({
   eventName: z.enum(["Lead", "Purchase", "AddToCart", "QualifiedProspect"]),
@@ -142,7 +143,7 @@ async function sendMetaEvent(params: {
   return { url, data };
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireWorkspaceRole(req, ["admin", "supervisor"]);
   if (!auth.ok) return auth.res;
 
@@ -302,9 +303,9 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, eventId, status }));
-}
+});
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireWorkspaceRole(req, ["admin", "supervisor"]);
   if (!auth.ok) return auth.res;
 
@@ -331,4 +332,4 @@ export async function GET(req: NextRequest) {
       sendingEnabled: isTruthy(process.env.ENABLE_META_EVENTS_SEND),
     })
   );
-}
+});

@@ -3,13 +3,14 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const ReindexSchema = z.object({
   id: z.string().uuid(),
 });
 
 // POST - Reindex a knowledge source
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const admin = await requirePlatformAdmin();
     if (!admin.ok) {
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
     logger.error("Platform KB reindex error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // Chunk content into smaller pieces
 function chunkContent(content: string, maxChunkSize: number): string[] {

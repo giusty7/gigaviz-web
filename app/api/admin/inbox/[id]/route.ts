@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { recomputeConversationSla } from "@/lib/inbox/sla";
 import { parsePriority, parseTicketStatus } from "@/lib/inbox/validators";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const conversationPatchSchema = z.object({
   ticketStatus: z.unknown().optional(),
@@ -60,7 +61,7 @@ function parseIso(value: unknown) {
   return null;
 }
 
-export async function PATCH(req: NextRequest, { params }: Ctx) {
+export const PATCH = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -183,4 +184,4 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   }
 
   return withCookies(NextResponse.json({ thread }));
-}
+});

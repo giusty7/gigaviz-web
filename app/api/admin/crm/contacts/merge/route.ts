@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const mergeSchema = z.object({
   primary_contact_id: z.string().uuid(),
@@ -16,7 +17,7 @@ type ContactRow = {
   merged_into_contact_id: string | null;
 };
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -72,4 +73,4 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, result: rpcData }));
-}
+});

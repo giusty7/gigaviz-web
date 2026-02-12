@@ -5,6 +5,7 @@ import { ensureProfile } from "@/lib/profiles";
 import { getUserWorkspaces } from "@/lib/workspaces";
 import { creditTokens } from "@/lib/tokens";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const creditSchema = z.object({
   workspace_id: z.string().uuid("workspace_id must be a valid UUID"),
@@ -12,7 +13,7 @@ const creditSchema = z.object({
   note: z.string().optional(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   const user = userData?.user;
@@ -77,4 +78,4 @@ export async function POST(req: NextRequest) {
       NextResponse.json({ error: message }, { status: 400 })
     );
   }
-}
+});

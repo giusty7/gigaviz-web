@@ -2,6 +2,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { fetchMetaTemplates } from "@/lib/wa/templates";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 type MetaTemplate = {
   id?: string;
@@ -29,7 +30,7 @@ function buildSyncSummary(templates: MetaTemplate[]) {
   return { total, withId };
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireWorkspaceRole(req, ["admin", "supervisor"]);
   if (!auth.ok) return auth.res;
 
@@ -186,9 +187,9 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, updated, inserted, total: templates.length }));
-}
+});
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireWorkspaceRole(req, ["admin", "supervisor"]);
   if (!auth.ok) return auth.res;
 
@@ -199,4 +200,4 @@ export async function GET(req: NextRequest) {
       { status: 405 }
     )
   );
-}
+});

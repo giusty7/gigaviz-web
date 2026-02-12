@@ -10,6 +10,7 @@ import {
   workspaceRequiredResponse,
 } from '@/lib/auth/guard';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const conditionSchema = z.object({
   field: z.string(),
@@ -58,7 +59,7 @@ export const runtime = 'nodejs';
  * GET /api/meta/whatsapp/automation-rules
  * List automation rules for a workspace
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -97,13 +98,13 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ rules: rules || [] }));
-}
+});
 
 /**
  * POST /api/meta/whatsapp/automation-rules
  * Create a new automation rule
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -151,13 +152,13 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ rule }, { status: 201 }));
-}
+});
 
 /**
  * PATCH /api/meta/whatsapp/automation-rules
  * Update an existing automation rule
  */
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -220,13 +221,13 @@ export async function PATCH(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ rule }));
-}
+});
 
 /**
  * DELETE /api/meta/whatsapp/automation-rules
  * Delete an automation rule
  */
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -270,4 +271,4 @@ export async function DELETE(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ success: true }));
-}
+});

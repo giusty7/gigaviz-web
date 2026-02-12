@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { isSkillRoutingEnabled, routeToCategoryTeam } from "@/lib/inbox/routing";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const categorySchema = z.object({
   category_id: z.union([
@@ -13,7 +14,7 @@ const categorySchema = z.object({
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function PATCH(req: NextRequest, { params }: Ctx) {
+export const PATCH = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -126,4 +127,4 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   };
 
   return withCookies(NextResponse.json({ thread }));
-}
+});

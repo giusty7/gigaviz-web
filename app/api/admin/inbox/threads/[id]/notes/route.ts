@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const noteSchema = z.object({
   text: z.string().min(1, "text_required").max(10000),
@@ -16,7 +17,7 @@ type NoteRow = {
   author_user_id: string;
 };
 
-export async function GET(req: NextRequest, ctx: Ctx) {
+export const GET = withErrorHandler(async (req: NextRequest, ctx: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -45,9 +46,9 @@ export async function GET(req: NextRequest, ctx: Ctx) {
   }));
 
   return withCookies(NextResponse.json({ notes }));
-}
+});
 
-export async function POST(req: NextRequest, ctx: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, ctx: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -96,4 +97,4 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       },
     })
   );
-}
+});

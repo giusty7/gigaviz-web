@@ -9,14 +9,15 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   return NextResponse.json({ ok: false, message: "Use POST to process events" });
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -63,4 +64,4 @@ export async function POST(req: NextRequest) {
       aiTriggered,
     })
   );
-}
+});

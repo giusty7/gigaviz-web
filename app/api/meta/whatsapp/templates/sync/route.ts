@@ -14,6 +14,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { findTokenForConnection } from "@/lib/meta/wa-connections";
 import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 type MetaTemplate = {
   name?: string;
@@ -28,7 +29,7 @@ type MetaTemplate = {
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -317,4 +318,4 @@ export async function POST(req: NextRequest) {
       lastSyncedAt: now,
     })
   );
-}
+});

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ interface RouteParams {
  * GET /api/helper/conversations/[id]
  * Returns a single conversation by ID.
  */
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export const GET = withErrorHandler(async (req: NextRequest, { params }: RouteParams) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -34,13 +35,13 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   }
 
   return withCookies(NextResponse.json({ ok: true, conversation: data }));
-}
+});
 
 /**
  * PATCH /api/helper/conversations/[id]
  * Rename a conversation.
  */
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
+export const PATCH = withErrorHandler(async (req: NextRequest, { params }: RouteParams) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -70,13 +71,13 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   }
 
   return withCookies(NextResponse.json({ ok: true, conversation: data }));
-}
+});
 
 /**
  * DELETE /api/helper/conversations/[id]
  * Delete a conversation and all its messages.
  */
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export const DELETE = withErrorHandler(async (req: NextRequest, { params }: RouteParams) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -98,4 +99,4 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   }
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

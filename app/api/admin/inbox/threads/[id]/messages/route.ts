@@ -2,6 +2,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const messageSchema = z.object({
   text: z.string().min(1, "text_required").max(4096, "text_too_long"),
@@ -35,7 +36,7 @@ type AttachmentRow = {
   thumb_path: string | null;
 };
 
-export async function GET(req: NextRequest, ctx: Ctx) {
+export const GET = withErrorHandler(async (req: NextRequest, ctx: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -98,9 +99,9 @@ export async function GET(req: NextRequest, ctx: Ctx) {
   }));
 
   return withCookies(NextResponse.json({ messages }));
-}
+});
 
-export async function POST(req: NextRequest, ctx: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, ctx: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -160,4 +161,4 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   };
 
   return withCookies(NextResponse.json({ message: msg }));
-}
+});

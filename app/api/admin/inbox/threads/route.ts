@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { buildMessageSearchQuery, mergeConversationIds } from "@/lib/inbox/search";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ const threadQuerySchema = z.object({
   pinned: z.enum(["true", "false"]).optional(),
 });
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
@@ -207,4 +208,4 @@ export async function GET(req: NextRequest) {
     logger.error("admin/inbox/threads GET error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

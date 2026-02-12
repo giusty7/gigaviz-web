@@ -4,6 +4,7 @@ import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { recordAuditEvent } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,7 @@ const schema = z.object({
   notes: z.string().max(2000).optional().nullable(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { withCookies, user, workspaceId, body } = guard;
@@ -64,4 +65,4 @@ export async function POST(req: NextRequest) {
   }).catch(() => null);
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

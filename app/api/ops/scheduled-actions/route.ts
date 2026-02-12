@@ -7,10 +7,11 @@ import {
   cancelScheduledAction,
 } from "@/lib/ops/bulk-ops";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -36,9 +37,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -92,4 +93,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

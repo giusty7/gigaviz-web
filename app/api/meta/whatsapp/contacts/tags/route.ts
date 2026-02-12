@@ -6,8 +6,9 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -89,4 +90,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

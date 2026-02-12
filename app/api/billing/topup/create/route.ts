@@ -3,6 +3,7 @@ import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,7 @@ const packages: Record<string, { amountIdr: number; tokens: number; label: strin
   pkg_500k: { amountIdr: 500_000, tokens: 550_000, label: "500.000 + bonus" },
 };
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, user, withCookies } = guard;
@@ -111,4 +112,4 @@ export async function POST(req: NextRequest) {
       provider: intent.provider,
     })
   );
-}
+});

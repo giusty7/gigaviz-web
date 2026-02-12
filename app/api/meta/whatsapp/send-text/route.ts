@@ -13,6 +13,7 @@ import { rateLimitDb } from "@/lib/rate-limit";
 import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWaSettings } from "@/lib/meta/wa-settings";
 import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
@@ -22,7 +23,7 @@ const schema = z.object({
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -347,4 +348,4 @@ export async function POST(req: NextRequest) {
       )
     );
   }
-}
+});

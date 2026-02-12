@@ -2,6 +2,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { getAvailableFunctions } from "@/lib/helper/functions";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ export const runtime = "nodejs";
  * GET /api/helper/tools/list
  * List available functions for workspace
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const userRes = await requireUser(req);
   if (!userRes.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,4 +48,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

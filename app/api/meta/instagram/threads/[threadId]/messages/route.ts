@@ -4,11 +4,12 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ threadId: string }> }
-) {
+) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { threadId } = await params;
@@ -43,4 +44,4 @@ export async function GET(
       NextResponse.json({ error: message }, { status: 500 })
     );
   }
-}
+});

@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit";
 import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
 import { isPlatformAdmin } from "@/lib/platform/admin";
 import { supabaseServer } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
+const usageCapSchema = z.object({
+  cap: z.union([z.number().int().min(0).max(1_000_000_000), z.null()]),
+});
+
 type Ctx = { params: Promise<{ workspaceId: string }> };
 
-function parseCap(input: unknown) {
-  if (input === null) return null;
-  const num = Number(input);
-  if (!Number.isInteger(num)) return undefined;
-  if (num < 0 || num > 1_000_000_000) return undefined;
-  return num;
-}
-
-export async function PATCH(req: NextRequest, ctx: Ctx) {
+export const PATCH = withErrorHandler(async (req: NextRequest, ctx: Ctx) => {
   const params = await ctx.params;
   const guard = await guardWorkspace(req, params);
   if (!guard.ok) return guard.response;
@@ -37,10 +35,11 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   }
 
   const body = await req.json().catch(() => null);
-  const cap = parseCap(body?.cap);
-  if (cap === undefined) {
+  const parsed = usageCapSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(NextResponse.json({ error: "invalid_cap" }, { status: 400 }));
   }
+  const cap = parsed.data.cap;
 
   if (cap === null) {
     const { error } = await supabase.rpc("set_workspace_entitlement_payload", {
@@ -75,4 +74,4 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   }
 
   return withCookies(NextResponse.json({ workspaceId, cap }));
-}
+});

@@ -14,13 +14,14 @@ import {
   type ModuleKey,
 } from "@/lib/dashboard/preferences";
 import { modulesCatalog } from "@/lib/modules/catalog";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const patchSchema = z.object({
   workspace_id: z.string().min(1, "workspace_id is required"),
   pinned_modules: z.array(z.string()).min(0),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   const supabase = await supabaseServer();
   
   // Get authenticated user
@@ -65,9 +66,9 @@ export async function GET(request: NextRequest) {
   const pinnedModules = await getDashboardPreferences(user.id, workspaceId);
 
   return NextResponse.json({ pinnedModules });
-}
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withErrorHandler(async (request: NextRequest) => {
   const supabase = await supabaseServer();
 
   // Get authenticated user
@@ -137,4 +138,4 @@ export async function PATCH(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true, pinnedModules });
-}
+});

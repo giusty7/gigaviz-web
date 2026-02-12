@@ -1,15 +1,16 @@
 import { logger } from "@/lib/logging";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
  * GET /api/workspaces/[workspaceId]/members
  * Get all members of a workspace for filtering and assignment
  */
-export async function GET(
+export const GET = withErrorHandler(async (
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
-) {
+) => {
   try {
     const supabase = await supabaseServer();
     const {
@@ -77,4 +78,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});

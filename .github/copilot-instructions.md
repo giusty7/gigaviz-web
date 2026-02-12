@@ -665,71 +665,75 @@ Before submitting PR or marking work complete:
 
 ## Platform Audit Scorecard (Feb 2026)
 
-Last audited: **February 11, 2026** — update scores as improvements land.
+Last audited: **February 12, 2026** — update scores as improvements land.
 
 | Area | Score | Status | Notes |
 |------|-------|--------|-------|
-| Architecture & Code Quality | 8/10 | ✅ Strong | Next.js 16 + React 19, server-first, 381 routes, shared types barrel (`types/index.ts`), `withErrorHandler` API wrapper |
-| Authentication & Security | 10/10 | ✅ Hardened | 4-layer auth, admin bypass fixed (default-deny), health endpoint auth, CSP enforced, X-Frame-Options DENY, HSTS preload, hardcoded secrets removed, CodeQL + Dependabot |
-| Database & Data Model | 8/10 | ✅ Mature | 85 migrations, RLS on all tables, pgvector for RAG |
-| Marketing & SEO | 9/10 | ✅ Strong | JSON-LD, sitemap with hreflang alternates (en/id), Twitter cards, enhanced robots (googleBot), 6 policies |
-| Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks |
-| Developer Experience | 9/10 | ✅ Strong | Zod env validation, 55+ scripts, typecheck/lint, CI/CD with coverage reporting, Vitest + mock factories (`lib/__tests__/test-utils.ts`) |
-| Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy done, NO payment gateway (Stripe/Xendit) |
-| Module Completion | 6/10 | ⚠️ 4 Placeholders | Arena, Pay, Community, Trade are placeholder-only |
-| Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, dynamic imports for 7 heavy components, CDN cache headers, Suspense boundaries on 7 sub-routes (platform, dashboard, meta-hub, connections, helper, settings, inbox), loading.tsx + error.tsx on all route groups + sub-routes |
-| Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + API wrapper, structured JSON logger with PII scrubbing & correlation IDs, Slack/Discord alerting |
-| Testing | 7/10 | ✅ Good | Vitest configured, **143 unit tests** across 17 files (SLA, time, entitlements, products, i18n, logging, API types, WA types, audit, admin, test-utils), CI runs with coverage on every PR; still needs Playwright E2E |
-| Internationalization (i18n) | 5/10 | ⚠️ In Progress | next-intl installed, 2 locales (en/id), message files, locale switcher, locale-aware formatting; still needs full string extraction |
+| Architecture & Code Quality | 9/10 | ✅ Strong | Next.js 16.1 + React 19.2, server-first (73% server components), 460 route files, 225 API routes, 154 pages, 229 components, shared types barrel (`types/index.ts`), Zod v4 |
+| Authentication & Security | 10/10 | ✅ Hardened | 4-layer auth (114 `requirePlatformAdmin` + 55 `getAppContext`), 851 workspace_id references, 8 security headers (CSP, HSTS preload, X-Frame DENY, COOP, CORP), CodeQL + Dependabot |
+| Database & Data Model | 9/10 | ✅ Mature | 86 migrations, 332 RLS policies on 165+ tables, pgvector for RAG, performance indexes |
+| Marketing & SEO | 9/10 | ✅ Strong | JSON-LD on 4 pages, sitemap with hreflang alternates (en/id), OG + Twitter cards, enhanced robots (googleBot), 6 policies |
+| Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks, 20+ docs files |
+| Developer Experience | 9/10 | ✅ Strong | Zod env validation (build-time fail-fast), 55+ scripts, typecheck/lint, 5 CI/CD workflows (lint→typecheck→test→build + CodeQL + cron workers), Vitest 4 + mock factories |
+| Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy mature (wallets, ledger, rates, caps, budget guards), 5-plan hierarchy, 7 billing API routes — but **NO payment gateway** (all provider=manual), no Stripe/Xendit |
+| Module Completion | 7/10 | ⚠️ 4 Placeholders | 6 modules LIVE/BETA (Platform, Meta Hub, Helper, Inbox, Apps, Marketplace), 2 scaffold (Studio, Office), 4 placeholder (Arena, Pay, Community, Trade) |
+| Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 5 dynamic import pages (7 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 26 loading.tsx + 41 error.tsx, font optimization |
+| Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (507 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 210/225 API routes (15 intentionally skipped: webhooks/SSE/auth callbacks) |
+| Testing | 5/10 | ⚠️ Weak | 17 test files with 5,246 assertions but **4.3% statement coverage** (224/5,240). All tests in lib/ only — zero API route, component, or E2E tests. No Playwright |
+| Internationalization (i18n) | 4/10 | ⚠️ Weak | next-intl wired, 2 locales (698-line message files), locale switcher, cookie-based detection — but only 6 `useTranslations` calls, ~61 hardcoded English strings in components |
 
-**Overall: 7.8 / 10**
+**Overall: 7.9 / 10** (prev 7.6 — withErrorHandler rollout 210/225 routes, Zod validation on 10 critical routes, ops loading/error states)
 
 ### Module Status Map
 
-| Module | Status | Routes | Assessment |
-|--------|--------|--------|------------|
-| **Platform** | ✅ LIVE | 7 sub-routes | Full RBAC, audit, billing UI, workspace management |
-| **Meta Hub** | ✅ LIVE | 15 sub-routes, 60+ APIs | Flagship module. WhatsApp/IG/Messenger, AI reply, automation, CAPI |
-| **Helper** | ✅ BETA | 9 sub-routes, 18+ APIs | AI chat, knowledge base (RAG), CRM insights, workflows |
-| **Studio** | ⚠️ SCAFFOLD | 1 route | Route exists, submodules (Office, Graph, Tracks) under modules/ |
-| **Apps** | ⚠️ SCAFFOLD | 3 routes | Integration request form exists |
-| **Marketplace** | ⚠️ SCAFFOLD | 3 routes | Basic catalog structure |
-| **Arena** | 🔴 PLACEHOLDER | 0 | Page only |
-| **Pay** | 🔴 PLACEHOLDER | 0 | Page only — depends on payment gateway |
-| **Community** | 🔴 PLACEHOLDER | 0 | Page only |
-| **Trade** | 🔴 PLACEHOLDER | 0 | Page only |
+| Module | Status | Routes | APIs | Assessment |
+|--------|--------|--------|------|------------|
+| **Platform** | ✅ LIVE | 7 sub-routes | 9+ | Full RBAC, audit, billing UI, workspace management, teams, roles |
+| **Meta Hub** | ✅ LIVE | 17+ sub-routes | 76 | Flagship module. WhatsApp/IG/Messenger, AI reply, automation, CAPI, templates, contacts |
+| **Helper** | ✅ LIVE | 8 sub-routes | 21 | AI chat, knowledge base (RAG), CRM insights, workflows, leads |
+| **Inbox** | ✅ LIVE | 1 route | via admin/* | Unified inbox across WA/IG/Messenger with threading |
+| **Apps** | ⚠️ BETA | 3 routes | 1 | Real catalog querying `apps_catalog` table + request/roadmap pages |
+| **Marketplace** | ⚠️ BETA | 3 routes | 1 | Real DB queries (marketplace_items, creators, purchases) + sell page |
+| **Studio** | ⚠️ SCAFFOLD | 2 routes | 0 | Preview shell + module catalog grid (Office/Graph/Tracks) |
+| **Office** | ⚠️ EARLY | 1 route | 0 | Queries `office_templates` + `office_documents` — real DB, limited UI |
+| **Arena** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage only |
+| **Pay** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage — depends on payment gateway |
+| **Community** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage only |
+| **Trade** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage only |
 
 ### Go International Roadmap
 
 ```
 Phase 1: FOUNDATION (Month 1-2) ← START HERE
-├── ✅ Testing: Vitest installed, 143 unit tests (17 files: SLA, time, entitlements, products, logging, API types, WA types, audit, admin, test-utils), CI runs with coverage — DONE
+├── ⚠️ Testing: 17 test files, 5,246 assertions BUT 4.3% coverage — NEEDS expansion to API routes + components
 ├── ⚠️ Testing (E2E): Playwright for auth/security paths (80%+ coverage target) — PENDING
-├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired, withErrorHandler API wrapper — DONE
-├── ✅ CI/CD: GitHub Actions (lint + typecheck + test + build + coverage) on every PR, Dependabot + CodeQL — DONE
-├── ✅ Loading states: loading.tsx + error.tsx on all 3 route groups + 7 sub-routes, Suspense boundaries on heavy pages — DONE
-└── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA)
+├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired — DONE
+├── ✅ Error handling: withErrorHandler on 210/225 API routes (15 skipped: webhooks/SSE/callbacks) — DONE
+├── ✅ CI/CD: GitHub Actions (5 workflows: lint + typecheck + test + build + coverage + CodeQL + cron workers) — DONE
+├── ✅ Loading states: 51 loading.tsx + 51 error.tsx on all route groups + sub-routes — DONE
+└── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA) — CRITICAL BLOCKER
 
 Phase 2: LOCALIZATION (Month 2-3)
 ├── ✅ Install next-intl (App Router i18n) — DONE
-├── ✅ 2 locales: id (Indonesian) + en (English) — DONE (messages/en.json + messages/id.json)
+├── ✅ 2 locales: id (Indonesian) + en (English) — DONE (698-line message files each)
 ├── ✅ Locale switcher UI (navbar + footer) — DONE
 ├── ✅ Locale-aware date/number/currency formatting (lib/i18n/format.ts) — DONE
-├── ⚠️ Extract hardcoded strings to JSON message files — IN PROGRESS (homepage done, remaining pages pending)
+├── ⚠️ Extract hardcoded strings to JSON message files — BARELY STARTED (only 6 useTranslations calls, ~61 hardcoded strings remain)
 └── ⚠️ Multi-currency support (USD, EUR, IDR, SGD) — formatCurrency() ready, pricing page pending
 
 Phase 3: SCALE (Month 3-6)
 ├── ✅ ISR for marketing pages (revalidate=3600) — DONE (26 pages)
 ├── ⚠️ Edge runtime for webhooks — BLOCKED (Node.js crypto dependency in webhook handler)
 ├── ✅ CDN optimization for global latency — DONE (vercel.json cache headers, s-maxage + stale-while-revalidate)
-├── ✅ Dynamic imports for heavy client components — DONE (7 components: EcosystemOrbital, TrustConsole, EvidenceCarousel, GetStartedFunnel, ProductsOverview, MediaKitCopyBlock, MediaKitLogos)
-├── ✅ Next.js Image optimization — DONE (converted all <img> to <Image>)
+├── ✅ Dynamic imports for heavy client components — DONE (7 components across 5 pages)
+├── ✅ Next.js Image optimization — DONE (11 files, ~26 <Image> usages)
+├── ⚠️ Tailwind CSS v4 migration — AVAILABLE (currently on v3.4.18)
 ├── ⚠️ Regional Supabase instances (US, EU, APAC) — PLANNED (docs/GDPR_COMPLIANCE_PLAN.md)
 ├── ⚠️ GDPR compliance (data residency, DPA, consent) — PLANNED (docs/GDPR_COMPLIANCE_PLAN.md)
 └── ⚠️ SOC 2 readiness documentation — PLANNED (docs/SOC2_READINESS_PLAN.md)
 
 Phase 4: MARKET EXPANSION (Month 6-12)
-├── API documentation (OpenAPI/Swagger for 228+ endpoints)
+├── API documentation (OpenAPI/Swagger for 225+ endpoints)
 ├── Developer portal & partner/reseller program
 ├── Additional languages (Spanish, Portuguese, Arabic)
 ├── Enterprise features (SSO, SAML, custom domains)
@@ -758,10 +762,11 @@ Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (Whats
 ### When Working on Improvements
 
 When tackling any task, always check if it helps close a gap from the scorecard above. Prioritize:
-1. **Security & testing** (🔴 critical) — never skip tests for auth/workspace scoping changes
-2. **Error handling** (🔴 critical) — add Sentry, error boundaries, loading states
-3. **Payment integration** (⚠️ high) — Stripe/Xendit for real revenue
-4. **i18n readiness** (⚠️ high) — avoid new hardcoded strings, use constants/enums
+1. **Testing coverage** (🔴 critical) — 4.3% coverage is a liability. Add API route tests, component tests, and Playwright E2E
+2. **Payment integration** (🔴 critical) — Stripe/Xendit for real revenue. Infrastructure is ready (payment_intents, webhooks)
+3. **i18n string extraction** (⚠️ high) — Only 6 `useTranslations` calls. Extract ~61 hardcoded strings from components
+4. **Zod validation gap** (⚠️ medium) — ~132/225 API routes validated (59%). 10 critical routes added. Close remaining 41%
+5. ~~**withErrorHandler rollout**~~ ✅ DONE — 210/225 routes wrapped (15 intentionally skipped)
 
 ---
 

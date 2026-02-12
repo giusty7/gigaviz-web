@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   // SECURITY: Require bearer token for detailed health data
   const authHeader = req.headers.get("authorization");
   const expectedToken = process.env.CRON_SECRET || process.env.WEBHOOK_SECRET;
@@ -73,4 +74,4 @@ export async function GET(req: NextRequest) {
 
   const status = health.ok ? 200 : 503;
   return NextResponse.json(health, { status });
-}
+});

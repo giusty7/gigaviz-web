@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const autoAssignSchema = z.object({
   team_id: z.string().uuid("invalid_team_id").optional(),
@@ -8,7 +9,7 @@ const autoAssignSchema = z.object({
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function POST(req: NextRequest, { params }: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -139,4 +140,4 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   };
 
   return withCookies(NextResponse.json({ thread }));
-}
+});

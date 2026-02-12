@@ -4,8 +4,9 @@ import { ensureProfile } from "@/lib/profiles";
 import { getUserWorkspaces } from "@/lib/workspaces";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { planMeta, type PlanId } from "@/lib/entitlements";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const isProd =
     process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
   if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
@@ -73,4 +74,4 @@ export async function POST(req: NextRequest) {
     );
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

@@ -4,6 +4,7 @@ import { setImpersonationCookie, clearImpersonationCookie } from "@/lib/imperson
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ const setCookieSchema = z.object({
  * POST /api/ops/impersonate/cookie
  * Set impersonation cookie (called after starting impersonation)
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -45,13 +46,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * DELETE /api/ops/impersonate/cookie
  * Clear impersonation cookie
  */
-export async function DELETE() {
+export const DELETE = withErrorHandler(async () => {
   assertOpsEnabled();
 
   try {
@@ -64,4 +65,4 @@ export async function DELETE() {
       { status: 500 }
     );
   }
-}
+});

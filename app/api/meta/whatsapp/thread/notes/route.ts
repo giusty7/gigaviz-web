@@ -10,6 +10,7 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -19,7 +20,7 @@ const schema = z.object({
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -67,4 +68,4 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, note }));
-}
+});

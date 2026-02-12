@@ -4,6 +4,7 @@ import { guardWorkspace } from "@/lib/auth/guard";
 import { createTopupRequest } from "@/lib/tokens";
 import { recordAuditEvent } from "@/lib/audit";
 import { emitTopupRequested } from "@/lib/notifications/emit-rules";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().min(1),
@@ -12,7 +13,7 @@ const schema = z.object({
   notes: z.string().max(2000).optional().nullable(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const workspaceIdParam = req.nextUrl.searchParams.get("workspaceId") || undefined;
   const guard = await guardWorkspace(req, { workspaceId: workspaceIdParam });
   if (!guard.ok) return guard.response;
@@ -57,4 +58,4 @@ export async function POST(req: NextRequest) {
   );
 
   return withCookies(NextResponse.json({ request }));
-}
+});

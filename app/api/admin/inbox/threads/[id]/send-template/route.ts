@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { computeFirstResponseAt } from "@/lib/inbox/first-response";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const templateComponentSchema = z.object({
   type: z.enum(["header", "body", "button"]),
@@ -177,7 +178,7 @@ async function sendWhatsAppTemplate(params: {
   }
 }
 
-export async function POST(req: NextRequest, { params }: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -461,4 +462,4 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       { status: 200 }
     )
   );
-}
+});

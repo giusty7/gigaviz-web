@@ -5,6 +5,7 @@ import { guardWorkspace } from "@/lib/auth/guard";
 import { getHelperSettings } from "@/lib/helper/settings";
 import { insertToolRun, isIntentAllowed, signN8nPayload } from "@/lib/helper/tools";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const executeSchema = z.object({
   workspace_slug: z.string().trim().min(1, "workspace_slug required"),
@@ -18,7 +19,7 @@ const executeSchema = z.object({
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies, supabase: db } = guard;
@@ -144,4 +145,4 @@ export async function POST(req: NextRequest) {
       audit_ref: runId,
     })
   );
-}
+});

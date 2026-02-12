@@ -16,6 +16,7 @@ import { metaGraphFetch } from "@/lib/meta/graph";
 import { ensureDatasetId, storeMetaEventLog } from "@/lib/meta/events";
 import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,7 @@ function hashCtwaClid(raw: string) {
   return createHash("sha256").update(raw.trim()).digest("hex");
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -188,4 +189,4 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : "unknown_error";
     return withCookies(NextResponse.json({ error: "send_failed", reason: message }, { status: 502 }));
   }
-}
+});

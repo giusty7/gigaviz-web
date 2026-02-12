@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const DEV = process.env.NODE_ENV === "development";
 
@@ -115,7 +116,7 @@ async function accountExists(email: string | null | undefined) {
   return (data?.users ?? []).some((user) => user.email?.toLowerCase() === email.toLowerCase());
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const body = await req.json().catch(() => null);
   const token = typeof body?.token === "string" ? body.token.trim() : "";
@@ -225,4 +226,4 @@ export async function POST(req: NextRequest) {
     email: inviteEmail,
     workspaceSlug,
   });
-}
+});

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const DEV = process.env.NODE_ENV === "development";
 
@@ -123,7 +124,7 @@ async function accountExists(email: string | null | undefined) {
   return (data?.users ?? []).some((user) => user.email?.toLowerCase() === email.toLowerCase());
 }
 
-export async function GET(req: Request) {
+export const GET = withErrorHandler(async (req: Request) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const key = `invite-preview:${ip}`;
   const limit = rateLimit(key, { windowMs: 60_000, max: 30 });
@@ -172,4 +173,4 @@ export async function GET(req: Request) {
     workspaceSlug: (workspace as { slug?: string | null } | null | undefined)?.slug ?? null,
     emailMasked,
   });
-}
+});

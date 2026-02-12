@@ -12,6 +12,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { getWaSettings } from "@/lib/meta/wa-settings";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const patchSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -21,7 +22,7 @@ const patchSchema = z.object({
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -47,9 +48,9 @@ export async function GET(req: NextRequest) {
       whitelist: settings.whitelist,
     })
   );
-}
+});
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -111,4 +112,4 @@ export async function PATCH(req: NextRequest) {
       whitelist: sanitizedWhitelist,
     })
   );
-}
+});

@@ -4,17 +4,35 @@
  */
 
 import { logger } from "@/lib/logging";
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { CSVImportRequest, CSVImportResponse } from "@/types/wa-contacts";
+import type { CSVImportResponse } from "@/types/wa-contacts";
 import {
   sanitizeTags,
   parseCSV,
   extractPhoneFromRow,
   validatePhone,
 } from "@/lib/meta/wa-contacts-utils";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function POST(request: NextRequest) {
+const csvImportSchema = z.object({
+  workspaceId: z.string().uuid("workspaceId required"),
+  csvData: z.string().min(1, "csvData required").max(5_000_000),
+  mapping: z.object({
+    phoneColumn: z.string().min(1, "phoneColumn mapping required"),
+    nameColumn: z.string().optional(),
+    customFieldMappings: z.array(z.object({
+      csvColumn: z.string(),
+      fieldName: z.string(),
+    })).optional(),
+    tagColumns: z.array(z.string()).optional(),
+  }),
+  tags: z.array(z.string()).optional(),
+  source: z.string().max(100).optional(),
+});
+
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -28,23 +46,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as CSVImportRequest & {
-      workspaceId: string;
-    };
-
-    if (!body.workspaceId) {
-      return NextResponse.json(
-        { error: "workspaceId required" },
-        { status: 400 }
-      );
-    }
-
-    if (!body.mapping.phoneColumn) {
-      return NextResponse.json(
-        { error: "phoneColumn mapping required" },
-        { status: 400 }
-      );
-    }
+    const rawBody = await request.json();
+    const body = csvImportSchema.parse(rawBody);
 
     // Verify workspace access
     const { data: membership, error: membershipError } = await supabase
@@ -214,4 +217,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

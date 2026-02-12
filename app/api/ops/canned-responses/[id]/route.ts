@@ -6,13 +6,14 @@ import {
   deleteCannedResponse,
 } from "@/lib/ops/canned-responses";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
-) {
+) => {
   const admin = await requirePlatformAdmin();
   if (!admin.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,12 +35,12 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
-) {
+) => {
   const admin = await requirePlatformAdmin();
   if (!admin.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -65,12 +66,12 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
-export async function DELETE(
+export const DELETE = withErrorHandler(async (
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
-) {
+) => {
   const admin = await requirePlatformAdmin();
   if (!admin.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -88,4 +89,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

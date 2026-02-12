@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { generateEmbedding, chunkText, estimateTokenCount } from "@/lib/helper/embeddings";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -25,7 +26,7 @@ const indexDeleteSchema = z.object({
  * POST /api/helper/knowledge/index
  * Index content into knowledge base
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -133,13 +134,13 @@ export async function POST(req: NextRequest) {
       )
     );
   }
-}
+});
 
 /**
  * DELETE /api/helper/knowledge/index
  * Remove content from knowledge base
  */
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -183,4 +184,4 @@ export async function DELETE(req: NextRequest) {
       )
     );
   }
-}
+});

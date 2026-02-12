@@ -14,6 +14,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { getWorkspaceMetaAccessToken } from "@/lib/meta/graph";
 import { ensureDatasetId } from "@/lib/meta/events";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ const schema = z.object({
   wabaId: z.string().min(3),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -86,4 +87,4 @@ export async function POST(req: NextRequest) {
       NextResponse.json({ error: "dataset_failed", reason: message }, { status: 502 })
     );
   }
-}
+});

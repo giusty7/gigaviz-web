@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 type MappingInput = {
   team_id?: unknown;
@@ -29,7 +30,7 @@ function normalizeMapping(input: MappingInput) {
   };
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -92,9 +93,9 @@ export async function GET(req: NextRequest) {
   }));
 
   return withCookies(NextResponse.json({ mappings }));
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -177,4 +178,4 @@ export async function POST(req: NextRequest) {
   }));
 
   return withCookies(NextResponse.json({ mappings }));
-}
+});

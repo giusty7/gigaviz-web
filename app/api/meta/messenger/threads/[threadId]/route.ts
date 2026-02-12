@@ -6,16 +6,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const threadUpdateSchema = z.object({
   status: z.enum(["open", "closed", "snoozed", "pending"]).optional(),
   assigned_to: z.string().uuid().nullable().optional(),
 });
 
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ threadId: string }> }
-) {
+) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { threadId } = await params;
@@ -109,4 +110,4 @@ export async function PATCH(
       NextResponse.json({ error: message }, { status: 500 })
     );
   }
-}
+});

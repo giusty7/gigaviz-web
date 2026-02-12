@@ -8,12 +8,13 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds max
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     // Verify cron secret for security (REQUIRED in production)
     const authHeader = request.headers.get('authorization');
@@ -73,9 +74,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // Also support POST for manual triggers
-export async function POST(request: NextRequest) {
-  return GET(request);
-}
+export const POST = withErrorHandler(async (request: NextRequest, ctx) => {
+  return GET(request, ctx);
+});

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { getWallet } from "@/lib/tokens";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies } = guard;
   const wallet = await getWallet(workspaceId);
   return withCookies(NextResponse.json({ wallet }));
-}
+});

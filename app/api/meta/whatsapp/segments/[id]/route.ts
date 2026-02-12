@@ -10,6 +10,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const updateSegmentSchema = z.object({
   workspaceId: z.string().uuid("Invalid workspaceId"),
@@ -22,10 +23,10 @@ const deleteQuerySchema = z.object({
   workspaceId: z.string().uuid("Invalid workspaceId"),
 });
 
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const supabase = await supabaseServer();
     const { id } = await params;
@@ -148,12 +149,12 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
-export async function DELETE(
+export const DELETE = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const supabase = await supabaseServer();
     const { id } = await params;
@@ -245,4 +246,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

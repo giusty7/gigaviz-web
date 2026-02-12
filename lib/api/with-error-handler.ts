@@ -4,10 +4,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { logger, setCorrelationId } from "@/lib/logging";
 
+/** Standard Next.js API route handler type */
 type ApiHandler = (
   req: NextRequest,
   ctx: { params: Promise<Record<string, string>> }
 ) => Promise<NextResponse>;
+
+/**
+ * Flexible handler input type — accepts any params shape
+ * so routes with specific types like Promise<{ id: string }> work without casting.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type HandlerInput = (req: NextRequest, ctx: any) => Promise<any>;
 
 /**
  * Higher-order function that wraps API route handlers with:
@@ -26,7 +34,7 @@ type ApiHandler = (
  * });
  * ```
  */
-export function withErrorHandler(handler: ApiHandler): ApiHandler {
+export function withErrorHandler(handler: HandlerInput): ApiHandler {
   return async (req: NextRequest, ctx) => {
     const requestId = crypto.randomUUID();
     setCorrelationId(requestId);

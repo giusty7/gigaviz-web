@@ -7,10 +7,11 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { listNotifications, getUnreadCount } from "@/lib/notifications/service";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -45,4 +46,4 @@ export async function GET(req: NextRequest) {
       unreadCount,
     })
   );
-}
+});

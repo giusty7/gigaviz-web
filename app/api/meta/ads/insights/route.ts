@@ -5,8 +5,9 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { searchParams } = new URL(request.url);
@@ -171,4 +172,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});

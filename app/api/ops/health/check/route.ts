@@ -3,13 +3,14 @@ import { runAllHealthChecks, getStaleWorkers } from "@/lib/ops/health";
 import { listTickets } from "@/lib/ops/tickets";
 import { logger } from "@/lib/logging";
 import { alertHealthDegraded, alertWorkerStale, alertTicketSlaBreach } from "@/lib/ops/alerts";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
  * GET /api/ops/health/check
  * Run health checks and return results
  * Public endpoint for monitoring systems
  */
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   try {
     const [results, staleWorkers, overdueTickets] = await Promise.all([
       runAllHealthChecks(),
@@ -68,4 +69,4 @@ export async function GET() {
       { status: 503 }
     );
   }
-}
+});

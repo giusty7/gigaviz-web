@@ -1,6 +1,7 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -135,7 +136,7 @@ Respond in JSON format:
 }
 
 // POST - Generate new insights
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies, supabase: db } = guard;
@@ -217,4 +218,4 @@ export async function POST(req: NextRequest) {
     insights: [],
     message: "No new insights generated",
   }));
-}
+});

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { guardWorkspace } from '@/lib/auth/guard';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { z } from 'zod';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const QuerySchema = z.object({
   workspaceId: z.string().uuid(),
@@ -34,7 +35,7 @@ export type UnifiedThread = {
   created_at: string;
 };
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const guard = await guardWorkspace(request);
     if (!guard.ok) return guard.response;
@@ -183,4 +184,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

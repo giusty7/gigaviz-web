@@ -1,8 +1,14 @@
 import { logger } from "@/lib/logging";
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import crypto from "node:crypto";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const acceptInviteSchema = z.object({
+  token: z.string().min(1, "token_required").max(512),
+});
 
 const DEV = process.env.NODE_ENV === "development";
 
@@ -119,7 +125,7 @@ async function lookupInvite(token: string) {
   return { invite, lookup };
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   const user = userData?.user;
@@ -161,9 +167,9 @@ export async function GET(req: NextRequest) {
       user_email: user.email,
     })
   );
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   const user = userData?.user;
@@ -176,13 +182,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  const token = typeof body?.token === "string" ? body.token.trim() : null;
-  if (!token) {
-    return withCookies(
-      NextResponse.json({ error: "token_required" }, { status: 400 })
-    );
-  }
+  const body = await req.json().catch(() => ({}));
+  const { token } = acceptInviteSchema.parse(body);
 
   if (!(user.email && (user.email_confirmed_at || user.confirmed_at))) {
     return withCookies(
@@ -296,4 +297,4 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ workspaceSlug }));
-}
+});

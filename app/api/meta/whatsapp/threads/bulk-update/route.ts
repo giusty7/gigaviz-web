@@ -1,12 +1,21 @@
 import { logger } from "@/lib/logging";
+import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const bulkUpdateSchema = z.object({
+  workspaceId: z.string().uuid(),
+  threadIds: z.array(z.string().uuid()).min(1).max(500),
+  action: z.enum(["status", "assign", "tag"]),
+  value: z.string().nullable().default(null),
+});
 
 /**
  * POST /api/meta/whatsapp/threads/bulk-update
  * Bulk update threads (status, assign, tags)
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const supabase = await supabaseServer();
     const {
@@ -19,14 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { workspaceId, threadIds, action, value } = body;
-
-    if (!workspaceId || !Array.isArray(threadIds) || threadIds.length === 0 || !action) {
-      return NextResponse.json(
-        { error: "Missing required fields: workspaceId, threadIds, action" },
-        { status: 400 }
-      );
-    }
+    const { workspaceId, threadIds, action, value } = bulkUpdateSchema.parse(body);
 
     // Verify workspace membership
     const { data: membership } = await supabase
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     switch (action) {
       case "status":
-        if (!["open", "pending", "resolved"].includes(value)) {
+        if (!value || !["open", "pending", "resolved"].includes(value)) {
           return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
         }
         updateData = { status: value, updated_at: new Date().toISOString() };
@@ -140,4 +142,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

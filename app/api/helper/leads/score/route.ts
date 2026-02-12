@@ -2,6 +2,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -122,7 +123,7 @@ Respond in JSON format:
 }
 
 // POST - Score/analyze a single lead
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -202,4 +203,4 @@ export async function POST(req: NextRequest) {
       confidence: analysis.confidence,
     },
   }));
-}
+});

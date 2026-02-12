@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { generateEmbedding, generateEmbeddings } from "@/lib/helper/embeddings";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ const embeddingSchema = z.object({
  * POST /api/helper/embeddings
  * Generate embeddings for text(s)
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const userRes = await requireUser(req);
   if (!userRes.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,4 +76,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

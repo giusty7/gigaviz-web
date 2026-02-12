@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { forbiddenResponse, requireWorkspaceMember, unauthorizedResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,7 @@ type Params = {
  * DELETE /api/meta/whatsapp/saved-views/[id]
  * Delete a specific saved view by ID
  */
-export async function DELETE(req: NextRequest, { params }: Params) {
+export const DELETE = withErrorHandler(async (req: NextRequest, { params }: Params) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -76,13 +77,13 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   }
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});
 
 /**
  * PUT /api/meta/whatsapp/saved-views/[id]
  * Update a saved view
  */
-export async function PUT(req: NextRequest, { params }: Params) {
+export const PUT = withErrorHandler(async (req: NextRequest, { params }: Params) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -143,4 +144,4 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   return withCookies(NextResponse.json({ view }));
-}
+});

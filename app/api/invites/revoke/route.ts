@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { getUserWorkspaces } from "@/lib/workspaces";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   const user = userData?.user;
@@ -36,4 +37,4 @@ export async function POST(req: NextRequest) {
   if (error) return withCookies(NextResponse.json({ error: error.message || "db_error" }, { status: 500 }));
 
   return withCookies(NextResponse.json({ revoked: true }));
-}
+});

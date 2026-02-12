@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdminWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ function toCSV(headers: string[], rows: Array<Record<string, unknown>>) {
   return "\ufeff" + lines.join("\n");
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   // Auth check — this route was previously unprotected!
   const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.res;
@@ -130,4 +131,4 @@ export async function GET(req: NextRequest) {
       "Content-Disposition": `attachment; filename="leads.csv"`,
     },
   });
-}
+});

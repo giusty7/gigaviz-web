@@ -13,6 +13,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { findConnectionById } from "@/lib/meta/wa-connections";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1).optional(),
@@ -38,7 +39,7 @@ const schema = z.object({
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -355,4 +356,4 @@ export async function POST(req: NextRequest) {
       },
     })
   );
-}
+});

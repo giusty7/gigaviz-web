@@ -11,6 +11,7 @@ import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { forbiddenResponse, requireWorkspaceMember, unauthorizedResponse, workspaceRequiredResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ type SentimentPayload = {
   label: string;
 };
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
     return withCookies(NextResponse.json({ ok: true, ...fallback, source: "heuristic" }));
   }
-}
+});
 
 function buildHeuristicSentiment(text: string) {
   const normalized = text.toLowerCase();

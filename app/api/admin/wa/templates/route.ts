@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
 import { buildTemplatePayload, createMetaTemplate, fetchMetaTemplates } from "@/lib/wa/templates";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const templateSchema = z.object({
   name: z.string().min(1).regex(/^[a-z0-9_]+$/, "name_invalid"),
@@ -26,7 +27,7 @@ function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireWorkspaceRole(req, ["admin", "supervisor", "agent"]);
   if (!auth.ok) return auth.res;
 
@@ -74,9 +75,9 @@ export async function GET(req: NextRequest) {
   }));
 
   return withCookies(NextResponse.json({ items }));
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireWorkspaceRole(req, ["admin", "supervisor"]);
   if (!auth.ok) return auth.res;
 
@@ -138,4 +139,4 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ template: inserted }));
-}
+});

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,7 @@ const updateTemplateSchema = createTemplateSchema.partial().extend({
 });
 
 // GET - List templates
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -50,10 +51,10 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, templates: data ?? [] }));
-}
+});
 
 // POST - Create template
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies, supabase: db } = guard;
@@ -99,10 +100,10 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, template: data }));
-}
+});
 
 // PUT - Update template
-export async function PUT(req: NextRequest) {
+export const PUT = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -143,10 +144,10 @@ export async function PUT(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, template: data }));
-}
+});
 
 // DELETE - Delete template
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies, supabase: db } = guard;
@@ -173,4 +174,4 @@ export async function DELETE(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

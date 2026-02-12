@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const CreateSourceSchema = z.object({
   source_type: z.enum(["document", "article", "faq", "guide", "api_docs", "tutorial", "changelog"]),
@@ -13,7 +14,7 @@ const CreateSourceSchema = z.object({
 });
 
 // GET - List all platform knowledge sources
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   try {
     const admin = await requirePlatformAdmin();
     if (!admin.ok) {
@@ -59,10 +60,10 @@ export async function GET() {
     logger.error("Platform KB GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // POST - Add new knowledge source
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const admin = await requirePlatformAdmin();
     if (!admin.ok) {
@@ -113,10 +114,10 @@ export async function POST(req: NextRequest) {
     logger.error("Platform KB POST error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // DELETE - Remove knowledge source
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   try {
     const admin = await requirePlatformAdmin();
     if (!admin.ok) {
@@ -150,7 +151,7 @@ export async function DELETE(req: NextRequest) {
     logger.error("Platform KB DELETE error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // Helper: Index source content asynchronously
 async function indexSourceAsync(sourceId: string, content: string) {

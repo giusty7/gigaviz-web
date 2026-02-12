@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -22,7 +23,7 @@ const schema = z.object({
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -135,4 +136,4 @@ export async function POST(req: NextRequest) {
       lastTestResult: phone.last_test_result,
     })
   );
-}
+});

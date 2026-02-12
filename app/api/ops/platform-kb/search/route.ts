@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const SearchSchema = z.object({
   query: z.string().min(1).max(1000),
@@ -10,7 +11,7 @@ const SearchSchema = z.object({
 });
 
 // POST - Search platform knowledge using vector similarity
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const admin = await requirePlatformAdmin();
     if (!admin.ok) {
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
     logger.error("Platform KB search error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // Generate embedding using OpenAI
 async function generateEmbedding(text: string): Promise<number[]> {

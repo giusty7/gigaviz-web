@@ -11,6 +11,7 @@ import {
 } from '@/lib/auth/guard';
 import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
 import { getUsageStats, getUsageSummary } from '@/lib/meta/usage-tracker';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const statsSchema = z.object({
   workspaceId: z.string().min(1), // allow slug or uuid, resolve later
@@ -28,7 +29,7 @@ export const runtime = 'nodejs';
  * GET /api/meta/whatsapp/analytics/stats
  * Get detailed usage statistics for date range
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -90,13 +91,13 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ stats: result.stats ?? [] }));
-}
+});
 
 /**
  * POST /api/meta/whatsapp/analytics/summary
  * Get real-time usage summary (today, last 7 days, last 30 days)
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -146,4 +147,4 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json(result.summary));
-}
+});

@@ -8,11 +8,12 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ templateId: string }> }
-) {
+) => {
   try {
     const { supabase } = createSupabaseRouteClient(request);
     const { templateId } = await params;
@@ -136,4 +137,4 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});

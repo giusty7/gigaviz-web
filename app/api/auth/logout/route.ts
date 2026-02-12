@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { WORKSPACE_COOKIE } from "@/lib/workspaces";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const res = NextResponse.json({ ok: true });
@@ -30,4 +31,4 @@ export async function POST(req: NextRequest) {
     maxAge: 0,
   });
   return res;
-}
+});

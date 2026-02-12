@@ -8,6 +8,7 @@ import { guardWorkspace, requireWorkspaceRole } from '@/lib/auth/guard';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { recordAuditEvent } from '@/lib/audit';
 import { logger } from '@/lib/logging';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const createConnectionSchema = z.object({
   instagram_user_id: z.string().min(1),
@@ -18,7 +19,7 @@ const createConnectionSchema = z.object({
   permissions: z.array(z.string()).optional(),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   const guard = await guardWorkspace(request);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies } = guard;
@@ -48,9 +49,9 @@ export async function GET(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return withCookies(NextResponse.json({ error: message }, { status: 500 }));
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   const guard = await guardWorkspace(request);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, role, withCookies } = guard;
@@ -145,4 +146,4 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return withCookies(NextResponse.json({ error: message }, { status: 500 }));
   }
-}
+});

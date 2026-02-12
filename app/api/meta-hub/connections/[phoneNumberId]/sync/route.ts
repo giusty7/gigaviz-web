@@ -7,6 +7,7 @@ import {
 import { logger } from "@/lib/logging";
 import { metaGraphFetch } from "@/lib/meta/graph";
 import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ type RouteContext = {
   params: Promise<{ phoneNumberId: string }>;
 };
 
-export async function POST(req: NextRequest, context: RouteContext) {
+export const POST = withErrorHandler(async (req: NextRequest, context: RouteContext) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies } = guard;
@@ -169,4 +170,4 @@ export async function POST(req: NextRequest, context: RouteContext) {
       lastSyncedAt: new Date().toISOString(),
     })
   );
-}
+});

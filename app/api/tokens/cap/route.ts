@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { upsertTokenSettings } from "@/lib/tokens";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().min(1),
@@ -10,7 +11,7 @@ const schema = z.object({
   hardCap: z.boolean().optional(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const workspaceIdParam = req.nextUrl.searchParams.get("workspaceId") || undefined;
   const guard = await guardWorkspace(req, { workspaceId: workspaceIdParam });
   if (!guard.ok) return guard.response;
@@ -42,4 +43,4 @@ export async function POST(req: NextRequest) {
   });
 
   return withCookies(NextResponse.json({ ok: true, settings }));
-}
+});

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -10,7 +11,7 @@ const schema = z.object({
   planCode: z.string().min(1),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, user, withCookies } = guard;
@@ -110,4 +111,4 @@ export async function POST(req: NextRequest) {
       subscription,
     })
   );
-}
+});

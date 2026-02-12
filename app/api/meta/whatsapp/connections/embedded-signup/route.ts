@@ -12,6 +12,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { findWorkspaceBySlug } from "@/lib/meta/wa-connections";
 import { logger } from "@/lib/logging";
 import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -24,7 +25,7 @@ const schema = z.object({
   code: z.string().min(4),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -320,4 +321,4 @@ export async function POST(req: NextRequest) {
       tokenSet: true,
     })
   );
-}
+});

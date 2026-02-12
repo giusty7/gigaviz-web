@@ -9,6 +9,7 @@ import {
   unauthorizedResponse,
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  *
  * Returns: VerifyResponse
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -206,4 +207,4 @@ export async function GET(req: NextRequest) {
   };
 
   return withCookies(NextResponse.json(result));
-}
+});

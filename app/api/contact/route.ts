@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFromContact } from "@/lib/email";
 import { contactSchema } from "@/lib/validation/contact";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -39,7 +40,7 @@ function isRateLimited(ip: string) {
   return false;
 }
 
-export async function POST(req: Request) {
+export const POST = withErrorHandler(async (req: Request) => {
   try {
     const ip = getClientIp(req);
     if (isRateLimited(ip)) {
@@ -141,4 +142,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+});

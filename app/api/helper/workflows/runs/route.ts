@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
 // GET - List workflow runs
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
     limit,
     offset,
   }));
-}
+});
 
 const runWorkflowSchema = z.object({
   workflow_id: z.string().uuid(),
@@ -56,7 +57,7 @@ const runWorkflowSchema = z.object({
 });
 
 // POST - Trigger a workflow run
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies, supabase: db } = guard;
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
     run,
     message: "Workflow execution started",
   }));
-}
+});
 
 // Background workflow execution
 async function executeWorkflowAsync(runId: string, workspaceId: string) {

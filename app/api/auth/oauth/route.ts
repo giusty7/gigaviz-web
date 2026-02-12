@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { type Provider } from "@supabase/supabase-js";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const limit = rateLimit(`auth-oauth:${ip}`, { windowMs: 60_000, max: 10 });
 
@@ -39,4 +40,4 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.redirect(data.url));
-}
+});

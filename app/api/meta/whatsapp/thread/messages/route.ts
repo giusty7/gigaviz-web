@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { forbiddenResponse, requireWorkspaceMember, unauthorizedResponse } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -42,7 +43,7 @@ type MessageRow = {
   media_size?: number | null;
 };
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const requestId = randomUUID();
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
@@ -301,7 +302,7 @@ export async function GET(req: NextRequest) {
       session,
     })
   );
-}
+});
 
 function normalizeMessage(
   message: MessageRow,

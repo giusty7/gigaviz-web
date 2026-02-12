@@ -5,13 +5,14 @@ import { activateTopupRequest } from "@/lib/tokens";
 import { recordAuditEvent } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { emitTopupPosted } from "@/lib/notifications/emit-rules";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().min(1),
   requestId: z.string().uuid(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const workspaceIdParam = req.nextUrl.searchParams.get("workspaceId") || undefined;
   const guard = await guardWorkspace(req, { workspaceId: workspaceIdParam });
   if (!guard.ok) return guard.response;
@@ -76,4 +77,4 @@ export async function POST(req: NextRequest) {
   return withCookies(
     NextResponse.json({ ok: true, status: "paid", balance: result.balance, ledgerId: result.ledger_id })
   );
-}
+});

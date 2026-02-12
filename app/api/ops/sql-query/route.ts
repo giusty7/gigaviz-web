@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { executeSqlQuery, getSqlQueryHistory } from "@/lib/ops/sql-runner";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const sqlQuerySchema = z.object({
+  query: z.string().min(1, "query_required").max(10000, "query_too_long"),
+});
 
 /**
  * GET /api/ops/sql-query
  * Get SQL query history
  */
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -26,13 +32,13 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST /api/ops/sql-query
  * Execute read-only SQL query
  */
-export async function POST(request: Request) {
+export const POST = withErrorHandler(async (request: Request) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -41,11 +47,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { query } = body;
-
-    if (!query) {
-      return NextResponse.json({ error: "query_required" }, { status: 400 });
-    }
+    const { query } = sqlQuerySchema.parse(body);
 
     const result = await executeSqlQuery({
       query,
@@ -73,4 +75,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
 // GET - List sync jobs
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, jobs: data ?? [] }));
-}
+});
 
 const syncSchema = z.object({
   source_id: z.string().uuid().optional(), // If not provided, sync all sources
@@ -49,7 +50,7 @@ const syncSchema = z.object({
 });
 
 // POST - Trigger sync job
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies, supabase: db } = guard;
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
     jobs: createdJobs,
     message: `Started ${createdJobs?.length ?? 0} sync job(s)`,
   }));
-}
+});
 
 // Background sync execution
 async function executeSyncJobAsync(jobId: string, workspaceId: string) {

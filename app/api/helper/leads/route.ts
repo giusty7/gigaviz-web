@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -72,7 +73,7 @@ function calculateLeadScore(lead: {
 }
 
 // GET - List leads
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -118,10 +119,10 @@ export async function GET(req: NextRequest) {
     limit,
     offset,
   }));
-}
+});
 
 // POST - Create lead
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -170,10 +171,10 @@ export async function POST(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, lead: data }));
-}
+});
 
 // PUT - Update lead
-export async function PUT(req: NextRequest) {
+export const PUT = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -202,10 +203,10 @@ export async function PUT(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, lead: data }));
-}
+});
 
 // DELETE - Delete lead
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies, supabase: db } = guard;
@@ -232,4 +233,4 @@ export async function DELETE(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

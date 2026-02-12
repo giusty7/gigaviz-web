@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logging";
 import { settlePaymentIntentPaid } from "@/lib/billing/topup";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ const schema = z.object({
   meta: z.record(z.string(), z.unknown()).optional(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const limiter = rateLimit(`billing-webhook`, { windowMs: 60_000, max: 60 });
   if (!limiter.ok) {
     return NextResponse.json({ error: "rate_limited", resetAt: limiter.resetAt }, { status: 429 });
@@ -102,4 +103,4 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ ok: false, error: "ledger_failed" }, { status: 500 });
   }
-}
+});

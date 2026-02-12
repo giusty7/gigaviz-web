@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
+
+const bulkJobActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("preview"),
+    operation_type: z.enum(["email", "plan_change", "feature_toggle", "notification"]),
+    target_type: z.enum(["workspaces", "users", "subscriptions"]),
+    target_filter: z.record(z.string(), z.unknown()).default({}),
+  }),
+  z.object({
+    action: z.literal("create"),
+    operation_type: z.enum(["email", "plan_change", "feature_toggle", "notification"]),
+    target_type: z.enum(["workspaces", "users", "subscriptions"]),
+    target_filter: z.record(z.string(), z.unknown()).default({}),
+    payload: z.record(z.string(), z.unknown()).default({}),
+    scheduled_for: z.string().nullish().transform(v => v ?? null),
+  }),
+  z.object({
+    action: z.literal("cancel"),
+    job_id: z.string().uuid(),
+  }),
+  z.object({
+    action: z.literal("start"),
+    job_id: z.string().uuid(),
+  }),
+]);
 import {
   getBulkJobs,
   getBulkJob,
@@ -10,10 +36,11 @@ import {
   previewBulkOperation,
 } from "@/lib/ops/bulk-ops";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -49,9 +76,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -60,47 +87,36 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action } = body;
+    const validated = bulkJobActionSchema.parse(body);
 
-    if (action === "preview") {
-      const { operation_type, target_type, target_filter } = body;
+    if (validated.action === "preview") {
       const preview = await previewBulkOperation(
-        operation_type,
-        target_type,
-        target_filter || {}
+        validated.operation_type,
+        validated.target_type,
+        validated.target_filter || {}
       );
       return NextResponse.json(preview);
     }
 
-    if (action === "create") {
-      const {
-        operation_type,
-        target_type,
-        target_filter,
-        payload,
-        scheduled_for,
-      } = body;
-
+    if (validated.action === "create") {
       const job = await createBulkJob({
-        operation_type,
-        target_type,
-        target_filter,
-        payload,
-        scheduled_for,
+        operation_type: validated.operation_type,
+        target_type: validated.target_type,
+        target_filter: validated.target_filter,
+        payload: validated.payload,
+        scheduled_for: validated.scheduled_for,
         created_by: ctx.user.id,
       });
       return NextResponse.json(job);
     }
 
-    if (action === "cancel") {
-      const { job_id } = body;
-      const job = await cancelBulkJob(job_id, ctx.user.id);
+    if (validated.action === "cancel") {
+      const job = await cancelBulkJob(validated.job_id, ctx.user.id);
       return NextResponse.json(job);
     }
 
-    if (action === "start") {
-      const { job_id } = body;
-      const job = await updateBulkJob(job_id, {
+    if (validated.action === "start") {
+      const job = await updateBulkJob(validated.job_id, {
         status: "pending",
       });
       return NextResponse.json(job);
@@ -114,4 +130,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

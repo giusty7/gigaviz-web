@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -7,7 +8,7 @@ export const runtime = "nodejs";
  * GET /api/helper/usage
  * Returns today's token usage and monthly totals for budget tracking.
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -69,4 +70,4 @@ export async function GET(req: NextRequest) {
       },
     })
   );
-}
+});

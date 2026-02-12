@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // TYPES
@@ -64,7 +65,7 @@ function mapAgentStatus(row: Record<string, unknown>): AgentStatus {
 // GET - Get agent statuses for workspace
 // ============================================================================
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -155,13 +156,13 @@ export async function GET(req: NextRequest) {
     logger.error("Agent status GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // POST - Update current user's agent status
 // ============================================================================
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -221,13 +222,13 @@ export async function POST(req: NextRequest) {
     logger.error("Agent status POST error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // PATCH - Heartbeat / activity ping (updates last_active_at)
 // ============================================================================
 
-export async function PATCH() {
+export const PATCH = withErrorHandler(async () => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -267,4 +268,4 @@ export async function PATCH() {
     logger.error("Agent status PATCH error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

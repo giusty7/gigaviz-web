@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logging';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ========================================
 // Validation Schemas
@@ -26,7 +27,7 @@ const UpdateStatusSchema = z.object({
 // GET - Get All Agent Statuses
 // ========================================
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { searchParams } = new URL(request.url);
@@ -136,13 +137,13 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});
 
 // ========================================
 // POST - Update Agent Status
 // ========================================
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
 
@@ -214,4 +215,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});

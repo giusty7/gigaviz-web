@@ -6,6 +6,7 @@ import {
   requireWorkspaceRole,
 } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ type RouteContext = {
   params: Promise<{ phoneNumberId: string }>;
 };
 
-export async function PATCH(req: NextRequest, context: RouteContext) {
+export const PATCH = withErrorHandler(async (req: NextRequest, context: RouteContext) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies } = guard;
@@ -127,4 +128,4 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       },
     })
   );
-}
+});

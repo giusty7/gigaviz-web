@@ -4,6 +4,7 @@ import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { addTicketComment } from "@/lib/ops/tickets";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ type RouteContext = {
 /**
  * POST /api/ops/tickets/[id]/comments - Add comment to ticket
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export const POST = withErrorHandler(async (request: NextRequest, context: RouteContext) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -56,4 +57,4 @@ export async function POST(request: NextRequest, context: RouteContext) {
       { status: 500 }
     );
   }
-}
+});

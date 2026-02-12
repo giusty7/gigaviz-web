@@ -7,6 +7,7 @@ import { assertOpsEnabled } from "@/lib/ops/guard";
 import { logImpersonationStart, logImpersonationEnd } from "@/lib/ops/audit";
 import { logger } from "@/lib/logging";
 import { alertImpersonationStarted } from "@/lib/ops/alerts";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ const endSchema = z.object({
  * POST /api/ops/impersonate/start
  * Start impersonation session
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -102,13 +103,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * DELETE /api/ops/impersonate
  * End impersonation session
  */
-export async function DELETE(request: NextRequest) {
+export const DELETE = withErrorHandler(async (request: NextRequest) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -168,4 +169,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

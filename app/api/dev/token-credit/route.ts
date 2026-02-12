@@ -3,6 +3,7 @@ import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { creditTokens } from "@/lib/tokens";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -30,7 +31,7 @@ function parseAmount(value: unknown) {
   return num;
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const isProd =
     process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
   if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
@@ -95,44 +96,44 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : "token_error";
     return withCookies(NextResponse.json({ error: message }, { status: 500 }));
   }
-}
+});
 
 function notFound() {
   return new NextResponse("Not Found", { status: 404 });
 }
 
-export function GET() {
+export const GET = withErrorHandler(async () => {
   const isProd =
     process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
   if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
-}
+});
 
-export function PUT() {
+export const PUT = withErrorHandler(async () => {
   const isProd =
     process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
   if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
-}
+});
 
-export function DELETE() {
+export const DELETE = withErrorHandler(async () => {
   const isProd =
     process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
   if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
-}
+});
 
-export function HEAD() {
+export const HEAD = withErrorHandler(async () => {
   const isProd =
     process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
   if (isProd || process.env.ENABLE_BILLING_TEST_MODE !== "true") {
     return notFound();
   }
   return notFound();
-}
+});

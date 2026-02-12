@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { updateWorkerHeartbeat } from "@/lib/ops/health";
 import { serverEnv } from "@/lib/env";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
  * POST /api/ops/health/heartbeat
  * Record worker heartbeat
  * Protected by CRON_SECRET
  */
-export async function POST(request: Request) {
+export const POST = withErrorHandler(async (request: Request) => {
   try {
     // Verify cron secret
     const authHeader = request.headers.get("authorization");
@@ -44,4 +45,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

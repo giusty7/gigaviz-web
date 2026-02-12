@@ -11,6 +11,7 @@ import {
   getAllEntitlementKeys,
 } from "@/lib/ops/entitlement-grants";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const GrantSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -39,7 +40,7 @@ const BulkActionSchema = z.object({
  *   - search: Search workspaces by name/slug
  *   - keys: Get all available entitlement keys
  */
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   const admin = await requirePlatformAdmin();
   if (!admin.ok) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -71,13 +72,13 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ error: "Missing query parameter" }, { status: 400 });
-}
+});
 
 /**
  * POST /api/ops/entitlement-grants
  * Actions: grant, revoke, grant_all, revoke_all
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   const admin = await requirePlatformAdmin();
   if (!admin.ok) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -173,4 +174,4 @@ export async function POST(request: NextRequest) {
     logger.error("[EntitlementGrants API] Error:", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

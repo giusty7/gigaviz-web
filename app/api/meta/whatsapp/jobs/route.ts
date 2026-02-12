@@ -9,6 +9,7 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ export const runtime = "nodejs";
  * GET /api/meta/whatsapp/jobs
  * List all jobs for a workspace
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -68,4 +69,4 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, jobs: jobs ?? [] }));
-}
+});

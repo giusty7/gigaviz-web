@@ -4,6 +4,7 @@ import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { createTicket, listTickets, getTicketStats } from "@/lib/ops/tickets";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ const createSchema = z.object({
 /**
  * GET /api/ops/tickets - List tickets with filters
  */
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -57,12 +58,12 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST /api/ops/tickets - Create ticket
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -91,4 +92,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

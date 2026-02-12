@@ -8,6 +8,7 @@ import {
   workspaceRequiredResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -25,7 +26,7 @@ type MessageRow = {
   to_wa_id: string | null;
 };
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -71,7 +72,7 @@ export async function GET(req: NextRequest) {
       messages: normalizeAndSort(messages),
     })
   );
-}
+});
 
 function normalizeAndSort(messages: MessageRow[] | null) {
   const normalized = messages?.map((m) => normalizeMessage(m)) ?? [];

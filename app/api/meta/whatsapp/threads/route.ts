@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ type ThreadRow = {
   last_message_preview: string | null;
 };
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies } = guard;
@@ -93,4 +94,4 @@ export async function GET(req: NextRequest) {
     }) ?? [];
 
   return withCookies(NextResponse.json({ threads }));
-}
+});

@@ -9,6 +9,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { z } from 'zod';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ========================================
 // Validation Schemas
@@ -40,10 +41,10 @@ const UpdateRuleSchema = z.object({
 // GET - Fetch Single Rule
 // ========================================
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ ruleId: string }> }
-) {
+) => {
   try {
     const { ruleId } = await params;
     const { supabase } = createSupabaseRouteClient(request);
@@ -71,16 +72,16 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
 // ========================================
 // PATCH - Update Rule
 // ========================================
 
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ ruleId: string }> }
-) {
+) => {
   try {
     const { ruleId } = await params;
     const body = await request.json();
@@ -123,16 +124,16 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
 // ========================================
 // DELETE - Delete Rule
 // ========================================
 
-export async function DELETE(
+export const DELETE = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ ruleId: string }> }
-) {
+) => {
   try {
     const { ruleId } = await params;
     const { supabase } = createSupabaseRouteClient(request);
@@ -160,4 +161,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

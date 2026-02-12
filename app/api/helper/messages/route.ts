@@ -4,6 +4,7 @@ import { guardWorkspace } from "@/lib/auth/guard";
 import { runHelperModel } from "@/lib/helper/providers/router";
 import { recordHelperUsage } from "@/lib/helper/usage";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const postBodySchema = z.object({
   conversationId: z.string().min(1, "conversationId required"),
@@ -16,7 +17,7 @@ const postBodySchema = z.object({
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -50,9 +51,9 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, messages: data ?? [] }));
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies, supabase: db } = guard;
@@ -194,4 +195,4 @@ export async function POST(req: NextRequest) {
       assistant: assistantMessage,
     })
   );
-}
+});

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies } = guard;
@@ -35,4 +36,4 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, intents: data ?? [] }));
-}
+});

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const slugPattern = /^[a-z0-9-]{3,32}$/;
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const limit = rateLimit(`workspace-check:${ip}`, { windowMs: 60_000, max: 30 });
 
@@ -34,4 +35,4 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ available: !data });
-}
+});

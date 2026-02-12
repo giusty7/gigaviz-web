@@ -1,40 +1,41 @@
 import { logger } from "@/lib/logging";
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { createFunctionCall, getFunctionCall, updateFunctionCallStatus } from "@/lib/helper/functions";
 import { executeFunction } from "@/lib/helper/executor";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-type CallRequest = {
-  workspaceId: string;
-  functionName: string;
-  parameters: Record<string, unknown>;
-  conversationId?: string;
-  messageId?: string;
-  autoExecute?: boolean;
-};
+const callRequestSchema = z.object({
+  workspaceId: z.string().uuid(),
+  functionName: z.string().min(1).max(200),
+  parameters: z.record(z.string(), z.unknown()),
+  conversationId: z.string().uuid().optional(),
+  messageId: z.string().uuid().optional(),
+  autoExecute: z.boolean().optional(),
+});
+
+const callUpdateSchema = z.object({
+  callId: z.string().uuid(),
+  workspaceId: z.string().uuid(),
+  action: z.enum(["confirm", "cancel"]),
+});
 
 /**
  * POST /api/helper/tools/call
  * Create and optionally execute a function call
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const userRes = await requireUser(req);
   if (!userRes.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { user } = userRes;
 
-  const body = (await req.json()) as CallRequest;
-  const { workspaceId, functionName, parameters, conversationId, messageId, autoExecute } = body;
-
-  if (!workspaceId || !functionName || !parameters) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 }
-    );
-  }
+  const body = await req.json();
+  const { workspaceId, functionName, parameters, conversationId, messageId, autoExecute } = callRequestSchema.parse(body);
 
   // Verify workspace access
   const membership = await requireWorkspaceMember(user.id, workspaceId);
@@ -84,13 +85,13 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * GET /api/helper/tools/call
  * Get function call status
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const userRes = await requireUser(req);
   if (!userRes.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -131,13 +132,13 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PUT /api/helper/tools/call
  * Confirm or cancel a pending function call
  */
-export async function PUT(req: NextRequest) {
+export const PUT = withErrorHandler(async (req: NextRequest) => {
   const userRes = await requireUser(req);
   if (!userRes.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -145,14 +146,7 @@ export async function PUT(req: NextRequest) {
   const { user } = userRes;
 
   const body = await req.json();
-  const { callId, workspaceId, action } = body;
-
-  if (!callId || !workspaceId || !action) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 }
-    );
-  }
+  const { callId, workspaceId, action } = callUpdateSchema.parse(body);
 
   // Verify workspace access
   const membership = await requireWorkspaceMember(user.id, workspaceId);
@@ -193,4 +187,4 @@ export async function PUT(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

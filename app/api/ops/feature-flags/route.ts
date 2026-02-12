@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
+
+const flagPostSchema = z.union([
+  // Workspace override
+  z.object({
+    workspaceId: z.string().uuid(),
+    flagKey: z.string().min(1).max(100),
+    enabled: z.boolean(),
+    reason: z.string().max(500).optional(),
+  }),
+  // Global flag create/update
+  z.object({
+    flagKey: z.string().min(1).max(100),
+    flagName: z.string().min(1).max(200),
+    description: z.string().max(1000).optional(),
+    defaultEnabled: z.boolean(),
+  }),
+]);
 import {
   getFeatureFlags,
   upsertFeatureFlag,
@@ -9,12 +27,13 @@ import {
   deleteWorkspaceFeatureFlag,
 } from "@/lib/ops/feature-flags";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
  * GET /api/ops/feature-flags
  * List all feature flags or workspace overrides
  */
-export async function GET(request: Request) {
+export const GET = withErrorHandler(async (request: Request) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -39,13 +58,13 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST /api/ops/feature-flags
  * Create or update feature flag
  */
-export async function POST(request: Request) {
+export const POST = withErrorHandler(async (request: Request) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -54,24 +73,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { flagKey, flagName, description, defaultEnabled, workspaceId, enabled, reason } = body;
+    const validated = flagPostSchema.parse(body);
 
     // Set workspace override
-    if (workspaceId && flagKey && enabled !== undefined) {
+    if ("workspaceId" in validated && "enabled" in validated) {
       const flag = await setWorkspaceFeatureFlag({
-        workspaceId,
-        flagKey,
-        enabled,
-        reason,
+        workspaceId: validated.workspaceId,
+        flagKey: validated.flagKey,
+        enabled: validated.enabled,
+        reason: "reason" in validated ? validated.reason : undefined,
         setBy: ctx.user.id,
       });
       return NextResponse.json({ flag });
     }
 
-    // Create/update global flag
-    if (!flagKey || !flagName || defaultEnabled === undefined) {
-      return NextResponse.json({ error: "missing_required_fields" }, { status: 400 });
-    }
+    const { flagKey, flagName, description, defaultEnabled } = validated as { flagKey: string; flagName: string; description?: string; defaultEnabled: boolean };
 
     const flag = await upsertFeatureFlag({
       flagKey,
@@ -88,13 +104,13 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * DELETE /api/ops/feature-flags
  * Remove workspace feature flag override
  */
-export async function DELETE(request: Request) {
+export const DELETE = withErrorHandler(async (request: Request) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -120,4 +136,4 @@ export async function DELETE(request: Request) {
       { status: 500 }
     );
   }
-}
+});

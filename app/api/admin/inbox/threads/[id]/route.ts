@@ -1,6 +1,7 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -98,7 +99,7 @@ type TeamMemberRow = {
   member_id: string | null;
 };
 
-export async function GET(req: NextRequest, { params }: Ctx) {
+export const GET = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -309,4 +310,4 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       memberRole: memberRole ?? undefined,
     })
   );
-}
+});

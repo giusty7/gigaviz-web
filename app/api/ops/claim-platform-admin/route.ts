@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getCurrentUser, isOwnerEmailAllowed } from "@/lib/platform-admin/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-export async function POST(request: Request) {
+export const POST = withErrorHandler(async (request: Request) => {
   const { userId, email } = await getCurrentUser();
   if (!userId || !email) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
@@ -41,4 +42,4 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true });
-}
+});

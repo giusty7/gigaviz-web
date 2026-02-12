@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
 import { logger } from '@/lib/logging';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ========================================
 // Validation Schemas
@@ -53,7 +54,7 @@ const CreateScheduledActionSchema = z.object({
 // GET - List Scheduled Actions
 // ========================================
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { searchParams } = new URL(request.url);
@@ -137,13 +138,13 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});
 
 // ========================================
 // POST - Create Scheduled Action
 // ========================================
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
 
@@ -233,13 +234,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});
 
 // ========================================
 // DELETE - Cancel Scheduled Action
 // ========================================
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { searchParams } = new URL(request.url);
@@ -323,4 +324,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});

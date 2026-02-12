@@ -18,6 +18,7 @@ import {
 } from "@/lib/meta/wa-connections";
 import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -162,7 +163,7 @@ function extractPieces(components?: unknown[]) {
   };
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -253,9 +254,9 @@ export async function GET(req: NextRequest) {
       templates: data ?? [],
     })
   );
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -474,4 +475,4 @@ export async function POST(req: NextRequest) {
       template: upserted ?? row,
     })
   );
-}
+});

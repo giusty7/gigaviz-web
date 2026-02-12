@@ -6,6 +6,7 @@ import {
   resolveCurrentWorkspace,
   WORKSPACE_COOKIE,
 } from "@/lib/workspaces";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 function setWorkspaceCookie(res: NextResponse, workspaceId: string) {
   res.cookies.set(WORKSPACE_COOKIE, workspaceId, {
@@ -17,7 +18,7 @@ function setWorkspaceCookie(res: NextResponse, workspaceId: string) {
   });
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   const user = userData?.user;
@@ -44,9 +45,9 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(res);
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   const user = userData?.user;
@@ -79,4 +80,4 @@ export async function POST(req: NextRequest) {
   const res = NextResponse.json({ currentWorkspace: target });
   setWorkspaceCookie(res, workspaceId);
   return withCookies(res);
-}
+});

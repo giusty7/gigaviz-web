@@ -14,6 +14,7 @@ import {
   findWorkspaceBySlug,
 } from "@/lib/meta/wa-connections";
 import { getGraphApiVersion, graphUrl } from "@/lib/meta/graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -70,10 +71,10 @@ async function resolveWorkspaceId(
   return { workspaceId, connection };
 }
 
-export async function GET(
+export const GET = withErrorHandler(async (
   req: NextRequest,
   { params }: { params: Promise<{ templateId: string }> }
-) {
+) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -198,4 +199,4 @@ export async function GET(
       })
     );
   }
-}
+});

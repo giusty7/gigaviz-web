@@ -16,6 +16,7 @@ import {
 } from '@/lib/auth/guard';
 import { getUsageStats } from '@/lib/meta/usage-tracker';
 import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const exportSchema = z.object({
   workspaceId: z.string().min(1), // allow slug or uuid
@@ -30,7 +31,7 @@ export const runtime = 'nodejs';
  * GET /api/meta/whatsapp/analytics/export
  * Export analytics data as CSV or JSON
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   
@@ -192,4 +193,4 @@ export async function GET(req: NextRequest) {
       }
     ));
   }
-}
+});

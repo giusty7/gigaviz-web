@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,7 @@ const paramSchema = z.object({ id: z.string().uuid() });
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function PATCH(req: NextRequest, ctx: Ctx) {
+export const PATCH = withErrorHandler(async (req: NextRequest, ctx: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -52,4 +53,4 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   }
 
   return withCookies(NextResponse.json({ ok: true, contact: data, updated_by: user?.id ?? null }));
-}
+});

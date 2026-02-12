@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -80,7 +81,7 @@ function normalizeValue(field: FieldRow, raw: unknown) {
   return null;
 }
 
-export async function GET(req: NextRequest, { params }: Ctx) {
+export const GET = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -127,9 +128,9 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   return withCookies(
     NextResponse.json({ fields: fields ?? [], values: values ?? [] })
   );
-}
+});
 
-export async function POST(req: NextRequest, { params }: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -221,4 +222,4 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   }
 
   return withCookies(NextResponse.json({ values: saved ?? [] }));
-}
+});

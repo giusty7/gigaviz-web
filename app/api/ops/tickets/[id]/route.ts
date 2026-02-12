@@ -4,6 +4,7 @@ import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getTicket, updateTicket, getTicketComments } from "@/lib/ops/tickets";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +22,7 @@ type RouteContext = {
 /**
  * GET /api/ops/tickets/[id] - Get ticket details with comments
  */
-export async function GET(request: NextRequest, context: RouteContext) {
+export const GET = withErrorHandler(async (request: NextRequest, context: RouteContext) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -47,12 +48,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PATCH /api/ops/tickets/[id] - Update ticket
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export const PATCH = withErrorHandler(async (request: NextRequest, context: RouteContext) => {
   assertOpsEnabled();
 
   const admin = await requirePlatformAdmin();
@@ -82,4 +83,4 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       { status: 500 }
     );
   }
-}
+});

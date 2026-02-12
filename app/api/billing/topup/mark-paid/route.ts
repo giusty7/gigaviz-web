@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { settlePaymentIntentPaid } from "@/lib/billing/topup";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ const schema = z.object({
   paymentIntentId: z.string().uuid(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, user, withCookies } = guard;
@@ -56,4 +57,4 @@ export async function POST(req: NextRequest) {
       paymentIntentId: settled.paymentIntentId,
     })
   );
-}
+});

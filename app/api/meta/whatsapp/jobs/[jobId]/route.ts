@@ -7,6 +7,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ type Ctx = { params: Promise<{ jobId: string }> };
  * GET /api/meta/whatsapp/jobs/[jobId]
  * Get job details including items
  */
-export async function GET(req: NextRequest, { params }: Ctx) {
+export const GET = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -102,4 +103,4 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       },
     })
   );
-}
+});

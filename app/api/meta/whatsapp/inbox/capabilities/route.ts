@@ -10,6 +10,7 @@ import { getWaSettings } from "@/lib/meta/wa-settings";
 import { getWorkspaceWhatsappConnectionOrThrow } from "@/lib/meta/wa-connections";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -51,7 +52,7 @@ function mapConnectionCode(code: string | undefined): CapabilityReasonCode {
   }
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -168,8 +169,8 @@ export async function GET(req: NextRequest) {
   } satisfies Record<string, unknown>;
 
   return withCookies(NextResponse.json(responsePayload));
-}
+});
 
-export async function POST() {
+export const POST = withErrorHandler(async () => {
   return NextResponse.json({ ok: false, error: "method_not_allowed" }, { status: 405 });
-}
+});

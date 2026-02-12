@@ -10,8 +10,9 @@ import type {
   AudiencePreviewRequest,
   AudiencePreviewResponse,
 } from "@/types/wa-contacts";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -188,4 +189,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

@@ -10,6 +10,7 @@ import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
 import { requireWorkspaceMember, requireWorkspaceRole } from '@/lib/auth/guard';
 import { recordAuditEvent } from '@/lib/audit';
 import { logger } from '@/lib/logging';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const createConnectionSchema = z.object({
   workspace_id: z.string().uuid(),
@@ -20,7 +21,7 @@ const createConnectionSchema = z.object({
   permissions: z.array(z.string()).optional(),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { searchParams } = new URL(request.url);
@@ -83,9 +84,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
 
@@ -195,4 +196,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const commsStatusSchema = z.object({
   comms_status: z.enum(["normal", "blacklisted", "whitelisted"]),
@@ -17,7 +18,7 @@ type ContactRow = {
   comms_status_updated_at: string | null;
 };
 
-export async function PATCH(req: NextRequest, { params }: Ctx) {
+export const PATCH = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -78,4 +79,4 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       },
     })
   );
-}
+});

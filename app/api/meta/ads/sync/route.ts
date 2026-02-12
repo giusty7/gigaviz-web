@@ -7,6 +7,7 @@ import { resolveWorkspaceId } from '@/lib/workspaces/resolve';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { recordAuditEvent } from '@/lib/audit';
 import { logger } from '@/lib/logging';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const META_GRAPH_URL = 'https://graph.facebook.com/v21.0';
 
@@ -21,7 +22,7 @@ interface MetaCampaign {
   updated_time: string;
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
 
@@ -217,4 +218,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});

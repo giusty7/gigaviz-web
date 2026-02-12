@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ const schema = z.object({
   cap: z.number().int().min(0).max(1_000_000_000).nullable(),
 });
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, role, withCookies } = guard;
@@ -49,4 +50,4 @@ export async function PATCH(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, cap }));
-}
+});

@@ -3,12 +3,13 @@ import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getWebhookLogs, getWebhookLog } from "@/lib/ops/webhooks";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
  * GET /api/ops/webhooks
  * List webhook logs with filters
  */
-export async function GET(request: Request) {
+export const GET = withErrorHandler(async (request: Request) => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -50,4 +51,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});

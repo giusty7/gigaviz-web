@@ -13,6 +13,7 @@ import {
   upsertAIReplySettings,
   getAIReplyStats,
 } from "@/lib/meta/ai-reply-service";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // SCHEMAS
@@ -44,7 +45,7 @@ const updateSchema = z.object({
 // GET - Get AI reply settings
 // ============================================================================
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -91,13 +92,13 @@ export async function GET(req: NextRequest) {
     logger.error("[ai-settings] GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // POST - Update AI reply settings
 // ============================================================================
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -128,13 +129,13 @@ export async function POST(req: NextRequest) {
     logger.error("[ai-settings] POST error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // PATCH - Toggle AI reply on/off (quick toggle)
 // ============================================================================
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -160,4 +161,4 @@ export async function PATCH(req: NextRequest) {
     logger.error("[ai-settings] PATCH error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

@@ -2,6 +2,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ const appRequestSchema = z.object({
  *
  * SECURITY: workspace_id and user_id derived from auth context, never from client body.
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -93,4 +94,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

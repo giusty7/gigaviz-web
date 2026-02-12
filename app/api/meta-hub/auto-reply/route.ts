@@ -4,6 +4,7 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // TYPES
@@ -77,7 +78,7 @@ function mapRule(row: Record<string, unknown>): AutoReplyRule {
 // GET - List auto-reply rules
 // ============================================================================
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -111,13 +112,13 @@ export async function GET(req: NextRequest) {
     logger.error("Auto-reply rules GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // POST - Create auto-reply rule
 // ============================================================================
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -170,13 +171,13 @@ export async function POST(req: NextRequest) {
     logger.error("Auto-reply rules POST error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // PATCH - Update auto-reply rule
 // ============================================================================
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -220,13 +221,13 @@ export async function PATCH(req: NextRequest) {
     logger.error("Auto-reply rules PATCH error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // DELETE - Delete auto-reply rule
 // ============================================================================
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -257,7 +258,7 @@ export async function DELETE(req: NextRequest) {
     logger.error("Auto-reply rules DELETE error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // Utility: Check cooldown and execute auto-reply

@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { ContactSegment } from "@/types/wa-contacts";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const getQuerySchema = z.object({
   workspaceId: z.string().uuid("Invalid workspaceId"),
@@ -23,7 +24,7 @@ const createSegmentSchema = z.object({
   rules: z.record(z.string(), z.unknown()).optional(),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -99,9 +100,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -195,4 +196,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

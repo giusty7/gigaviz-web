@@ -9,12 +9,13 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { logger } from "@/lib/logging";
 import { getAIReplyStats } from "@/lib/meta/ai-reply-service";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // GET - Get AI reply logs
 // ============================================================================
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -67,4 +68,4 @@ export async function GET(req: NextRequest) {
     logger.error("[ai-logs] GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

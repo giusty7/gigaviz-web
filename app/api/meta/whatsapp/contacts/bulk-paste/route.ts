@@ -4,16 +4,25 @@
  */
 
 import { logger } from "@/lib/logging";
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { BulkPasteRequest, BulkPasteResponse } from "@/types/wa-contacts";
+import type { BulkPasteResponse } from "@/types/wa-contacts";
 import {
   validatePhone,
   sanitizeTags,
   parseBulkPaste,
 } from "@/lib/meta/wa-contacts-utils";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function POST(request: NextRequest) {
+const bulkPasteSchema = z.object({
+  workspaceId: z.string().uuid("workspaceId required"),
+  lines: z.array(z.string()).min(1, "lines required").max(10000),
+  tags: z.array(z.string()).optional(),
+  source: z.string().max(100).optional(),
+});
+
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -27,9 +36,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as BulkPasteRequest & {
-      workspaceId: string;
-    };
+    const rawBody = await request.json();
+    const body = bulkPasteSchema.parse(rawBody);
 
     if (!body.workspaceId) {
       return NextResponse.json(
@@ -157,4 +165,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

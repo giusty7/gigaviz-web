@@ -4,6 +4,7 @@ import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { generateEmbedding } from "@/lib/helper/embeddings";
 import { randomUUID } from "crypto";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ const AddSourceSchema = z.object({
  * GET /api/helper/knowledge/sources
  * List knowledge sources for a workspace
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -37,13 +38,13 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, sources }));
-}
+});
 
 /**
  * POST /api/helper/knowledge/sources
  * Add a new knowledge source with embedding
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies, supabase: db } = guard;
@@ -95,13 +96,13 @@ export async function POST(req: NextRequest) {
     logger.error("Add source error:", error);
     return withCookies(NextResponse.json({ error: "Internal server error" }, { status: 500 }));
   }
-}
+});
 
 /**
  * DELETE /api/helper/knowledge/sources
  * Delete a knowledge source
  */
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -125,4 +126,4 @@ export async function DELETE(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

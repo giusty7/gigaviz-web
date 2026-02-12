@@ -5,6 +5,7 @@ import { logger } from "@/lib/logging";
 import { findConnectionById } from "@/lib/meta/wa-connections";
 import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 import { findTokenForConnection } from "@/lib/meta/wa-connections";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
 // GitHub Actions / Cron secret authentication
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   // Verify authorization
   const authHeader = req.headers.get("authorization");
   
@@ -335,4 +336,4 @@ export async function POST(req: NextRequest) {
     sent: totalSent,
     failed: totalFailed,
   });
-}
+});

@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/guard";
 import { rateLimit } from "@/lib/rate-limit";
 import { getWorkspaceMetaAccessToken, metaGraphFetch } from "@/lib/meta/graph";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -27,7 +28,7 @@ const schema = z.object({
  * requires `business_management` scope that WhatsApp System User tokens
  * typically don't have.
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) return unauthorizedResponse(withCookies);
@@ -106,4 +107,4 @@ export async function GET(req: NextRequest) {
       NextResponse.json({ error: "graph_error", reason: message }, { status: 502 })
     );
   }
-}
+});

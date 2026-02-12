@@ -10,6 +10,7 @@ import { recordUsage } from "@/lib/usage/server";
 import type { TokenActionKey } from "@/lib/tokenRates";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { assertEntitlement, assertTokenBudget } from "@/lib/billing/guards";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const consumeSchema = z.object({
   action: z.string().min(1, "action required"),
@@ -18,7 +19,7 @@ const consumeSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { withCookies, user, workspaceId } = guard;
@@ -126,4 +127,4 @@ export async function POST(req: NextRequest) {
     const status = message.includes("insufficient_tokens") ? 402 : 400;
     return withCookies(NextResponse.json({ error: message }, { status }));
   }
-}
+});

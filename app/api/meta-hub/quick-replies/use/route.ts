@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // Track usage of quick reply (increment use_count, update last_used_at)
@@ -12,7 +13,7 @@ const schema = z.object({
   quickReplyId: z.string().uuid(),
 });
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -59,4 +60,4 @@ export async function POST(req: NextRequest) {
     logger.error("Quick reply usage tracking error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

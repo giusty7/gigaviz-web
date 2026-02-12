@@ -14,6 +14,7 @@ import {
   handoffThread,
   upsertThreadState,
 } from "@/lib/meta/ai-reply-service";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // SCHEMAS
@@ -37,7 +38,7 @@ const resetSchema = z.object({
 // GET - Get thread AI state
 // ============================================================================
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -63,13 +64,13 @@ export async function GET(req: NextRequest) {
     logger.error("[ai-thread] GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // POST - Toggle AI for thread
 // ============================================================================
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -132,4 +133,4 @@ export async function POST(req: NextRequest) {
     logger.error("[ai-thread] POST error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

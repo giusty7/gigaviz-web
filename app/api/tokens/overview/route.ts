@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { getTokenOverview, getTokenSettings } from "@/lib/tokens";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const month = req.nextUrl.searchParams.get("month") || undefined;
   const workspaceIdParam = req.nextUrl.searchParams.get("workspaceId") || undefined;
   const guard = await guardWorkspace(req, { workspaceId: workspaceIdParam });
@@ -13,4 +14,4 @@ export async function GET(req: NextRequest) {
   const settings = await getTokenSettings(workspaceId);
 
   return withCookies(NextResponse.json({ overview, settings }));
-}
+});

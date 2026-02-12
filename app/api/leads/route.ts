@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendWhatsAppText } from "@/lib/wa/cloud";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,7 +104,7 @@ function isMemoryRateLimited(ip: string | null) {
   return entry.count > RATE_LIMIT_MAX;
 }
 
-export async function POST(req: Request) {
+export const POST = withErrorHandler(async (req: Request) => {
   const supabase = supabaseAdmin();
 
   async function logAttempt(a: Attempt) {
@@ -322,4 +323,4 @@ export async function POST(req: Request) {
     logger.error("[LEADS] Unexpected error:", err);
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }
-}
+});

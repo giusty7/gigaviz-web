@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { randomUUID } from "crypto";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -38,7 +39,7 @@ const PatchWorkflowSchema = z.object({
  * GET /api/helper/workflows
  * List workflows for a workspace
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -56,13 +57,13 @@ export async function GET(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true, workflows }));
-}
+});
 
 /**
  * POST /api/helper/workflows
  * Create a new workflow
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies, supabase: db } = guard;
@@ -109,13 +110,13 @@ export async function POST(req: NextRequest) {
     logger.error("Create workflow error:", err);
     return withCookies(NextResponse.json({ error: "Internal error" }, { status: 500 }));
   }
-}
+});
 
 /**
  * PUT /api/helper/workflows
  * Update an existing workflow
  */
-export async function PUT(req: NextRequest) {
+export const PUT = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -160,13 +161,13 @@ export async function PUT(req: NextRequest) {
     logger.error("Update workflow error:", err);
     return withCookies(NextResponse.json({ error: "Internal error" }, { status: 500 }));
   }
-}
+});
 
 /**
  * PATCH /api/helper/workflows
  * Toggle workflow active status
  */
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -202,13 +203,13 @@ export async function PATCH(req: NextRequest) {
     logger.error("Patch workflow error:", err);
     return withCookies(NextResponse.json({ error: "Internal error" }, { status: 500 }));
   }
-}
+});
 
 /**
  * DELETE /api/helper/workflows
  * Delete a workflow
  */
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies, supabase: db } = guard;
@@ -232,4 +233,4 @@ export async function DELETE(req: NextRequest) {
   }
 
   return withCookies(NextResponse.json({ ok: true }));
-}
+});

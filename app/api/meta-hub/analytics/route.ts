@@ -16,6 +16,7 @@ import {
   type UsagePlatform,
 } from '@/lib/meta-hub/usage-analytics';
 import { logger } from '@/lib/logging';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ========================================
 // Validation Schemas
@@ -32,7 +33,7 @@ const TrackEventSchema = z.object({
 // GET - Get Usage Analytics
 // ========================================
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { searchParams } = new URL(request.url);
@@ -109,13 +110,13 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});
 
 // ========================================
 // POST - Track Usage Event
 // ========================================
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
 
@@ -171,4 +172,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     ));
   }
-}
+});

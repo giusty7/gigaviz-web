@@ -2,8 +2,9 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { getMetaHubStatus } from "@/lib/meta-hub/getMetaHubStatus";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const workspaceId = searchParams.get("workspaceId");
 
@@ -49,4 +50,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

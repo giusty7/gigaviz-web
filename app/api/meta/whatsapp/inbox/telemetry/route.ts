@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ type ThroughputBucket = {
   count: number;
 };
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies } = guard;
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest) {
       generatedAt: now.toISOString(),
     })
   );
-}
+});
 
 function toTimestamp(message: MessageRow) {
   const ts =

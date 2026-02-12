@@ -9,6 +9,7 @@
 import { logger } from "@/lib/logging";
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,7 @@ type WorkerHealth = {
   details?: Record<string, unknown>;
 };
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   try {
     // Create service role client
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -170,4 +171,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});

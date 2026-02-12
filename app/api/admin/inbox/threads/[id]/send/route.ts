@@ -6,6 +6,7 @@ import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { normalizePhone } from "@/lib/contacts/normalize";
 import { computeFirstResponseAt } from "@/lib/inbox/first-response";
 import { sendWhatsAppText } from "@/lib/wa/cloud";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const sendSchema = z.object({
   text: z.string().min(1, "text_required").max(4096, "text_too_long"),
@@ -72,7 +73,7 @@ function toErrorMessage(err: unknown) {
   return err instanceof Error ? err.message : "wa_send_failed";
 }
 
-export async function POST(req: NextRequest, { params }: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   const auth = await requireAdminOrSupervisorWorkspace(req);
   if (!auth.ok) return auth.res;
 
@@ -380,4 +381,4 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       { status: 200 }
     )
   );
-}
+});

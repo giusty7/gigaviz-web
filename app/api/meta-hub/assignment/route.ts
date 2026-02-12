@@ -4,6 +4,7 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ============================================================================
 // TYPES
@@ -79,7 +80,7 @@ function mapRule(row: Record<string, unknown>): AssignmentRule {
 // GET - List assignment rules
 // ============================================================================
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -104,13 +105,13 @@ export async function GET() {
     logger.error("Assignment rules GET error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // POST - Create assignment rule OR assign thread
 // ============================================================================
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
     logger.error("Assignment rules POST error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // Handle thread assignment
@@ -259,7 +260,7 @@ async function handleAssignment(
 // PATCH - Update assignment rule
 // ============================================================================
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -302,13 +303,13 @@ export async function PATCH(req: NextRequest) {
     logger.error("Assignment rules PATCH error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
 // ============================================================================
 // DELETE - Delete assignment rule
 // ============================================================================
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req: NextRequest) => {
   try {
     const ctx = await getAppContext();
     if (!ctx.user || !ctx.currentWorkspace) {
@@ -339,4 +340,4 @@ export async function DELETE(req: NextRequest) {
     logger.error("Assignment rules DELETE error", { error: err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

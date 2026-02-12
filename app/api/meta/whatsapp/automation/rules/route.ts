@@ -8,6 +8,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { z } from 'zod';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 // ========================================
 // Validation Schemas
@@ -40,7 +41,7 @@ const CreateRuleSchema = z.object({
 // GET - List Automation Rules
 // ========================================
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
@@ -93,13 +94,13 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // ========================================
 // POST - Create Automation Rule
 // ========================================
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const body = await request.json();
     const parsed = CreateRuleSchema.safeParse(body);
@@ -165,4 +166,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

@@ -18,6 +18,7 @@ import {
   validatePhone,
   sanitizeTags,
 } from "@/lib/meta/wa-contacts-utils";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const getQuerySchema = z.object({
   workspaceId: z.string().uuid(),
@@ -39,7 +40,7 @@ const createContactSchema = z.object({
   source: z.string().max(50).optional().default("manual"),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -182,12 +183,12 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST - Create new contact
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
 
@@ -302,4 +303,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

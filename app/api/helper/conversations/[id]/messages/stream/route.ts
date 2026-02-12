@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logging";
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser, requireWorkspaceMember } from "@/lib/auth/guard";
 import { streamHelperModel } from "@/lib/helper/providers/stream-router";
@@ -6,6 +7,14 @@ import { recordHelperUsage } from "@/lib/helper/usage";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRagSettings, searchKnowledge, buildRagContext, trackContextUsage } from "@/lib/helper/rag";
 import type { HelperMode, ProviderName } from "@/lib/helper/providers/types";
+
+const streamBodySchema = z.object({
+  workspaceSlug: z.string().optional(),
+  workspaceId: z.string().optional(),
+  content: z.string().min(1, "content_required").max(32000),
+  providerKey: z.string().optional(),
+  modeKey: z.string().optional(),
+}).refine(d => d.workspaceId || d.workspaceSlug, { message: "workspace_required" });
 
 export const runtime = "nodejs";
 
@@ -41,18 +50,16 @@ type UsageShape = { inputTokens: number; outputTokens: number; totalTokens: numb
 type NextResponseType = import("next/server").NextResponse<unknown>;
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
-  // Parse body first (before consuming request)
-  let body: {
-    workspaceSlug?: string;
-    workspaceId?: string;
-    content?: string;
-    providerKey?: ProviderName;
-    modeKey?: HelperMode;
-  };
+  // Parse and validate body
+  let body: z.infer<typeof streamBodySchema>;
 
   try {
-    body = await req.json();
-  } catch {
+    const raw = await req.json();
+    body = streamBodySchema.parse(raw);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return sseError(400, "validation_error", err.issues[0]?.message ?? "Invalid request body");
+    }
     return sseError(400, "invalid_json", "Invalid request body");
   }
 
@@ -78,14 +85,10 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return sseError(403, "forbidden", "Workspace access denied");
   }
 
-  // Validate required fields
-  const content = body.content?.trim();
-  if (!content) {
-    return sseError(400, "content_required", "Message content required");
-  }
+  const content = body.content.trim();
 
-  const providerKey: ProviderName = body.providerKey ?? "auto";
-  const modeKey: HelperMode = body.modeKey ?? "chat";
+  const providerKey = (body.providerKey ?? "auto") as ProviderName;
+  const modeKey = (body.modeKey ?? "chat") as HelperMode;
 
   const db = supabaseAdmin();
 

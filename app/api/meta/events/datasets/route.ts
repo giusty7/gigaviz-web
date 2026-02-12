@@ -14,6 +14,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { ensureDatasetId } from "@/lib/meta/events";
 import { metaGraphFetch } from "@/lib/meta/graph";
 import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,7 @@ async function validateAccess(
   return null;
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await authorize(req);
   if (!auth.ok) return auth.error;
   const { withCookies, userId } = auth;
@@ -105,9 +106,9 @@ export async function GET(req: NextRequest) {
     const message = err instanceof Error ? err.message : "unknown_error";
     return withCookies(NextResponse.json({ error: "dataset_error", reason: message }, { status: 502 }));
   }
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const auth = await authorize(req);
   if (!auth.ok) return auth.error;
   const { withCookies, userId } = auth;
@@ -145,4 +146,4 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : "unknown_error";
     return withCookies(NextResponse.json({ error: "dataset_error", reason: message }, { status: 502 }));
   }
-}
+});

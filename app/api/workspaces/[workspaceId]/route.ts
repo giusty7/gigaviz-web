@@ -4,6 +4,7 @@ import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { recordAuditEvent } from "@/lib/audit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const updateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -15,10 +16,10 @@ const updateSchema = z.object({
  * PATCH /api/workspaces/[workspaceId]
  * Update workspace settings
  */
-export async function PATCH(
+export const PATCH = withErrorHandler(async (
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
-) {
+) => {
   try {
     const { workspaceId } = await params;
     const supabase = await supabaseServer();
@@ -89,16 +90,16 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * DELETE /api/workspaces/[workspaceId]
  * Delete workspace (owner only, with safety checks)
  */
-export async function DELETE(
+export const DELETE = withErrorHandler(async (
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
-) {
+) => {
   try {
     const { workspaceId } = await params;
     const supabase = await supabaseServer();
@@ -179,4 +180,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

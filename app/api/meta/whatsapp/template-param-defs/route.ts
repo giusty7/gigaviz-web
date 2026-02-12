@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceId: z.string().uuid(),
@@ -29,7 +30,7 @@ export const runtime = "nodejs";
  * POST /api/meta/whatsapp/template-param-defs
  * Save parameter mapping definitions for a template
  */
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -125,4 +126,4 @@ export async function POST(req: NextRequest) {
       saved: mappings.length,
     })
   );
-}
+});

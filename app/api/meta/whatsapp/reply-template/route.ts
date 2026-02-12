@@ -14,6 +14,7 @@ import { logMetaAdminAudit } from "@/lib/meta/audit";
 import { resolveConnectionForThread } from "@/lib/meta/wa-connections";
 import { getWaSettings } from "@/lib/meta/wa-settings";
 import { createHash } from "node:crypto";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   workspaceSlug: z.string().min(1),
@@ -55,7 +56,7 @@ function hashTemplate(name: string, language: string, parameters: Array<{ type: 
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -343,4 +344,4 @@ export async function POST(req: NextRequest) {
       idempotencyKey,
     })
   );
-}
+});

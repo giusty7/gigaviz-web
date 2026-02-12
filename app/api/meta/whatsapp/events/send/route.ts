@@ -15,6 +15,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { getWorkspaceMetaAccessToken, metaGraphFetch } from "@/lib/meta/graph";
 import { ensureDatasetId, storeMetaEventLog } from "@/lib/meta/events";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,7 @@ function hashCtwaClid(raw: string) {
   return createHash("sha256").update(raw.trim()).digest("hex");
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const { supabase, withCookies } = createSupabaseRouteClient(req);
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData?.user) {
@@ -210,4 +211,4 @@ export async function POST(req: NextRequest) {
       : undefined;
 
   return withCookies(NextResponse.json({ ok: true, datasetId, fbtrace_id: fbtraceId }));
-}
+});

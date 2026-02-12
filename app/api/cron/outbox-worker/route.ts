@@ -5,6 +5,7 @@ import { logger } from "@/lib/logging";
 import { findConnectionById, findTokenForConnection } from "@/lib/meta/wa-connections";
 import { sendWhatsappMessage } from "@/lib/meta/wa-graph";
 import { updateWorkerHeartbeat } from "@/lib/ops/health";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -79,7 +80,7 @@ async function markMessageStatus(
     .eq("id", messageId);
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const authHeader = req.headers.get("authorization");
 
   if (!CRON_SECRET) {
@@ -325,4 +326,4 @@ export async function POST(req: NextRequest) {
     failed: failedCount,
     requeued: requeuedCount,
   });
-}
+});

@@ -3,12 +3,13 @@ import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getHealthSummary } from "@/lib/ops/health";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
  * GET /api/ops/health
  * Get system health summary
  */
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   try {
     assertOpsEnabled();
     const ctx = await requirePlatformAdmin();
@@ -30,4 +31,4 @@ export async function GET() {
       { status }
     );
   }
-}
+});

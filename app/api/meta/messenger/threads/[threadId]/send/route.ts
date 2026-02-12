@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { createSupabaseRouteClient } from '@/lib/supabase/app-route';
 import { recordAuditEvent } from '@/lib/audit';
 import { sendMessengerTextMessage, sendMessengerImageMessage } from '@/lib/meta/messenger-send';
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const sendSchema = z.object({
   text: z.string().max(4096).optional(),
@@ -16,10 +17,10 @@ const sendSchema = z.object({
   { message: "text or imageUrl is required" }
 );
 
-export async function POST(
+export const POST = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ threadId: string }> }
-) {
+) => {
   try {
     const { supabase, withCookies } = createSupabaseRouteClient(request);
     const { threadId } = await params;
@@ -123,4 +124,4 @@ export async function POST(
       NextResponse.json({ error: message }, { status: 500 })
     );
   }
-}
+});

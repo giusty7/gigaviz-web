@@ -4,6 +4,7 @@ import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { evaluateRulesForThread } from "@/lib/meta/automation-engine";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const schema = z.object({
   threadId: z.string().uuid(),
@@ -12,7 +13,7 @@ const schema = z.object({
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, user, withCookies } = guard;
@@ -71,4 +72,4 @@ export async function POST(req: NextRequest) {
   });
 
   return withCookies(NextResponse.json({ ok: true, tags: rows.map((r) => r.tag) }));
-}
+});

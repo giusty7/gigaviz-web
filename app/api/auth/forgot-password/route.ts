@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getResendFromAuth } from "@/lib/email";
 import { forgotPasswordSchema } from "@/lib/validation/auth";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ function getBaseUrl(req: NextRequest) {
   return process.env.APP_BASE_URL ?? req.nextUrl.origin;
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const body = await req.json().catch(() => null);
   const parsed = forgotPasswordSchema.safeParse(body);
 
@@ -63,4 +64,4 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
-}
+});

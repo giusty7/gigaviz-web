@@ -6,6 +6,7 @@ import { sendWorkspaceInviteEmail } from "@/lib/email";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { guardWorkspace, forbiddenResponse } from "@/lib/auth/guard";
 import { rateLimit } from "@/lib/rate-limit";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const inviteSchema = z.object({
   email: z.string().email("A valid email is required").transform((v) => v.trim().toLowerCase()),
@@ -20,7 +21,7 @@ function sha256Hex(input: string) {
   return crypto.createHash("sha256").update(input).digest("hex");
 }
 
-export async function POST(req: NextRequest, context: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, context: Ctx) => {
   const params = await context.params;
   const guard = await guardWorkspace(req, params);
   if (!guard.ok) return guard.response;
@@ -152,4 +153,4 @@ export async function POST(req: NextRequest, context: Ctx) {
   }
 
   return withCookies(NextResponse.json({ invite }, { status: 201 }));
-}
+});

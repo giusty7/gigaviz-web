@@ -1,6 +1,7 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/supabase/workspace-role";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,7 @@ type TeamMemberRow = {
   is_active: boolean | null;
 };
 
-export async function POST(req: NextRequest, { params }: Ctx) {
+export const POST = withErrorHandler(async (req: NextRequest, { params }: Ctx) => {
   if (process.env.SUPERVISOR_TAKEOVER_ENABLED !== "true") {
     return NextResponse.json({ error: "feature_disabled" }, { status: 403 });
   }
@@ -165,4 +166,4 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   };
 
   return withCookies(NextResponse.json({ thread }));
-}
+});

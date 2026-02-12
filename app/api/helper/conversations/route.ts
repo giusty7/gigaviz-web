@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ const createConversationSchema = z.object({
   title: z.string().max(200).optional(),
 });
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
@@ -38,9 +39,9 @@ export async function GET(req: NextRequest) {
     logger.error("helper/conversations GET error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   try {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
@@ -76,4 +77,4 @@ export async function POST(req: NextRequest) {
     logger.error("helper/conversations POST error", { error: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 });
   }
-}
+});

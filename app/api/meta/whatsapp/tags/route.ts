@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,7 @@ export const runtime = "nodejs";
  * GET /api/meta/whatsapp/tags
  * Returns distinct tags used in the workspace for filtering
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const guard = await guardWorkspace(req);
   if (!guard.ok) return guard.response;
   const { workspaceId, withCookies } = guard;
@@ -36,4 +37,4 @@ export async function GET(req: NextRequest) {
   const uniqueTags = Array.from(new Set(rows?.map((r) => r.tag) ?? []));
 
   return withCookies(NextResponse.json({ tags: uniqueTags }));
-}
+});

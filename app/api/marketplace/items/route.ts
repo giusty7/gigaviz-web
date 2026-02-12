@@ -2,6 +2,7 @@ import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseServer } from "@/lib/supabase/server";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ const marketplaceItemSchema = z.object({
  *
  * SECURITY: workspace_id and user_id derived from auth context, never from client body.
  */
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -104,13 +105,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * GET /api/marketplace/items
  * List marketplace items (public, filtered by status)
  */
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
     const supabase = await supabaseServer();
     const { searchParams } = new URL(request.url);
@@ -145,4 +146,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
