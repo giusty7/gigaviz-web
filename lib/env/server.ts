@@ -30,6 +30,10 @@ const serverSchema = z.object({
   WORKER_BATCH_SIZE: z.string().optional(),
   WORKER_MAX_ATTEMPTS: z.string().optional(),
   WORKER_POLL_INTERVAL_MS: z.string().optional(),
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 });
 
 type ServerEnv = z.infer<typeof serverSchema>;

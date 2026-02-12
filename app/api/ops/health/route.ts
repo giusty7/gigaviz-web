@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
-import { assertOpsEnabled } from "@/lib/ops/guard";
 import { getHealthSummary } from "@/lib/ops/health";
-import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 /**
@@ -10,25 +8,22 @@ import { withErrorHandler } from "@/lib/api/with-error-handler";
  * Get system health summary
  */
 export const GET = withErrorHandler(async () => {
-  try {
-    assertOpsEnabled();
-    const ctx = await requirePlatformAdmin();
-    if (!ctx.ok) {
-      return NextResponse.json({ error: ctx.reason }, { status: ctx.reason === "not_authenticated" ? 401 : 403 });
-    }
+  // Check ops enabled inline (avoids notFound() throw in API route context)
+  const opsEnabled =
+    process.env.OPS_ENABLED ?? (process.env.NODE_ENV === "development" ? "1" : undefined);
+  if (opsEnabled !== "1") {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
 
-    const summary = await getHealthSummary();
-
-    return NextResponse.json(summary);
-  } catch (err) {
-    logger.error("[ops] Get health summary error", { error: err instanceof Error ? err.message : String(err) });
-
-    // Map Supabase P0001 unauthorized to 403
-    const status = (err as { code?: string })?.code === "P0001" ? 403 : 500;
-
+  const ctx = await requirePlatformAdmin();
+  if (!ctx.ok) {
     return NextResponse.json(
-      { error: "internal_error" },
-      { status }
+      { error: ctx.reason },
+      { status: ctx.reason === "not_authenticated" ? 401 : 403 }
     );
   }
+
+  const summary = await getHealthSummary();
+
+  return NextResponse.json(summary);
 });

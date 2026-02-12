@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import {
   getCannedResponse,
@@ -9,6 +10,13 @@ import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
+
+const updateCannedResponseSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  content: z.string().min(1).max(10000).optional(),
+  shortcut: z.string().max(50).optional(),
+  category: z.string().max(100).optional(),
+});
 
 export const GET = withErrorHandler(async (
   request: NextRequest,
@@ -49,7 +57,14 @@ export const PATCH = withErrorHandler(async (
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const { title, content, shortcut, category } = body;
+    const parsed = updateCannedResponseSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
+    const { title, content, shortcut, category } = parsed.data;
 
     const response = await updateCannedResponse(id, {
       title,

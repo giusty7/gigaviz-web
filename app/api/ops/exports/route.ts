@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import {
@@ -12,6 +13,12 @@ import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
+
+const exportSchema = z.object({
+  export_type: z.enum(["workspaces", "users"]),
+  format: z.enum(["json", "csv"]),
+  filters: z.record(z.string(), z.unknown()).optional().default({}),
+});
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
@@ -52,14 +59,14 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { export_type, format, filters } = body;
-
-    if (!export_type || !format) {
+    const parsed = exportSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing export_type or format" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
         { status: 400 }
       );
     }
+    const { export_type, format, filters } = parsed.data;
 
     // Create export job
     const job = await createExportJob({

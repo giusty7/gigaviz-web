@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 
 const schema = workspaceCreateSchema;
 type WorkspaceValues = z.infer<typeof schema>;
@@ -37,6 +38,7 @@ type WorkspaceCreateDialogProps = {
 export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("platform.workspaceCreate");
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
@@ -70,13 +72,13 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
     if (!res.ok) {
       const payload = (await res.json().catch(() => ({}))) as { error?: string };
       const reason = payload.error || "workspace_create_failed";
-      toast({ title: "Workspace not created", description: reason, variant: "destructive" });
+      toast({ title: t("notCreated"), description: reason, variant: "destructive" });
       setSubmitting(false);
       return;
     }
 
     const payload = (await res.json()) as { workspace: { slug: string } };
-    toast({ title: "Workspace created", description: "Redirecting to the new workspace." });
+    toast({ title: t("created"), description: t("createdDesc") });
     setSubmitting(false);
     setOpen(false);
     router.push(`/${payload.workspace.slug}/platform`);
@@ -87,18 +89,18 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
     if (trigger) return trigger;
     return (
       <Button size="sm" className="bg-gigaviz-gold text-slate-950 hover:bg-gigaviz-gold/90">
-        Create workspace
+        {t("createButton")}
       </Button>
     );
-  }, [trigger]);
+  }, [trigger, t]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{triggerNode}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create workspace</DialogTitle>
-          <DialogDescription>Workspaces isolate data, roles, and billing.</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -111,10 +113,10 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("nameLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Acme Platform"
+                      placeholder={t("namePlaceholder")}
                       autoFocus
                       {...field}
                       onChange={(e) => {
@@ -139,10 +141,10 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
               name="slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Slug</FormLabel>
+                  <FormLabel>{t("slugLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="acme-platform"
+                      placeholder={t("slugPlaceholder")}
                       {...field}
                       onChange={(e) => {
                         setSlugManuallyEdited(true);
@@ -152,7 +154,7 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
                   </FormControl>
                   <FormMessage />
                   <p className="text-xs text-muted-foreground">
-                    Used in URLs: /[slug]/platform
+                    {t("slugHelp")}
                   </p>
                 </FormItem>
               )}
@@ -163,7 +165,7 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
               name="workspaceType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Workspace type</FormLabel>
+                  <FormLabel>{t("typeLabel")}</FormLabel>
                   <FormControl>
                     <select
                       value={field.value}
@@ -171,8 +173,8 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
                       title="Select workspace type"
                       className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
                     >
-                      <option value="team">Team</option>
-                      <option value="individual">Individual</option>
+                      <option value="team">{t("typeTeam")}</option>
+                      <option value="individual">{t("typeIndividual")}</option>
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -185,7 +187,7 @@ export function WorkspaceCreateDialog({ trigger }: WorkspaceCreateDialogProps) {
                 Cancel
               </Button>
               <Button type="submit" disabled={submitting}>
-                {submitting ? "Creating..." : "Create workspace"}
+                {submitting ? t("creating") : t("createButton")}
               </Button>
             </DialogFooter>
           </form>

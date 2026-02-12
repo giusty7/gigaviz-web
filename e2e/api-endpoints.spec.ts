@@ -3,13 +3,14 @@ import { test, expect } from "@playwright/test";
 test.describe("API Health Endpoints", () => {
   test("GET /api/ops/health returns JSON", async ({ request }) => {
     const response = await request.get("/api/ops/health");
-    // May return 401 if not authed, or 200 if health is public
-    expect([200, 401, 403]).toContain(response.status());
+    // 200 = ok, 401/403 = auth required, 404 = ops disabled in prod
+    expect([200, 401, 403, 404]).toContain(response.status());
   });
 
   test("GET /api/ops/health/check returns JSON", async ({ request }) => {
     const response = await request.get("/api/ops/health/check");
-    expect([200, 401, 403]).toContain(response.status());
+    // 200 = healthy, 401/403 = auth, 503 = unhealthy/DB unavailable
+    expect([200, 401, 403, 503]).toContain(response.status());
   });
 });
 

@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { updateWorkerHeartbeat } from "@/lib/ops/health";
 import { serverEnv } from "@/lib/env";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const heartbeatSchema = z.object({
+  workerName: z.string().min(1).max(200),
+  workerType: z.string().min(1).max(100),
+  status: z.string().max(50).optional(),
+  lastRunAt: z.string().datetime().optional(),
+  nextRunAt: z.string().datetime().optional(),
+  errorCount: z.number().int().min(0).optional(),
+  lastError: z.string().max(5000).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 /**
  * POST /api/ops/health/heartbeat
@@ -20,11 +32,11 @@ export const POST = withErrorHandler(async (request: Request) => {
     }
 
     const body = await request.json();
-    const { workerName, workerType, status, lastRunAt, nextRunAt, errorCount, lastError, metadata } = body;
-
-    if (!workerName || !workerType) {
-      return NextResponse.json({ error: "worker_name_and_type_required" }, { status: 400 });
+    const parsed = heartbeatSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
     }
+    const { workerName, workerType, status, lastRunAt, nextRunAt, errorCount, lastError, metadata } = parsed.data;
 
     const heartbeatId = await updateWorkerHeartbeat({
       workerName,

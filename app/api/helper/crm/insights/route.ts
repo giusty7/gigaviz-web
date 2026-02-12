@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { guardWorkspace } from "@/lib/auth/guard";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
+
+const insightActionSchema = z.object({
+  id: z.string().uuid(),
+  action: z.enum(["dismiss", "view", "action_taken"]),
+  result: z.string().max(2000).optional(),
+});
 
 // GET - List CRM insights
 export const GET = withErrorHandler(async (req: NextRequest) => {
@@ -44,11 +51,11 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   const { workspaceId, withCookies, supabase: db } = guard;
 
   const body = await req.json().catch(() => ({}));
-  const { id, action } = body;
-
-  if (!id || !action) {
-    return withCookies(NextResponse.json({ ok: false, error: "Missing id or action" }, { status: 400 }));
+  const parsed = insightActionSchema.safeParse(body);
+  if (!parsed.success) {
+    return withCookies(NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 }));
   }
+  const { id, action, result } = parsed.data;
 
   if (action === "dismiss") {
     const { error } = await db
@@ -84,7 +91,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
       .from("helper_crm_insights")
       .update({ 
         action_taken: true,
-        action_result: body.result ?? null,
+        action_result: result ?? null,
       })
       .eq("id", id)
       .eq("workspace_id", workspaceId);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { assertOpsEnabled } from "@/lib/ops/guard";
 import {
@@ -10,6 +11,11 @@ import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
+
+const snapshotSchema = z.object({
+  action: z.literal("generate_snapshot"),
+  targetDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   try {
@@ -67,7 +73,11 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     }
 
     const body = await request.json();
-    const { action, targetDate } = body;
+    const parsed = snapshotSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+    }
+    const { action, targetDate } = parsed.data;
 
     if (action === "generate_snapshot") {
       const snapshotId = await generateDailySnapshot(targetDate);

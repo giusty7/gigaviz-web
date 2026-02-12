@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import {
   listCannedResponses,
@@ -9,6 +10,14 @@ import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const dynamic = "force-dynamic";
+
+const createCannedResponseSchema = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(10000),
+  shortcut: z.string().max(50).optional(),
+  category: z.string().max(100).optional(),
+  workspaceId: z.string().uuid().nullable().optional(),
+});
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const admin = await requirePlatformAdmin();
@@ -46,14 +55,14 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
   try {
     const body = await request.json();
-    const { title, content, shortcut, category, workspaceId } = body;
-
-    if (!title || !content) {
+    const parsed = createCannedResponseSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Title and content are required" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
         { status: 400 }
       );
     }
+    const { title, content, shortcut, category, workspaceId } = parsed.data;
 
     const response = await createCannedResponse(
       {

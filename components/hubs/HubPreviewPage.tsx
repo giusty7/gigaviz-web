@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import type { HubDef } from "@/lib/hubs";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 
 export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceSlug: string }) {
   const { toast } = useToast();
+  const t = useTranslations("hubs");
   const isOpen = hub.status === "OPEN";
   const targetHref = `/${workspaceSlug}/${hub.slug}`;
-  const copy = COPY_EN.hubs;
 
   return (
     <div className="relative space-y-6">
@@ -42,19 +42,19 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
                   </span>
-                  {copy.statusOpen}
+                  {t("statusOpen")}
                 </>
               ) : (
                 <>
                   <Clock className="mr-1.5 h-3 w-3" />
-                  {copy.statusComingSoon}
+                  {t("statusComingSoon")}
                 </>
               )}
             </Badge>
-            <span className="text-xs text-[#f5f5dc]/40">{copy.workspacePreview}</span>
+            <span className="text-xs text-[#f5f5dc]/40">{t("workspacePreview")}</span>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-[#d4af37]">{copy.overview}</p>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-[#d4af37]">{t("overview")}</p>
             <p className="text-sm text-[#f5f5dc]/60">{hub.title}</p>
             <h1 className="mt-1 text-2xl font-bold md:text-3xl">
               <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
@@ -67,18 +67,18 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
           {isOpen ? (
             <Link href={targetHref}>
               <Button className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] font-semibold hover:from-[#f9d976] hover:to-[#d4af37] shadow-lg shadow-[#d4af37]/20">
-                {copy.open}
+                {t("open")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           ) : (
             <Button
               variant="outline"
-              onClick={() => toast({ title: copy.notifyToast })}
+              onClick={() => toast({ title: t("notifyToast") })}
               className="border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50"
             >
               <Bell className="mr-2 h-4 w-4" />
-              {copy.notifyMe}
+              {t("notifyMe")}
             </Button>
           )}
         </div>
@@ -98,7 +98,7 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
         <div className="relative">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="h-4 w-4 text-[#d4af37]" />
-            <h2 className="text-base font-semibold text-[#f5f5dc]">{copy.howItWorks}</h2>
+            <h2 className="text-base font-semibold text-[#f5f5dc]">{t("howItWorks")}</h2>
           </div>
           <ol className="space-y-4">
             {hub.flow.map((step, idx) => (
@@ -131,7 +131,7 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
       >
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle2 className="h-4 w-4 text-[#10b981]" />
-          <h2 className="text-base font-semibold text-[#f5f5dc]">{copy.whatYouCanDo}</h2>
+          <h2 className="text-base font-semibold text-[#f5f5dc]">{t("whatYouCanDo")}</h2>
         </div>
         <ul className="grid gap-2 md:grid-cols-2">
           {hub.bullets.map((item, idx) => (
@@ -163,25 +163,25 @@ export function HubPreviewPage({ hub, workspaceSlug }: { hub: HubDef; workspaceS
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <Clock className="h-4 w-4 text-[#e11d48]" />
-              <h2 className="text-base font-semibold text-[#f5f5dc]">{copy.whatsNext}</h2>
+              <h2 className="text-base font-semibold text-[#f5f5dc]">{t("whatsNext")}</h2>
             </div>
-            <p className="text-sm text-[#f5f5dc]/60 mb-4">{copy.whatsNextBody}</p>
+            <p className="text-sm text-[#f5f5dc]/60 mb-4">{t("whatsNextBody")}</p>
             
             {/* Awaiting Sovereignty Empty State */}
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#d4af37]/30 bg-[#050a18]/30 p-8 text-center">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10">
                 <Clock className="h-8 w-8 text-[#d4af37]" />
               </div>
-              <p className="text-sm font-semibold text-[#d4af37]">Awaiting Sovereignty</p>
-              <p className="mt-1 text-xs text-[#f5f5dc]/50">This pillar is being prepared for the Empire.</p>
+              <p className="text-sm font-semibold text-[#d4af37]">{t("awaitingSovereignty")}</p>
+              <p className="mt-1 text-xs text-[#f5f5dc]/50">{t("awaitingSovereigntyDesc")}</p>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => toast({ title: copy.notifyToast })}
+                onClick={() => toast({ title: t("notifyToast") })}
                 className="mt-4 border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/10"
               >
                 <Bell className="mr-2 h-3.5 w-3.5" />
-                {copy.notifyMe}
+                {t("notifyMe")}
               </Button>
             </div>
           </div>

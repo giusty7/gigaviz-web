@@ -125,7 +125,7 @@ export const HUBS: HubDef[] = [
     slug: "arena",
     title: "Gigaviz Arena",
     description: "Mini-games and engagement for brands.",
-    status: "OPEN",
+    status: "COMING_SOON",
     flow: [
       { title: "Pick a campaign", desc: "Choose a game or challenge format." },
       { title: "Brand it", desc: "Apply themes, rewards, and rules." },

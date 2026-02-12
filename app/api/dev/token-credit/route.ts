@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
@@ -6,6 +7,10 @@ import { creditTokens } from "@/lib/tokens";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
+
+const tokenCreditSchema = z.object({
+  amount: z.number().int().min(1).max(1_000_000),
+});
 
 const DEV_WORKSPACE_ID = "4b8c7c19-5eff-4b36-b7fb-1de426170641";
 const FALLBACK_EMAIL = "vg.gigaviz@gmail.com";
@@ -24,12 +29,6 @@ function parseAllowlist(): string[] {
   return Array.from(new Set(list));
 }
 
-function parseAmount(value: unknown) {
-  const num = Number(value);
-  if (!Number.isInteger(num)) return null;
-  if (num < 1 || num > 1_000_000) return null;
-  return num;
-}
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const isProd =
@@ -65,10 +64,11 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   const body = await req.json().catch(() => null);
-  const amount = parseAmount(body?.amount);
-  if (amount === null) {
+  const parsed = tokenCreditSchema.safeParse(body);
+  if (!parsed.success) {
     return withCookies(NextResponse.json({ error: "invalid_amount" }, { status: 400 }));
   }
+  const { amount } = parsed.data;
 
   const adminDb = supabaseAdmin();
   const { data: membership } = await adminDb

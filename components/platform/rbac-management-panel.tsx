@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Role = "owner" | "admin" | "member" | "viewer" | null;
 
@@ -57,6 +58,7 @@ const roleColors: Record<NonNullable<Role>, string> = {
 
 export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("platform.rbac");
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,14 +79,14 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
       setMembers(data.members || []);
     } catch (err) {
       toast({
-        title: "Failed to load members",
-        description: err instanceof Error ? err.message : "Try again later",
+        title: t("failedLoadMembers"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   useEffect(() => {
     void fetchMembers();
@@ -105,15 +107,15 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
         if (!res.ok) throw new Error("Failed to update role");
 
         toast({
-          title: "Role updated",
-          description: `Member role changed to ${role ?? "member"}.`,
+          title: t("roleUpdated"),
+          description: t("roleUpdatedDesc", { role: role ?? "member" }),
         });
 
         void fetchMembers();
       } catch (err) {
         toast({
-          title: "Failed to update role",
-          description: err instanceof Error ? err.message : "Try again later",
+          title: t("failedUpdateRole"),
+          description: err instanceof Error ? err.message : t("tryAgainLater"),
           variant: "destructive",
         });
       } finally {
@@ -122,7 +124,7 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
         setSelectedMember(null);
       }
     },
-    [workspaceId, canManageRoles, toast, fetchMembers]
+    [workspaceId, canManageRoles, toast, fetchMembers, t]
   );
 
   const filteredMembers = members.filter((m) => {
@@ -152,10 +154,10 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-[#d4af37]" />
-            RBAC Management
+            {t("title")}
           </CardTitle>
           <CardDescription>
-            Manage roles and permissions for workspace members. Only owners and admins can change roles.
+            {t("description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -164,7 +166,7 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search members by email or name..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -177,11 +179,11 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All roles</SelectItem>
-                  <SelectItem value="owner">Owner</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="all">{t("allRoles")}</SelectItem>
+                  <SelectItem value="owner">{t("owner")}</SelectItem>
+                  <SelectItem value="admin">{t("admin")}</SelectItem>
+                  <SelectItem value="member">{t("member")}</SelectItem>
+                  <SelectItem value="viewer">{t("viewer")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -191,7 +193,7 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
           <div className="space-y-2">
             {filteredMembers.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-                No members found
+                {t("noMembers")}
               </div>
             ) : (
               filteredMembers.map((member) => {
@@ -239,7 +241,7 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
                           {isChanging ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            "Change"
+                            t("changeRole")
                           )}
                         </Button>
                       )}
@@ -254,12 +256,12 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
           <div className="flex flex-wrap gap-3 pt-2">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Users className="h-4 w-4" />
-              <span>{members.length} total members</span>
+              <span>{t("totalMembers", { count: members.length })}</span>
             </div>
             {roleFilter !== "all" && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Filter className="h-4 w-4" />
-                <span>Filtered: {filteredMembers.length}</span>
+                <span>{t("filtered", { count: filteredMembers.length })}</span>
               </div>
             )}
           </div>
@@ -270,9 +272,9 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change Member Role</DialogTitle>
+            <DialogTitle>{t("changeRoleTitle")}</DialogTitle>
             <DialogDescription>
-              Update role for {selectedMember?.profiles?.email}
+              {t("changeRoleDesc", { email: selectedMember?.profiles?.email ?? "" })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -281,14 +283,14 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="owner">Owner - Full control</SelectItem>
-                <SelectItem value="admin">Admin - Manage workspace</SelectItem>
-                <SelectItem value="member">Member - Standard access</SelectItem>
-                <SelectItem value="viewer">Viewer - Read-only</SelectItem>
+                <SelectItem value="owner">{t("ownerFull")}</SelectItem>
+                <SelectItem value="admin">{t("adminFull")}</SelectItem>
+                <SelectItem value="member">{t("memberFull")}</SelectItem>
+                <SelectItem value="viewer">{t("viewerFull")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Role changes take effect immediately and apply to all workspace resources.
+              {t("roleChangeNote")}
             </p>
           </div>
           <DialogFooter>
@@ -299,7 +301,7 @@ export function RBACManagementPanel({ workspaceId, currentUserRole }: Props) {
               onClick={() => selectedMember && handleChangeRole(selectedMember.user_id, newRole)}
               disabled={changingRole !== null}
             >
-              {changingRole ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update Role"}
+              {changingRole ? <Loader2 className="h-4 w-4 animate-spin" /> : t("updateRole")}
             </Button>
           </DialogFooter>
         </DialogContent>
