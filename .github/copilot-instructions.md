@@ -679,10 +679,10 @@ Last audited: **February 13, 2026** — update scores as improvements land.
 | Module Completion | 7/10 | ⚠️ 4 Placeholders | 6 modules LIVE/BETA (Platform, Meta Hub, Helper, Inbox, Apps, Marketplace), 2 scaffold (Studio, Office), 4 placeholder (Arena, Pay, Community, Trade) |
 | Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 5 dynamic import pages (7 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 26 loading.tsx + 41 error.tsx, font optimization |
 | Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (507 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 210/225 API routes (15 intentionally skipped: webhooks/SSE/auth callbacks) |
-| Testing | 7/10 | ⚠️ Growing | 24 test files with 243 assertions, 4.96% statement coverage. Playwright E2E in CI (2 spec files: marketing + API). Vitest: lib/ unit tests (with-error-handler, zod-schemas x2, workspace-scoping, security-patterns, rate-limit, i18n-completeness). No component tests yet |
+| Testing | 7/10 | ⚠️ Growing | 29 test files with 349 assertions, 4.96% statement coverage. Playwright E2E in CI (2 spec files: marketing + API). Vitest: lib/ unit tests (with-error-handler, zod-schemas x2, workspace-scoping, security-patterns, rate-limit, i18n-completeness, auth-schemas, contact-schema, wa-contacts-utils, contacts-normalize, utils). No component tests yet |
 | Internationalization (i18n) | 7/10 | ⚠️ Progressing | next-intl wired, 2 locales (830+ line message files), locale switcher, cookie-based detection. 20+ `useTranslations`/`getTranslations` calls (sidebar, dashboard, login, register, loading, error, marketing, settings, onboarding, navbar). ~200 hardcoded strings remain in meta-hub/inbox/helper pages |
 
-**Overall: 8.3 / 10** (prev 8.1 — Zod on 7 medium-risk routes (128/137=93% body-parsing coverage), settings/onboarding/navbar i18n (80+ keys), 243 tests in 24 files)
+**Overall: 8.3 / 10** (prev 8.1 — Zod on 7 medium-risk routes (128/137=93% body-parsing coverage), settings/onboarding/navbar i18n (80+ keys), 349 tests in 29 files, CI E2E fix)
 
 ### Module Status Map
 
@@ -705,7 +705,7 @@ Last audited: **February 13, 2026** — update scores as improvements land.
 
 ```
 Phase 1: FOUNDATION (Month 1-2) ← START HERE
-├── ⚠️ Testing: 24 test files, 243 assertions, 4.96% coverage — expanded with Vitest unit tests (with-error-handler, zod-schemas x2, workspace-scoping, security, rate-limit, i18n-completeness)
+├── ⚠️ Testing: 29 test files, 349 assertions, 4.96% coverage — expanded with Vitest unit tests (with-error-handler, zod-schemas x2, workspace-scoping, security, rate-limit, i18n-completeness, auth-schemas, contact-schema, wa-contacts-utils, contacts-normalize, utils)
 ├── ✅ Testing (E2E): Playwright installed + 2 spec files (marketing-and-auth, api-endpoints) + CI job — DONE
 ├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired — DONE
 ├── ✅ Error handling: withErrorHandler on 210/225 API routes (15 skipped: webhooks/SSE/callbacks) — DONE
@@ -763,7 +763,7 @@ Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (Whats
 
 When tackling any task, always check if it helps close a gap from the scorecard above. Prioritize:
 1. **Payment integration** (🔴 critical) — Stripe/Xendit for real revenue. Infrastructure is ready (payment_intents, webhooks)
-2. **Testing coverage** (⚠️ high) — 4.96% coverage (24 test files, 243 tests). Playwright E2E in CI. Need: API route integration tests, component tests, raise to 10%+
+2. **Testing coverage** (⚠️ high) — 4.96% coverage (29 test files, 349 tests). Playwright E2E in CI. Need: API route integration tests, component tests, raise to 10%+
 3. **i18n string extraction** (⚠️ high) — 20+ translation calls wired (auth, marketing, sidebar, dashboard, settings, onboarding, navbar). ~200 strings remain in meta-hub/inbox/helper pages
 4. **Zod validation gap** (⚠️ low) — 128/137 body-parsing routes validated (93%). 9 remaining (6 low-risk + 1 helper insight + 2 internal webhooks)
 5. ~~**withErrorHandler rollout**~~ ✅ DONE — 210/225 routes wrapped (15 intentionally skipped)
