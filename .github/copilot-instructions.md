@@ -674,15 +674,15 @@ Last audited: **February 12, 2026** — update scores as improvements land.
 | Database & Data Model | 9/10 | ✅ Mature | 86 migrations, 332 RLS policies on 165+ tables, pgvector for RAG, performance indexes |
 | Marketing & SEO | 9/10 | ✅ Strong | JSON-LD on 4 pages, sitemap with hreflang alternates (en/id), OG + Twitter cards, enhanced robots (googleBot), 6 policies |
 | Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks, 20+ docs files |
-| Developer Experience | 9/10 | ✅ Strong | Zod env validation (build-time fail-fast), 55+ scripts, typecheck/lint, 5 CI/CD workflows (lint→typecheck→test→build + CodeQL + cron workers), Vitest 4 + mock factories |
+| Developer Experience | 9/10 | ✅ Strong | Zod env validation (build-time fail-fast), 55+ scripts, typecheck/lint, 6 CI/CD workflows (lint→typecheck→test→build→E2E + CodeQL + cron workers), Vitest 4 + Playwright E2E + mock factories |
 | Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy mature (wallets, ledger, rates, caps, budget guards), 5-plan hierarchy, 7 billing API routes — but **NO payment gateway** (all provider=manual), no Stripe/Xendit |
 | Module Completion | 7/10 | ⚠️ 4 Placeholders | 6 modules LIVE/BETA (Platform, Meta Hub, Helper, Inbox, Apps, Marketplace), 2 scaffold (Studio, Office), 4 placeholder (Arena, Pay, Community, Trade) |
 | Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 5 dynamic import pages (7 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 26 loading.tsx + 41 error.tsx, font optimization |
 | Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (507 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 210/225 API routes (15 intentionally skipped: webhooks/SSE/auth callbacks) |
 | Testing | 6/10 | ⚠️ Growing | 22 test files with 204 assertions, 4.96% statement coverage. Playwright E2E framework installed (2 spec files: marketing + API). Vitest: lib/ unit tests (with-error-handler, zod-schemas, workspace-scoping, security-patterns, rate-limit). No component tests yet |
-| Internationalization (i18n) | 5/10 | ⚠️ Progressing | next-intl wired, 2 locales (730+ line message files), locale switcher, cookie-based detection. 10+ `useTranslations`/`getTranslations` calls (login, register, loading, error, marketing). ~50 hardcoded English strings remain in app components |
+| Internationalization (i18n) | 6/10 | ⚠️ Progressing | next-intl wired, 2 locales (750+ line message files), locale switcher, cookie-based detection. 15+ `useTranslations`/`getTranslations` calls (sidebar, dashboard, login, register, loading, error, marketing). ~35 hardcoded English strings remain in app components |
 
-**Overall: 8.0 / 10** (prev 7.9 — Playwright E2E framework, 22 test files / 204 tests, Zod on 4 more high-risk routes, i18n wiring on login/register/loading/error)
+**Overall: 8.1 / 10** (prev 8.0 — Zod on 5 more high-risk routes (121/137=88% body-parsing coverage), sidebar+dashboard i18n, Playwright E2E in CI)
 
 ### Module Status Map
 
@@ -762,10 +762,10 @@ Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (Whats
 ### When Working on Improvements
 
 When tackling any task, always check if it helps close a gap from the scorecard above. Prioritize:
-1. **Testing coverage** (🔴 critical) — 4.96% coverage (22 test files, 204 tests). Playwright framework ready. Need: API route integration tests, component tests, Playwright CI
+1. **Testing coverage** (🔴 critical) — 4.96% coverage (22 test files, 204 tests). Playwright E2E in CI. Need: API route integration tests, component tests
 2. **Payment integration** (🔴 critical) — Stripe/Xendit for real revenue. Infrastructure is ready (payment_intents, webhooks)
-3. **i18n string extraction** (⚠️ high) — 10+ translation calls wired. Extract remaining ~50 hardcoded strings from app components
-4. **Zod validation gap** (⚠️ medium) — ~146/225 API routes validated (65%). 14 critical routes added across Sprint 1+2. Close remaining 35%
+3. **i18n string extraction** (⚠️ high) — 15+ translation calls wired (sidebar, dashboard, auth, marketing). Extract remaining ~35 hardcoded strings
+4. **Zod validation gap** (⚠️ medium) — 121/137 body-parsing routes validated (88%). 16 remaining (8 medium + 6 low-risk + 2 internal webhooks)
 5. ~~**withErrorHandler rollout**~~ ✅ DONE — 210/225 routes wrapped (15 intentionally skipped)
 
 ---

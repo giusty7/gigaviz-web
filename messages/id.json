@@ -693,7 +693,16 @@
       "secureLinkActive": "Tautan Aman Aktif",
       "operational": "OPERASIONAL",
       "collapseMenu": "Tutup menu",
-      "expandMenu": "Buka menu"
+      "expandMenu": "Buka menu",
+      "searchPlaceholder": "Cari perintah, kontak, pesan...",
+      "imperium": "Imperium",
+      "imperiumAdmin": "Admin Imperium",
+      "imperiumMember": "Anggota Imperium"
+    },
+    "dashboard": {
+      "welcomeBack": "Selamat datang kembali di {workspace}",
+      "subtitle": "Pusat komando terpadu untuk semua 10 produk Gigaviz. Semua yang Anda butuhkan, tersusun rapi.",
+      "workspaceSettings": "Pengaturan Ruang Kerja"
     },
     "loading": "Memuat...",
     "enterImperium": "Masuk ke Imperium",

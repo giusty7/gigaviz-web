@@ -13,6 +13,7 @@ import { getAppContext } from "@/lib/app-context";
 import { getUnifiedDashboard } from "@/lib/dashboard/overview";
 import { isPlatformAdminById } from "@/lib/platform-admin/server";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +35,11 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
 
   await ensureWorkspaceCookie(workspace.id);
 
-  // Parallel fetch: dashboard overview + platform admin check
-  const [dashboard, isPlatformAdmin] = await Promise.all([
+  // Parallel fetch: dashboard overview + platform admin check + translations
+  const [dashboard, isPlatformAdmin, t] = await Promise.all([
     getUnifiedDashboard(workspace.id, ctx.effectiveEntitlements),
     isPlatformAdminById(ctx.user.id),
+    getTranslations("app.dashboard"),
   ]);
 
   return (
@@ -57,11 +59,11 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
                 <div className="flex items-center gap-3 mb-3">
                   <Sparkles className="h-8 w-8 text-[#d4af37]" />
                   <h1 className="text-3xl font-black text-[#f5f5dc] tracking-tight">
-                    Welcome back to {workspace.name}
+                    {t("welcomeBack", { workspace: workspace.name })}
                   </h1>
                 </div>
                 <p className="text-[#f5f5dc]/70 text-lg max-w-2xl">
-                  Your unified command center for all 10 Gigaviz products. Everything you need, beautifully organized.
+                  {t("subtitle")}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -69,7 +71,7 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
                   href={`/${workspace.slug}/settings`}
                   className="rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/80 px-6 py-3 text-sm font-bold text-[#d4af37] transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/10"
                 >
-                  Workspace Settings
+                  {t("workspaceSettings")}
                 </Link>
               </div>
             </div>

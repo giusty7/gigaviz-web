@@ -693,7 +693,16 @@
       "secureLinkActive": "Secure Link Active",
       "operational": "OPERATIONAL",
       "collapseMenu": "Collapse menu",
-      "expandMenu": "Expand menu"
+      "expandMenu": "Expand menu",
+      "searchPlaceholder": "Search commands, contacts, messages...",
+      "imperium": "Imperium",
+      "imperiumAdmin": "Imperium Admin",
+      "imperiumMember": "Imperium Member"
+    },
+    "dashboard": {
+      "welcomeBack": "Welcome back to {workspace}",
+      "subtitle": "Your unified command center for all 10 Gigaviz products. Everything you need, beautifully organized.",
+      "workspaceSettings": "Workspace Settings"
     },
     "loading": "Loading...",
     "enterImperium": "Enter the Imperium",

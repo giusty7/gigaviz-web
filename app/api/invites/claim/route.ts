@@ -1,9 +1,15 @@
 import { logger } from "@/lib/logging";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const claimSchema = z.object({
+  token: z.string().trim().min(1, "Token is required"),
+  password: z.string().min(1, "Password is required"),
+});
 
 const DEV = process.env.NODE_ENV === "development";
 
@@ -118,16 +124,15 @@ async function accountExists(email: string | null | undefined) {
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const body = await req.json().catch(() => null);
-  const token = typeof body?.token === "string" ? body.token.trim() : "";
-  const password = typeof body?.password === "string" ? body.password : "";
-
-  if (!token) {
-    return NextResponse.json({ error: "token_required" }, { status: 400 });
+  const raw = await req.json().catch(() => null);
+  const parsed = claimSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "invalid_request", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
   }
-  if (!password) {
-    return NextResponse.json({ error: "password_required" }, { status: 400 });
-  }
+  const { token, password } = parsed.data;
 
   const limitKey = `invite-claim:${ip}:${sha256Hex(token)}`;
   const limit = rateLimit(limitKey, { windowMs: 60_000, max: 5 });

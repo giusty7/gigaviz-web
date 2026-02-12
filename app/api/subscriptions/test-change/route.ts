@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { ensureProfile } from "@/lib/profiles";
 import { getUserWorkspaces } from "@/lib/workspaces";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { planMeta, type PlanId } from "@/lib/entitlements";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const testChangeSchema = z.object({
+  workspace_id: z.string().uuid("workspace_id must be a valid UUID"),
+  plan_id: z.string().min(1, "plan_id is required"),
+});
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const isProd =
@@ -30,16 +36,14 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  const workspaceId =
-    typeof body?.workspace_id === "string" ? body.workspace_id : null;
-  const planId = typeof body?.plan_id === "string" ? body.plan_id : null;
-
-  if (!workspaceId || !planId) {
+  const raw = await req.json().catch(() => null);
+  const parsed = testChangeSchema.safeParse(raw);
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "invalid_request" }, { status: 400 })
+      NextResponse.json({ error: "invalid_request", details: parsed.error.flatten().fieldErrors }, { status: 400 })
     );
   }
+  const { workspace_id: workspaceId, plan_id: planId } = parsed.data;
 
   const plan = planMeta.find((p) => p.plan_id === planId) as
     | (typeof planMeta)[number]

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { PanelLeftClose, PanelRightOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
 import AppNavLinks from "@/components/app/AppNavLinks";
 import WorkspaceSwitcher from "@/components/app/WorkspaceSwitcher";
 import { NotificationBell } from "@/components/app/NotificationBell";
@@ -61,6 +62,7 @@ export default function AppShell({
     });
   };
 
+  const t = useTranslations("app.sidebar");
   const isCollapsed = hydrated ? collapsed : false;
   const currentWorkspace =
     workspaces.find((ws) => ws.id === currentWorkspaceId) ?? null;
@@ -73,13 +75,13 @@ export default function AppShell({
   const billingHref = workspaceSlug ? `/${workspaceSlug}/billing` : "/billing";
   const settingsHref = workspaceSlug ? `/${workspaceSlug}/settings` : "/settings";
   const navLinks = [
-    { href: dashboardHref, label: "Dashboard" },
-    { href: inboxHref, label: "Inbox" },
-    { href: productsHref, label: "Products" },
-    { href: tokensHref, label: "Tokens" },
-    { href: workspaceManageHref, label: "Workspace" },
-    { href: billingHref, label: "Subscription" },
-    { href: settingsHref, label: "Settings" },
+    { href: dashboardHref, label: t("dashboard") },
+    { href: inboxHref, label: t("inbox") },
+    { href: productsHref, label: t("products") },
+    { href: tokensHref, label: t("tokens") },
+    { href: workspaceManageHref, label: t("workspace") },
+    { href: billingHref, label: t("subscription") },
+    { href: settingsHref, label: t("settings") },
   ];
 
   return (
@@ -101,13 +103,13 @@ export default function AppShell({
                 >
                   {isCollapsed ? "G" : "Gigaviz"}
                 </Link>
-                {!isCollapsed && <p className="mt-1 text-xs text-[#f5f5dc]/40">Management Console</p>}
+                {!isCollapsed && <p className="mt-1 text-xs text-[#f5f5dc]/40">{t("managementConsole")}</p>}
               </div>
               {!isCollapsed && (
                 <button
                   type="button"
                   onClick={handleToggleSidebar}
-                  aria-label="Collapse sidebar"
+                  aria-label={t("collapseMenu")}
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#d4af37]/20 bg-[#0a1229]/60 text-[#f5f5dc]/60 transition-all hover:border-[#d4af37]/50 hover:text-[#d4af37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/50"
                 >
                   <PanelLeftClose className="h-4 w-4" />
@@ -120,7 +122,7 @@ export default function AppShell({
               <button
                 type="button"
                 onClick={handleToggleSidebar}
-                aria-label="Expand sidebar"
+                aria-label={t("expandMenu")}
                 className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d4af37]/25 bg-[#0a1229]/80 text-[#f5f5dc]/70 transition-all hover:border-[#d4af37]/50 hover:text-[#d4af37] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/50"
               >
                 <PanelRightOpen className="h-5 w-5" />
@@ -132,7 +134,7 @@ export default function AppShell({
 
             {isAdmin && !isCollapsed && (
               <div className="mt-6 rounded-xl border border-purple-500/40 bg-purple-500/10 px-3 py-2 text-xs text-purple-100">
-                🛡️ Gigaviz Staff Mode
+                🛡️ {t("staffMode")}
               </div>
             )}
 
@@ -154,7 +156,7 @@ export default function AppShell({
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#10b981]" />
                   </span>
-                  <span className="text-xs font-medium text-[#10b981]">Secure Link Active</span>
+                  <span className="text-xs font-medium text-[#10b981]">{t("secureLinkActive")}</span>
                 </div>
               </div>
             )}
@@ -164,7 +166,7 @@ export default function AppShell({
               <SidebarUserCard
                 name={userEmail.split("@")[0]}
                 email={userEmail}
-                tier={isAdmin ? "Imperium Admin" : "Imperium Member"}
+                tier={isAdmin ? t("imperiumAdmin") : t("imperiumMember")}
               />
             )}
           </div>
@@ -173,7 +175,7 @@ export default function AppShell({
           <div className="flex items-center gap-4 px-6 py-3">
             {/* Left: Breadcrumbs */}
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-[#d4af37] font-medium">Imperium</span>
+              <span className="text-[#d4af37] font-medium">{t("imperium")}</span>
               <span className="text-[#f5f5dc]/30">/</span>
               <span className="text-[#f5f5dc]/60">{currentWorkspace?.name ?? "Workspace"}</span>
             </div>
@@ -183,7 +185,7 @@ export default function AppShell({
               <div className="relative w-full max-w-md">
                 <input
                   type="text"
-                  placeholder="Search commands, contacts, messages..."
+                  placeholder={t("searchPlaceholder")}
                   className="w-full rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 px-4 py-2 pl-10 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 backdrop-blur transition-all focus:border-[#d4af37]/50 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30"
                 />
                 <svg
@@ -209,7 +211,7 @@ export default function AppShell({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
                 </span>
-                <span className="text-[10px] font-semibold tracking-wide text-[#10b981]">OPERATIONAL</span>
+                <span className="text-[10px] font-semibold tracking-wide text-[#10b981]">{t("operational")}</span>
               </div>
 
               {workspaceSlug && (

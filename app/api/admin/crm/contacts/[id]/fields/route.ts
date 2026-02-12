@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdminOrSupervisorWorkspace } from "@/lib/supabase/route";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const fieldValuesSchema = z.object({
+  values: z.record(z.string().uuid(), z.unknown()).optional(),
+  items: z.array(z.object({
+    field_id: z.string().uuid("field_id must be a valid UUID"),
+    value: z.unknown(),
+  })).optional(),
+}).refine(
+  (d) => (d.values && Object.keys(d.values).length > 0) || (d.items && d.items.length > 0),
+  { message: "Provide 'values' map or 'items' array with at least one entry" }
+);
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -155,24 +167,25 @@ export const POST = withErrorHandler(async (req: NextRequest, { params }: Ctx) =
     );
   }
 
-  const body = (await req.json().catch(() => null)) as
-    | { values?: Record<string, unknown>; items?: Array<{ field_id?: unknown; value?: unknown }> }
-    | null;
+  const raw = await req.json().catch(() => null);
+  const parsed = fieldValuesSchema.safeParse(raw);
+  if (!parsed.success) {
+    return withCookies(
+      NextResponse.json({ error: "no_fields", details: parsed.error.flatten().fieldErrors }, { status: 400 })
+    );
+  }
+  const body = parsed.data;
 
   let valuesMap: Record<string, unknown> = {};
-  if (body?.values && typeof body.values === "object") {
+  if (body.values && Object.keys(body.values).length > 0) {
     valuesMap = body.values;
-  } else if (Array.isArray(body?.items)) {
-    body?.items.forEach((item) => {
-      const fieldId = typeof item?.field_id === "string" ? item.field_id : null;
-      if (fieldId) valuesMap[fieldId] = item.value;
-    });
+  } else if (body.items && body.items.length > 0) {
+    for (const item of body.items) {
+      valuesMap[item.field_id] = item.value;
+    }
   }
 
   const fieldIds = Object.keys(valuesMap);
-  if (fieldIds.length === 0) {
-    return withCookies(NextResponse.json({ error: "no_fields" }, { status: 400 }));
-  }
 
   const { data: fields, error: fieldsErr } = await db
     .from("crm_fields")

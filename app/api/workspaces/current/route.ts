@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createSupabaseRouteClient } from "@/lib/supabase/app-route";
 import { ensureProfile } from "@/lib/profiles";
 import {
@@ -7,6 +8,10 @@ import {
   WORKSPACE_COOKIE,
 } from "@/lib/workspaces";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const switchWorkspaceSchema = z.object({
+  workspace_id: z.string().uuid("workspace_id must be a valid UUID"),
+});
 
 function setWorkspaceCookie(res: NextResponse, workspaceId: string) {
   res.cookies.set(WORKSPACE_COOKIE, workspaceId, {
@@ -58,15 +63,14 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     );
   }
 
-  const body = await req.json().catch(() => null);
-  const workspaceId =
-    typeof body?.workspace_id === "string" ? body.workspace_id : null;
-
-  if (!workspaceId) {
+  const raw = await req.json().catch(() => null);
+  const parsed = switchWorkspaceSchema.safeParse(raw);
+  if (!parsed.success) {
     return withCookies(
-      NextResponse.json({ error: "workspace_id_required" }, { status: 400 })
+      NextResponse.json({ error: "workspace_id_required", details: parsed.error.flatten().fieldErrors }, { status: 400 })
     );
   }
+  const { workspace_id: workspaceId } = parsed.data;
 
   const workspaces = await getUserWorkspaces(user.id);
   const target = workspaces.find((ws) => ws.id === workspaceId);
