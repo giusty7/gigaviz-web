@@ -102,6 +102,24 @@ export function ObaRequestCard({
 
   /* ── Submit OBA request ────────────────────────────────────── */
   const submitRequest = async () => {
+    if (status.type === "pending") {
+      toast({
+        title: "Already Pending Review",
+        description:
+          "This number already has an active OBA review in Meta. Please wait for the review result.",
+      });
+      return;
+    }
+
+    if (status.type === "approved") {
+      toast({
+        title: "Already Approved",
+        description:
+          "This number is already marked as approved. No new OBA request is needed.",
+      });
+      return;
+    }
+
     const normalizedWebsiteUrl = normalizeUrl(websiteUrl);
     if (!normalizedWebsiteUrl) {
       toast({
@@ -148,6 +166,10 @@ export function ObaRequestCard({
             .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
             .join("; ");
           if (fields) desc = fields;
+        }
+        if (status.type === "pending" && /unknown error has occurred/i.test(desc)) {
+          desc =
+            "Meta still shows this number as pending review. Please wait for review result before re-submitting.";
         }
         toast({
           title: "OBA Request Failed",
@@ -382,7 +404,7 @@ export function ObaRequestCard({
           <div className="flex items-center gap-3 pt-1">
             <button
               onClick={submitRequest}
-              disabled={submitting}
+              disabled={submitting || status.type === "pending" || status.type === "approved"}
               className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-blue-400 disabled:opacity-50"
             >
               {submitting ? (
@@ -390,7 +412,11 @@ export function ObaRequestCard({
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              Submit OBA Request
+              {status.type === "pending"
+                ? "Review In Progress"
+                : status.type === "approved"
+                  ? "Already Approved"
+                  : "Submit OBA Request"}
             </button>
             <p className="text-[10px] text-[#f5f5dc]/40">
               Note: <code>success: true</code> means the request was
