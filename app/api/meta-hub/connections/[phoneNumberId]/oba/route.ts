@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
-import { metaGraphFetch, graphUrl } from "@/lib/meta/graph";
+import { graphUrl } from "@/lib/meta/graph";
 import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
@@ -12,90 +12,129 @@ type RouteContext = {
   params: Promise<{ phoneNumberId: string }>;
 };
 
-/* ── GET: Check OBA status ──────────────────────────────────────── */
-export const GET = withErrorHandler(
-  async (req: NextRequest, context: RouteContext) => {
-    const guard = await guardWorkspace(req);
-    if (!guard.ok) return guard.response;
-    const { workspaceId, withCookies } = guard;
+/* ═══════════════════════════════════════════════════════════════════
+   Helper: resolve workspace + connection + token in one shot
+   ═══════════════════════════════════════════════════════════════════ */
+async function resolveContext(req: NextRequest, context: RouteContext) {
+  const guard = await guardWorkspace(req);
+  if (!guard.ok) return { ok: false as const, response: guard.response };
 
-    const params = await context.params;
-    const phoneNumberId = params.phoneNumberId;
-    if (!phoneNumberId || phoneNumberId.length < 3) {
-      return withCookies(
+  const { workspaceId, role, withCookies } = guard;
+
+  const params = await context.params;
+  const phoneNumberId = params.phoneNumberId;
+  if (!phoneNumberId || phoneNumberId.length < 3) {
+    return {
+      ok: false as const,
+      response: withCookies(
         NextResponse.json(
           { error: "bad_request", message: "Invalid phone_number_id" },
           { status: 400 }
         )
-      );
-    }
+      ),
+    };
+  }
 
-    const db = supabaseAdmin();
+  const db = supabaseAdmin();
+  const { data: connection, error: findErr } = await db
+    .from("wa_phone_numbers")
+    .select("id, phone_number_id, waba_id, display_name")
+    .eq("workspace_id", workspaceId)
+    .eq("phone_number_id", phoneNumberId)
+    .maybeSingle();
 
-    // Verify connection belongs to workspace
-    const { data: connection, error: findErr } = await db
-      .from("wa_phone_numbers")
-      .select("id, phone_number_id, waba_id")
-      .eq("workspace_id", workspaceId)
-      .eq("phone_number_id", phoneNumberId)
-      .maybeSingle();
-
-    if (findErr || !connection) {
-      return withCookies(
+  if (findErr || !connection) {
+    return {
+      ok: false as const,
+      response: withCookies(
         NextResponse.json(
           { error: "not_found", message: "Connection not found" },
           { status: 404 }
         )
-      );
-    }
+      ),
+    };
+  }
 
-    // Resolve token
-    let accessToken: string;
-    try {
-      const tokenResult = await resolveWorkspaceMetaToken(workspaceId);
-      accessToken = tokenResult.token;
-    } catch {
-      return withCookies(
+  let accessToken: string;
+  try {
+    const tokenResult = await resolveWorkspaceMetaToken(workspaceId);
+    accessToken = tokenResult.token;
+  } catch {
+    return {
+      ok: false as const,
+      response: withCookies(
         NextResponse.json(
-          {
-            error: "token_missing",
-            message: "No valid Meta token found for this workspace",
-          },
+          { error: "token_missing", message: "No valid Meta token found" },
           { status: 403 }
         )
-      );
-    }
+      ),
+    };
+  }
 
-    // Query Graph API for OBA status
+  return {
+    ok: true as const,
+    workspaceId,
+    role,
+    withCookies,
+    phoneNumberId,
+    connection,
+    accessToken,
+    db,
+  };
+}
+
+/* ── GET: Check OBA status ──────────────────────────────────────── */
+export const GET = withErrorHandler(
+  async (req: NextRequest, context: RouteContext) => {
+    const ctx = await resolveContext(req, context);
+    if (!ctx.ok) return ctx.response;
+
+    const { phoneNumberId, workspaceId, accessToken, withCookies } = ctx;
+
+    // Meta docs: GET /<PHONE_NUMBER_ID>?fields=official_business_account
+    const url =
+      graphUrl(phoneNumberId, "v24.0") +
+      "?fields=official_business_account";
+
     try {
-      const result = await metaGraphFetch<{
-        official_business_account?: {
-          id?: string;
-          name?: string;
-          rejection_reasons?: string[];
-        } | string;
-        id?: string;
-      }>(phoneNumberId, accessToken, {
-        query: { fields: "official_business_account" },
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
+      const data = await res.json().catch(() => ({}));
 
-      logger.info("[oba] status check successful", {
+      logger.info("[oba] GET status", {
         phoneNumberId,
         workspaceId,
-        oba: typeof result.official_business_account,
+        status: res.status,
+        data,
       });
 
+      if (!res.ok) {
+        return withCookies(
+          NextResponse.json(
+            {
+              error: "graph_error",
+              message:
+                data?.error?.message || `Graph API ${res.status}`,
+            },
+            { status: 502 }
+          )
+        );
+      }
+
+      // Meta returns: { official_business_account: { oba_status: "NOT_STARTED" | ... }, id: "..." }
       return withCookies(
         NextResponse.json({
           ok: true,
           phoneNumberId,
-          official_business_account: result.official_business_account ?? null,
+          official_business_account:
+            data?.official_business_account ?? null,
         })
       );
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to check OBA status";
-      logger.error("[oba] status check failed", {
+      logger.error("[oba] GET failed", {
         phoneNumberId,
         workspaceId,
         message,
@@ -116,85 +155,55 @@ export const POST = withErrorHandler(
     // Clone request BEFORE guardWorkspace — it consumes req.json() internally
     const clonedReq = req.clone();
 
-    const guard = await guardWorkspace(req);
-    if (!guard.ok) return guard.response;
-    const { workspaceId, role, withCookies } = guard;
+    const ctx = await resolveContext(req, context);
+    if (!ctx.ok) return ctx.response;
 
-    // Only owners/admins can request OBA
+    const {
+      workspaceId,
+      role,
+      withCookies,
+      phoneNumberId,
+      connection,
+      accessToken,
+      db,
+    } = ctx;
+
     if (!requireWorkspaceRole(role, ["owner", "admin"])) {
       return withCookies(
         NextResponse.json({ error: "forbidden" }, { status: 403 })
       );
     }
 
-    const params = await context.params;
-    const phoneNumberId = params.phoneNumberId;
-    if (!phoneNumberId || phoneNumberId.length < 3) {
-      return withCookies(
-        NextResponse.json(
-          { error: "bad_request", message: "Invalid phone_number_id" },
-          { status: 400 }
-        )
-      );
-    }
-
-    // Read body from the CLONED request (original was consumed by guardWorkspace)
+    // Read body from CLONED request (original consumed by guardWorkspace)
     const body = await clonedReq.json().catch(() => ({}));
-    logger.info("[oba] received body", {
+
+    logger.info("[oba] POST body", {
       phoneNumberId,
       workspaceId,
       bodyKeys: Object.keys(body),
       hasWebsiteUrl: Boolean(body?.business_website_url),
     });
 
-    const db = supabaseAdmin();
-
-    // Verify connection belongs to workspace
-    const { data: connection, error: findErr } = await db
-      .from("wa_phone_numbers")
-      .select("id, phone_number_id, waba_id, display_name")
-      .eq("workspace_id", workspaceId)
-      .eq("phone_number_id", phoneNumberId)
-      .maybeSingle();
-
-    if (findErr || !connection) {
-      return withCookies(
-        NextResponse.json(
-          { error: "not_found", message: "Connection not found" },
-          { status: 404 }
-        )
-      );
-    }
-
-    // Resolve token
-    let accessToken: string;
-    try {
-      const tokenResult = await resolveWorkspaceMetaToken(workspaceId);
-      accessToken = tokenResult.token;
-    } catch {
-      return withCookies(
-        NextResponse.json(
-          {
-            error: "token_missing",
-            message: "No valid Meta token found for this workspace",
-          },
-          { status: 403 }
-        )
-      );
-    }
-
-    // Build OBA payload — match Meta curl example exactly
+    // Build OBA payload — match Meta docs exactly:
+    // POST /<PHONE_NUMBER_ID>/official_business_account  Content-Type: application/json
+    // https://developers.facebook.com/docs/whatsapp/official-business-accounts
     const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-    const obaPayload: Record<string, unknown> = {};
+    const obaPayload: Record<string, string | string[]> = {};
 
     if (str(body.business_website_url))
       obaPayload.business_website_url = str(body.business_website_url);
     if (str(body.additional_supporting_information))
-      obaPayload.additional_supporting_information = str(body.additional_supporting_information);
+      obaPayload.additional_supporting_information = str(
+        body.additional_supporting_information
+      );
     if (str(body.parent_business_or_brand))
-      obaPayload.parent_business_or_brand = str(body.parent_business_or_brand);
+      obaPayload.parent_business_or_brand = str(
+        body.parent_business_or_brand
+      );
     if (str(body.primary_country_of_operation))
-      obaPayload.primary_country_of_operation = str(body.primary_country_of_operation);
+      obaPayload.primary_country_of_operation = str(
+        body.primary_country_of_operation
+      );
     if (str(body.primary_language))
       obaPayload.primary_language = str(body.primary_language);
 
@@ -205,62 +214,87 @@ export const POST = withErrorHandler(
       if (links.length > 0) obaPayload.supporting_links = links;
     }
 
-    // Direct fetch to Meta Graph API using form-urlencoded
-    // Many Meta POST endpoints only read form params, not JSON body
-    const apiUrl = graphUrl(`${phoneNumberId}/official_business_account`, "v24.0");
-    try {
-      // Build form body — flat key=value pairs
-      const formParams = new URLSearchParams();
-      for (const [key, value] of Object.entries(obaPayload)) {
-        if (value === undefined || value === null) continue;
-        formParams.set(
-          key,
-          typeof value === "string" ? value : JSON.stringify(value)
-        );
-      }
+    if (!obaPayload.business_website_url) {
+      return withCookies(
+        NextResponse.json(
+          {
+            error: "validation",
+            message: "business_website_url is required",
+          },
+          { status: 400 }
+        )
+      );
+    }
 
-      logger.info("[oba] submitting request (form-urlencoded)", {
+    // Meta docs: POST with Content-Type: application/json
+    const apiUrl = graphUrl(
+      `${phoneNumberId}/official_business_account`,
+      "v24.0"
+    );
+
+    try {
+      logger.info("[oba] submitting to Meta", {
         phoneNumberId,
         workspaceId,
         apiUrl,
-        formKeys: [...formParams.keys()],
+        payloadKeys: Object.keys(obaPayload),
       });
 
       const graphRes = await fetch(apiUrl, {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: formParams,
+        body: JSON.stringify(obaPayload),
       });
 
       const graphData = await graphRes.json().catch(() => ({}));
 
-      logger.info("[oba] Graph API response", {
+      logger.info("[oba] Meta response", {
         phoneNumberId,
         workspaceId,
-        status: graphRes.status,
-        data: graphData,
+        httpStatus: graphRes.status,
+        graphData,
       });
 
       if (!graphRes.ok) {
+        const metaErr = graphData?.error;
         const errMsg =
-          graphData?.error?.message || `Graph API error (${graphRes.status})`;
-        logger.error("[oba] Graph API error", {
+          metaErr?.message || `Graph API error (${graphRes.status})`;
+        const errCode = metaErr?.code;
+
+        logger.error("[oba] Meta error", {
           phoneNumberId,
           workspaceId,
-          status: graphRes.status,
-          error: graphData?.error,
+          httpStatus: graphRes.status,
+          metaErr,
         });
+
+        // Meta code 1 = generic "An unknown error" — often means duplicate
+        let userMessage = errMsg;
+        if (errCode === 1) {
+          userMessage =
+            "Meta returned a generic error (code 1). This usually means an OBA request was already submitted. " +
+            "Click 'Check Status' to see the current state. If recently denied, wait 30 days before re-applying.";
+        } else if (errCode === 100) {
+          userMessage = `Missing required field: ${errMsg}`;
+        }
+
         return withCookies(
           NextResponse.json(
-            { error: "graph_error", message: errMsg },
+            {
+              error: "graph_error",
+              message: userMessage,
+              meta_error_code: errCode,
+              meta_error_message: errMsg,
+            },
             { status: 502 }
           )
         );
       }
 
-      // Log to audit
+      // Audit log
       await db
         .from("audit_logs")
         .insert({
@@ -277,7 +311,7 @@ export const POST = withErrorHandler(
         })
         .then(({ error }) => {
           if (error)
-            logger.warn("[oba] audit log insert failed", {
+            logger.warn("[oba] audit insert failed", {
               error: error.message,
             });
         });
@@ -287,14 +321,14 @@ export const POST = withErrorHandler(
           ok: true,
           success: graphData?.success ?? true,
           message:
-            "OBA request submitted successfully. Note: success=true means the request was submitted, not yet approved.",
+            "OBA request submitted. Review may take several business days.",
           phoneNumberId,
         })
       );
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "OBA request failed";
-      logger.error("[oba] request failed", {
+      logger.error("[oba] POST exception", {
         phoneNumberId,
         workspaceId,
         message,

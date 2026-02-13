@@ -1,7 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { BadgeCheck, Loader2, AlertTriangle, Send, Globe, Building2, Languages, Link2, FileText } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  BadgeCheck,
+  Loader2,
+  AlertTriangle,
+  Send,
+  Globe,
+  Building2,
+  Languages,
+  Link2,
+  FileText,
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -48,8 +58,74 @@ export function ObaRequestCard({
     return `https://${trimmed}`;
   };
 
+  /* ── Parse OBA status from Meta response ────────────────────── */
+  const parseObaStatus = (oba: unknown): ObaStatus => {
+    if (!oba) return { type: "not_requested" };
+
+    // Meta returns: { oba_status: "NOT_STARTED" | "PENDING" | "APPROVED" | "REJECTED" }
+    if (typeof oba === "object" && oba !== null) {
+      const obj = oba as Record<string, unknown>;
+      const obaStatus =
+        typeof obj.oba_status === "string"
+          ? obj.oba_status.toUpperCase()
+          : "";
+
+      switch (obaStatus) {
+        case "NOT_STARTED":
+          return { type: "not_requested" };
+        case "PENDING":
+        case "IN_REVIEW":
+          return { type: "pending" };
+        case "APPROVED":
+          return {
+            type: "approved",
+            name: typeof obj.name === "string" ? obj.name : undefined,
+          };
+        case "REJECTED":
+        case "DENIED":
+          return {
+            type: "rejected",
+            reasons: Array.isArray(obj.rejection_reasons)
+              ? obj.rejection_reasons
+              : undefined,
+          };
+        default:
+          break;
+      }
+
+      // Fallback: check for older response shapes
+      if (obj.rejection_reasons && Array.isArray(obj.rejection_reasons)) {
+        return {
+          type: "rejected",
+          reasons: obj.rejection_reasons as string[],
+        };
+      }
+      if (obj.id || obj.name) {
+        return {
+          type: "approved",
+          name: typeof obj.name === "string" ? obj.name : undefined,
+        };
+      }
+      // If object exists but no known status → pending
+      return { type: "pending" };
+    }
+
+    if (typeof oba === "string") {
+      const lower = oba.toLowerCase();
+      if (lower === "none" || lower === "" || lower === "not_started")
+        return { type: "not_requested" };
+      if (lower.includes("approv")) return { type: "approved" };
+      if (lower.includes("reject") || lower.includes("denied"))
+        return { type: "rejected" };
+      if (lower.includes("pend") || lower.includes("review"))
+        return { type: "pending" };
+    }
+
+    return { type: "not_requested" };
+  };
+
   /* ── Check OBA status ──────────────────────────────────────── */
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     setStatus({ type: "checking" });
     try {
       const res = await fetch(
@@ -68,58 +144,23 @@ export function ObaRequestCard({
         return;
       }
 
-      const oba = data?.official_business_account;
-
-      if (!oba || oba === "" || oba === "none") {
-        setStatus({ type: "not_requested" });
-      } else if (typeof oba === "object") {
-        if (oba.rejection_reasons?.length) {
-          setStatus({ type: "rejected", reasons: oba.rejection_reasons });
-        } else if (oba.id || oba.name) {
-          setStatus({ type: "approved", name: oba.name });
-        } else {
-          setStatus({ type: "pending" });
-        }
-      } else if (typeof oba === "string") {
-        // Could be an enum like "pending", "approved", etc.
-        if (oba.toLowerCase().includes("approv")) {
-          setStatus({ type: "approved" });
-        } else if (oba.toLowerCase().includes("reject")) {
-          setStatus({ type: "rejected" });
-        } else {
-          setStatus({ type: "pending" });
-        }
-      } else {
-        setStatus({ type: "not_requested" });
-      }
+      const parsed = parseObaStatus(data?.official_business_account);
+      setStatus(parsed);
     } catch (err) {
       setStatus({
         type: "error",
         message: err instanceof Error ? err.message : "Failed to check",
       });
     }
-  };
+  }, [phoneNumberId, workspaceId]);
+
+  // Auto-check status on mount so it persists across navigations
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
 
   /* ── Submit OBA request ────────────────────────────────────── */
   const submitRequest = async () => {
-    if (status.type === "pending") {
-      toast({
-        title: "Already Pending Review",
-        description:
-          "This number already has an active OBA review in Meta. Please wait for the review result.",
-      });
-      return;
-    }
-
-    if (status.type === "approved") {
-      toast({
-        title: "Already Approved",
-        description:
-          "This number is already marked as approved. No new OBA request is needed.",
-      });
-      return;
-    }
-
     const normalizedWebsiteUrl = normalizeUrl(websiteUrl);
     if (!normalizedWebsiteUrl) {
       toast({
@@ -160,29 +201,23 @@ export function ObaRequestCard({
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        let desc = data?.message || `Error ${res.status}`;
-        if (data?.details) {
-          const fields = Object.entries(data.details)
-            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-            .join("; ");
-          if (fields) desc = fields;
-        }
-        if (status.type === "pending" && /unknown error has occurred/i.test(desc)) {
-          desc =
-            "Meta still shows this number as pending review. Please wait for review result before re-submitting.";
-        }
+        const desc = data?.message || `Error ${res.status}`;
         toast({
           title: "OBA Request Failed",
           description: desc,
           variant: "destructive",
         });
+        // If error code 1 (duplicate), auto-check the real status
+        if (data?.meta_error_code === 1) {
+          await checkStatus();
+        }
         return;
       }
 
       toast({
         title: "✅ OBA Request Submitted!",
         description:
-          "Your Official Business Account (blue tick) request has been submitted to Meta. Review can take up to several business days.",
+          "Your blue tick request has been sent to Meta. Review may take several business days.",
       });
       setShowForm(false);
       setStatus({ type: "pending" });
@@ -197,6 +232,11 @@ export function ObaRequestCard({
       setSubmitting(false);
     }
   };
+
+  /* ── Derived states ────────────────────────────────────────── */
+  const isPending = status.type === "pending";
+  const isApproved = status.type === "approved";
+  const canSubmit = !submitting && !isPending && !isApproved;
 
   /* ── Status badge ──────────────────────────────────────────── */
   const StatusBadge = () => {
@@ -291,16 +331,26 @@ export function ObaRequestCard({
           Check Status
         </button>
 
-        {canEdit && status.type !== "approved" && (
+        {canEdit && !isApproved && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-400/20"
           >
             <Send className="h-3 w-3" />
-            {showForm ? "Cancel" : "Request Blue Tick"}
+            {showForm ? "Cancel" : isPending ? "View Form" : "Request Blue Tick"}
           </button>
         )}
       </div>
+
+      {/* Pending info banner */}
+      {isPending && (
+        <div className="mt-3 rounded-lg border border-amber-400/20 bg-amber-400/5 p-3">
+          <p className="text-xs text-amber-300">
+            ⏳ Your OBA request is being reviewed by Meta. This may take several
+            business days. You&apos;ll receive a notification when a decision is made.
+          </p>
+        </div>
+      )}
 
       {/* OBA Request Form */}
       {showForm && (
@@ -394,7 +444,9 @@ export function ObaRequestCard({
             <textarea
               value={supportingLinks}
               onChange={(e) => setSupportingLinks(e.target.value)}
-              placeholder={"https://news-article-about-your-brand.com\nhttps://industry-directory-listing.com"}
+              placeholder={
+                "https://news-article-about-your-brand.com\nhttps://industry-directory-listing.com"
+              }
               rows={3}
               className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229] px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-blue-400/50 focus:outline-none"
             />
@@ -404,7 +456,7 @@ export function ObaRequestCard({
           <div className="flex items-center gap-3 pt-1">
             <button
               onClick={submitRequest}
-              disabled={submitting || status.type === "pending" || status.type === "approved"}
+              disabled={!canSubmit}
               className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-blue-400 disabled:opacity-50"
             >
               {submitting ? (
@@ -412,9 +464,9 @@ export function ObaRequestCard({
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              {status.type === "pending"
+              {isPending
                 ? "Review In Progress"
-                : status.type === "approved"
+                : isApproved
                   ? "Already Approved"
                   : "Submit OBA Request"}
             </button>
