@@ -1,10 +1,14 @@
 import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { MetaAdsManagerClient } from '@/components/meta-hub/MetaAdsManagerClient';
 
-export const metadata: Metadata = {
-  title: 'Meta Ads Manager | Meta Hub',
-  description: 'Monitor and analyze your Meta advertising campaigns',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('metaHub');
+  return {
+    title: `${t('adsTitle')} | Meta Hub`,
+    description: t('adsDesc'),
+  };
+}
 
 export default function MetaAdsPage() {
   return (

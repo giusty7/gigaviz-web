@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
 import { AIReplySettingsClient } from "@/components/meta-hub/AIReplySettingsClient";
 
@@ -9,9 +10,10 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { workspaceSlug } = await params;
+  const t = await getTranslations("metaHub");
   return {
-    title: `AI Auto-Reply | Meta Hub | ${workspaceSlug}`,
-    description: "Configure AI-powered automatic replies for WhatsApp",
+    title: `${t("aiReplyTitle")} | Meta Hub | ${workspaceSlug}`,
+    description: t("aiReplyDesc"),
   };
 }
 

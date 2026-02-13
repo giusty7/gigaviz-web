@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ImperiumMetaHubOverviewClient } from "@/components/meta-hub/ImperiumMetaHubOverviewClient";
 import { MetaHubStatusCard } from "@/components/meta-hub/MetaHubStatusCard";
 import { getMetaHubFlags } from "@/lib/meta-hub/config";
@@ -50,10 +51,11 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
   // Fetch real-time integration status
   const integrationStatus = await getMetaHubStatus(workspace.id);
 
+  const t = await getTranslations("metaHub");
   const overview = await getMetaHubOverview(workspace.id);
   const flags = getMetaHubFlags();
   const basePath = `/${workspace.slug}/meta-hub`;
-  const planLabel = isDevOverride ? "DEV (Full Access)" : planInfo.displayName;
+  const planLabel = isDevOverride ? t("devFullAccess") : planInfo.displayName;
 
   const templateTotal =
     (overview.kpis.templates.approved ?? 0) +
@@ -61,8 +63,8 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
     (overview.kpis.templates.rejected ?? 0);
   const templateStat =
     templateTotal > 0
-      ? `${overview.kpis.templates.approved ?? 0} approved templates`
-      : "No templates yet";
+      ? t("approvedTemplates", { count: overview.kpis.templates.approved ?? 0 })
+      : t("noTemplatesYet");
   const whatsappStatus: ChannelStatus = access.metaHub
     ? overview.health.whatsapp.connected
       ? "live"
@@ -91,41 +93,41 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
 
   const channels = [
     {
-      name: "WhatsApp",
+      name: t("channelWhatsApp"),
       status: whatsappStatus,
-      desc: "Template, inbox, scheduler.",
+      desc: t("channelWhatsAppDesc"),
       stats: [
-        overview.health.whatsapp.connected ? "Connected" : "Not connected",
+        overview.health.whatsapp.connected ? t("statusConnected") : t("statusNotConnected"),
         templateStat,
       ],
       href: `${basePath}/messaging/whatsapp`,
     },
     {
-      name: "Instagram",
+      name: t("channelInstagram"),
       status: instagramStatus,
-      desc: "DM API and webhook events.",
-      stats: ["Coming soon", "Notify me"],
+      desc: t("channelInstagramDesc"),
+      stats: [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/messaging/instagram`,
     },
     {
-      name: "Messenger",
+      name: t("channelMessenger"),
       status: messengerStatus,
-      desc: "Send/receive messages.",
-      stats: ["Coming soon", "Notify me"],
+      desc: t("channelMessengerDesc"),
+      stats: [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/messaging/messenger`,
     },
     {
-      name: "Ads",
+      name: t("channelAds"),
       status: adsStatus,
-      desc: "Campaign management and audiences.",
-      stats: ["Coming soon", "Notify me"],
+      desc: t("channelAdsDesc"),
+      stats: [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/ads`,
     },
     {
-      name: "Insights",
+      name: t("channelInsights"),
       status: insightsStatus,
-      desc: "Performance and alerts.",
-      stats: ["Coming soon", "Notify me"],
+      desc: t("channelInsightsDesc"),
+      stats: [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/insights`,
     },
   ];

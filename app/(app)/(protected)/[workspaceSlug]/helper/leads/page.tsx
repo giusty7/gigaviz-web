@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
 import { requireEntitlement } from "@/lib/entitlements/server";
 import { HelperSubPageShell } from "@/components/helper/HelperSubPageShell";
@@ -7,10 +9,13 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "AI Lead Scoring | Gigaviz Helper",
-  description: "Intelligent lead qualification and conversion tracking",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("helper");
+  return {
+    title: `${t("leadsTitle")} | Gigaviz Helper`,
+    description: t("leadsDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -30,13 +35,14 @@ export default async function LeadsPage({ params }: Props) {
   // Check entitlement
   const entitlement = await requireEntitlement(workspaceId, "helper");
   if (!entitlement.allowed) {
+    const t = await getTranslations("helper");
     return (
       <HelperSubPageShell
         workspaceSlug={workspaceSlug}
         activeTab="leads"
       >
         <div className="flex flex-col items-center justify-center h-full text-center">
-          <p className="text-lg text-[#f5f5dc]/60">Helper is not enabled for this workspace</p>
+          <p className="text-lg text-[#f5f5dc]/60">{t("disabledMessage")}</p>
         </div>
       </HelperSubPageShell>
     );

@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
 import { requireEntitlement } from "@/lib/entitlements/server";
 import { HelperSubPageShell } from "@/components/helper/HelperSubPageShell";
@@ -7,10 +9,13 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Run History | Gigaviz Helper",
-  description: "View workflow execution history and debug runs",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("helper");
+  return {
+    title: `${t("historyTitle")} | Gigaviz Helper`,
+    description: t("historyDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -30,13 +35,14 @@ export default async function HistoryPage({ params }: Props) {
   // Check entitlement
   const entitlement = await requireEntitlement(workspaceId, "helper");
   if (!entitlement.allowed) {
+    const t = await getTranslations("helper");
     return (
       <HelperSubPageShell
         workspaceSlug={workspaceSlug}
         activeTab="history"
       >
         <div className="flex flex-col items-center justify-center h-full text-center">
-          <p className="text-lg text-[#f5f5dc]/60">Helper is not enabled for this workspace</p>
+          <p className="text-lg text-[#f5f5dc]/60">{t("disabledMessage")}</p>
         </div>
       </HelperSubPageShell>
     );
@@ -64,6 +70,7 @@ export default async function HistoryPage({ params }: Props) {
     .limit(50);
 
   // Transform runs to match client interface
+  const t = await getTranslations("helper");
   const transformedRuns = (runs || []).map((run: Record<string, unknown>) => {
     const workflow = run.helper_workflows as { id: string; name: string } | null;
     const startedAt = run.started_at as string;
@@ -72,7 +79,7 @@ export default async function HistoryPage({ params }: Props) {
     return {
       id: run.id as string,
       workflowId: run.workflow_id as string,
-      workflowName: workflow?.name || "Unknown Workflow",
+      workflowName: workflow?.name || t("unknownWorkflow"),
       status: (run.status || "completed") as "running" | "completed" | "failed" | "cancelled",
       triggeredBy: "manual" as "manual" | "schedule" | "webhook" | "event",
       startedAt,
