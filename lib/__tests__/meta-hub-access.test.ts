@@ -18,8 +18,8 @@ import {
 // getMetaHubAccess
 // ---------------------------------------------------------------------------
 describe("getMetaHubAccess", () => {
-  it("grants full access for team_pro plan", () => {
-    const result = getMetaHubAccess({ planId: "team_pro" });
+  it("grants full access for business plan", () => {
+    const result = getMetaHubAccess({ planId: "business" });
     expect(result).toEqual<MetaHubAccess>({
       metaHub: true,
       templates: true,
@@ -28,35 +28,38 @@ describe("getMetaHubAccess", () => {
     });
   });
 
-  it("grants full access for ind_pro plan", () => {
-    const result = getMetaHubAccess({ planId: "ind_pro" });
+  it("grants full access for growth plan", () => {
+    const result = getMetaHubAccess({ planId: "growth" });
     expect(result.metaHub).toBe(true);
     expect(result.templates).toBe(true);
     expect(result.send).toBe(true);
     expect(result.webhooks).toBe(true);
   });
 
-  it("denies access for free_locked plan", () => {
-    const result = getMetaHubAccess({ planId: "free_locked" });
+  it("denies access for free plan", () => {
+    const result = getMetaHubAccess({ planId: "free" });
     expect(result.metaHub).toBe(false);
     expect(result.templates).toBe(false);
     expect(result.send).toBe(false);
     expect(result.webhooks).toBe(false);
   });
 
-  it("denies access for ind_starter plan", () => {
-    const result = getMetaHubAccess({ planId: "ind_starter" });
-    expect(result.metaHub).toBe(false);
+  it("grants access for starter plan", () => {
+    const result = getMetaHubAccess({ planId: "starter" });
+    expect(result.metaHub).toBe(true);
   });
 
-  it("denies access for team_starter plan", () => {
-    const result = getMetaHubAccess({ planId: "team_starter" });
-    expect(result.metaHub).toBe(false);
+  it("grants full access for enterprise plan", () => {
+    const result = getMetaHubAccess({ planId: "enterprise" });
+    expect(result.metaHub).toBe(true);
+    expect(result.templates).toBe(true);
+    expect(result.send).toBe(true);
+    expect(result.webhooks).toBe(true);
   });
 
   it("grants access when is_admin is true regardless of plan", () => {
     const result = getMetaHubAccess({
-      planId: "free_locked",
+      planId: "free",
       isAdmin: true,
     });
     expect(result.metaHub).toBe(true);
@@ -67,7 +70,7 @@ describe("getMetaHubAccess", () => {
 
   it("grants access via effectiveEntitlements override", () => {
     const result = getMetaHubAccess({
-      planId: "free_locked",
+      planId: "free",
       effectiveEntitlements: ["meta_hub", "meta_templates", "meta_send", "meta_webhooks"],
     });
     expect(result.metaHub).toBe(true);
@@ -78,7 +81,7 @@ describe("getMetaHubAccess", () => {
 
   it("grants partial access via effectiveEntitlements", () => {
     const result = getMetaHubAccess({
-      planId: "free_locked",
+      planId: "free",
       effectiveEntitlements: ["meta_hub"],
     });
     expect(result.metaHub).toBe(true);
@@ -89,7 +92,7 @@ describe("getMetaHubAccess", () => {
 
   it("handles null isAdmin gracefully", () => {
     const result = getMetaHubAccess({
-      planId: "free_locked",
+      planId: "free",
       isAdmin: null,
     });
     expect(result.metaHub).toBe(false);
@@ -97,7 +100,7 @@ describe("getMetaHubAccess", () => {
 
   it("handles null effectiveEntitlements gracefully", () => {
     const result = getMetaHubAccess({
-      planId: "free_locked",
+      planId: "free",
       effectiveEntitlements: null,
     });
     expect(result.metaHub).toBe(false);
@@ -181,7 +184,7 @@ describe("getMetaHubFlags", () => {
 // ---------------------------------------------------------------------------
 describe("canAccess", () => {
   it("grants base features to all plans", () => {
-    const plans: PlanId[] = ["free_locked", "ind_starter", "ind_pro", "team_starter", "team_pro"];
+    const plans: PlanId[] = ["free", "starter", "growth", "business", "enterprise"];
     for (const planId of plans) {
       const ctx: AccessContext = { plan_id: planId };
       expect(canAccess(ctx, "dashboard_home"), `${planId} should have dashboard_home`).toBe(true);
@@ -190,35 +193,34 @@ describe("canAccess", () => {
     }
   });
 
-  it("denies meta_hub for free_locked", () => {
-    expect(canAccess({ plan_id: "free_locked" }, "meta_hub")).toBe(false);
+  it("denies meta_hub for free", () => {
+    expect(canAccess({ plan_id: "free" }, "meta_hub")).toBe(false);
   });
 
-  it("denies meta_hub for ind_starter", () => {
-    expect(canAccess({ plan_id: "ind_starter" }, "meta_hub")).toBe(false);
+  it("grants meta_hub for starter", () => {
+    expect(canAccess({ plan_id: "starter" }, "meta_hub")).toBe(true);
   });
 
-  it("grants meta_hub for ind_pro", () => {
-    expect(canAccess({ plan_id: "ind_pro" }, "meta_hub")).toBe(true);
+  it("grants meta_hub for growth", () => {
+    expect(canAccess({ plan_id: "growth" }, "meta_hub")).toBe(true);
   });
 
-  it("grants meta_hub for team_pro", () => {
-    expect(canAccess({ plan_id: "team_pro" }, "meta_hub")).toBe(true);
+  it("grants meta_hub for business", () => {
+    expect(canAccess({ plan_id: "business" }, "meta_hub")).toBe(true);
   });
 
-  it("grants helper for ind_pro and team_pro", () => {
-    expect(canAccess({ plan_id: "ind_pro" }, "helper")).toBe(true);
-    expect(canAccess({ plan_id: "team_pro" }, "helper")).toBe(true);
+  it("grants helper for starter and above", () => {
+    expect(canAccess({ plan_id: "starter" }, "helper")).toBe(true);
+    expect(canAccess({ plan_id: "growth" }, "helper")).toBe(true);
+    expect(canAccess({ plan_id: "business" }, "helper")).toBe(true);
   });
 
-  it("denies helper for free and starter plans", () => {
-    expect(canAccess({ plan_id: "free_locked" }, "helper")).toBe(false);
-    expect(canAccess({ plan_id: "ind_starter" }, "helper")).toBe(false);
-    expect(canAccess({ plan_id: "team_starter" }, "helper")).toBe(false);
+  it("denies helper for free plan", () => {
+    expect(canAccess({ plan_id: "free" }, "helper")).toBe(false);
   });
 
   it("admin bypasses all plan restrictions", () => {
-    const ctx: AccessContext = { plan_id: "free_locked", is_admin: true };
+    const ctx: AccessContext = { plan_id: "free", is_admin: true };
     expect(canAccess(ctx, "meta_hub")).toBe(true);
     expect(canAccess(ctx, "helper")).toBe(true);
     expect(canAccess(ctx, "mass_blast")).toBe(true);
@@ -227,7 +229,7 @@ describe("canAccess", () => {
 
   it("effectiveEntitlements override grants access", () => {
     const ctx: AccessContext = {
-      plan_id: "free_locked",
+      plan_id: "free",
       effectiveEntitlements: ["meta_hub", "helper"],
     };
     expect(canAccess(ctx, "meta_hub")).toBe(true);
@@ -235,23 +237,24 @@ describe("canAccess", () => {
     expect(canAccess(ctx, "mass_blast")).toBe(false); // Not in override
   });
 
-  it("team_starter gets member management features", () => {
-    const ctx: AccessContext = { plan_id: "team_starter" };
+  it("growth gets member management features", () => {
+    const ctx: AccessContext = { plan_id: "growth" };
     expect(canAccess(ctx, "member_invites")).toBe(true);
     expect(canAccess(ctx, "roles_permissions")).toBe(true);
   });
 
-  it("ind_starter does not get member management features", () => {
-    const ctx: AccessContext = { plan_id: "ind_starter" };
+  it("starter does not get member management features", () => {
+    const ctx: AccessContext = { plan_id: "starter" };
     expect(canAccess(ctx, "member_invites")).toBe(false);
     expect(canAccess(ctx, "roles_permissions")).toBe(false);
   });
 
-  it("only team_pro gets mass_blast and analytics", () => {
-    expect(canAccess({ plan_id: "team_pro" }, "mass_blast")).toBe(true);
-    expect(canAccess({ plan_id: "team_pro" }, "analytics")).toBe(true);
-    expect(canAccess({ plan_id: "ind_pro" }, "mass_blast")).toBe(false);
-    expect(canAccess({ plan_id: "team_starter" }, "analytics")).toBe(false);
+  it("only business and enterprise get mass_blast and analytics", () => {
+    expect(canAccess({ plan_id: "business" }, "mass_blast")).toBe(true);
+    expect(canAccess({ plan_id: "business" }, "analytics")).toBe(true);
+    expect(canAccess({ plan_id: "enterprise" }, "mass_blast")).toBe(true);
+    expect(canAccess({ plan_id: "growth" }, "mass_blast")).toBe(false);
+    expect(canAccess({ plan_id: "starter" }, "analytics")).toBe(false);
   });
 });
 
@@ -260,26 +263,26 @@ describe("canAccess", () => {
 // ---------------------------------------------------------------------------
 describe("getPlanMeta", () => {
   it("returns correct plan for valid plan_id", () => {
-    const plan = getPlanMeta("ind_pro");
-    expect(plan.plan_id).toBe("ind_pro");
-    expect(plan.name).toBe("Individual Pro");
-    expect(plan.billing_mode).toBe("individual");
-    expect(plan.seat_limit).toBe(1);
+    const plan = getPlanMeta("growth");
+    expect(plan.plan_id).toBe("growth");
+    expect(plan.name).toBe("Growth");
+    expect(plan.billing_mode).toBe("team");
+    expect(plan.seat_limit).toBe(10);
   });
 
-  it("returns free_locked as fallback for null", () => {
+  it("returns free as fallback for null", () => {
     const plan = getPlanMeta(null);
-    expect(plan.plan_id).toBe("free_locked");
+    expect(plan.plan_id).toBe("free");
   });
 
-  it("returns free_locked as fallback for undefined", () => {
+  it("returns free as fallback for undefined", () => {
     const plan = getPlanMeta(undefined);
-    expect(plan.plan_id).toBe("free_locked");
+    expect(plan.plan_id).toBe("free");
   });
 
-  it("returns free_locked as fallback for invalid plan", () => {
+  it("returns free as fallback for invalid plan", () => {
     const plan = getPlanMeta("nonexistent_plan");
-    expect(plan.plan_id).toBe("free_locked");
+    expect(plan.plan_id).toBe("free");
   });
 
   it("all plan metas have required fields", () => {
@@ -293,8 +296,8 @@ describe("getPlanMeta", () => {
     }
   });
 
-  it("planMeta has exactly 5 plans", () => {
-    expect(planMeta).toHaveLength(5);
+  it("planMeta has 10 entries (5 new + 5 legacy)", () => {
+    expect(planMeta).toHaveLength(10);
   });
 });
 

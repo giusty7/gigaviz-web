@@ -4,6 +4,7 @@ import { MarketingIcon } from "@/components/marketing/icons";
 
 export const revalidate = 3600;
 import { StatusBadge } from "@/components/marketing/status-badge";
+import { ProductPreview } from "@/components/marketing/product-preview";
 
 export const metadata: Metadata = {
   title: "Gigaviz Arena",
@@ -187,6 +188,8 @@ export default function ArenaPage() {
               </div>
             </div>
 
+            <div className="space-y-6">
+            <ProductPreview product="arena" />
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
                 Arena overview
@@ -205,6 +208,7 @@ export default function ArenaPage() {
                   Commission - request custom games via Apps.
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </section>

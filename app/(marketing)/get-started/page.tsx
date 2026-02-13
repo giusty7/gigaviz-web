@@ -32,9 +32,21 @@ type ComparisonRow = {
   planned?: boolean;
 };
 
-export default async function GetStartedPage() {
+export default async function GetStartedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
   const t = await getTranslations("getStarted");
   const tc = await getTranslations("common");
+
+  // Pass trial plan through to onboarding
+  const planParam = typeof resolvedParams?.plan === "string" ? resolvedParams.plan : "";
+  const trialParam = resolvedParams?.trial === "1" ? "1" : "";
+  const onboardingUrl = planParam && trialParam
+    ? `/login?next=${encodeURIComponent(`/onboarding?plan=${planParam}&trial=1`)}`
+    : "/login?next=/onboarding";
 
   const comparisonRows: ComparisonRow[] = [
     {
@@ -110,13 +122,18 @@ export default async function GetStartedPage() {
                 {t("subtitle")}
               </p>
               <div className="flex flex-wrap items-center gap-3 text-sm">
+                {planParam && trialParam && (
+                  <div className="w-full rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300 mb-2">
+                    🎉 14-day free trial for <strong>{planParam.charAt(0).toUpperCase() + planParam.slice(1)}</strong> plan — no payment required!
+                  </div>
+                )}
                 <TrackedLink
-                  href="/login?next=/onboarding"
+                  href={onboardingUrl}
                   label="Create Account"
                   location="get_started_hero"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  {tc("createAccount")}
+                  {planParam ? tc("startFreeTrial") : tc("createAccount")}
                 </TrackedLink>
                 <TrackedLink
                   href="/dashboard"
@@ -293,7 +310,7 @@ export default async function GetStartedPage() {
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
                 <TrackedLink
-                  href="/login?next=/onboarding"
+                  href={onboardingUrl}
                   label="Create Account"
                   location="get_started_footer"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"

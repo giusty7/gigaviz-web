@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
+import { ProductPreview } from "@/components/marketing/product-preview";
 
 export const revalidate = 3600;
 
@@ -201,6 +202,8 @@ export default function PlatformProductPage() {
               </div>
             </div>
 
+            <div className="space-y-6">
+            <ProductPreview product="platform" />
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -232,6 +235,7 @@ export default function PlatformProductPage() {
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
                 Core OS runs before other modules activate, ensuring consistent team onboarding.
               </div>
+            </div>
             </div>
           </div>
         </section>

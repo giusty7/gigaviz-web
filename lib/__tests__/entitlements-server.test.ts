@@ -70,7 +70,7 @@ beforeEach(() => {
 // ─── getWorkspaceEntitlements ───────────────────────────────────────
 
 describe("getWorkspaceEntitlements", () => {
-  it("returns free_locked when no subscription found", async () => {
+  it("returns free when no subscription found", async () => {
     // subscriptions → null, workspace_entitlements → empty array
     setupFromSequence([
       chainBuilder(null), // subscriptions
@@ -78,7 +78,7 @@ describe("getWorkspaceEntitlements", () => {
     ]);
 
     const result = await getWorkspaceEntitlements("ws_123");
-    expect(result.planId).toBe("free_locked");
+    expect(result.planId).toBe("free");
     expect(typeof result.features).toBe("object");
   });
 
@@ -165,14 +165,14 @@ describe("getWorkspaceEntitlements", () => {
     expect(result.limits.custom_quota_limit).toEqual({ max: 500 });
   });
 
-  it("handles unknown plan_id gracefully (falls back to free_locked)", async () => {
+  it("handles unknown plan_id gracefully (falls back to free)", async () => {
     setupFromSequence([
       chainBuilder({ plan_id: "nonexistent_plan_xyz" }),
       chainBuilderArray([]),
     ]);
 
     const result = await getWorkspaceEntitlements("ws_123");
-    expect(result.planId).toBe("free_locked");
+    expect(result.planId).toBe("free");
   });
 
   it("falls back to legacy query when overrides query errors", async () => {

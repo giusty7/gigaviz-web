@@ -1,18 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, Banknote } from "lucide-react";
+import { Banknote, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
 import type { BillingSummary } from "@/lib/billing/summary";
 
+declare global {
+  interface Window {
+    snap?: {
+      pay: (
+        token: string,
+        options?: {
+          onSuccess?: (result: Record<string, unknown>) => void;
+          onPending?: (result: Record<string, unknown>) => void;
+          onError?: (result: Record<string, unknown>) => void;
+          onClose?: () => void;
+        }
+      ) => void;
+    };
+  }
+}
+
 type Props = {
   workspaceId: string;
   initialSummary?: BillingSummary | null;
   canEdit: boolean;
-  /** Whether Stripe is configured (NEXT_PUBLIC_STRIPE_ENABLED) */
-  stripeEnabled?: boolean;
+  /** Whether Midtrans is configured (NEXT_PUBLIC_MIDTRANS_ENABLED) */
+  midtransEnabled?: boolean;
 };
 
 const packages = [
@@ -23,17 +39,47 @@ const packages = [
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 
-export function TokenTopupClient({ workspaceId, initialSummary, canEdit, stripeEnabled }: Props) {
+/** Load Midtrans Snap.js script once */
+function loadSnapScript(clientKey: string, isProduction: boolean): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.snap) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = isProduction
+      ? "https://app.midtrans.com/snap/snap.js"
+      : "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", clientKey);
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Failed to load Midtrans Snap"));
+    document.head.appendChild(script);
+  });
+}
+
+export function TokenTopupClient({ workspaceId, initialSummary, canEdit, midtransEnabled }: Props) {
   const { toast } = useToast();
   const t = useTranslations("billing");
   const [summary, setSummary] = useState<BillingSummary | null>(initialSummary ?? null);
   const [loading, setLoading] = useState(!initialSummary);
   const [active, setActive] = useState<string | null>(null);
-  const [stripeLoading, setStripeLoading] = useState<string | null>(null);
+  const [midtransLoading, setMidtransLoading] = useState<string | null>(null);
   const [pending, setPending] = useState<
     Array<{ id: string; amount_idr: number; created_at: string; meta: Record<string, unknown> }>
   >([]);
   const [marking, setMarking] = useState<string | null>(null);
+
+  // Pre-load Snap script when Midtrans is enabled
+  useEffect(() => {
+    if (!midtransEnabled) return;
+    const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+    const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
+    if (clientKey) {
+      loadSnapScript(clientKey, isProduction).catch(() => {
+        /* silent — will retry on checkout */
+      });
+    }
+  }, [midtransEnabled]);
 
   async function fetchSummary() {
     setLoading(true);
@@ -159,23 +205,50 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit, stripeE
     }
   }
 
-  async function handleStripeCheckout(pkg: (typeof packages)[number]) {
-    setStripeLoading(pkg.id);
+  async function handleMidtransCheckout(pkg: (typeof packages)[number]) {
+    setMidtransLoading(pkg.id);
     try {
-      const res = await fetch("/api/billing/stripe/checkout", {
+      const res = await fetch("/api/billing/midtrans/topup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tokens: pkg.tokens,
-          amountIdr: pkg.amountIdr,
-        }),
+        body: JSON.stringify({ packageId: pkg.id }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.url) {
+      if (!res.ok || !data?.token) {
         throw new Error(data?.message || data?.error || t("checkoutFailed"));
       }
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
+
+      // Load Snap script if needed
+      const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+      const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
+      if (clientKey) {
+        await loadSnapScript(clientKey, isProduction);
+      }
+
+      if (window.snap) {
+        // Open Midtrans Snap popup
+        window.snap.pay(data.token, {
+          onSuccess: async () => {
+            toast({ title: t("topUpConfirmed"), description: t("balanceIncreased", { count: numberFormatter.format(pkg.tokens) }) });
+            await fetchSummary();
+            await fetchPending();
+          },
+          onPending: () => {
+            toast({ title: t("topUpCreated"), description: t("waitingActivation") });
+          },
+          onError: () => {
+            toast({ title: t("topUpFailed"), description: t("tryAgainLater"), variant: "destructive" });
+          },
+          onClose: () => {
+            // User closed popup without completing
+          },
+        });
+      } else if (data.redirectUrl) {
+        // Fallback: redirect to Midtrans payment page
+        window.location.href = data.redirectUrl;
+      } else {
+        throw new Error("Midtrans Snap not loaded");
+      }
     } catch (err) {
       toast({
         title: t("checkoutFailed"),
@@ -183,7 +256,7 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit, stripeE
         variant: "destructive",
       });
     } finally {
-      setStripeLoading(null);
+      setMidtransLoading(null);
     }
   }
 
@@ -218,25 +291,25 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit, stripeE
               Rp {numberFormatter.format(pkg.amountIdr)}
             </p>
             <div className="mt-4 flex flex-col gap-2">
-              {stripeEnabled && (
+              {midtransEnabled && (
                 <Button
                   className="w-full"
                   variant="default"
-                  onClick={() => handleStripeCheckout(pkg)}
-                  disabled={stripeLoading === pkg.id}
+                  onClick={() => handleMidtransCheckout(pkg)}
+                  disabled={midtransLoading === pkg.id}
                 >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  {stripeLoading === pkg.id ? t("redirecting") : t("payWithCard")}
+                  <Wallet className="mr-2 h-4 w-4" />
+                  {midtransLoading === pkg.id ? t("processing") : t("payNow")}
                 </Button>
               )}
               <Button
                 className="w-full"
-                variant={stripeEnabled ? "outline" : "secondary"}
+                variant={midtransEnabled ? "outline" : "secondary"}
                 onClick={() => handleTopup(pkg.id)}
                 disabled={active === pkg.id}
               >
                 <Banknote className="mr-2 h-4 w-4" />
-                {active === pkg.id ? t("processing") : stripeEnabled ? t("manualTransfer") : t("topUp")}
+                {active === pkg.id ? t("processing") : midtransEnabled ? t("manualTransfer") : t("topUp")}
               </Button>
             </div>
           </div>

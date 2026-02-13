@@ -33,7 +33,7 @@ export default async function BillingPage({
   const summary = await getBillingSummary(ctx.currentWorkspace.id);
   const userEmail = ctx.user.email ?? "";
   const canEdit = ctx.currentRole === "owner" || ctx.currentRole === "admin";
-  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
+  const midtransEnabled = process.env.NEXT_PUBLIC_MIDTRANS_ENABLED === "1";
   const planIdNormalized = normalizePlanId(billing.plan?.code ?? billing.subscription?.plan_id);
   const featureUnion = Array.from(
     new Set(planMeta.flatMap((p) => getPlanFeatures(p.plan_id)).concat(getPlanFeatures(planIdNormalized)))
@@ -85,13 +85,13 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-6">
-      <BillingSummaryClient workspaceId={ctx.currentWorkspace.id} workspaceSlug={workspaceSlug} initialSummary={summary} />
+      <BillingSummaryClient workspaceId={ctx.currentWorkspace.id} workspaceSlug={workspaceSlug} initialSummary={summary} midtransEnabled={midtransEnabled} />
 
       <TokenTopupClient
         workspaceId={ctx.currentWorkspace.id}
         initialSummary={summary}
         canEdit={canEdit}
-        stripeEnabled={stripeEnabled}
+        midtransEnabled={midtransEnabled}
       />
 
       {!billing.subscription ? (

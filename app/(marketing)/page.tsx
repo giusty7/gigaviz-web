@@ -6,6 +6,8 @@ import { BadgeCheck } from "lucide-react";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
 import { LatestUpdates } from "@/components/marketing/LatestUpdates";
+import { TestimonialsSection } from "@/components/marketing/testimonials";
+import { NewsletterCapture } from "@/components/marketing/newsletter-capture";
 import { moduleStatusLabel, topLevelModules } from "@/lib/modules/catalog";
 import TrackedLink from "@/components/analytics/tracked-link";
 import { getAppContext } from "@/lib/app-context";
@@ -471,79 +473,140 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* Testimonials */}
+        <TestimonialsSection />
+
         <section className="border-b border-[#d4af37]/15 bg-gradient-to-b from-[#050a18] via-[#0a1229]/40 to-[#050a18]">
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Pricing</p>
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">{t("pricingLabel")}</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
-                  Pricing built for control
+                  {t("pricingTitle")}
                 </h2>
               </div>
               <Link
                 href="/pricing"
                 className="text-sm font-semibold text-[#d4af37] hover:text-[#f9d976] transition-colors"
               >
-                View pricing
+                {t("pricingViewAll")}
               </Link>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {[
-                {
-                  name: "Free Locked",
-                  price: "Rp0",
-                  desc: "Restricted access for internal evaluation and validation.",
-                  badge: "AVAILABLE",
-                  featured: false,
-                },
-                {
-                  name: "Individual",
-                  price: "Contact sales",
-                  desc: "Single owner with pay-as-you-go token usage and add-ons.",
-                  badge: "COMING SOON",
-                  featured: true,
-                },
-                {
-                  name: "Team",
-                  price: "Contact sales",
-                  desc: "Workspaces, seats, entitlements, and governed token caps for teams.",
-                  badge: "COMING SOON",
-                  featured: false,
-                },
-              ].map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`rounded-2xl p-5 glass-imperium transition-all duration-300 ${
-                    plan.featured 
-                      ? "ring-2 ring-[#d4af37]/50 shadow-[0_0_32px_-8px_#d4af37]" 
-                      : "hover:border-[#d4af37]/40"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-semibold text-[#f5f5dc]">{plan.name}</h3>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase ${
-                      plan.badge === "AVAILABLE" 
-                        ? "bg-green-500/15 text-green-500" 
-                        : plan.featured ? "bg-[#d4af37]/20 text-[#d4af37]" : "bg-[#0a1229] text-[#f5f5dc]/50"
-                    }`}>
-                      {plan.badge}
-                    </span>
-                  </div>
-                  <div className="mt-3 text-xl font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{plan.price}</div>
-                  <p className="mt-2 text-sm text-[#f5f5dc]/65">{plan.desc}</p>
-                  <Link
-                    href="/get-started"
-                    className={`mt-4 inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                      plan.featured 
-                        ? "bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] shadow-[0_4px_20px_-4px_#d4af37] hover:shadow-[0_8px_28px_-4px_#d4af37]" 
-                        : "border border-[#f5f5dc]/20 bg-[#0a1229]/60 text-[#f5f5dc] hover:border-[#d4af37]/50"
-                    }`}
-                  >
-                    Choose plan
-                  </Link>
+            {/* Trial Badge */}
+            <div className="mt-6 flex justify-center">
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {t("pricingTrialBadge")}
+              </span>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {/* Free */}
+              <div className="rounded-2xl p-5 glass-imperium transition-all duration-300 hover:border-[#d4af37]/40">
+                <h3 className="text-base font-semibold text-[#f5f5dc]">{t("pricingFreeName")}</h3>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{t("pricingFreePrice")}</span>
                 </div>
-              ))}
+                <p className="mt-2 text-sm text-[#f5f5dc]/65">{t("pricingFreeDesc")}</p>
+                <ul className="mt-3 space-y-1.5 text-xs text-[#f5f5dc]/55">
+                  <li>• {t("pricingFreeF1")}</li>
+                  <li>• {t("pricingFreeF2")}</li>
+                  <li>• {t("pricingFreeF3")}</li>
+                </ul>
+                <Link
+                  href="/get-started"
+                  className="mt-4 inline-flex items-center rounded-xl border border-[#f5f5dc]/20 bg-[#0a1229]/60 px-4 py-2 text-sm font-semibold text-[#f5f5dc] transition hover:border-[#d4af37]/50"
+                >
+                  {t("pricingFreeCta")}
+                </Link>
+              </div>
+
+              {/* Starter */}
+              <div className="rounded-2xl p-5 glass-imperium transition-all duration-300 hover:border-[#d4af37]/40">
+                <h3 className="text-base font-semibold text-[#f5f5dc]">{t("pricingStarterName")}</h3>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{t("pricingStarterPrice")}</span>
+                  <span className="text-xs text-[#f5f5dc]/50">{t("pricingPerMonth")}</span>
+                </div>
+                <p className="mt-2 text-sm text-[#f5f5dc]/65">{t("pricingStarterDesc")}</p>
+                <ul className="mt-3 space-y-1.5 text-xs text-[#f5f5dc]/55">
+                  <li>• {t("pricingStarterF1")}</li>
+                  <li>• {t("pricingStarterF2")}</li>
+                  <li>• {t("pricingStarterF3")}</li>
+                </ul>
+                <Link
+                  href="/get-started?plan=starter&trial=1"
+                  className="mt-4 inline-flex items-center rounded-xl border border-[#f5f5dc]/20 bg-[#0a1229]/60 px-4 py-2 text-sm font-semibold text-[#f5f5dc] transition hover:border-[#d4af37]/50"
+                >
+                  {t("pricingStarterCta")}
+                </Link>
+              </div>
+
+              {/* Growth — Most Popular */}
+              <div className="relative rounded-2xl p-5 glass-imperium ring-2 ring-[#d4af37]/50 shadow-[0_0_32px_-8px_#d4af37] transition-all duration-300">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-3 py-0.5 text-[10px] font-bold uppercase text-[#050a18]">
+                  {t("pricingMostPopular")}
+                </span>
+                <h3 className="text-base font-semibold text-[#f5f5dc]">{t("pricingGrowthName")}</h3>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{t("pricingGrowthPrice")}</span>
+                  <span className="text-xs text-[#f5f5dc]/50">{t("pricingPerMonth")}</span>
+                </div>
+                <p className="mt-2 text-sm text-[#f5f5dc]/65">{t("pricingGrowthDesc")}</p>
+                <ul className="mt-3 space-y-1.5 text-xs text-[#f5f5dc]/55">
+                  <li>• {t("pricingGrowthF1")}</li>
+                  <li>• {t("pricingGrowthF2")}</li>
+                  <li>• {t("pricingGrowthF3")}</li>
+                </ul>
+                <Link
+                  href="/get-started?plan=growth&trial=1"
+                  className="mt-4 inline-flex items-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-4 py-2 text-sm font-semibold text-[#050a18] shadow-[0_4px_20px_-4px_#d4af37] transition hover:shadow-[0_8px_28px_-4px_#d4af37]"
+                >
+                  {t("pricingGrowthCta")}
+                </Link>
+              </div>
+
+              {/* Business */}
+              <div className="rounded-2xl p-5 glass-imperium transition-all duration-300 hover:border-[#d4af37]/40">
+                <h3 className="text-base font-semibold text-[#f5f5dc]">{t("pricingBusinessName")}</h3>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{t("pricingBusinessPrice")}</span>
+                  <span className="text-xs text-[#f5f5dc]/50">{t("pricingPerMonth")}</span>
+                </div>
+                <p className="mt-2 text-sm text-[#f5f5dc]/65">{t("pricingBusinessDesc")}</p>
+                <ul className="mt-3 space-y-1.5 text-xs text-[#f5f5dc]/55">
+                  <li>• {t("pricingBusinessF1")}</li>
+                  <li>• {t("pricingBusinessF2")}</li>
+                  <li>• {t("pricingBusinessF3")}</li>
+                </ul>
+                <Link
+                  href="/get-started?plan=business&trial=1"
+                  className="mt-4 inline-flex items-center rounded-xl border border-[#f5f5dc]/20 bg-[#0a1229]/60 px-4 py-2 text-sm font-semibold text-[#f5f5dc] transition hover:border-[#d4af37]/50"
+                >
+                  {t("pricingBusinessCta")}
+                </Link>
+              </div>
+
+              {/* Enterprise */}
+              <div className="rounded-2xl p-5 glass-imperium transition-all duration-300 hover:border-[#e11d48]/40 border-[#e11d48]/20">
+                <h3 className="text-base font-semibold text-[#f5f5dc]">{t("pricingEnterpriseName")}</h3>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="text-xl font-semibold bg-gradient-to-r from-[#e11d48] to-[#f9d976] bg-clip-text text-transparent">{t("pricingEnterprisePrice")}</span>
+                </div>
+                <p className="mt-2 text-sm text-[#f5f5dc]/65">{t("pricingEnterpriseDesc")}</p>
+                <ul className="mt-3 space-y-1.5 text-xs text-[#f5f5dc]/55">
+                  <li>• {t("pricingEnterpriseF1")}</li>
+                  <li>• {t("pricingEnterpriseF2")}</li>
+                  <li>• {t("pricingEnterpriseF3")}</li>
+                </ul>
+                <Link
+                  href="/contact"
+                  className="mt-4 inline-flex items-center rounded-xl border border-[#e11d48]/30 bg-[#0a1229]/60 px-4 py-2 text-sm font-semibold text-[#f5f5dc] transition hover:border-[#e11d48]/60"
+                >
+                  {t("pricingEnterpriseCta")}
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -586,6 +649,19 @@ export default async function HomePage() {
                 >
                   {tc("learnMore")}
                 </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Newsletter */}
+        <section className="border-t border-[#d4af37]/15 bg-[#050a18]">
+          <div className="container py-12 md:py-16">
+            <div className="mx-auto max-w-xl text-center">
+              <h3 className="text-lg font-gvDisplay font-semibold text-[#f5f5dc]">Stay in the loop</h3>
+              <p className="mt-2 text-sm text-[#f5f5dc]/60">Get product updates, tips, and early access to new features.</p>
+              <div className="mt-6">
+                <NewsletterCapture source="homepage" />
               </div>
             </div>
           </div>

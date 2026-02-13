@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
+import { ProductPreview } from "@/components/marketing/product-preview";
 
 export const revalidate = 3600;
 
@@ -20,151 +22,68 @@ export const metadata: Metadata = {
   },
 };
 
-const summaryPoints = [
-  "WhatsApp Cloud API integration for WABA and Phone Number ID (independent provider, BSP as upgrade path).",
-  "Template Manager and Webhook Receiver for approval, incoming messages, and delivery status callbacks.",
-  "Shared Inbox and Campaign Scheduler for scheduled broadcasts with opt-in/opt-out.",
-  "Delivery/read/fail analytics and campaign performance summaries.",
-];
+export default async function MetaHubPage() {
+  const t = await getTranslations("productMetaHub");
 
-const featureCards = [
-  {
-    title: "WhatsApp Cloud API Integration",
-    desc: "Connect WABA/Phone Number ID directly to Gigaviz. Currently independent provider; BSP available as upgrade roadmap.",
-  },
-  {
-    title: "Template Manager",
-    desc: "Manage approved templates, categories, languages, and dynamic variables for consistent messaging.",
-  },
-  {
-    title: "Webhook Receiver",
-    desc: "Receive incoming messages and delivery status callbacks for internal system synchronization.",
-  },
-  {
-    title: "Shared Inbox",
-    desc: "Centralized inbox for team replies. Assignment and notes are on the roadmap.",
-  },
-  {
-    title: "Campaign Scheduler",
-    desc: "Scheduled broadcasts with timing control. Advanced segmentation is planned.",
-  },
-  {
-    title: "Opt-in / Opt-out",
-    desc: "Manage user consent and respect unsubscribe requests.",
-  },
-  {
-    title: "Analytics",
-    desc: "Delivery/read/fail reports and performance summaries per campaign.",
-  },
-];
+  const summaryPoints = [t("summary1"), t("summary2"), t("summary3"), t("summary4")];
 
-const compliancePoints = [
-  {
-    title: "Required consent",
-    desc: "Message delivery is designed to support valid consent, and opt-out requests must be honored.",
-  },
-  {
-    title: "WhatsApp template rules",
-    desc: "Templates follow Meta guidelines and go through official approval before use.",
-  },
-  {
-    title: "Rate limiting / throttling",
-    desc: "Designed to support rate limiting to avoid bans and unexpected cost spikes.",
-  },
-  {
-    title: "Anti-abuse & data privacy",
-    desc: "Data protection principles and abuse prevention are applied incrementally based on team needs.",
-  },
-];
+  const featureCards = [
+    { title: t("feature1Title"), desc: t("feature1Desc") },
+    { title: t("feature2Title"), desc: t("feature2Desc") },
+    { title: t("feature3Title"), desc: t("feature3Desc") },
+    { title: t("feature4Title"), desc: t("feature4Desc") },
+    { title: t("feature5Title"), desc: t("feature5Desc") },
+    { title: t("feature6Title"), desc: t("feature6Desc") },
+    { title: t("feature7Title"), desc: t("feature7Desc") },
+  ];
 
-const howItWorks = [
-  {
-    title: "Connect WABA/Phone Number ID",
-    desc: "Link your Meta account and approved number to enable message delivery.",
-  },
-  {
-    title: "Configure Webhook",
-    desc: "Set up webhook endpoints for incoming messages and delivery status.",
-  },
-  {
-    title: "Create/Manage Templates",
-    desc: "Prepare templates, categories, and languages, then submit for approval.",
-  },
-  {
-    title: "Launch Campaign / Manage Inbox",
-    desc: "Schedule broadcasts and manage team conversations from the shared inbox.",
-  },
-  {
-    title: "Review Analytics & Logs",
-    desc: "Monitor delivery, read, fail metrics and activity logs for evaluation.",
-  },
-];
+  const compliancePoints = [
+    { title: t("compliance1Title"), desc: t("compliance1Desc") },
+    { title: t("compliance2Title"), desc: t("compliance2Desc") },
+    { title: t("compliance3Title"), desc: t("compliance3Desc") },
+    { title: t("compliance4Title"), desc: t("compliance4Desc") },
+  ];
 
-const faqs = [
-  {
-    question: "What is WhatsApp Cloud API?",
-    answer:
-      "WhatsApp Cloud API is Meta's official API for sending and receiving WhatsApp messages programmatically from your server.",
-  },
-  {
-    question: "Do I need a verified business account?",
-    answer:
-      "Not always to get started. However, business verification is often required for templates and higher sending volumes.",
-  },
-  {
-    question: "What does Beta status mean?",
-    answer:
-      "Core features are available, but some capabilities are still developing. Changes and adjustments may occur.",
-  },
-  {
-    question: "How do opt-in and opt-out work?",
-    answer:
-      "Messages are sent only after user consent. Opt-out requests must be honored and stored as preferences.",
-  },
-  {
-    question: "What affects message cost?",
-    answer:
-      "Cost is determined by Meta based on template category, destination country, and conversation type.",
-  },
-  {
-    question: "What's the difference between independent provider and BSP?",
-    answer:
-      "Independent provider uses Cloud API directly from Meta. BSP is an upgrade path for enterprise support and additional services.",
-  },
-  {
-    question: "Is there rate limiting?",
-    answer:
-      "The platform is designed to support throttling and schedule control to maintain delivery quality and cost efficiency.",
-  },
-  {
-    question: "What about data security?",
-    answer:
-      "Designed to isolate data per workspace and log important activities for audit compliance.",
-  },
-];
+  const howItWorks = [
+    { title: t("how1Title"), desc: t("how1Desc") },
+    { title: t("how2Title"), desc: t("how2Desc") },
+    { title: t("how3Title"), desc: t("how3Desc") },
+    { title: t("how4Title"), desc: t("how4Desc") },
+    { title: t("how5Title"), desc: t("how5Desc") },
+  ];
 
-const relatedLinks = [
-  {
-    title: "Gigaviz Platform (Core OS)",
-    desc: "Foundation for accounts, workspaces, billing, and RBAC across all modules.",
-    href: "/products/platform",
-    cta: "View Core OS",
-  },
-  {
-    title: "Policies & Compliance",
-    desc: "Learn Gigaviz usage rules and privacy policy.",
-    href: "/policies",
-    cta: "View Policies",
-  },
-  {
-    title: "Pricing",
-    desc: "Subscription plans for messaging modules and team needs.",
-    href: "/pricing",
-    cta: "View Pricing",
-  },
-];
+  const faqs = [
+    { question: t("faq1Q"), answer: t("faq1A") },
+    { question: t("faq2Q"), answer: t("faq2A") },
+    { question: t("faq3Q"), answer: t("faq3A") },
+    { question: t("faq4Q"), answer: t("faq4A") },
+    { question: t("faq5Q"), answer: t("faq5A") },
+    { question: t("faq6Q"), answer: t("faq6A") },
+    { question: t("faq7Q"), answer: t("faq7A") },
+    { question: t("faq8Q"), answer: t("faq8A") },
+  ];
 
-export default function MetaHubPage() {
+  const relatedLinks = [
+    {
+      title: t("related1Title"),
+      desc: t("related1Desc"),
+      href: "/products/platform",
+      cta: t("related1Cta"),
+    },
+    {
+      title: t("related2Title"),
+      desc: t("related2Desc"),
+      href: "/policies",
+      cta: t("related2Cta"),
+    },
+    {
+      title: t("related3Title"),
+      desc: t("related3Desc"),
+      href: "/pricing",
+      cta: t("related3Cta"),
+    },
+  ];
+
   return (
     <main className="flex-1">
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
@@ -194,10 +113,10 @@ export default function MetaHubPage() {
               </div>
               <div className="space-y-4">
                 <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                  Gigaviz Meta Hub
+                  {t("heroTitle")}
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  WhatsApp Cloud API hub for templates, webhooks, inbox, scheduler, and analytics.
+                  {t("heroDesc")}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -205,37 +124,39 @@ export default function MetaHubPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Get Started
+                  {t("ctaGetStarted")}
                 </Link>
                 <Link
                   href="/policies"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] bg-transparent px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  View Policies
+                  {t("ctaPolicies")}
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  View Pricing
+                  {t("ctaPricing")}
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  WhatsApp Cloud API
+                  {t("tagCloudApi")}
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Template Manager
+                  {t("tagTemplates")}
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Shared Inbox
+                  {t("tagInbox")}
                 </span>
               </div>
             </div>
 
+            <div className="space-y-6">
+            <ProductPreview product="meta_hub" />
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                Module summary
+                {t("summaryTitle")}
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {summaryPoints.map((item) => (
@@ -246,8 +167,9 @@ export default function MetaHubPage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Meta Hub runs on top of Core OS for authentication, workspace, and billing.
+                {t("summaryNote")}
               </div>
+            </div>
             </div>
           </div>
         </section>
@@ -256,13 +178,13 @@ export default function MetaHubPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Core features
+                {t("featuresLabel")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                All essential components for modern team messaging
+                {t("featuresTitle")}
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Meta Hub combines integration, template management, inbox, scheduler, and analytics in one place.
+                {t("featuresDesc")}
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -288,13 +210,13 @@ export default function MetaHubPage() {
             <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Compliance & security
+                  {t("complianceLabel")}
                 </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Compliance and security as priority
+                  {t("complianceTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Designed to support WhatsApp rule compliance and maintain delivery reputation.
+                  {t("complianceDesc")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -320,10 +242,10 @@ export default function MetaHubPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  How it works
+                  {t("howLabel")}
                 </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Simple workflow from integration to analytics
+                {t("howTitle")}
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -353,10 +275,10 @@ export default function MetaHubPage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                FAQ
+                {t("faqLabel")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Frequently asked questions
+                {t("faqTitle")}
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -382,10 +304,10 @@ export default function MetaHubPage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Related modules
+                  {t("relatedLabel")}
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Foundations and policies supporting Meta Hub
+                  {t("relatedTitle")}
                 </h2>
               </div>
             </div>
@@ -418,10 +340,10 @@ export default function MetaHubPage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Ready to run Meta Hub?
+                  {t("ctaTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Start WhatsApp Cloud API integration and manage campaigns with your team.
+                  {t("ctaDesc")}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -429,13 +351,13 @@ export default function MetaHubPage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Get Started
+                  {t("ctaGetStarted")}
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Contact Sales
+                  {t("ctaContact")}
                 </Link>
               </div>
             </div>

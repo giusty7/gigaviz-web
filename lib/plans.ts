@@ -37,9 +37,9 @@ export async function getWorkspacePlan(workspaceId: string): Promise<WorkspacePl
   }
 
   if (devEmail) {
-    const plan = getPlanMeta("team_pro");
+    const plan = getPlanMeta("enterprise");
     return {
-      planId: "team_pro",
+      planId: "enterprise",
       plan,
       status: "dev_override",
       seatLimit: null,
@@ -57,7 +57,7 @@ export async function getWorkspacePlan(workspaceId: string): Promise<WorkspacePl
     .eq("workspace_id", workspaceId)
     .maybeSingle();
 
-  const planId = (subscription?.plan_id as PlanId | null) ?? "free_locked";
+  const planId = (subscription?.plan_id as PlanId | null) ?? "free";
   const plan = getPlanMeta(planId);
 
   return {

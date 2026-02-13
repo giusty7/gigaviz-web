@@ -12,6 +12,8 @@ type OnboardingFormProps = {
   workspaceSlug?: string | null;
   initialSlug?: string | null;
   error?: string | null;
+  /** Plan code for 14-day free trial (from pricing page) */
+  trialPlan?: string | null;
   actionCreate: (formData: FormData) => void | Promise<void>;
   actionInvite: (formData: FormData) => void | Promise<void>;
 };
@@ -50,6 +52,7 @@ export default function OnboardingForm({
   workspaceSlug,
   initialSlug,
   error,
+  trialPlan,
   actionCreate,
   actionInvite,
 }: OnboardingFormProps) {
@@ -190,6 +193,13 @@ export default function OnboardingForm({
 
   return (
     <form action={actionCreate} className="space-y-4 rounded-xl border border-gigaviz-border bg-gigaviz-card p-6">
+      {trialPlan && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+          🎉 {t("trialBanner", { plan: trialPlan.charAt(0).toUpperCase() + trialPlan.slice(1), days: 14 })}
+        </div>
+      )}
+      <input type="hidden" name="trial_plan" value={trialPlan ?? ""} />
+
       {message ? (
         <Alert variant="destructive">
           <AlertTitle>{t("setupError")}</AlertTitle>

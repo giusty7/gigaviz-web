@@ -6,6 +6,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureProfile } from "@/lib/profiles";
 import { getUserWorkspaces, WORKSPACE_COOKIE } from "@/lib/workspaces";
+import { seedWorkspaceQuotas } from "@/lib/quotas";
+import { logger } from "@/lib/logging";
 import {
   inviteListSchema,
   workspaceCreateSchema,
@@ -43,6 +45,7 @@ async function createWorkspace(formData: FormData) {
   const name = String(formData.get("workspace_name") || "").trim();
   const rawSlug = String(formData.get("workspace_slug") || "").trim();
   const workspaceType = String(formData.get("workspace_type") || "individual");
+  const trialPlan = String(formData.get("trial_plan") || "").trim();
 
   const parsed = workspaceCreateSchema.safeParse({
     name,
@@ -87,6 +90,41 @@ async function createWorkspace(formData: FormData) {
     user_id: data.user.id,
     role: "owner",
   });
+
+  // Activate 14-day free trial if a plan was selected from pricing page
+  const validTrialPlans = ["starter", "growth", "business"];
+  if (trialPlan && validTrialPlans.includes(trialPlan)) {
+    const TRIAL_DAYS = 14;
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setUTCDate(trialEnd.getUTCDate() + TRIAL_DAYS);
+
+    const seatLimits: Record<string, number> = { starter: 3, growth: 10, business: 25 };
+
+    await db.from("subscriptions").upsert(
+      {
+        workspace_id: workspace.id,
+        plan_id: trialPlan,
+        plan_code: trialPlan,
+        status: "trialing",
+        current_period_start: now.toISOString(),
+        current_period_end: trialEnd.toISOString(),
+        provider: "trial",
+        provider_ref: `trial_${workspace.id}_${Date.now()}`,
+        billing_mode: "team",
+        seat_limit: seatLimits[trialPlan] ?? 3,
+        updated_at: now.toISOString(),
+      },
+      { onConflict: "workspace_id" }
+    );
+
+    await seedWorkspaceQuotas(workspace.id, trialPlan);
+    logger.info("[onboarding] Trial activated", {
+      workspaceId: workspace.id,
+      planCode: trialPlan,
+      trialEnd: trialEnd.toISOString(),
+    });
+  }
 
   const cookieStore = await cookies();
   cookieStore.set(WORKSPACE_COOKIE, workspace.id, {
@@ -208,6 +246,12 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
     typeof resolvedSearchParams?.error === "string" ? resolvedSearchParams.error : null;
   const slugParam =
     typeof resolvedSearchParams?.slug === "string" ? resolvedSearchParams.slug : null;
+  const planParam =
+    typeof resolvedSearchParams?.plan === "string" ? resolvedSearchParams.plan : null;
+  const trialParam = resolvedSearchParams?.trial === "1";
+  const trialPlan = trialParam && ["starter", "growth", "business"].includes(planParam ?? "")
+    ? planParam
+    : null;
 
   return (
     <div className="min-h-screen bg-gigaviz-bg text-gigaviz-cream">
@@ -223,6 +267,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
           workspaceSlug={workspaceParam}
           initialSlug={slugParam}
           error={errorParam}
+          trialPlan={trialPlan}
           actionCreate={createWorkspace}
           actionInvite={createInvites}
         />

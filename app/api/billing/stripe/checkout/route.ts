@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAppContext } from "@/lib/app-context";
-import { createCheckoutSession } from "@/lib/stripe/checkout";
+import { createTokenTopupSnap } from "@/lib/midtrans/snap";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
 const checkoutSchema = z.object({
-  tokens: z.number().int().min(100).max(10_000_000),
-  amountIdr: z.number().int().min(1000),
+  packageId: z.enum(["pkg_50k", "pkg_100k", "pkg_500k"]),
 });
 
 /**
  * POST /api/billing/stripe/checkout
- * Creates a Stripe Checkout Session for token top-up.
+ * @deprecated Use /api/billing/midtrans/topup instead.
+ * Kept for backward compatibility — proxies to Midtrans.
  */
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const ctx = await getAppContext();
@@ -31,21 +31,20 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     );
   }
 
-  const { tokens, amountIdr } = parsed.data;
-  const origin = req.headers.get("origin") || "https://gigaviz.com";
+  const { packageId } = parsed.data;
   const wsSlug = ctx.currentWorkspace.slug;
 
-  const result = await createCheckoutSession({
+  const result = await createTokenTopupSnap({
     workspaceId: ctx.currentWorkspace.id,
-    userId: ctx.user.id,
-    tokens,
-    amountIdr,
-    successUrl: `${origin}/${wsSlug}/billing?payment=success`,
-    cancelUrl: `${origin}/${wsSlug}/billing?payment=cancelled`,
+    workspaceSlug: wsSlug,
+    packageId,
+    customerEmail: ctx.user.email ?? "",
+    customerName:
+      ctx.profile?.full_name ?? ctx.user.email?.split("@")[0] ?? "Customer",
   });
 
   if (!result.ok) {
-    logger.warn("[stripe-checkout] Failed", {
+    logger.warn("[checkout-compat] Failed", {
       code: result.code,
       workspace: ctx.currentWorkspace.id,
     });
@@ -56,8 +55,9 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   return NextResponse.json({
-    url: result.url,
-    sessionId: result.sessionId,
-    paymentIntentId: result.paymentIntentId,
+    token: result.token,
+    url: result.redirectUrl,
+    redirectUrl: result.redirectUrl,
+    orderId: result.orderId,
   });
 });

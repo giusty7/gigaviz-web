@@ -18,24 +18,81 @@ export type MetricKey =
   | "helper_conversations"
   | "storage_used";
 
-// Default quotas per plan
+// Default quotas per plan (new 5-tier system + legacy aliases)
 export const PLAN_QUOTAS: Record<string, Record<QuotaKey, number>> = {
-  free_locked: {
+  // ── New plan tiers ──────────────────────────────────────────
+  free: {
     wa_messages_monthly: 100,
     ai_tokens_monthly: 10_000,
     storage_bytes: 100 * 1024 * 1024, // 100 MB
     helper_conversations_monthly: 10,
   },
+  starter: {
+    wa_messages_monthly: 2_000,
+    ai_tokens_monthly: 50_000,
+    storage_bytes: 500 * 1024 * 1024, // 500 MB
+    helper_conversations_monthly: 50,
+  },
+  growth: {
+    wa_messages_monthly: 10_000,
+    ai_tokens_monthly: 200_000,
+    storage_bytes: 2 * 1024 * 1024 * 1024, // 2 GB
+    helper_conversations_monthly: 200,
+  },
+  business: {
+    wa_messages_monthly: 50_000,
+    ai_tokens_monthly: 1_000_000,
+    storage_bytes: 10 * 1024 * 1024 * 1024, // 10 GB
+    helper_conversations_monthly: 1000,
+  },
+  enterprise: {
+    wa_messages_monthly: 200_000,
+    ai_tokens_monthly: 5_000_000,
+    storage_bytes: 50 * 1024 * 1024 * 1024, // 50 GB
+    helper_conversations_monthly: 5000,
+  },
+
+  // ── Legacy aliases (backward compat) ────────────────────────
+  free_locked: {
+    wa_messages_monthly: 100,
+    ai_tokens_monthly: 10_000,
+    storage_bytes: 100 * 1024 * 1024,
+    helper_conversations_monthly: 10,
+  },
   individual: {
     wa_messages_monthly: 5_000,
     ai_tokens_monthly: 100_000,
-    storage_bytes: 1024 * 1024 * 1024, // 1 GB
+    storage_bytes: 1024 * 1024 * 1024,
     helper_conversations_monthly: 100,
+  },
+  ind_starter: {
+    wa_messages_monthly: 2_000,
+    ai_tokens_monthly: 50_000,
+    storage_bytes: 500 * 1024 * 1024,
+    helper_conversations_monthly: 50,
+  },
+  ind_pro: {
+    wa_messages_monthly: 10_000,
+    ai_tokens_monthly: 200_000,
+    storage_bytes: 2 * 1024 * 1024 * 1024,
+    helper_conversations_monthly: 200,
   },
   team: {
     wa_messages_monthly: 50_000,
     ai_tokens_monthly: 1_000_000,
-    storage_bytes: 10 * 1024 * 1024 * 1024, // 10 GB
+    storage_bytes: 10 * 1024 * 1024 * 1024,
+    helper_conversations_monthly: 1000,
+  },
+  team_starter: {
+    wa_messages_monthly: 10_000,
+    ai_tokens_monthly: 200_000,
+    storage_bytes: 2 * 1024 * 1024 * 1024,
+    helper_conversations_monthly: 200,
+  },
+  team_pro: {
+    wa_messages_monthly: 50_000,
+    ai_tokens_monthly: 1_000_000,
+    storage_bytes: 10 * 1024 * 1024 * 1024,
     helper_conversations_monthly: 1000,
   },
 };

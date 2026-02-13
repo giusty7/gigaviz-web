@@ -4,6 +4,7 @@ import { MarketingIcon } from "@/components/marketing/icons";
 
 export const revalidate = 3600;
 import { StatusBadge } from "@/components/marketing/status-badge";
+import { ProductPreview } from "@/components/marketing/product-preview";
 
 export const metadata: Metadata = {
   title: "Gigaviz Office",
@@ -233,6 +234,8 @@ export default function OfficePage() {
               </div>
             </div>
 
+            <div className="space-y-6">
+            <ProductPreview product="office" />
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
                 Module summary
@@ -248,6 +251,7 @@ export default function OfficePage() {
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
                 Office simplifies work for finance, ops, and admin teams.
               </div>
+            </div>
             </div>
           </div>
         </section>

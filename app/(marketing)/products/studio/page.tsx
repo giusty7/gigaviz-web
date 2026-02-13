@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
+import { ProductPreview } from "@/components/marketing/product-preview";
 import { studioChildren, moduleStatusLabel } from "@/lib/modules/catalog";
 
 export const revalidate = 3600;
@@ -26,6 +27,14 @@ export default function StudioPage() {
               <p className="text-sm text-muted-foreground md:text-base">
                 Studio combines document automation (Office), visual generation (Graph), and workflow orchestration (Tracks).
               </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-border bg-background">
+          <div className="container py-8">
+            <div className="mx-auto max-w-lg">
+              <ProductPreview product="studio" />
             </div>
           </div>
         </section>

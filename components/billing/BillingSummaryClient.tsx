@@ -9,13 +9,30 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import type { BillingSummary } from "@/lib/billing/summary";
 
+declare global {
+  interface Window {
+    snap?: {
+      pay: (
+        token: string,
+        options?: {
+          onSuccess?: (result: Record<string, unknown>) => void;
+          onPending?: (result: Record<string, unknown>) => void;
+          onError?: (result: Record<string, unknown>) => void;
+          onClose?: () => void;
+        }
+      ) => void;
+    };
+  }
+}
+
 type Props = {
   workspaceId: string;
   workspaceSlug: string;
   initialSummary?: BillingSummary | null;
+  midtransEnabled?: boolean;
 };
 
-export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummary }: Props) {
+export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummary, midtransEnabled }: Props) {
   const t = useTranslations("billing");
   const { toast } = useToast();
   const [summary, setSummary] = useState<BillingSummary | null>(initialSummary ?? null);
@@ -58,23 +75,77 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId]);
 
+  /** Load Midtrans Snap.js script */
+  function loadSnapScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (window.snap) { resolve(); return; }
+      const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+      const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
+      if (!clientKey) { reject(new Error("Midtrans client key not set")); return; }
+      const script = document.createElement("script");
+      script.src = isProduction
+        ? "https://app.midtrans.com/snap/snap.js"
+        : "https://app.sandbox.midtrans.com/snap/snap.js";
+      script.setAttribute("data-client-key", clientKey);
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Midtrans Snap"));
+      document.head.appendChild(script);
+    });
+  }
+
   async function handleUpgrade() {
     setUpgrading(true);
     try {
-      const res = await fetch("/api/billing/subscription/set", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId, planCode: upgradePlanCode }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || data?.error || t("upgradeFailed"));
+      if (midtransEnabled && upgradePlanCode !== "free") {
+        // Use Midtrans Snap for paid plan upgrades
+        const res = await fetch("/api/billing/midtrans/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planCode: upgradePlanCode, interval: "monthly" }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.token) {
+          throw new Error(data?.message || data?.error || t("upgradeFailed"));
+        }
+
+        await loadSnapScript();
+
+        if (window.snap) {
+          window.snap.pay(data.token, {
+            onSuccess: async () => {
+              toast({
+                title: t("subscriptionActivated"),
+                description: t("planActivated", { plan: upgradePlanCode.toUpperCase() }),
+              });
+              await fetchSummary();
+            },
+            onPending: () => {
+              toast({ title: t("processing"), description: t("waitingActivation") });
+            },
+            onError: () => {
+              toast({ title: t("upgradeFailed"), description: t("tryAgainLater"), variant: "destructive" });
+            },
+          });
+        } else if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        }
+      } else {
+        // Fallback: direct subscription set (free plan or no Midtrans)
+        const res = await fetch("/api/billing/subscription/set", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId, planCode: upgradePlanCode }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.ok) {
+          throw new Error(data?.message || data?.error || t("upgradeFailed"));
+        }
+        toast({
+          title: t("subscriptionActivated"),
+          description: t("planActivated", { plan: upgradePlanCode.toUpperCase() }),
+        });
+        await fetchSummary();
       }
-      toast({
-        title: t("subscriptionActivated"),
-        description: t("planActivated", { plan: upgradePlanCode.toUpperCase() }),
-      });
-      await fetchSummary();
     } catch (err) {
       toast({
         title: t("upgradeFailed"),

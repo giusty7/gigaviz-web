@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
+import { ProductPreview } from "@/components/marketing/product-preview";
 
 export const revalidate = 3600;
 
@@ -220,6 +221,8 @@ export default function AppsPage() {
               </div>
             </div>
 
+            <div className="space-y-6">
+            <ProductPreview product="apps" />
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
                 Module summary
@@ -235,6 +238,7 @@ export default function AppsPage() {
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
                 Apps helps teams manage custom needs in a structured way.
               </div>
+            </div>
             </div>
           </div>
         </section>

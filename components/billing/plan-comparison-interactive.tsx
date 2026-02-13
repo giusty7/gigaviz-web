@@ -9,6 +9,22 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
+declare global {
+  interface Window {
+    snap?: {
+      pay: (
+        token: string,
+        options?: {
+          onSuccess?: (result: Record<string, unknown>) => void;
+          onPending?: (result: Record<string, unknown>) => void;
+          onError?: (result: Record<string, unknown>) => void;
+          onClose?: () => void;
+        }
+      ) => void;
+    };
+  }
+}
+
 type Plan = {
   code: string;
   name: string;
@@ -23,6 +39,7 @@ type Props = {
   workspaceId: string;
   currentPlanCode: string | null;
   plans: Plan[];
+  midtransEnabled?: boolean;
 };
 
 const planIcons = {
@@ -32,37 +49,92 @@ const planIcons = {
   business: TrendingUp,
 };
 
-export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans }: Props) {
+export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans, midtransEnabled }: Props) {
   const { toast } = useToast();
   const [billingMode, setBillingMode] = useState<"individual" | "team">("individual");
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
   const filteredPlans = plans.filter((p) => p.type === billingMode);
 
+  /** Load Midtrans Snap.js script */
+  function loadSnapScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (window.snap) { resolve(); return; }
+      const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+      const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
+      if (!clientKey) { reject(new Error("Midtrans client key not set")); return; }
+      const script = document.createElement("script");
+      script.src = isProduction
+        ? "https://app.midtrans.com/snap/snap.js"
+        : "https://app.sandbox.midtrans.com/snap/snap.js";
+      script.setAttribute("data-client-key", clientKey);
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Midtrans Snap"));
+      document.head.appendChild(script);
+    });
+  }
+
   const handleSelectPlan = async (planCode: string) => {
     if (planCode === currentPlanCode) return;
 
     setUpgrading(planCode);
     try {
-      const res = await fetch("/api/billing/subscription/set", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId, planCode }),
-      });
+      // Map plan codes to Midtrans-compatible plan codes
+      const midtransPlanCodes = ["starter", "growth", "business"];
+      const isPaidPlan = midtransPlanCodes.includes(planCode) || 
+        planCode.includes("starter") || planCode.includes("pro");
 
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || "Failed to update plan");
+      if (midtransEnabled && isPaidPlan) {
+        // Normalize legacy plan codes to new plan codes for Midtrans
+        let normalizedCode = planCode;
+        if (planCode === "ind_starter" || planCode === "team_starter") normalizedCode = "starter";
+        if (planCode === "ind_pro" || planCode === "team_pro") normalizedCode = "business";
+
+        const res = await fetch("/api/billing/midtrans/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planCode: normalizedCode, interval: "monthly" }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.token) {
+          throw new Error(data?.message || data?.error || "Failed to create checkout");
+        }
+
+        await loadSnapScript();
+
+        if (window.snap) {
+          window.snap.pay(data.token, {
+            onSuccess: () => {
+              toast({ title: "Plan activated", description: `${planCode.toUpperCase()} plan is now active. Refresh to see changes.` });
+              setTimeout(() => window.location.reload(), 1500);
+            },
+            onPending: () => {
+              toast({ title: "Payment pending", description: "Complete your payment to activate the plan." });
+            },
+            onError: () => {
+              toast({ title: "Payment failed", description: "Try again or choose a different payment method.", variant: "destructive" });
+            },
+          });
+        } else if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        }
+      } else {
+        // Free plan or no Midtrans — direct subscription set
+        const res = await fetch("/api/billing/subscription/set", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId, planCode }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.message || "Failed to update plan");
+        }
+        toast({
+          title: "Plan activated",
+          description: `${planCode.toUpperCase()} plan is now active. Refresh to see changes.`,
+        });
+        setTimeout(() => window.location.reload(), 1500);
       }
-
-      toast({
-        title: "Plan activated",
-        description: `${planCode.toUpperCase()} plan is now active. Refresh to see changes.`,
-      });
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
     } catch (err) {
       toast({
         title: "Failed to update plan",
