@@ -17,8 +17,8 @@ type RouteContext = {
 const obaRequestSchema = z.object({
   /** Supporting information for OBA request (e.g. press mentions, website) */
   additional_supporting_information: z.string().max(2000).optional(),
-  /** Company / brand website URL (required by Meta) */
-  business_website_url: z.string().url(),
+  /** Company / brand website URL (required by Meta — validated manually) */
+  business_website_url: z.string().optional(),
   /** Official name of the business or brand */
   parent_business_or_brand: z.string().max(200).optional(),
   /** Country of primary business operations */
@@ -26,7 +26,7 @@ const obaRequestSchema = z.object({
   /** Primary language for the WhatsApp channel */
   primary_language: z.string().max(50).optional(),
   /** Array of supporting links (news articles, directories, etc.) */
-  supporting_links: z.array(z.string().url()).max(10).optional(),
+  supporting_links: z.array(z.string()).max(10).optional(),
 });
 
 /* ── GET: Check OBA status ──────────────────────────────────────── */
@@ -175,6 +175,20 @@ export const POST = withErrorHandler(
       );
     }
 
+    // Meta requires business_website_url — check explicitly
+    const websiteUrl = (parsed.data.business_website_url ?? "").trim();
+    if (!websiteUrl || !/^https?:\/\/.+/i.test(websiteUrl)) {
+      return withCookies(
+        NextResponse.json(
+          {
+            error: "validation_error",
+            message: "business_website_url is required and must be a valid URL (e.g. https://gigaviz.com)",
+          },
+          { status: 400 }
+        )
+      );
+    }
+
     const db = supabaseAdmin();
 
     // Verify connection belongs to workspace
@@ -214,7 +228,7 @@ export const POST = withErrorHandler(
     // Build OBA request payload — only include non-empty fields
     const v = parsed.data;
     const obaPayload: Record<string, unknown> = {
-      business_website_url: v.business_website_url.trim(),
+      business_website_url: websiteUrl,
     };
     if (v.additional_supporting_information?.trim()) {
       obaPayload.additional_supporting_information =
@@ -231,8 +245,11 @@ export const POST = withErrorHandler(
     if (v.primary_language?.trim()) {
       obaPayload.primary_language = v.primary_language.trim();
     }
-    if (v.supporting_links && v.supporting_links.length > 0) {
-      obaPayload.supporting_links = v.supporting_links;
+    const links = (v.supporting_links ?? [])
+      .map((l) => l.trim())
+      .filter((l) => /^https?:\/\//i.test(l));
+    if (links.length > 0) {
+      obaPayload.supporting_links = links;
     }
 
     // POST to Graph API: /{phoneNumberId}/official_business_account
