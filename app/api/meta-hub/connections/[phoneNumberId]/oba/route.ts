@@ -180,26 +180,27 @@ export const POST = withErrorHandler(
       );
     }
 
-    // Build OBA request payload — pass through what the client sent, cleaned up
+    // Build OBA request — Meta Graph API expects parameters as query params, not JSON body
     const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-    const obaPayload: Record<string, unknown> = {};
+    const queryParams: Record<string, string> = {};
 
     if (str(body.business_website_url))
-      obaPayload.business_website_url = str(body.business_website_url);
+      queryParams.business_website_url = str(body.business_website_url);
     if (str(body.additional_supporting_information))
-      obaPayload.additional_supporting_information = str(body.additional_supporting_information);
+      queryParams.additional_supporting_information = str(body.additional_supporting_information);
     if (str(body.parent_business_or_brand))
-      obaPayload.parent_business_or_brand = str(body.parent_business_or_brand);
+      queryParams.parent_business_or_brand = str(body.parent_business_or_brand);
     if (str(body.primary_country_of_operation))
-      obaPayload.primary_country_of_operation = str(body.primary_country_of_operation);
+      queryParams.primary_country_of_operation = str(body.primary_country_of_operation);
     if (str(body.primary_language))
-      obaPayload.primary_language = str(body.primary_language);
+      queryParams.primary_language = str(body.primary_language);
 
     if (Array.isArray(body.supporting_links)) {
       const links = body.supporting_links
         .map((l: unknown) => (typeof l === "string" ? l.trim() : ""))
         .filter((l: string) => /^https?:\/\//i.test(l));
-      if (links.length > 0) obaPayload.supporting_links = links;
+      if (links.length > 0)
+        queryParams.supporting_links = JSON.stringify(links);
     }
 
     // POST to Graph API: /{phoneNumberId}/official_business_account
@@ -207,7 +208,7 @@ export const POST = withErrorHandler(
       logger.info("[oba] submitting request", {
         phoneNumberId,
         workspaceId,
-        payload_keys: Object.keys(obaPayload),
+        query_keys: Object.keys(queryParams),
       });
 
       const result = await metaGraphFetch<{ success?: boolean }>(
@@ -215,7 +216,7 @@ export const POST = withErrorHandler(
         accessToken,
         {
           method: "POST",
-          body: obaPayload,
+          query: queryParams,
         }
       );
 
@@ -237,7 +238,7 @@ export const POST = withErrorHandler(
           details: {
             phone_number_id: phoneNumberId,
             display_name: connection.display_name,
-            payload_keys: Object.keys(obaPayload),
+            payload_keys: Object.keys(queryParams),
             graph_response: result,
           },
         })
