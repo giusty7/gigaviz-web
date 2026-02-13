@@ -42,8 +42,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local leads / runtime data
-data/
+# local leads / runtime data (root only, not lib/data/)
+/data/
 
 # temporary webhook file
 tmp-webhook.json

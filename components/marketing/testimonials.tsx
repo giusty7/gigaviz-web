@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { testimonials, type Testimonial } from "@/data/testimonials";
+import { testimonials, type Testimonial } from "@/lib/data/testimonials";
 
 /* ------------------------------------------------------------------ */
 /*  Star icon                                                          */
