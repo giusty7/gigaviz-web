@@ -1,0 +1,130 @@
+---
+title: "Accepting Payments in Indonesia: Stripe, Manual Transfer, and the Dual Checkout Pattern"
+description: "How Gigaviz built a dual payment system for Indonesian SaaS — Stripe for international card payments and manual bank transfer for local businesses. A practical guide to handling both flows in one UI."
+date: "2026-02-11"
+tags: ["Payments", "Stripe", "Indonesia", "SaaS", "Billing", "Fintech", "E-commerce"]
+published: true
+---
+
+# Accepting Payments in Indonesia: Stripe, Manual Transfer, and the Dual Checkout Pattern
+
+Indonesia is WhatsApp's second-largest market. If you're building a SaaS platform for Indonesian businesses, you'll quickly discover a truth that Silicon Valley ignores: not everyone pays by credit card.
+
+At Gigaviz, we solved this with what we call the **dual checkout pattern** — two payment methods in one interface, each optimized for its audience.
+
+## The Indonesian payment reality
+
+Indonesia has over 270 million people, but credit card penetration is under 5%. Most B2B transactions happen via bank transfer (BCA, Mandiri, BRI, BNI). Mobile wallets like GoPay, OVO, and Dana are growing fast but aren't standard for SaaS subscriptions yet.
+
+Meanwhile, international customers expect Stripe. They want to enter a card number, click pay, and be done.
+
+You can't choose one over the other. You need both.
+
+## The dual checkout pattern
+
+Every token package in Gigaviz shows two payment buttons:
+
+**Pay with Card** — Opens Stripe Checkout. Credit card, debit card, or any Stripe-supported method. Tokens are credited automatically when payment completes.
+
+**Manual / Transfer** — Creates a pending top-up request. Customer transfers via bank, then marks the payment as completed. Admin verifies and activates the tokens.
+
+Both flows end at the same place: tokens in the workspace wallet, transaction in the ledger, audit trail complete.
+
+## How we built the Stripe integration
+
+### Server-side session creation
+
+When a user clicks "Pay with Card", the client sends a request to our `/api/billing/stripe/checkout` endpoint. The server:
+
+1. Validates the request (workspace ID, token amount, price)
+2. Creates a Stripe Checkout Session with the correct line items
+3. Records a `payment_intent` row in our database (status: pending)
+4. Returns the Stripe Checkout URL
+
+The client then redirects to Stripe's hosted checkout page. We never handle raw card data.
+
+### Webhook processing
+
+When payment completes, Stripe sends a `checkout.session.completed` webhook to our `/api/billing/stripe/webhook` endpoint. We:
+
+1. Verify the webhook signature (reject tampering)
+2. Look up the payment intent by Stripe session ID
+3. Credit tokens to the workspace wallet
+4. Update the payment intent status to "completed"
+5. Record the transaction in the token ledger
+
+This happens asynchronously — even if the user closes their browser after paying, the webhook ensures tokens are credited.
+
+### Feature flag
+
+Stripe payments are controlled by a single environment variable: `NEXT_PUBLIC_STRIPE_ENABLED=1`. This lets us:
+
+- Enable card payments per environment (dev, staging, production)
+- Disable card payments instantly if there's a Stripe incident
+- Roll out card payments gradually to specific regions
+
+When disabled, only the manual transfer button appears. Zero UI changes needed.
+
+## How the manual transfer flow works
+
+For businesses that prefer bank transfers:
+
+1. Customer selects a token package and clicks "Manual / Transfer"
+2. System creates a pending top-up request in `token_topup_requests`
+3. Customer transfers the exact amount to our bank account
+4. Customer clicks "Mark paid" on the billing page
+5. Admin sees the pending request in the ops console
+6. Admin verifies the bank transfer and activates the tokens
+
+This is deliberately manual for now. Automating bank transfer verification requires integration with Indonesian payment gateways like Xendit or Midtrans — which is on our roadmap.
+
+## Why not just use Xendit or Midtrans?
+
+We will. But Stripe-first made sense for several reasons:
+
+**Stripe is global.** Our first paying customers include agencies in Singapore and Malaysia. Stripe works in 46+ countries. Starting with Stripe means we can accept payments from Southeast Asia, Latin America, and Europe immediately.
+
+**Stripe's developer experience is unmatched.** The SDK, documentation, and webhook system are best-in-class. We integrated Stripe in under a day.
+
+**Xendit adds Indonesian coverage.** When we add Xendit (planned Q2 2026), it'll handle virtual accounts, e-wallets (GoPay, OVO, Dana), QRIS, and convenience store payments. This covers the 95% of Indonesians without credit cards.
+
+**The dual pattern scales.** Adding Xendit just means adding a third button: "Pay with Local Methods". The architecture already supports multiple payment providers — each one creates a payment intent, processes asynchronously via webhooks, and credits tokens to the same wallet.
+
+## Token-based pricing: why it works for messaging SaaS
+
+We don't charge per seat or per message. We use a token economy:
+
+- Each action costs tokens (sending a WhatsApp message: 8 tokens, AI chat response: 15 tokens, image generation: 40 tokens)
+- Workspaces buy token packages (Basic, Pro, Enterprise)
+- Usage is tracked in real-time with daily breakdown charts
+- Budget guards prevent overspending (configurable monthly caps, hard caps, alert thresholds)
+
+This model works because messaging volume is unpredictable. A marketing campaign might send 10,000 messages in a day, then nothing for a week. Per-seat pricing penalizes small teams with high volume. Per-message pricing penalizes everyone. Tokens let customers buy capacity and use it however they need.
+
+## Lessons for SaaS builders in Southeast Asia
+
+**Don't gate-keep on payment methods.** If your only checkout option is Stripe, you're invisible to 95% of Indonesian businesses. Offer bank transfer from day one.
+
+**Make manual transfers first-class.** Don't hide the bank transfer option behind a "contact sales" button. Show it next to the card payment button. Make it self-service.
+
+**Track everything in one ledger.** Whether payment comes from Stripe, bank transfer, or a future Xendit integration, it should all end up in the same token ledger with the same audit trail.
+
+**Feature-flag your payment providers.** Payment systems break. Stripe has outages. Bank APIs go down. Being able to disable a payment method with one environment variable is worth the engineering investment.
+
+**Start with manual, automate later.** Our manual transfer flow works today. Xendit automation comes later. Don't let "we need automated payments" block you from accepting money.
+
+## What's next
+
+Our payment roadmap:
+
+- **Xendit integration** for virtual accounts, e-wallets, and QRIS (Q2 2026)
+- **Recurring subscriptions** via Stripe for plan-based billing
+- **Invoice generation** with Indonesian tax compliance (Faktur Pajak)
+- **Multi-currency support** — IDR, USD, SGD, MYR pricing
+
+The dual checkout pattern is our foundation. Every new payment provider plugs into the same architecture: create intent, process webhook, credit tokens, log transaction.
+
+---
+
+*Building a SaaS for Southeast Asia? Start with Stripe plus manual bank transfer. Your international customers get instant checkout, your local customers get a familiar flow, and you get paid from day one.*
+

@@ -1,0 +1,131 @@
+---
+title: "How We Reached 500 Automated Tests in a Multi-Tenant SaaS Platform"
+description: "A practical guide to building a testing strategy for a Next.js SaaS platform — from zero tests to 500+ with Vitest, Testing Library, and Playwright. Lessons on what to test first, mock patterns, and reaching 10% coverage."
+date: "2026-02-13"
+tags: ["Testing", "SaaS", "Vitest", "Next.js", "CI/CD", "Quality Assurance", "TypeScript"]
+published: true
+---
+
+# How We Reached 500 Automated Tests in a Multi-Tenant SaaS Platform
+
+Most SaaS platforms start the same way: ship fast, test later, regret it when a billing bug costs you a customer.
+
+At Gigaviz, we went from zero tests to 502 automated tests in under two weeks — while still shipping features. Here's exactly how we did it, what we prioritized, and what we'd do differently.
+
+## Why we couldn't ignore testing anymore
+
+Our platform handles WhatsApp messaging for businesses. A bug in the token wallet means someone loses money. A bug in entitlements means someone accesses features they shouldn't. A bug in workspace scoping means one company sees another's data.
+
+The stakes are high. Manual QA doesn't scale. We needed automated tests.
+
+## The testing stack we chose
+
+We evaluated several options and settled on a three-layer approach:
+
+**Unit tests: Vitest 4.0**
+
+Vitest is the natural choice for a Next.js TypeScript project. It's fast, understands TypeScript natively, and integrates with V8 coverage. No Babel configuration, no transpilation headaches.
+
+**Component tests: React Testing Library + jsdom**
+
+For testing React components in isolation — form behavior, conditional rendering, user interactions. We use jsdom as the environment so tests run in Node.js without a real browser.
+
+**End-to-end tests: Playwright**
+
+For critical user flows that span multiple pages — marketing site accessibility, API endpoint health checks, authentication flows. Playwright runs real Chromium and catches issues that unit tests miss.
+
+## What we tested first (and why)
+
+The biggest mistake in testing is trying to test everything at once. We prioritized by **risk multiplied by blast radius**:
+
+**Tier 1: Security and money (test first)**
+
+- Token wallet operations (balance, consume, top-up)
+- Entitlement engine (who can access what)
+- Platform admin guards (authorization checks)
+- Workspace scoping (data isolation)
+
+These modules touch every user and every transaction. A bug here is catastrophic.
+
+**Tier 2: Business logic (test next)**
+
+- Billing summary calculations
+- Workspace resolution (slug to UUID)
+- Contact normalization (phone number formatting)
+- Rate limiting logic
+
+These are complex but contained. A bug here causes confusion, not data breaches.
+
+**Tier 3: UI and formatting (test last)**
+
+- Component rendering
+- i18n completeness
+- Date and currency formatting
+
+These are visible but low-risk. A missing translation is embarrassing, not dangerous.
+
+## The mock pattern that saved us
+
+Every server-side module in our codebase imports Supabase. Testing these modules without a real database requires consistent mocking.
+
+We built a `createMockSupabase()` factory that returns a chainable mock matching the Supabase query builder pattern. It supports `.from()`, `.select()`, `.eq()`, `.insert()`, `.maybeSingle()`, and `.rpc()` — enough to test any module.
+
+The key insight: mock at the import boundary, not at the function level. We use `vi.mock("@/lib/supabase/admin")` to replace the entire module, then control what each query returns per test.
+
+For modules that import `"server-only"` (a Next.js convention to prevent client-side imports), we add `vi.mock("server-only", () => ({}))` at the top of every server-side test file.
+
+## Coverage strategy: statements, not percentages
+
+We stopped chasing a coverage percentage and started counting **critical statements covered**.
+
+Our platform has 5,272 statements. Going from 4.97% to 10.9% means covering 312 additional statements. But not all statements are equal — covering 312 statements in the token wallet is worth more than covering 312 statements in a marketing page component.
+
+We ranked every untested module by statement count and difficulty:
+
+- Token system: 125 statements, medium difficulty — biggest single win
+- Entitlements server: 48 statements, medium difficulty
+- Workspace resolution: 40 statements, easy
+- Billing summary: 29 statements, medium
+- Platform admin: 19 statements, easy
+
+Five test files. 69 new tests. 10.9% coverage achieved.
+
+## CI/CD integration
+
+Tests mean nothing if they don't run automatically. Our GitHub Actions pipeline runs on every push:
+
+1. ESLint (code quality)
+2. TypeScript type checking
+3. Vitest unit tests (502 tests)
+4. Next.js production build
+5. Playwright E2E tests (24 tests)
+6. CodeQL security analysis
+
+A failing test blocks the merge. No exceptions.
+
+## What we learned
+
+**Start with pure functions.** Modules with no external dependencies are trivially testable. We found several — token rates, entitlement checking, phone normalization — that gave us quick coverage wins.
+
+**Mock patterns compound.** Once we built the Supabase mock factory, every new test file took 30 minutes instead of 3 hours. Invest in mock infrastructure early.
+
+**Test the sad path.** Most bugs hide in error handling. We test database errors, expired tokens, missing subscriptions, and invalid inputs. The happy path usually works — it's the edge cases that break production.
+
+**Coverage is a compass, not a destination.** 10.9% sounds low, but it covers the most critical 10.9% of our codebase. We'd rather have 10% coverage on the right code than 80% coverage on utility functions.
+
+## What's next
+
+Our testing roadmap for the next quarter:
+
+- API route integration tests with MSW (Mock Service Worker)
+- Component tests for billing and inbox UI
+- E2E tests for the complete payment flow
+- Visual regression testing for marketing pages
+- Target: 20% statement coverage by Q2 2026
+
+Testing isn't glamorous. But every test we write is a promise to our users: this thing you're paying for actually works the way we said it does.
+
+---
+
+*Building a SaaS platform and need to add tests? Start with your billing and authorization modules — that's where bugs cost the most.*
+

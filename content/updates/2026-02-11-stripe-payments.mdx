@@ -1,0 +1,43 @@
+---
+title: "Stripe Payments: Card Checkout Now Available"
+date: "2026-02-11"
+summary: "Pay for token top-ups with credit card via Stripe. Dual payment mode: card checkout for instant activation, or manual transfer for local bank payments."
+audience: ["public", "app"]
+tags: ["billing", "stripe", "payments", "tokens"]
+type: "shipped"
+---
+
+Token top-ups now support credit card payments via Stripe — alongside the existing manual transfer option.
+
+## What's new
+
+- **Pay with Card**: One-click Stripe Checkout for instant token top-ups. Select a package, click "Pay with Card", complete payment on Stripe's secure checkout page, and tokens are credited automatically.
+- **Dual payment mode**: Every token package now shows two buttons — "Pay with Card" (Stripe) and "Manual / Transfer" (bank transfer). Choose whichever suits your workflow.
+- **Feature flag**: Stripe payments are controlled via `NEXT_PUBLIC_STRIPE_ENABLED` — disable card payments anytime without code changes.
+- **Webhook processing**: Stripe webhooks automatically process `checkout.session.completed` events and credit tokens to your workspace.
+
+## How it works
+
+1. Select a token package (Basic, Pro, or Enterprise)
+2. Click **Pay with Card** to open Stripe Checkout
+3. Complete payment with credit card, debit card, or supported local methods
+4. Tokens are credited to your workspace automatically
+5. Transaction appears in your Token Ledger immediately
+
+## Manual transfer still available
+
+For businesses that prefer bank transfers or local payment methods, the manual flow remains fully functional:
+
+1. Click **Manual / Transfer**
+2. Complete your bank transfer
+3. Mark the top-up as paid from the billing page
+4. Admin activates the top-up after verification
+
+## Technical details
+
+- Stripe SDK v20.3 with server-side session creation
+- Secure webhook signature verification for all Stripe events
+- Payment intents tracked in `payment_intents` table with workspace scoping
+- Automatic retry on webhook delivery failures
+- Full audit trail for all payment transactions
+

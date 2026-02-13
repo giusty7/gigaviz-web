@@ -1,0 +1,41 @@
+---
+title: "Billing Dashboard: Full Indonesian & English Support"
+date: "2026-02-12"
+summary: "The entire billing experience — Royal Treasury, token wallet, top-up flows, and feature access — is now fully translated in Indonesian and English."
+audience: ["public", "app"]
+tags: ["i18n", "billing", "localization", "indonesian"]
+type: "improved"
+---
+
+The billing dashboard is now fully internationalized with 50+ translated strings across Indonesian and English.
+
+## What's improved
+
+- **Royal Treasury header**: Plan name, billing period, seat limits, and status badges adapt to your selected language
+- **Token Wallet**: Balance display, top-up buttons, payment confirmation toasts — all translated
+- **Payment flows**: "Pay with Card", "Manual / Transfer", processing states, and error messages in your language
+- **Feature Access section**: Feature labels, availability badges ("Available" / "Locked"), and plan alerts
+- **Toast notifications**: All success and error messages (top-up created, checkout failed, confirmation, etc.)
+
+## Coverage
+
+Over 50 billing-specific translation keys added:
+
+- Treasury and plan management (12 keys)
+- Token wallet and balance (8 keys)
+- Payment and checkout flows (10 keys)
+- Manual activation and pending top-ups (6 keys)
+- Error and success messages (8 keys)
+- Feature access and plan comparison (6 keys)
+
+## For Indonesian businesses
+
+Seluruh halaman billing sekarang tersedia dalam Bahasa Indonesia — mulai dari Royal Treasury, dompet token, isi ulang, hingga akses fitur. Semua pesan sukses dan error juga sudah diterjemahkan.
+
+## Technical details
+
+- Server components use `getTranslations("billing")` from `next-intl/server`
+- Client components use `useTranslations("billing")` hook
+- All 50+ keys available in `messages/en.json` and `messages/id.json`
+- Locale-aware number formatting for token balances and prices
+

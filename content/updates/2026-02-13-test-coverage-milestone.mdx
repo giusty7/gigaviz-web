@@ -1,0 +1,42 @@
+---
+title: "Quality Milestone: 500+ Tests & 10.9% Code Coverage"
+date: "2026-02-13"
+summary: "Gigaviz now has 502 automated tests across 38 test files with 10.9% statement coverage — a 2x improvement in reliability assurance."
+audience: ["public", "app"]
+tags: ["testing", "quality", "reliability", "ci-cd"]
+type: "improved"
+---
+
+We've crossed a major quality milestone: 502 automated tests across 38 test files, with statement coverage jumping from 4.97% to 10.9%.
+
+## What's improved
+
+- **502 tests passing**: Up from 349 — a 44% increase in test coverage
+- **38 test files**: 5 new test suites covering critical business logic
+- **10.9% statement coverage**: Doubled from 4.97%, covering 580+ statements
+- **All CI checks green**: Lint, typecheck, unit tests, build, and E2E — all passing
+
+## New test suites
+
+Five high-impact test suites were added targeting the most critical modules:
+
+- **Token system** (28 tests): Wallet operations, ledger management, settings, usage tracking, overview calculations, token consumption, and top-up request flows
+- **Platform admin** (15 tests): Email allowlist validation, admin lookup, authentication guards, and role verification
+- **Entitlements engine** (11 tests): Plan resolution, override merging, expiry handling, legacy fallback paths, and feature gating
+- **Billing summary** (9 tests): Subscription state mapping, usage metric calculations, period formatting, and plan resolution
+- **Workspace resolution** (6 tests): UUID passthrough, slug-to-UUID lookup, and edge case handling
+
+## What this means for customers
+
+- Fewer bugs reaching production — critical payment and billing flows are now tested
+- Faster feature delivery — tests catch regressions before they ship
+- Stronger entitlement enforcement — feature gating logic is independently verified
+- Better token economy — wallet and ledger operations are validated end-to-end
+
+## Testing infrastructure
+
+- **Vitest 4.0**: Fast, TypeScript-native test runner with V8 coverage
+- **Testing Library + jsdom**: Component testing with React Testing Library
+- **Playwright**: End-to-end browser tests (24 E2E tests across 2 spec files)
+- **CI/CD**: All tests run on every push via GitHub Actions
+
