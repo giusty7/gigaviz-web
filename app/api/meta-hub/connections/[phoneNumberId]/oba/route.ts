@@ -135,8 +135,8 @@ export const POST = withErrorHandler(
       );
     }
 
-    // Validate request body (lenient — all fields optional, Meta will enforce what it needs)
-    const body = await req.json().catch(() => ({}));
+    // Use body already parsed by guardWorkspace (req.json() can only be read once!)
+    const body = guard.body ?? {};
     logger.info("[oba] received body", {
       phoneNumberId,
       workspaceId,
