@@ -16,25 +16,17 @@ type RouteContext = {
 /* ── OBA request body schema ────────────────────────────────────── */
 const obaRequestSchema = z.object({
   /** Supporting information for OBA request (e.g. press mentions, website) */
-  additional_supporting_information: z
-    .string()
-    .max(2000)
-    .optional()
-    .default(""),
-  /** Company / brand website URL */
-  business_website_url: z.string().trim().url(),
+  additional_supporting_information: z.string().max(2000).optional(),
+  /** Company / brand website URL (required by Meta) */
+  business_website_url: z.string().url(),
   /** Official name of the business or brand */
-  parent_business_or_brand: z.string().min(1).max(200).optional(),
+  parent_business_or_brand: z.string().max(200).optional(),
   /** Country of primary business operations */
-  primary_country_of_operation: z.string().min(2).max(100).optional(),
+  primary_country_of_operation: z.string().max(100).optional(),
   /** Primary language for the WhatsApp channel */
-  primary_language: z.string().min(2).max(50).optional(),
+  primary_language: z.string().max(50).optional(),
   /** Array of supporting links (news articles, directories, etc.) */
-  supporting_links: z
-    .array(z.string().url())
-    .max(10)
-    .optional()
-    .default([]),
+  supporting_links: z.array(z.string().url()).max(10).optional(),
 });
 
 /* ── GET: Check OBA status ──────────────────────────────────────── */
@@ -164,12 +156,19 @@ export const POST = withErrorHandler(
     const body = await req.json().catch(() => ({}));
     const parsed = obaRequestSchema.safeParse(body);
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      logger.warn("[oba] validation failed", {
+        phoneNumberId,
+        workspaceId,
+        fieldErrors,
+        bodyKeys: Object.keys(body),
+      });
       return withCookies(
         NextResponse.json(
           {
             error: "validation_error",
             message: "Invalid request body",
-            details: parsed.error.flatten().fieldErrors,
+            details: fieldErrors,
           },
           { status: 400 }
         )
@@ -212,28 +211,28 @@ export const POST = withErrorHandler(
       );
     }
 
-    // Build OBA request payload (only include non-empty fields)
-    const obaPayload: Record<string, unknown> = {};
-    const { data: validated } = parsed;
-
-    obaPayload.business_website_url = validated.business_website_url;
-    if (validated.additional_supporting_information) {
+    // Build OBA request payload — only include non-empty fields
+    const v = parsed.data;
+    const obaPayload: Record<string, unknown> = {
+      business_website_url: v.business_website_url.trim(),
+    };
+    if (v.additional_supporting_information?.trim()) {
       obaPayload.additional_supporting_information =
-        validated.additional_supporting_information;
+        v.additional_supporting_information.trim();
     }
-    if (validated.parent_business_or_brand) {
+    if (v.parent_business_or_brand?.trim()) {
       obaPayload.parent_business_or_brand =
-        validated.parent_business_or_brand;
+        v.parent_business_or_brand.trim();
     }
-    if (validated.primary_country_of_operation) {
+    if (v.primary_country_of_operation?.trim()) {
       obaPayload.primary_country_of_operation =
-        validated.primary_country_of_operation;
+        v.primary_country_of_operation.trim();
     }
-    if (validated.primary_language) {
-      obaPayload.primary_language = validated.primary_language;
+    if (v.primary_language?.trim()) {
+      obaPayload.primary_language = v.primary_language.trim();
     }
-    if (validated.supporting_links && validated.supporting_links.length > 0) {
-      obaPayload.supporting_links = validated.supporting_links;
+    if (v.supporting_links && v.supporting_links.length > 0) {
+      obaPayload.supporting_links = v.supporting_links;
     }
 
     // POST to Graph API: /{phoneNumberId}/official_business_account
@@ -242,7 +241,6 @@ export const POST = withErrorHandler(
         phoneNumberId,
         workspaceId,
         payload_keys: Object.keys(obaPayload),
-        has_business_website_url: Boolean(validated.business_website_url),
       });
 
       const result = await metaGraphFetch<{ success?: boolean }>(
@@ -250,9 +248,6 @@ export const POST = withErrorHandler(
         accessToken,
         {
           method: "POST",
-          query: {
-            business_website_url: validated.business_website_url,
-          },
           body: obaPayload,
         }
       );

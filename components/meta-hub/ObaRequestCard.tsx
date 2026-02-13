@@ -142,9 +142,16 @@ export function ObaRequestCard({
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
+        let desc = data?.message || `Error ${res.status}`;
+        if (data?.details) {
+          const fields = Object.entries(data.details)
+            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+            .join("; ");
+          if (fields) desc = fields;
+        }
         toast({
           title: "OBA Request Failed",
-          description: data?.message || `Error ${res.status}`,
+          description: desc,
           variant: "destructive",
         });
         return;
