@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import ComparePlans from "@/components/app/ComparePlans";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getAppContext } from "@/lib/app-context";
@@ -7,6 +8,7 @@ import { canAccess, getPlanFeatures, planMeta, type FeatureKey } from "@/lib/ent
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { getBillingSummary } from "@/lib/billing/summary";
 import { BillingSummaryClient } from "@/components/billing/BillingSummaryClient";
+import { TokenTopupClient } from "@/components/billing/TokenTopupClient";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +28,12 @@ export default async function BillingPage({
 
   await ensureWorkspaceCookie(ctx.currentWorkspace.id);
 
+  const t = await getTranslations("billing");
   const billing = await getWorkspaceBilling(ctx.currentWorkspace.id);
   const summary = await getBillingSummary(ctx.currentWorkspace.id);
   const userEmail = ctx.user.email ?? "";
+  const canEdit = ctx.currentRole === "owner" || ctx.currentRole === "admin";
+  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "1";
   const planIdNormalized = normalizePlanId(billing.plan?.code ?? billing.subscription?.plan_id);
   const featureUnion = Array.from(
     new Set(planMeta.flatMap((p) => getPlanFeatures(p.plan_id)).concat(getPlanFeatures(planIdNormalized)))
@@ -82,21 +87,27 @@ export default async function BillingPage({
     <div className="space-y-6">
       <BillingSummaryClient workspaceId={ctx.currentWorkspace.id} workspaceSlug={workspaceSlug} initialSummary={summary} />
 
+      <TokenTopupClient
+        workspaceId={ctx.currentWorkspace.id}
+        initialSummary={summary}
+        canEdit={canEdit}
+        stripeEnabled={stripeEnabled}
+      />
+
       {!billing.subscription ? (
         <Alert>
-          <AlertTitle>No subscription found</AlertTitle>
+          <AlertTitle>{t("noSubscription")}</AlertTitle>
           <AlertDescription>
-            This workspace has no subscription record. Default: Free (Locked).
+            {t("noSubscriptionDesc")}
           </AlertDescription>
         </Alert>
       ) : null}
 
       {!billing.plan ? (
         <Alert variant="destructive">
-          <AlertTitle>Plan not found</AlertTitle>
+          <AlertTitle>{t("planNotFound")}</AlertTitle>
           <AlertDescription>
-            Plan code {billing.subscription?.plan_id ?? "unknown"} is missing in the plans table. Falling back to
-            Free.
+            {t("planNotFoundDesc", { code: billing.subscription?.plan_id ?? "unknown" })}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -104,9 +115,9 @@ export default async function BillingPage({
       <section className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
         <div className="absolute inset-0 batik-pattern opacity-[0.04]" />
         <div className="relative">
-          <h2 className="text-lg font-semibold bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">Feature Access</h2>
+          <h2 className="text-lg font-semibold bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">{t("featureAccess")}</h2>
           <p className="text-sm text-[#f5f5dc]/60 mt-1">
-            Features available on the current plan. Upgrade to unlock the rest.
+            {t("featureAccessDesc")}
           </p>
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {featureUnion.map((key) => (
@@ -120,7 +131,7 @@ export default async function BillingPage({
                     available(key) ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border border-[#f5f5dc]/10"
                   }`}
                 >
-                  {available(key) ? "Available" : "Locked"}
+                  {available(key) ? t("available") : t("locked")}
                 </span>
               </div>
             ))}

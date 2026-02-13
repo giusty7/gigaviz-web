@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CreditCard, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import type { BillingSummary } from "@/lib/billing/summary";
 
 type Props = {
   workspaceId: string;
   initialSummary?: BillingSummary | null;
   canEdit: boolean;
+  /** Whether Stripe is configured (NEXT_PUBLIC_STRIPE_ENABLED) */
+  stripeEnabled?: boolean;
 };
 
 const packages = [
@@ -19,11 +23,13 @@ const packages = [
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
 
-export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props) {
+export function TokenTopupClient({ workspaceId, initialSummary, canEdit, stripeEnabled }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("billing");
   const [summary, setSummary] = useState<BillingSummary | null>(initialSummary ?? null);
   const [loading, setLoading] = useState(!initialSummary);
   const [active, setActive] = useState<string | null>(null);
+  const [stripeLoading, setStripeLoading] = useState<string | null>(null);
   const [pending, setPending] = useState<
     Array<{ id: string; amount_idr: number; created_at: string; meta: Record<string, unknown> }>
   >([]);
@@ -37,13 +43,13 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Failed to load wallet");
+        throw new Error(data?.message || t("failedLoadWallet"));
       }
       setSummary(data.summary as BillingSummary);
     } catch (err) {
       toast({
-        title: "Failed to load wallet",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("failedLoadWallet"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -59,7 +65,7 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Failed to load pending top ups");
+        throw new Error(data?.message || t("failedLoadPending"));
       }
       setPending(
         Array.isArray(data?.intents)
@@ -73,8 +79,8 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
       );
     } catch (err) {
       toast({
-        title: "Failed to load pending top ups",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("failedLoadPending"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     }
@@ -100,23 +106,23 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Failed to create top up");
+        throw new Error(data?.message || t("topUpFailed"));
       }
       if (data?.checkoutUrl) {
         window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
       }
       toast({
-        title: "Top up created",
+        title: t("topUpCreated"),
         description: data?.checkoutUrl
-          ? "Continue to payment to finish."
-          : "Waiting for manual activation for this top up.",
+          ? t("continuePayment")
+          : t("waitingActivation"),
       });
       await fetchSummary();
       await fetchPending();
     } catch (err) {
       toast({
-        title: "Top up failed",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("topUpFailed"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -134,18 +140,18 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Failed to mark as paid");
+        throw new Error(data?.message || t("confirmFailed"));
       }
       toast({
-        title: "Top up confirmed",
-        description: `Balance increased by ${numberFormatter.format(data.tokens ?? 0)} tokens.`,
+        title: t("topUpConfirmed"),
+        description: t("balanceIncreased", { count: numberFormatter.format(data.tokens ?? 0) }),
       });
       await fetchSummary();
       await fetchPending();
     } catch (err) {
       toast({
-        title: "Confirmation failed",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("confirmFailed"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -153,20 +159,47 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
     }
   }
 
+  async function handleStripeCheckout(pkg: (typeof packages)[number]) {
+    setStripeLoading(pkg.id);
+    try {
+      const res = await fetch("/api/billing/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tokens: pkg.tokens,
+          amountIdr: pkg.amountIdr,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.message || data?.error || t("checkoutFailed"));
+      }
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      toast({
+        title: t("checkoutFailed"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
+        variant: "destructive",
+      });
+    } finally {
+      setStripeLoading(null);
+    }
+  }
+
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Token Wallet</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("tokenWallet")}</h2>
           <p className="text-sm text-muted-foreground">
-            Token balance is used for AI/API usage. Top ups add balance immediately after payment is
-            confirmed.
+            {t("tokenWalletDesc")}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Saldo</p>
+          <p className="text-xs text-muted-foreground">{t("balance")}</p>
           <p className="text-2xl font-semibold text-foreground">
-            {loading ? "Loading..." : numberFormatter.format(summary?.wallet.balance ?? 0)}
+            {loading ? t("loading") : numberFormatter.format(summary?.wallet.balance ?? 0)}
           </p>
         </div>
       </div>
@@ -179,16 +212,33 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
           >
             <p className="text-sm font-semibold text-foreground">{pkg.label}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              +{numberFormatter.format(pkg.tokens)} tokens
+              {t("tokens", { count: numberFormatter.format(pkg.tokens) })}
             </p>
-            <Button
-              className="mt-4 w-full"
-              variant="secondary"
-              onClick={() => handleTopup(pkg.id)}
-              disabled={active === pkg.id}
-            >
-              {active === pkg.id ? "Processing..." : "Top up"}
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              Rp {numberFormatter.format(pkg.amountIdr)}
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              {stripeEnabled && (
+                <Button
+                  className="w-full"
+                  variant="default"
+                  onClick={() => handleStripeCheckout(pkg)}
+                  disabled={stripeLoading === pkg.id}
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  {stripeLoading === pkg.id ? t("redirecting") : t("payWithCard")}
+                </Button>
+              )}
+              <Button
+                className="w-full"
+                variant={stripeEnabled ? "outline" : "secondary"}
+                onClick={() => handleTopup(pkg.id)}
+                disabled={active === pkg.id}
+              >
+                <Banknote className="mr-2 h-4 w-4" />
+                {active === pkg.id ? t("processing") : stripeEnabled ? t("manualTransfer") : t("topUp")}
+              </Button>
+            </div>
           </div>
         ))}
       </div>
@@ -197,18 +247,18 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
         <div className="mt-6 rounded-xl border border-border bg-background/40 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-foreground">Manual activation</p>
+              <p className="text-sm font-semibold text-foreground">{t("manualActivation")}</p>
               <p className="text-xs text-muted-foreground">
-                Use this button to mark pending top ups as paid (manual MVP flow).
+                {t("manualActivationDesc")}
               </p>
             </div>
             <Button variant="outline" onClick={fetchPending}>
-              Refresh
+              {t("refresh")}
             </Button>
           </div>
           <div className="mt-4 space-y-2">
             {pending.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No pending top ups.</p>
+              <p className="text-sm text-muted-foreground">{t("noPending")}</p>
             ) : (
               pending.map((intent) => (
                 <div
@@ -228,7 +278,7 @@ export function TokenTopupClient({ workspaceId, initialSummary, canEdit }: Props
                     onClick={() => handleMarkPaid(intent.id)}
                     disabled={marking === intent.id}
                   >
-                    {marking === intent.id ? "Processing..." : "Mark paid"}
+                    {marking === intent.id ? t("processing") : t("markPaid")}
                   </Button>
                 </div>
               ))

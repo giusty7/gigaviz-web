@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Crown, Sparkles, ArrowUpRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummary }: Props) {
+  const t = useTranslations("billing");
   const { toast } = useToast();
   const [summary, setSummary] = useState<BillingSummary | null>(initialSummary ?? null);
   const [loading, setLoading] = useState(!initialSummary);
@@ -37,13 +39,13 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || "Failed to load billing");
+        throw new Error(data?.message || t("failedLoadBilling"));
       }
       setSummary(data.summary as BillingSummary);
     } catch (err) {
       toast({
-        title: "Failed to load billing",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("failedLoadBilling"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -66,17 +68,17 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || data?.error || "Failed to update subscription");
+        throw new Error(data?.message || data?.error || t("upgradeFailed"));
       }
       toast({
-        title: "Subscription activated",
-        description: `Plan ${upgradePlanCode.toUpperCase()} is now active.`,
+        title: t("subscriptionActivated"),
+        description: t("planActivated", { plan: upgradePlanCode.toUpperCase() }),
       });
       await fetchSummary();
     } catch (err) {
       toast({
-        title: "Upgrade failed",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("upgradeFailed"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -110,14 +112,14 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
                 <Crown className="h-7 w-7 text-[#d4af37]" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.15em] text-[#d4af37]">Royal Treasury</p>
+                <p className="text-[10px] uppercase tracking-[0.15em] text-[#d4af37]">{t("treasury")}</p>
                 <h1 className="mt-1 text-2xl font-bold">
                   <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
-                    {loading ? "Loading..." : activePlanName}
+                    {loading ? t("loading") : activePlanName}
                   </span>
                 </h1>
                 <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                  Plan Code: <span className="font-mono text-[#f5f5dc]/80">{summary?.subscription?.plan_code ?? "free_locked"}</span>
+                  {t("planCode")}: <span className="font-mono text-[#f5f5dc]/80">{summary?.subscription?.plan_code ?? "free_locked"}</span>
                 </p>
               </div>
             </div>
@@ -130,7 +132,7 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
                 </span>
                 <span className="text-xs font-semibold text-[#10b981]">
-                  {summary?.statusLabel ?? "Active"}
+                  {summary?.statusLabel ?? t("active")}
                 </span>
               </div>
             </div>
@@ -139,21 +141,21 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
           {/* Stats Row */}
           <div className="mt-2 grid gap-3 md:grid-cols-3">
             <div className="rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 px-4 py-3">
-              <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">Billing Period</p>
+              <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">{t("billingPeriod")}</p>
               <p className="mt-1 text-sm font-semibold text-[#f5f5dc]">
-                {summary?.periodLabel ?? "Period not available"}
+                {summary?.periodLabel ?? t("periodNotAvailable")}
               </p>
             </div>
             {summary?.plan?.seat_limit && (
               <div className="rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 px-4 py-3">
-                <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">Seat Limit</p>
-                <p className="mt-1 text-sm font-semibold text-[#f5f5dc]">{summary.plan.seat_limit} seats</p>
+                <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">{t("seatLimit")}</p>
+                <p className="mt-1 text-sm font-semibold text-[#f5f5dc]">{t("seats", { count: summary.plan.seat_limit })}</p>
               </div>
             )}
             <div className="rounded-xl border border-[#10b981]/20 bg-[#10b981]/5 px-4 py-3">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4 text-[#10b981]" />
-                <p className="text-xs font-medium text-[#10b981]">Enterprise Security</p>
+                <p className="text-xs font-medium text-[#10b981]">{t("enterpriseSecurity")}</p>
               </div>
             </div>
           </div>
@@ -168,12 +170,12 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
               {upgrading ? (
                 <>
                   <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  {t("processing")}
                 </>
               ) : (
                 <>
                   <Crown className="mr-2 h-4 w-4" />
-                  Upgrade Plan
+                  {t("upgradePlan")}
                 </>
               )}
             </Button>
@@ -192,10 +194,10 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-[#e11d48]" />
-              <h2 className="text-lg font-semibold text-[#f5f5dc]">Upgrade Your Empire</h2>
+              <h2 className="text-lg font-semibold text-[#f5f5dc]">{t("upgradeEmpire")}</h2>
             </div>
             <p className="mt-1 text-sm text-[#f5f5dc]/60">
-              Contact sales to unlock premium features. Self-serve payments coming soon.
+              {t("contactSalesDesc")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -205,14 +207,14 @@ export function BillingSummaryClient({ workspaceId, workspaceSlug, initialSummar
               disabled={upgrading}
               className="border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50"
             >
-              {upgrading ? "Processing..." : "Contact Sales"}
+              {upgrading ? t("processing") : t("contactSales")}
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Button>
             <Link
               href={`/${workspaceSlug}/billing`}
               className="text-sm text-[#f5f5dc]/50 hover:text-[#d4af37] transition-colors"
             >
-              Refresh
+              {t("refresh")}
             </Link>
           </div>
         </div>
