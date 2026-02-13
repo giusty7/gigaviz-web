@@ -113,6 +113,9 @@ export const GET = withErrorHandler(
 /* ── POST: Request OBA (blue tick) ──────────────────────────────── */
 export const POST = withErrorHandler(
   async (req: NextRequest, context: RouteContext) => {
+    // Clone request BEFORE guardWorkspace — it consumes req.json() internally
+    const clonedReq = req.clone();
+
     const guard = await guardWorkspace(req);
     if (!guard.ok) return guard.response;
     const { workspaceId, role, withCookies } = guard;
@@ -135,8 +138,8 @@ export const POST = withErrorHandler(
       );
     }
 
-    // Use body already parsed by guardWorkspace (req.json() can only be read once!)
-    const body = guard.body ?? {};
+    // Read body from the CLONED request (original was consumed by guardWorkspace)
+    const body = await clonedReq.json().catch(() => ({}));
     logger.info("[oba] received body", {
       phoneNumberId,
       workspaceId,
