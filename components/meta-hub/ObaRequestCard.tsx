@@ -41,6 +41,13 @@ export function ObaRequestCard({
   const [supportingInfo, setSupportingInfo] = useState("");
   const [supportingLinks, setSupportingLinks] = useState("");
 
+  const normalizeUrl = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
   /* ── Check OBA status ──────────────────────────────────────── */
   const checkStatus = async () => {
     setStatus({ type: "checking" });
@@ -95,6 +102,16 @@ export function ObaRequestCard({
 
   /* ── Submit OBA request ────────────────────────────────────── */
   const submitRequest = async () => {
+    const normalizedWebsiteUrl = normalizeUrl(websiteUrl);
+    if (!normalizedWebsiteUrl) {
+      toast({
+        title: "Business Website required",
+        description: "Please fill a valid website URL before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const links = supportingLinks
@@ -104,7 +121,7 @@ export function ObaRequestCard({
 
       const payload: Record<string, unknown> = {};
       if (businessName) payload.parent_business_or_brand = businessName;
-      if (websiteUrl) payload.business_website_url = websiteUrl;
+      payload.business_website_url = normalizedWebsiteUrl;
       if (country) payload.primary_country_of_operation = country;
       if (language) payload.primary_language = language;
       if (supportingInfo)
@@ -289,7 +306,7 @@ export function ObaRequestCard({
               type="url"
               value={websiteUrl}
               onChange={(e) => setWebsiteUrl(e.target.value)}
-              placeholder="https://gigaviz.id"
+              placeholder="https://gigaviz.com"
               className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229] px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-blue-400/50 focus:outline-none"
             />
           </div>

@@ -22,7 +22,7 @@ const obaRequestSchema = z.object({
     .optional()
     .default(""),
   /** Company / brand website URL */
-  business_website_url: z.string().url().optional(),
+  business_website_url: z.string().trim().url(),
   /** Official name of the business or brand */
   parent_business_or_brand: z.string().min(1).max(200).optional(),
   /** Country of primary business operations */
@@ -216,12 +216,10 @@ export const POST = withErrorHandler(
     const obaPayload: Record<string, unknown> = {};
     const { data: validated } = parsed;
 
+    obaPayload.business_website_url = validated.business_website_url;
     if (validated.additional_supporting_information) {
       obaPayload.additional_supporting_information =
         validated.additional_supporting_information;
-    }
-    if (validated.business_website_url) {
-      obaPayload.business_website_url = validated.business_website_url;
     }
     if (validated.parent_business_or_brand) {
       obaPayload.parent_business_or_brand =
@@ -240,11 +238,21 @@ export const POST = withErrorHandler(
 
     // POST to Graph API: /{phoneNumberId}/official_business_account
     try {
+      logger.info("[oba] submitting request", {
+        phoneNumberId,
+        workspaceId,
+        payload_keys: Object.keys(obaPayload),
+        has_business_website_url: Boolean(validated.business_website_url),
+      });
+
       const result = await metaGraphFetch<{ success?: boolean }>(
         `${phoneNumberId}/official_business_account`,
         accessToken,
         {
           method: "POST",
+          query: {
+            business_website_url: validated.business_website_url,
+          },
           body: obaPayload,
         }
       );
