@@ -1,8 +1,18 @@
 ﻿import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("outboxTitle")} | Meta Hub`,
+    description: t("outboxDesc"),
+  };
+}
 
 export const dynamic = "force-dynamic";
 

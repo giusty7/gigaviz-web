@@ -1,7 +1,17 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { MetaEventsClient } from "@/components/meta-hub/MetaEventsClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("eventsTitle")} | Meta Hub`,
+    description: t("eventsDesc"),
+  };
+}
 
 export const runtime = "nodejs";
 

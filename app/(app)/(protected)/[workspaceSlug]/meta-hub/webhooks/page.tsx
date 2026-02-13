@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
 import { getMetaHubTestEnvStatus } from "@/lib/meta-hub/test-env";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
@@ -6,6 +8,14 @@ import { ImperiumWebhooksClient } from "@/components/meta-hub/ImperiumWebhooksCl
 import type { WebhookEvent, WebhookStats } from "@/components/meta-hub/ImperiumWebhooksComponents";
 import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("webhooksTitle")} | Meta Hub`,
+    description: t("webhooksDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;

@@ -1,7 +1,17 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { MetaAssetsClient } from "@/components/meta-hub/MetaAssetsClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("assetsTitle")} | Meta Hub`,
+    description: t("assetsDesc"),
+  };
+}
 
 export const runtime = "nodejs";
 

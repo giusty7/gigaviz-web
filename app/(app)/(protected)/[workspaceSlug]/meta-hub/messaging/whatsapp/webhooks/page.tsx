@@ -1,9 +1,19 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 import { WhatsappWebhookMonitorClient } from "@/components/meta-hub/WhatsappWebhookMonitorClient";
 import { getWebhookEventsSummary } from "@/lib/meta-hub/webhook-events";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("webhooksTitle")} | WhatsApp`,
+    description: t("webhooksDesc"),
+  };
+}
 
 export const dynamic = "force-dynamic";
 

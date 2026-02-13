@@ -1,6 +1,16 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { JobsListClient } from "@/components/meta-hub/JobsListClient";
 import { getAppContext } from "@/lib/app-context";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("jobsTitle")} | Meta Hub`,
+    description: t("jobsDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;

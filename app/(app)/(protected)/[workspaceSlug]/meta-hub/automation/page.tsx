@@ -1,7 +1,17 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { AutomationRulesManager } from "@/components/meta-hub/AutomationRulesManager";
 import { getAppContext } from "@/lib/app-context";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("automationTitle")} | Meta Hub`,
+    description: t("automationDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;

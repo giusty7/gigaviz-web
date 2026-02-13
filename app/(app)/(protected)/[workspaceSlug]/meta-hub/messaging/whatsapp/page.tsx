@@ -1,7 +1,17 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ImperiumTemplateForgeClient } from "@/components/meta-hub/ImperiumTemplateForgeClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("whatsappTitle")} | Meta Hub`,
+    description: t("whatsappDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;

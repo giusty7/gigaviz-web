@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ImperiumInboxClient } from "@/components/meta-hub/ImperiumInboxClient";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -6,6 +8,14 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { processWhatsappEvents } from "@/lib/meta/wa-inbox";
 import { getWorkspacePlan } from "@/lib/plans";
 import type { SessionInfo } from "@/components/meta-hub/ImperiumInboxComponents";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("inboxTitle")} | Meta Hub`,
+    description: t("inboxDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;

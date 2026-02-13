@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ImperiumConnectionsClient } from "@/components/meta-hub/ImperiumConnectionsClient";
 import { MultiPlatformConnections } from "@/components/meta-hub/MultiPlatformConnections";
 import { FacebookSdkProvider } from "@/components/meta/FacebookSdkProvider";
@@ -8,6 +10,14 @@ import { getWebhookEventsSummary, getEventStatsBreakdown } from "@/lib/meta-hub/
 import { getBusinessIntelligence, getMonitorMetrics } from "@/lib/meta-hub/business-intelligence";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getWaSettings } from "@/lib/meta/wa-settings";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metaHub");
+  return {
+    title: `${t("connectionsTitle")} | Meta Hub`,
+    description: t("connectionsDesc"),
+  };
+}
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
