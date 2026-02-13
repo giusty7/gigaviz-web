@@ -202,25 +202,33 @@ export const POST = withErrorHandler(
       if (links.length > 0) obaPayload.supporting_links = links;
     }
 
-    // Direct fetch to Meta Graph API — bypass wrapper to match curl exactly
-    // Meta docs: POST /{phone_number_id}/official_business_account with JSON body
+    // Direct fetch to Meta Graph API using form-urlencoded
+    // Many Meta POST endpoints only read form params, not JSON body
     const apiUrl = graphUrl(`${phoneNumberId}/official_business_account`, "v24.0");
     try {
-      logger.info("[oba] submitting request (raw fetch)", {
+      // Build form body — flat key=value pairs
+      const formParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(obaPayload)) {
+        if (value === undefined || value === null) continue;
+        formParams.set(
+          key,
+          typeof value === "string" ? value : JSON.stringify(value)
+        );
+      }
+
+      logger.info("[oba] submitting request (form-urlencoded)", {
         phoneNumberId,
         workspaceId,
         apiUrl,
-        payload_keys: Object.keys(obaPayload),
-        payload: obaPayload,
+        formKeys: [...formParams.keys()],
       });
 
       const graphRes = await fetch(apiUrl, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify(obaPayload),
+        body: formParams,
       });
 
       const graphData = await graphRes.json().catch(() => ({}));
