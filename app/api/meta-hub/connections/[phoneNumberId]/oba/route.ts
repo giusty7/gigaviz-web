@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
-import { metaGraphFetch } from "@/lib/meta/graph";
+import { metaGraphFetch, graphUrl } from "@/lib/meta/graph";
 import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
@@ -180,52 +180,74 @@ export const POST = withErrorHandler(
       );
     }
 
-    // Build OBA request — Meta Graph API expects parameters as query params, not JSON body
+    // Build OBA payload — match Meta curl example exactly
     const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-    const queryParams: Record<string, string> = {};
+    const obaPayload: Record<string, unknown> = {};
 
     if (str(body.business_website_url))
-      queryParams.business_website_url = str(body.business_website_url);
+      obaPayload.business_website_url = str(body.business_website_url);
     if (str(body.additional_supporting_information))
-      queryParams.additional_supporting_information = str(body.additional_supporting_information);
+      obaPayload.additional_supporting_information = str(body.additional_supporting_information);
     if (str(body.parent_business_or_brand))
-      queryParams.parent_business_or_brand = str(body.parent_business_or_brand);
+      obaPayload.parent_business_or_brand = str(body.parent_business_or_brand);
     if (str(body.primary_country_of_operation))
-      queryParams.primary_country_of_operation = str(body.primary_country_of_operation);
+      obaPayload.primary_country_of_operation = str(body.primary_country_of_operation);
     if (str(body.primary_language))
-      queryParams.primary_language = str(body.primary_language);
+      obaPayload.primary_language = str(body.primary_language);
 
     if (Array.isArray(body.supporting_links)) {
       const links = body.supporting_links
         .map((l: unknown) => (typeof l === "string" ? l.trim() : ""))
         .filter((l: string) => /^https?:\/\//i.test(l));
-      if (links.length > 0)
-        queryParams.supporting_links = JSON.stringify(links);
+      if (links.length > 0) obaPayload.supporting_links = links;
     }
 
-    // POST to Graph API: /{phoneNumberId}/official_business_account
+    // Direct fetch to Meta Graph API — bypass wrapper to match curl exactly
+    // Meta docs: POST /{phone_number_id}/official_business_account with JSON body
+    const apiUrl = graphUrl(`${phoneNumberId}/official_business_account`, "v24.0");
     try {
-      logger.info("[oba] submitting request", {
+      logger.info("[oba] submitting request (raw fetch)", {
         phoneNumberId,
         workspaceId,
-        query_keys: Object.keys(queryParams),
+        apiUrl,
+        payload_keys: Object.keys(obaPayload),
+        payload: obaPayload,
       });
 
-      const result = await metaGraphFetch<{ success?: boolean }>(
-        `${phoneNumberId}/official_business_account`,
-        accessToken,
-        {
-          method: "POST",
-          query: queryParams,
-        }
-      );
+      const graphRes = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(obaPayload),
+      });
 
-      logger.info("[oba] request submitted", {
+      const graphData = await graphRes.json().catch(() => ({}));
+
+      logger.info("[oba] Graph API response", {
         phoneNumberId,
         workspaceId,
-        displayName: connection.display_name,
-        success: result.success,
+        status: graphRes.status,
+        data: graphData,
       });
+
+      if (!graphRes.ok) {
+        const errMsg =
+          graphData?.error?.message || `Graph API error (${graphRes.status})`;
+        logger.error("[oba] Graph API error", {
+          phoneNumberId,
+          workspaceId,
+          status: graphRes.status,
+          error: graphData?.error,
+        });
+        return withCookies(
+          NextResponse.json(
+            { error: "graph_error", message: errMsg },
+            { status: 502 }
+          )
+        );
+      }
 
       // Log to audit
       await db
@@ -238,8 +260,8 @@ export const POST = withErrorHandler(
           details: {
             phone_number_id: phoneNumberId,
             display_name: connection.display_name,
-            payload_keys: Object.keys(queryParams),
-            graph_response: result,
+            payload_keys: Object.keys(obaPayload),
+            graph_response: graphData,
           },
         })
         .then(({ error }) => {
@@ -252,7 +274,7 @@ export const POST = withErrorHandler(
       return withCookies(
         NextResponse.json({
           ok: true,
-          success: result.success ?? true,
+          success: graphData?.success ?? true,
           message:
             "OBA request submitted successfully. Note: success=true means the request was submitted, not yet approved.",
           phoneNumberId,
