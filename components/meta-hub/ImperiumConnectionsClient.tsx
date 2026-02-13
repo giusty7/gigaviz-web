@@ -16,6 +16,7 @@ import {
 } from "./ImperiumConnectionsComponents";
 import { WhatsappConnectionForm } from "./WhatsappConnectionForm";
 import { WhatsappEmbeddedSignup } from "./WhatsappEmbeddedSignup";
+import { ObaRequestCard } from "./ObaRequestCard";
 import { useToast } from "@/components/ui/use-toast";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -342,6 +343,25 @@ export function ImperiumConnectionsClient({
             />
           </div>
         </motion.div>
+
+        {/* OBA VERIFICATION - Blue Tick */}
+        {isConnected && connection?.phoneNumberId && (
+          <motion.div variants={itemVariants}>
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+              <span className="text-xs font-semibold tracking-wider text-blue-400">
+                OBA VERIFICATION
+              </span>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+            </div>
+
+            <ObaRequestCard
+              workspaceId={workspaceId}
+              phoneNumberId={connection.phoneNumberId}
+              canEdit={canEdit}
+            />
+          </motion.div>
+        )}
 
         {/* TECHNICAL VAULT - Infrastructure Grid */}
         <motion.div variants={itemVariants}>
