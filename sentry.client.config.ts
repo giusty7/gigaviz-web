@@ -12,6 +12,51 @@ Sentry.init({
   // Environment
   environment: process.env.NODE_ENV ?? "development",
 
+  // ── User Feedback Widget ────────────────────────────────────────────
+  // Floating "Report a Bug" button for logged-in users.
+  // Reports are sent directly to Sentry with user context + screenshot.
+  integrations: [
+    Sentry.feedbackIntegration({
+      autoInject: true,
+      colorScheme: "dark",
+      showBranding: false,
+      triggerLabel: "Feedback",
+      formTitle: "Report a Bug / Send Feedback",
+      submitButtonLabel: "Send",
+      cancelButtonLabel: "Cancel",
+      nameLabel: "Name",
+      namePlaceholder: "Your name",
+      emailLabel: "Email",
+      emailPlaceholder: "your@email.com",
+      messageLabel: "What happened?",
+      messagePlaceholder:
+        "Describe the issue or share your feedback. Screenshots are welcome!",
+      successMessageText: "Thank you! We'll look into this.",
+      isNameRequired: false,
+      isEmailRequired: false,
+      showName: true,
+      showEmail: true,
+      enableScreenshot: true,
+      themeLight: {
+        submitBackground: "#d4a843",
+        submitBackgroundHover: "#c49a38",
+        submitForeground: "#0b1221",
+      },
+      themeDark: {
+        background: "#0f1c2c",
+        inputBackground: "#111827",
+        inputForeground: "#e5e3d8",
+        inputBorder: "#1e3a5f",
+        inputOutlineFocus: "#d4a843",
+        submitBackground: "#d4a843",
+        submitBackgroundHover: "#c49a38",
+        submitForeground: "#0b1221",
+        formBorderColor: "#1e3a5f",
+        foreground: "#e5e3d8",
+      },
+    }),
+  ],
+
   // Filter noisy errors
   ignoreErrors: [
     // Browser-only noise

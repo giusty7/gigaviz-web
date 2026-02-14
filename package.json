@@ -23,7 +23,9 @@
     "kb:index:docs": "tsx scripts/kb-index.ts docs",
     "kb:index:web": "tsx scripts/kb-index.ts web",
     "db:push": "bash scripts/supabase/push.sh",
-    "db:verify": "bash scripts/supabase/verify.sh"
+    "db:verify": "bash scripts/supabase/verify.sh",
+    "preflight": "tsx scripts/preflight.ts",
+    "preflight:env": "tsx scripts/preflight.ts --env-only"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
