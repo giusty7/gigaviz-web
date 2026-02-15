@@ -1,0 +1,31 @@
+---
+title: "Ops Console Hardening: Standardized Auth & UI Consistency"
+date: "2026-02-15"
+summary: "Standardized authentication patterns, fixed boundary gaps, and improved UI consistency across all 26 ops console pages."
+audience: ["app"]
+tags: ["ops", "security", "admin", "internal"]
+type: "improved"
+---
+
+We've completed a comprehensive audit and cleanup of the internal ops console — 18 files improved across 26 pages.
+
+## What changed
+
+### Authentication standardization
+- **7 pages** now properly pass `actorEmail` and `actorRole` to OpsShell — the header badge correctly shows the logged-in admin's email instead of a generic "platform-admin" label
+- **6 pages** replaced `throw new Error("Unauthorized")` with clean `redirect("/")` — no more ugly error boundaries on auth failures
+- **2 pages** fixed inconsistent redirect targets (`/login` → `/`) to match the standard pattern
+- Removed redundant `assertOpsEnabled()` calls — the layout guard already handles this
+
+### Boundary gaps filled
+- Added missing `loading.tsx` and `error.tsx` for the workspace detail route (`/ops/workspaces/[id]`)
+- All 26 ops pages now have complete loading and error states
+
+### UI consistency
+- Fixed palette mismatch on the operations page: `zinc-*` → `slate-*` to match the rest of the console
+- Removed stale "IMPERIUM INTERNAL OPS" branding from the tickets page
+- Fixed double redirect: `/owner` now goes directly to `/ops` instead of bouncing through `/ops/platform-admin`
+
+## Impact
+
+These changes improve security posture (no more thrown errors leaking context), visual consistency, and loading performance for the internal ops console.

@@ -1,0 +1,46 @@
+---
+title: "Introducing Gigaviz Links: Your Smart Link-in-Bio"
+date: "2026-02-15"
+summary: "Launch Gigaviz Links — create beautiful bio pages with click analytics, WhatsApp integration, product showcases, theme customization, and drag-and-drop editing."
+audience: ["public", "app"]
+tags: ["links", "bio-page", "analytics", "whatsapp", "new-product"]
+type: "shipped"
+---
+
+We're excited to launch **Gigaviz Links** — a smart link-in-bio tool built for businesses on WhatsApp and social media.
+
+## What's included
+
+- **Bio Pages**: Create beautiful, branded landing pages at `gigaviz.com/l/your-name`
+- **5 Link Types**: Regular URLs, WhatsApp chat links, product cards, social profiles, and section headings
+- **Click Analytics**: Track every click with device breakdown, daily trends, and top-performing links
+- **Theme Customization**: 8 built-in presets or fully custom colors, button styles, and corner radius
+- **Drag & Drop Editor**: Reorder links instantly with smooth drag-and-drop (powered by dnd-kit)
+- **WhatsApp Integration**: One-tap WhatsApp links with pre-filled messages — perfect for customer inquiries
+- **Product Showcases**: Display products with images, descriptions, and prices directly on your bio page
+- **QR Code Generator**: Download branded QR codes for print materials, packaging, or storefronts
+- **SEO Ready**: Custom meta titles, descriptions, and dynamic OG images for every page
+- **Rate-Limited Tracking**: Click endpoint protected against inflation attacks (60 req/min per IP)
+
+## How it works
+
+1. Go to **Links** in your workspace sidebar
+2. Create a new page — choose a unique slug
+3. Add links, products, or WhatsApp buttons
+4. Customize your theme under **Page Settings → Appearance**
+5. Hit **Publish** — your page is live instantly
+
+## Who it's for
+
+- **UMKM & small businesses** sharing their WhatsApp catalog on Instagram, TikTok, or Facebook
+- **Freelancers & creators** who need a simple landing page for all their links
+- **Sales teams** sending personalized bio pages with tracked WhatsApp links to prospects
+
+## Technical details
+
+- 3 database tables: `link_pages`, `link_items`, `link_clicks` — all workspace-scoped with RLS
+- 6 API routes with full Zod validation and error handling
+- Dynamic OG image generation using Next.js ImageResponse (1200×630, theme-aware)
+- Session-based unique visitor tracking with IP hashing (SHA-256, salted)
+
+Gigaviz Links is available now for all workspaces with the `links` entitlement.
