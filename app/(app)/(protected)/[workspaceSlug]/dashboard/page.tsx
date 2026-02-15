@@ -45,20 +45,20 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
     <div className="relative min-h-screen">
       <SetPasswordModal />
 
-      <div className="relative space-y-8 pb-12">
+      <div className="relative space-y-6 pb-10">
         {/* Compact Hero */}
-        <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <section className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#f5f5dc] tracking-tight sm:text-3xl">
+            <h1 className="text-xl font-bold text-[#f5f5dc] tracking-tight sm:text-2xl">
               {t("welcomeBack", { workspace: workspace.name })}
             </h1>
-            <p className="mt-1 text-sm text-[#f5f5dc]/50 max-w-xl">
+            <p className="mt-0.5 text-xs text-[#f5f5dc]/40 max-w-lg">
               {t("subtitle")}
             </p>
           </div>
           <Link
             href={`/${workspace.slug}/settings`}
-            className="inline-flex items-center self-start rounded-lg border border-[#d4af37]/20 bg-[#d4af37]/5 px-4 py-2 text-xs font-medium text-[#d4af37] transition hover:bg-[#d4af37]/10 sm:self-auto"
+            className="inline-flex items-center self-start rounded-lg border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/50 transition hover:bg-[#f5f5dc]/[0.04] hover:text-[#f5f5dc]/70 sm:self-auto"
           >
             {t("workspaceSettings")}
           </Link>

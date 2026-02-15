@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle2, Info, Lock } from "lucide-react";
+import { AlertCircle, CheckCircle2, Info, Lock, ArrowRight } from "lucide-react";
 import type { ProductWidget } from "@/lib/dashboard/overview";
 
 type ProductKPICardProps = {
@@ -13,161 +12,117 @@ type ProductKPICardProps = {
 const statusConfig = {
   live: {
     badge: "LIVE",
-    badgeClass: "bg-emerald-500/15 text-emerald-200 border-emerald-500/40",
-    borderClass: "border-emerald-500/30 hover:border-emerald-500/50",
-    accentClass: "text-emerald-400",
+    badgeClass: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+    borderClass: "border-[#f5f5dc]/[0.06] hover:border-emerald-500/30",
   },
   beta: {
     badge: "BETA",
-    badgeClass: "bg-blue-500/15 text-blue-200 border-blue-500/40",
-    borderClass: "border-blue-500/30 hover:border-blue-500/50",
-    accentClass: "text-blue-400",
+    badgeClass: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+    borderClass: "border-[#f5f5dc]/[0.06] hover:border-blue-500/30",
   },
   locked: {
     badge: "LOCKED",
-    badgeClass: "bg-amber-500/15 text-amber-200 border-amber-500/40",
-    borderClass: "border-amber-500/30 hover:border-amber-500/50",
-    accentClass: "text-amber-400",
+    badgeClass: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    borderClass: "border-[#f5f5dc]/[0.06] hover:border-amber-500/30",
   },
   "coming-soon": {
     badge: "SOON",
-    badgeClass: "bg-slate-500/15 text-slate-300 border-slate-500/40",
-    borderClass: "border-slate-500/30 hover:border-slate-500/50",
-    accentClass: "text-slate-400",
+    badgeClass: "bg-slate-500/15 text-slate-400 border-slate-500/30",
+    borderClass: "border-[#f5f5dc]/[0.06] hover:border-slate-500/30",
   },
 };
 
-const alertConfig = {
-  info: {
-    icon: Info,
-    bgClass: "bg-blue-500/10 border-blue-500/30",
-    textClass: "text-blue-200",
-    iconClass: "text-blue-400",
-  },
-  warning: {
-    icon: AlertCircle,
-    bgClass: "bg-amber-500/10 border-amber-500/30",
-    textClass: "text-amber-200",
-    iconClass: "text-amber-400",
-  },
-  error: {
-    icon: AlertCircle,
-    bgClass: "bg-red-500/10 border-red-500/30",
-    textClass: "text-red-200",
-    iconClass: "text-red-400",
-  },
-  success: {
-    icon: CheckCircle2,
-    bgClass: "bg-emerald-500/10 border-emerald-500/30",
-    textClass: "text-emerald-200",
-    iconClass: "text-emerald-400",
-  },
+const alertIcons = {
+  info: Info,
+  warning: AlertCircle,
+  error: AlertCircle,
+  success: CheckCircle2,
 };
 
-export function ProductKPICard({ widget, index }: ProductKPICardProps) {
+const alertColors = {
+  info: "text-blue-400",
+  warning: "text-amber-400",
+  error: "text-red-400",
+  success: "text-emerald-400",
+};
+
+export function ProductKPICard({ widget }: ProductKPICardProps) {
   const config = statusConfig[widget.status];
   const isLocked = widget.status === "locked";
   const isComingSoon = widget.status === "coming-soon";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`group relative overflow-hidden rounded-2xl border ${config.borderClass} bg-[#0a1229]/80 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-lg`}
+    <div
+      className={`group relative rounded-xl border ${config.borderClass} bg-[#f5f5dc]/[0.02] transition-colors`}
     >
-      {/* Gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent" />
-
-      {/* Content */}
-      <div className="relative p-5 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              {isLocked && <Lock className="h-4 w-4 text-amber-400" />}
-              <h3 className="text-base font-bold text-[#f5f5dc] truncate">
-                {widget.productName}
-              </h3>
-            </div>
-          </div>
-          <span
-            className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${config.badgeClass}`}
-          >
-            {config.badge}
-          </span>
+      {/* Header row: name + badge */}
+      <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {isLocked && <Lock className="h-3 w-3 text-amber-400 shrink-0" />}
+          <h3 className="text-sm font-semibold text-[#f5f5dc] truncate">
+            {widget.productName}
+          </h3>
         </div>
-
-        {/* Metrics */}
-        <div className="space-y-2.5">
-          {widget.metrics.map((metric, idx) => (
-            <div key={idx} className="flex items-center justify-between gap-3">
-              <span className="text-xs text-[#f5f5dc]/60 font-medium">
-                {metric.icon && <span className="mr-1">{metric.icon}</span>}
-                {metric.label}
-              </span>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold ${isComingSoon ? "text-[#f5f5dc]/50" : "text-[#f5f5dc]"}`}>
-                  {metric.value}
-                </span>
-                {metric.trend !== undefined && metric.trend !== 0 && (
-                  <span
-                    className={`text-xs font-semibold ${
-                      metric.trend > 0 ? "text-emerald-400" : "text-red-400"
-                    }`}
-                  >
-                    {metric.trend > 0 ? "↑" : "↓"} {Math.abs(metric.trend)}%
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Alert */}
-        {widget.alert && (
-          <div
-            className={`rounded-xl border p-3 ${
-              alertConfig[widget.alert.type].bgClass
-            }`}
-          >
-            <div className="flex items-start gap-2">
-              {(() => {
-                const AlertIcon = alertConfig[widget.alert.type].icon;
-                return (
-                  <AlertIcon
-                    className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
-                      alertConfig[widget.alert.type].iconClass
-                    }`}
-                  />
-                );
-              })()}
-              <p
-                className={`text-xs font-medium ${
-                  alertConfig[widget.alert.type].textClass
-                }`}
-              >
-                {widget.alert.message}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Action */}
-        {widget.quickAction && (
-          <Link
-            href={widget.quickAction.href}
-            className={`block w-full rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/80 px-4 py-2.5 text-center text-sm font-semibold ${config.accentClass} transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/5`}
-          >
-            {widget.quickAction.label} →
-          </Link>
-        )}
+        <span
+          className={`shrink-0 rounded-md px-1.5 py-px text-[9px] font-bold uppercase tracking-wider border ${config.badgeClass}`}
+        >
+          {config.badge}
+        </span>
       </div>
+
+      {/* Metrics — compact key/value pairs */}
+      <div className="px-4 pb-2 space-y-1">
+        {widget.metrics.map((metric, idx) => (
+          <div key={idx} className="flex items-center justify-between gap-2">
+            <span className="text-[11px] text-[#f5f5dc]/40">
+              {metric.icon && <span className="mr-0.5">{metric.icon}</span>}
+              {metric.label}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-xs font-semibold tabular-nums ${isComingSoon ? "text-[#f5f5dc]/30" : "text-[#f5f5dc]/90"}`}>
+                {metric.value}
+              </span>
+              {metric.trend !== undefined && metric.trend !== 0 && (
+                <span
+                  className={`text-[10px] font-semibold ${
+                    metric.trend > 0 ? "text-emerald-400" : "text-red-400"
+                  }`}
+                >
+                  {metric.trend > 0 ? "↑" : "↓"}{Math.abs(metric.trend)}%
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Alert — inline, compact */}
+      {widget.alert && (() => {
+        const AlertIcon = alertIcons[widget.alert.type];
+        const color = alertColors[widget.alert.type];
+        return (
+          <div className="mx-4 mb-2 flex items-center gap-1.5 rounded-md bg-[#f5f5dc]/[0.03] px-2 py-1">
+            <AlertIcon className={`h-3 w-3 shrink-0 ${color}`} />
+            <p className="text-[10px] text-[#f5f5dc]/60 truncate">{widget.alert.message}</p>
+          </div>
+        );
+      })()}
+
+      {/* Quick action — subtle link, not a button */}
+      {widget.quickAction && (
+        <Link
+          href={widget.quickAction.href}
+          className="flex items-center justify-between border-t border-[#f5f5dc]/[0.04] px-4 py-2 text-[11px] font-medium text-[#d4af37]/70 transition hover:bg-[#d4af37]/[0.04] hover:text-[#d4af37]"
+        >
+          {widget.quickAction.label}
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      )}
 
       {/* Locked overlay */}
       {isLocked && (
-        <div className="absolute inset-0 bg-[#0a1229]/60 backdrop-blur-[2px] pointer-events-none" />
+        <div className="absolute inset-0 rounded-xl bg-[#050a18]/50 backdrop-blur-[1px] pointer-events-none" />
       )}
-    </motion.div>
+    </div>
   );
 }

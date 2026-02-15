@@ -10,10 +10,10 @@ const typeIcons: Record<UpdateType, React.ComponentType<{ className?: string }>>
 };
 
 const typeColors: Record<UpdateType, string> = {
-  shipped: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  improved: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  fixed: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  security: "bg-red-500/10 text-red-400 border-red-500/20",
+  shipped: "text-emerald-400",
+  improved: "text-blue-400",
+  fixed: "text-amber-400",
+  security: "text-red-400",
 };
 
 type UpdatesPanelProps = {
@@ -28,56 +28,45 @@ export async function UpdatesPanel({ workspaceSlug }: UpdatesPanelProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-[#d4af37]/80 font-semibold">
-            What&apos;s New
-          </p>
-          <h2 className="text-xl font-bold text-[#f5f5dc]">Product Updates</h2>
-        </div>
+    <section>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-xs font-medium uppercase tracking-[0.15em] text-[#f5f5dc]/30">
+          What&apos;s New
+        </h3>
         <Link
           href={`/${workspaceSlug}/changelog`}
-          className="text-sm font-semibold text-[#d4af37] hover:underline flex items-center gap-1"
+          className="text-[11px] font-medium text-[#d4af37]/60 hover:text-[#d4af37] transition flex items-center gap-1"
         >
-          View all <Sparkles className="h-4 w-4" />
+          View all <Sparkles className="h-3 w-3" />
         </Link>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/70">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#d4af37]/5 to-transparent" />
-        
-        <div className="relative divide-y divide-[#d4af37]/10">{updates.map((update) => {
-            const Icon = typeIcons[update.type];
-            return (
-              <Link
-                key={update.slug}
-                href={`/${workspaceSlug}/changelog/${update.slug}`}
-                className="flex items-start gap-4 p-4 transition hover:bg-[#d4af37]/5"
-              >
-                <div
-                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border ${typeColors[update.type]}`}
-                >
-                  <Icon className="h-4 w-4" />
+      <div className="divide-y divide-[#f5f5dc]/[0.04] rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02]">
+        {updates.map((update) => {
+          const Icon = typeIcons[update.type];
+          return (
+            <Link
+              key={update.slug}
+              href={`/${workspaceSlug}/changelog/${update.slug}`}
+              className="flex items-start gap-3 px-3 py-2.5 transition hover:bg-[#f5f5dc]/[0.02]"
+            >
+              <Icon className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${typeColors[update.type]}`} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="text-xs font-medium text-[#f5f5dc]/70 line-clamp-1">
+                    {update.title}
+                  </h4>
+                  <time className="text-[10px] text-[#f5f5dc]/20 whitespace-nowrap">
+                    {formatUpdateDate(update.date)}
+                  </time>
                 </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <h4 className="text-sm font-semibold text-[#f5f5dc]">
-                      {update.title}
-                    </h4>
-                    <time className="text-xs text-[#f5f5dc]/40 whitespace-nowrap">
-                      {formatUpdateDate(update.date)}
-                    </time>
-                  </div>
-                  <p className="mt-1 text-xs text-[#f5f5dc]/60 line-clamp-2">
-                    {update.summary}
-                  </p>
-                </div>
+                <p className="mt-0.5 text-[11px] text-[#f5f5dc]/30 line-clamp-1">
+                  {update.summary}
+                </p>
+              </div>
             </Link>
-            );
-          })}
-        </div>
+          );
+        })}
       </div>
     </section>
   );

@@ -64,49 +64,46 @@ export async function DashboardActivityFeed({
   });
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-[#d4af37]/80 font-semibold">
-            Workspace Activity
-          </p>
-          <h2 className="text-xl font-bold text-[#f5f5dc]">Recent Events</h2>
-        </div>
+    <section>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-xs font-medium uppercase tracking-[0.15em] text-[#f5f5dc]/30">
+          Recent Activity
+        </h3>
         <Link
           href={`/${workspaceSlug}/platform/audit`}
-          className="text-sm font-semibold text-[#d4af37] hover:underline flex items-center gap-1"
+          className="text-[11px] font-medium text-[#d4af37]/60 hover:text-[#d4af37] transition flex items-center gap-1"
         >
-          View all <Activity className="h-4 w-4" />
+          View all <Activity className="h-3 w-3" />
         </Link>
       </div>
 
       {activityItems.length === 0 ? (
-        <div className="rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/70 p-6 text-center">
-          <p className="font-semibold text-[#f5f5dc] mb-2">No recent activity yet</p>
-          <p className="text-sm text-[#f5f5dc]/60">
-            Start using your workspace to see activity here
+        <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-4 py-6 text-center">
+          <p className="text-xs font-medium text-[#f5f5dc]/40">No activity yet</p>
+          <p className="mt-1 text-[11px] text-[#f5f5dc]/20">
+            Actions in your workspace will appear here
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[#d4af37]/15 overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/70">
+        <div className="divide-y divide-[#f5f5dc]/[0.04] rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02]">
           {activityItems.slice(0, 6).map((item) => (
-            <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-[#d4af37]/5 transition">
-              <div className="flex-1 min-w-0 space-y-1">
-                <p className="text-sm font-semibold text-[#f5f5dc] truncate">
+            <div key={item.id} className="flex items-center justify-between gap-3 px-3 py-2.5 transition hover:bg-[#f5f5dc]/[0.02]">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[#f5f5dc]/70 truncate">
                   {item.action}
                 </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-[#f5f5dc]/60 truncate">
-                    {item.actor}
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="text-[10px] text-[#f5f5dc]/30 truncate">
+                    {item.actor.split("@")[0]}
                   </p>
                   {item.moduleTag && (
-                    <span className="rounded-full bg-[#d4af37]/10 px-2 py-0.5 text-[10px] font-bold uppercase text-[#d4af37] border border-[#d4af37]/20">
+                    <span className="rounded bg-[#d4af37]/10 px-1 py-px text-[9px] font-semibold uppercase text-[#d4af37]/60">
                       {item.moduleTag}
                     </span>
                   )}
                 </div>
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wide text-[#f5f5dc]/50 whitespace-nowrap">
+              <span className="text-[10px] text-[#f5f5dc]/20 whitespace-nowrap">
                 {formatRelativeTime(item.createdAt)}
               </span>
             </div>
