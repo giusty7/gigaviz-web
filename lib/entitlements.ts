@@ -5,17 +5,14 @@ export type FeatureKey =
   | "plan_comparison_view"
   | "billing_manage"
   | "tokens_view"
-  // 10 Hubs (modules)
+  // 7 Hubs (modules)
   | "core_os"
   | "meta_hub"
   | "studio"
   | "helper"
   | "office"
   | "marketplace"
-  | "arena"
-  | "pay"
-  | "trade"
-  | "community"
+  | "apps"
   // Legacy/capability keys
   | "graph"
   | "tracks"
@@ -137,10 +134,7 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "studio",
     "studio_graph",
     "marketplace",
-    "arena",
-    "pay",
-    "trade",
-    "community",
+    "apps",
     "inbox",
     "automation",
     "mass_blast",
@@ -166,10 +160,7 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "studio",
     "studio_graph",
     "marketplace",
-    "arena",
-    "pay",
-    "trade",
-    "community",
+    "apps",
     "inbox",
     "automation",
     "mass_blast",
@@ -244,10 +235,7 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "studio",
     "studio_graph",
     "marketplace",
-    "arena",
-    "pay",
-    "trade",
-    "community",
+    "apps",
     "inbox",
     "automation",
     "mass_blast",
@@ -302,7 +290,7 @@ export const planMeta: PlanMeta[] = [
     billing_mode: "team",
     seat_limit: 25,
     highlightBenefits: [
-      "All 10 modules unlocked",
+      "All 7 modules unlocked",
       "50.000 WA messages/month",
       "Mass broadcast & advanced analytics",
     ],

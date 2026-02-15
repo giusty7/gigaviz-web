@@ -4,7 +4,7 @@
 
 **Repo**: Gigaviz multi-tenant SaaS platform (Next.js 16 + React 19 + TypeScript + Supabase)  
 **MVP**: Inbox & CRM with WhatsApp/Meta Hub integration  
-**Roadmap**: 10-product ecosystem (Platform, Meta Hub, Helper, Studio, Apps, Marketplace, Arena, Pay, Community, Trade)
+**Roadmap**: 7-product ecosystem (Platform, Meta Hub, Helper, Studio, Apps, Marketplace, Office)
 
 ```bash
 npm install
@@ -99,7 +99,7 @@ const validated = schema.parse(body); // Throws if invalid
 
 ---
 
-## Product Map (10 Modules)
+## Product Map (7 Products)
 
 | Module | Status | Entitlement | Routes | Description |
 |--------|--------|-------------|--------|-------------|
@@ -107,12 +107,9 @@ const validated = schema.parse(body); // Throws if invalid
 | **Meta Hub** | LIVE | `meta_hub` | `/[workspaceSlug]/meta-hub` | WhatsApp Business Platform: templates, inbox, delivery, automation |
 | **Helper** | BETA | `helper` | `/[workspaceSlug]/helper` | AI assistant: chat, copywriting, RAG knowledge base, workflows |
 | **Studio** | BETA | `studio` | `/[workspaceSlug]/modules/studio` | Creative suite parent: Office, Graph, Tracks |
-| **Apps** | PLACEHOLDER | TBD | `/[workspaceSlug]/apps` | Third-party app integrations (planned) |
-| **Marketplace** | PLACEHOLDER | `marketplace` | `/[workspaceSlug]/marketplace` | Template/plugin marketplace (planned) |
-| **Arena** | PLACEHOLDER | `arena` | `/[workspaceSlug]/arena` | Competitive insights (planned) |
-| **Pay** | PLACEHOLDER | `pay` | `/[workspaceSlug]/pay` | Payment processing (planned) |
-| **Community** | PLACEHOLDER | `community` | `/[workspaceSlug]/community` | User forums/support (planned) |
-| **Trade** | PLACEHOLDER | `trade` | `/[workspaceSlug]/trade` | E-commerce features (planned) |
+| **Office** | BETA | `office` | `/[workspaceSlug]/modules/office` | AI-powered document automation (Excel, Word, PDF) |
+| **Apps** | BETA | TBD | `/[workspaceSlug]/apps` | Third-party app integrations |
+| **Marketplace** | BETA | `marketplace` | `/[workspaceSlug]/marketplace` | Template/plugin marketplace |
 
 ---
 
@@ -225,11 +222,11 @@ const validated = schema.parse(body); // Throws if invalid
 
 ### Gigaviz Studio (BETA)
 
-**Purpose**: Creative and productivity suite (parent module for Office, Graph, Tracks).
+**Purpose**: AI-powered creative suite (parent module for Office, Graph, Tracks).
 
 **Entry Points**:
 - UI: `/[workspaceSlug]/modules/studio`, `/[workspaceSlug]/modules/office`
-- Submodules: Office (work templates, formulas), Graph (data viz), Tracks (project management)
+- Submodules: Office (AI document automation — Excel, Word, PDF), Graph (AI image & video creation), Tracks (AI music & audio creation)
 
 **Core Entities**: TBD (submodule-specific tables planned)
 
@@ -256,54 +253,6 @@ const validated = schema.parse(body); // Throws if invalid
 **Purpose**: Template and plugin marketplace for sharing/monetizing assets.
 
 **Entry Points**: `/[workspaceSlug]/marketplace` (route exists, UI placeholder)
-
-**Status**: Route scaffolding only; no backend implementation yet.
-
-**Guidance**: When implementing, follow workspace scoping, RLS policies, and entitlement gating patterns.
-
----
-
-### Gigaviz Arena (PLACEHOLDER)
-
-**Purpose**: Competitive insights and benchmarking tools.
-
-**Entry Points**: `/[workspaceSlug]/arena` (route exists, UI placeholder)
-
-**Status**: Route scaffolding only; no backend implementation yet.
-
-**Guidance**: When implementing, follow workspace scoping, RLS policies, and entitlement gating patterns.
-
----
-
-### Gigaviz Pay (PLACEHOLDER)
-
-**Purpose**: Payment processing and invoicing.
-
-**Entry Points**: `/[workspaceSlug]/pay` (route exists, UI placeholder)
-
-**Status**: Route scaffolding only; no backend implementation yet.
-
-**Guidance**: When implementing, follow workspace scoping, RLS policies, and entitlement gating patterns.
-
----
-
-### Gigaviz Community (PLACEHOLDER)
-
-**Purpose**: User forums and support community.
-
-**Entry Points**: `/[workspaceSlug]/community` (route exists, UI placeholder)
-
-**Status**: Route scaffolding only; no backend implementation yet.
-
-**Guidance**: When implementing, follow workspace scoping, RLS policies, and entitlement gating patterns.
-
----
-
-### Gigaviz Trade (PLACEHOLDER)
-
-**Purpose**: E-commerce and order management.
-
-**Entry Points**: `/[workspaceSlug]/trade` (route exists, UI placeholder)
 
 **Status**: Route scaffolding only; no backend implementation yet.
 
@@ -676,7 +625,7 @@ Last audited: **February 13, 2026** — update scores as improvements land.
 | Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks, 20+ docs files |
 | Developer Experience | 9/10 | ✅ Strong | Zod env validation (build-time fail-fast), 55+ scripts, typecheck/lint, 6 CI/CD workflows (lint→typecheck→test→build→E2E + CodeQL + cron workers), Vitest 4 + Playwright E2E + mock factories |
 | Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy mature (wallets, ledger, rates, caps, budget guards), 5-plan hierarchy, 7 billing API routes — but **NO payment gateway** (all provider=manual), no Stripe/Xendit |
-| Module Completion | 7/10 | ⚠️ 4 Placeholders | 6 modules LIVE/BETA (Platform, Meta Hub, Helper, Inbox, Apps, Marketplace), 2 scaffold (Studio, Office), 4 placeholder (Arena, Pay, Community, Trade) |
+| Module Completion | 9/10 | ✅ Strong | 7 products: Platform (LIVE), Meta Hub (LIVE), Helper (BETA), Studio (BETA), Office (BETA), Apps (BETA), Marketplace (BETA) |
 | Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 5 dynamic import pages (7 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 26 loading.tsx + 41 error.tsx, font optimization |
 | Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (507 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 210/225 API routes (15 intentionally skipped: webhooks/SSE/auth callbacks) |
 | Testing | 7/10 | ⚠️ Growing | 29 test files with 349 assertions, 4.96% statement coverage. Playwright E2E in CI (2 spec files: marketing + API). Vitest: lib/ unit tests (with-error-handler, zod-schemas x2, workspace-scoping, security-patterns, rate-limit, i18n-completeness, auth-schemas, contact-schema, wa-contacts-utils, contacts-normalize, utils). No component tests yet |
@@ -696,10 +645,6 @@ Last audited: **February 13, 2026** — update scores as improvements land.
 | **Marketplace** | ⚠️ BETA | 3 routes | 1 | Real DB queries (marketplace_items, creators, purchases) + sell page |
 | **Studio** | ⚠️ SCAFFOLD | 2 routes | 0 | Preview shell + module catalog grid (Office/Graph/Tracks) |
 | **Office** | ⚠️ EARLY | 1 route | 0 | Queries `office_templates` + `office_documents` — real DB, limited UI |
-| **Arena** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage only |
-| **Pay** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage — depends on payment gateway |
-| **Community** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage only |
-| **Trade** | 🔴 PLACEHOLDER | 1 page | 0 | Generic HubPreviewPage only |
 
 ### Go International Roadmap
 

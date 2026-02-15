@@ -11,10 +11,6 @@ import {
   Palette,
   LayoutGrid,
   Store,
-  Trophy,
-  CreditCard,
-  Users,
-  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -28,15 +24,10 @@ const iconMap: Record<ModuleIcon, LucideIcon> = {
   office: LayoutGrid,
   studio: Palette,
   marketplace: Store,
-  arena: Trophy,
   apps: LayoutGrid,
-  pay: CreditCard,
-  community: Users,
 };
 
-const keyIconOverrides: Record<string, LucideIcon> = {
-  trade: TrendingUp,
-};
+const keyIconOverrides: Record<string, LucideIcon> = {};
 
 type QuickLaunchGridProps = {
   workspaceSlug: string;
@@ -100,7 +91,7 @@ export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLa
       <div className="relative">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-[#f5f5dc]">Quick Launch</h3>
-          <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">10 Pillars</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">7 Products</span>
         </div>
 
         <div className="mt-4 grid grid-cols-5 gap-2">

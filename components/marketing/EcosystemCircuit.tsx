@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type NodePillar = "core" | "growth" | "build" | "community";
+type NodePillar = "core" | "connect" | "create" | "commerce";
 
 interface CircuitNode {
   id: string;
@@ -15,57 +15,48 @@ interface CircuitNode {
   gridY: number; // 0-4 rows
 }
 
-// Circuit Board Grid Layout (7 columns x 5 rows)
+// Circuit Board Grid Layout (7 columns x 5 rows) — 7 products
 // Core at center, modules arranged in circuit pattern
 const nodes: CircuitNode[] = [
   // CORE - Center (col 3, row 2)
   { id: "core", title: "GIGAVIZ", subtitle: "Platform Core", href: "/products/platform", pillar: "core", gridX: 3, gridY: 2 },
 
-  // COMMUNITY - Top row (cream)
-  { id: "community", title: "COMMUNITY", subtitle: "Feedback", href: "/products/community", pillar: "community", gridX: 0, gridY: 0 },
-  { id: "arena", title: "ARENA", subtitle: "Engagement", href: "/products/arena", pillar: "community", gridX: 2, gridY: 0 },
-  { id: "marketplace", title: "MARKETPLACE", subtitle: "Templates", href: "/products/marketplace", pillar: "community", gridX: 4, gridY: 0 },
-  { id: "apps", title: "APPS", subtitle: "App Catalog", href: "/products/apps", pillar: "community", gridX: 6, gridY: 0 },
+  // COMMERCE - Top row (cream)
+  { id: "marketplace", title: "MARKETPLACE", subtitle: "Digital Products", href: "/products/marketplace", pillar: "commerce", gridX: 2, gridY: 0 },
+  { id: "apps", title: "APPS", subtitle: "Integrations", href: "/products/apps", pillar: "commerce", gridX: 4, gridY: 0 },
 
-  // BUILD - Left side (magenta)
-  { id: "helper", title: "HELPER", subtitle: "AI Copilot", href: "/products/helper", pillar: "build", gridX: 0, gridY: 2 },
-  { id: "studio", title: "STUDIO", subtitle: "Graph/Tracks", href: "/products/studio", pillar: "build", gridX: 0, gridY: 4 },
-  { id: "office", title: "OFFICE", subtitle: "Sheets/Excel", href: "/products/office", pillar: "build", gridX: 2, gridY: 4 },
+  // CREATE - Left side (magenta)
+  { id: "helper", title: "HELPER", subtitle: "AI Assistant", href: "/products/helper", pillar: "create", gridX: 0, gridY: 2 },
+  { id: "studio", title: "STUDIO", subtitle: "Creative Suite", href: "/products/studio", pillar: "create", gridX: 0, gridY: 4 },
+  { id: "office", title: "OFFICE", subtitle: "AI Documents", href: "/products/office", pillar: "create", gridX: 2, gridY: 4 },
 
-  // GROWTH - Right side (gold)
-  { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "growth", gridX: 6, gridY: 2 },
-  { id: "pay", title: "PAY", subtitle: "Billing", href: "/products/pay", pillar: "growth", gridX: 6, gridY: 4 },
-  { id: "trade", title: "TRADE", subtitle: "Insights", href: "/products/trade", pillar: "growth", gridX: 4, gridY: 4 },
+  // CONNECT - Right side (gold)
+  { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "connect", gridX: 6, gridY: 2 },
 ];
 
-// Circuit traces - 90 angle paths connecting nodes
-// Format: [startNode, endNode, via points for 90 bends]
+// Circuit traces - 90° angle paths connecting nodes
 const circuitTraces = [
   // Core connections (gold, thick)
-  { from: "core", to: "arena", pillar: "core" as NodePillar, path: "M 50 40 L 50 15 L 35.7 15" },
-  { from: "core", to: "marketplace", pillar: "core" as NodePillar, path: "M 50 40 L 50 15 L 64.3 15" },
+  { from: "core", to: "marketplace", pillar: "core" as NodePillar, path: "M 50 40 L 50 15 L 35.7 15" },
+  { from: "core", to: "apps", pillar: "core" as NodePillar, path: "M 50 40 L 50 15 L 64.3 15" },
   { from: "core", to: "helper", pillar: "core" as NodePillar, path: "M 42 50 L 20 50 L 20 40" },
   { from: "core", to: "meta_hub", pillar: "core" as NodePillar, path: "M 58 50 L 80 50 L 80 40" },
 
-  // Community traces (cream) - horizontal bus at top
-  { from: "community", to: "arena", pillar: "community" as NodePillar, path: "M 14.3 15 L 28.6 15" },
-  { from: "arena", to: "marketplace", pillar: "community" as NodePillar, path: "M 42.9 15 L 57.1 15" },
-  { from: "marketplace", to: "apps", pillar: "community" as NodePillar, path: "M 71.4 15 L 85.7 15" },
+  // Commerce traces (cream) - horizontal bus at top
+  { from: "marketplace", to: "apps", pillar: "commerce" as NodePillar, path: "M 42.9 15 L 57.1 15" },
 
-  // Build traces (magenta) - left side
-  { from: "helper", to: "studio", pillar: "build" as NodePillar, path: "M 7.1 60 L 7.1 78" },
-  { from: "studio", to: "office", pillar: "build" as NodePillar, path: "M 14.3 85 L 28.6 85" },
-  { from: "office", to: "core", pillar: "build" as NodePillar, path: "M 35.7 78 L 35.7 60 L 42 60" },
+  // Create traces (magenta) - left side
+  { from: "helper", to: "studio", pillar: "create" as NodePillar, path: "M 7.1 60 L 7.1 78" },
+  { from: "studio", to: "office", pillar: "create" as NodePillar, path: "M 14.3 85 L 28.6 85" },
+  { from: "office", to: "core", pillar: "create" as NodePillar, path: "M 35.7 78 L 35.7 60 L 42 60" },
 
-  // Growth traces (gold) - right side
-  { from: "meta_hub", to: "pay", pillar: "growth" as NodePillar, path: "M 92.9 60 L 92.9 78" },
-  { from: "pay", to: "trade", pillar: "growth" as NodePillar, path: "M 85.7 85 L 71.4 85" },
-  { from: "trade", to: "core", pillar: "growth" as NodePillar, path: "M 64.3 78 L 64.3 60 L 58 60" },
+  // Connect traces (gold) - right side
+  { from: "meta_hub", to: "core", pillar: "connect" as NodePillar, path: "M 85.7 60 L 85.7 50 L 58 50" },
 ];
 
 function getPillarStyles(pillar: NodePillar) {
   switch (pillar) {
-    case "growth":
+    case "connect":
       return {
         border: "border-gigaviz-gold/50",
         bg: "bg-gradient-to-br from-gigaviz-gold/20 to-gigaviz-gold/5",
@@ -73,7 +64,7 @@ function getPillarStyles(pillar: NodePillar) {
         glow: "shadow-[0_0_20px_-4px_var(--gv-gold),0_0_40px_-8px_var(--gv-gold)]",
         trace: "var(--gv-gold)",
       };
-    case "build":
+    case "create":
       return {
         border: "border-gigaviz-magenta/50",
         bg: "bg-gradient-to-br from-gigaviz-magenta/20 to-gigaviz-magenta/5",
@@ -81,7 +72,7 @@ function getPillarStyles(pillar: NodePillar) {
         glow: "shadow-[0_0_20px_-4px_var(--gv-magenta),0_0_40px_-8px_var(--gv-magenta)]",
         trace: "var(--gv-magenta)",
       };
-    case "community":
+    case "commerce":
       return {
         border: "border-gigaviz-cream/40",
         bg: "bg-gradient-to-br from-gigaviz-cream/15 to-gigaviz-cream/5",
@@ -178,8 +169,8 @@ export function EcosystemCircuit() {
           {/* Draw all circuit traces */}
           {circuitTraces.map((trace, i) => {
             const isActive = activeNode === trace.from || activeNode === trace.to;
-            const gradientId = trace.pillar === "build" ? "traceMagenta" 
-              : trace.pillar === "community" ? "traceCream" 
+            const gradientId = trace.pillar === "create" ? "traceMagenta" 
+              : trace.pillar === "commerce" ? "traceCream" 
               : "traceGold";
             
             return (

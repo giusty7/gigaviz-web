@@ -38,10 +38,6 @@ const productNavOrder = [
   "studio",
   "apps",
   "marketplace",
-  "arena",
-  "pay",
-  "community",
-  "trade",
 ];
 
 const productNavBase = [

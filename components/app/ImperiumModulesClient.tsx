@@ -56,7 +56,7 @@ export default function ImperiumModulesClient(props: ImperiumModulesClientProps)
             </div>
             <div className="flex items-center gap-2 rounded-full bg-[#d4af37]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#d4af37]">
               <Sparkles className="h-3 w-3" />
-              10 Pillars
+              7 Products
             </div>
           </div>
 
@@ -77,13 +77,7 @@ export default function ImperiumModulesClient(props: ImperiumModulesClientProps)
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
               <span className="text-[#f5f5dc]/50">
-                <span className="font-semibold text-emerald-400">7</span> Active Pillars
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#d4af37]" />
-              <span className="text-[#f5f5dc]/50">
-                <span className="font-semibold text-[#d4af37]">3</span> Future Pillars
+                <span className="font-semibold text-emerald-400">7</span> Products
               </span>
             </div>
           </div>
@@ -119,7 +113,7 @@ export default function ImperiumModulesClient(props: ImperiumModulesClientProps)
           className="flex items-center justify-center gap-2 py-6 text-center text-xs text-[#f5f5dc]/30"
         >
           <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#d4af37]/30" />
-          <span>Decagon Command Center</span>
+          <span>Command Center</span>
           <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#d4af37]/30" />
         </motion.div>
       </div>

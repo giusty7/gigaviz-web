@@ -9,23 +9,23 @@ import { ProductPreview } from "@/components/marketing/product-preview";
 export const metadata: Metadata = {
   title: "Gigaviz Marketplace",
   description:
-    "Marketplace to sell and buy templates, prompt packs, creative assets, and mini-apps within the Gigaviz ecosystem.",
+    "Buy and sell digital products: Office templates, AI-generated visuals, music tracks, prompt packs, and more.",
   alternates: {
     canonical: "/products/marketplace",
   },
   openGraph: {
     title: "Gigaviz Marketplace",
     description:
-      "Marketplace to sell and buy templates, prompt packs, creative assets, and mini-apps within the Gigaviz ecosystem.",
+      "Buy and sell digital products: Office templates, AI-generated visuals, music tracks, prompt packs, and more.",
     url: "/products/marketplace",
   },
 };
 
 const sellItems = [
-  "Office templates (spreadsheets, documents, dashboards)",
-  "Prompt packs for Studio and Helper",
-  "Ready-to-use creative assets (visual/audio)",
-  "Mini-apps and automations from Gigaviz Apps",
+  "Office documents — Excel spreadsheets, Word templates, PDF reports",
+  "Graph visuals — AI-generated images, graphics, and video content",
+  "Tracks audio — AI music, jingles, sound effects, and audio assets",
+  "Helper prompt packs — AI prompts for copywriting, CRM, and more",
 ];
 
 const featureCards = [

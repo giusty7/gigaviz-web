@@ -11,10 +11,7 @@ type ProductKey =
   | "studio"
   | "office"
   | "apps"
-  | "marketplace"
-  | "arena"
-  | "pay"
-  | "community";
+  | "marketplace";
 
 type ProductPreviewProps = {
   product: ProductKey;
@@ -381,122 +378,6 @@ function MarketplacePreview() {
   );
 }
 
-function ArenaPreview() {
-  return (
-    <div className="space-y-2 text-[10px]">
-      <div className="flex items-center justify-between">
-        <span className="font-semibold text-[#f5f5dc]/80">Arena</span>
-        <Pill color="pink">Live</Pill>
-      </div>
-      <div className="rounded-lg bg-[#111b2e] p-2">
-        <span className="font-medium text-[#f5f5dc]/70">Active Campaigns</span>
-        <div className="mt-1.5 space-y-1.5">
-          {[
-            { name: "Flash Sale Drop", participants: "1,234", status: "Live" },
-            { name: "Product Launch", participants: "567", status: "Scheduled" },
-          ].map((c) => (
-            <div key={c.name} className="flex items-center justify-between rounded bg-[#0c1424] p-1.5">
-              <div>
-                <div className="font-medium text-[#f5f5dc]/60">{c.name}</div>
-                <div className="text-[8px] text-[#f5f5dc]/30">{c.participants} participants</div>
-              </div>
-              <Pill color={c.status === "Live" ? "green" : "gold"}>{c.status}</Pill>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="rounded-lg bg-[#111b2e] p-2">
-        <span className="font-medium text-[#f5f5dc]/70">Engagement</span>
-        <div className="mt-1.5 space-y-1">
-          <Bar width="78%" color="#ec4899" />
-          <Bar width="92%" color="#d4af37" />
-          <Bar width="54%" color="#06b6d4" />
-        </div>
-        <div className="mt-1 flex justify-between text-[8px] text-[#f5f5dc]/30">
-          <span>Clicks</span>
-          <span>Opens</span>
-          <span>Converts</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PayPreview() {
-  return (
-    <div className="space-y-2 text-[10px]">
-      <div className="flex items-center justify-between">
-        <span className="font-semibold text-[#f5f5dc]/80">Pay</span>
-        <Pill color="green">Midtrans</Pill>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        <div className="rounded-lg bg-[#111b2e] p-2 text-center">
-          <div className="text-sm font-bold text-emerald-400">Rp 12.4M</div>
-          <div className="text-[8px] text-[#f5f5dc]/40">Revenue (MTD)</div>
-        </div>
-        <div className="rounded-lg bg-[#111b2e] p-2 text-center">
-          <div className="text-sm font-bold text-[#d4af37]">89</div>
-          <div className="text-[8px] text-[#f5f5dc]/40">Transactions</div>
-        </div>
-      </div>
-      <div className="rounded-lg bg-[#111b2e] p-2">
-        <span className="font-medium text-[#f5f5dc]/70">Recent Payments</span>
-        <div className="mt-1 space-y-1">
-          {[
-            { desc: "Growth Plan — Sarah", amount: "Rp 399K", status: "Paid" },
-            { desc: "Token Topup — Ahmad", amount: "Rp 100K", status: "Paid" },
-            { desc: "Starter Plan — Budi", amount: "Rp 149K", status: "Pending" },
-          ].map((p) => (
-            <div key={p.desc} className="flex items-center justify-between text-[8px]">
-              <span className="text-[#f5f5dc]/60">{p.desc}</span>
-              <div className="flex items-center gap-1">
-                <span className="text-[#d4af37]">{p.amount}</span>
-                <Pill color={p.status === "Paid" ? "green" : "gold"}>{p.status}</Pill>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CommunityPreview() {
-  return (
-    <div className="space-y-2 text-[10px]">
-      <div className="flex items-center justify-between">
-        <span className="font-semibold text-[#f5f5dc]/80">Community</span>
-        <Pill color="blue">432 members</Pill>
-      </div>
-      <div className="rounded-lg bg-[#111b2e] p-2">
-        <span className="font-medium text-[#f5f5dc]/70">Discussions</span>
-        <div className="mt-1 space-y-1">
-          {[
-            { title: "Tips: Auto-reply WhatsApp", replies: "23", hot: true },
-            { title: "Cara setup webhook", replies: "15", hot: false },
-            { title: "Feature request: IG DM", replies: "31", hot: true },
-          ].map((d) => (
-            <div key={d.title} className="flex items-center justify-between rounded bg-[#0c1424] p-1.5">
-              <div className="flex items-center gap-1">
-                {d.hot && <span className="text-[8px]">🔥</span>}
-                <span className="text-[#f5f5dc]/60">{d.title}</span>
-              </div>
-              <span className="text-[8px] text-[#f5f5dc]/30">{d.replies} replies</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="rounded-lg bg-[#111b2e] p-2">
-        <span className="font-medium text-[#f5f5dc]/70">Events</span>
-        <div className="mt-1 space-y-0.5 text-[8px] text-[#f5f5dc]/40">
-          <div>📅 Webinar: WA for E-commerce — Feb 20</div>
-          <div>📅 Office Hours — Feb 22</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ── Exported Preview Map ───────────────────────────────────── */
 
 const previewMap: Record<ProductKey, () => React.JSX.Element> = {
@@ -507,9 +388,6 @@ const previewMap: Record<ProductKey, () => React.JSX.Element> = {
   office: OfficePreview,
   apps: AppsPreview,
   marketplace: MarketplacePreview,
-  arena: ArenaPreview,
-  pay: PayPreview,
-  community: CommunityPreview,
 };
 
 export function ProductPreview({ product, className = "" }: ProductPreviewProps) {

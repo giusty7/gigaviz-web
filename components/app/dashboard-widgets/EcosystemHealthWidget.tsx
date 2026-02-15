@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Wifi, Bot, CreditCard, AlertCircle } from "lucide-react";
+import { Wifi, Bot, Store, AlertCircle } from "lucide-react";
 import type { ModuleRegistryItem } from "@/lib/modules/registry";
 
 type ConnectionStatus = "active" | "locked" | "coming_soon";
@@ -22,7 +22,7 @@ const statusConfig: Record<ConnectionStatus, { label: string; color: string; pul
 const serviceKeyMap = [
   { key: "meta_hub", label: "Meta Hub", icon: <Wifi className="h-4 w-4" /> },
   { key: "helper", label: "Helper AI", icon: <Bot className="h-4 w-4" /> },
-  { key: "pay", label: "Pay", icon: <CreditCard className="h-4 w-4" /> },
+  { key: "marketplace", label: "Marketplace", icon: <Store className="h-4 w-4" /> },
 ];
 
 type EcosystemHealthWidgetProps = {

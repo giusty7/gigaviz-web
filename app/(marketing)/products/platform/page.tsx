@@ -106,10 +106,7 @@ const modules = [
   "Office",
   "Studio (Graph + Tracks)",
   "Marketplace",
-  "Arena",
   "Apps",
-  "Pay",
-  "Community",
 ];
 
 const faqs = [

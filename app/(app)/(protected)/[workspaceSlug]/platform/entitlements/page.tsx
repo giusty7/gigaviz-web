@@ -24,10 +24,9 @@ const ENTITLEMENT_LABELS: Record<string, string> = {
   helper: "Helper",
   office: "Office",
   marketplace: "Marketplace",
-  arena: "Arena",
-  pay: "Pay",
-  trade: "Trade",
-  community: "Community",
+  apps: "Apps",
+  graph: "Graph",
+  tracks: "Tracks",
 };
 
 function formatDateTimeLocal(value?: string | null) {

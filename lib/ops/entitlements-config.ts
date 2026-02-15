@@ -18,7 +18,7 @@ export type EntitlementDefinition = {
 };
 
 /**
- * Hub Entitlements (10 modules)
+ * Hub Entitlements (7 modules)
  * 
  * Hubs are major product modules that workspaces can access.
  * Each hub may contain multiple capabilities.
@@ -27,14 +27,14 @@ export const HUB_ENTITLEMENTS: EntitlementDefinition[] = [
   {
     key: "core_os",
     label: "Core OS",
-    description: "Core operating system features (settings, profile, workspace management)",
+    description: "Core operating system features (settings, profile, workspace management, billing, payments)",
     category: "hub",
     icon: "Layers",
   },
   {
     key: "meta_hub",
     label: "Meta Hub",
-    description: "WhatsApp Business API integration (inbox, templates, webhooks)",
+    description: "WhatsApp, Instagram, & Messenger integration (inbox, templates, webhooks, automation)",
     category: "hub",
     requiresPayload: false,
     icon: "MessageCircle",
@@ -42,58 +42,37 @@ export const HUB_ENTITLEMENTS: EntitlementDefinition[] = [
   {
     key: "studio",
     label: "Studio",
-    description: "Visual workflow builder and automation studio",
+    description: "AI-powered creative suite (Office docs, Graph visuals, Tracks music)",
     category: "hub",
     icon: "Workflow",
   },
   {
     key: "helper",
     label: "Helper",
-    description: "AI assistant with conversation management",
+    description: "AI assistant with conversation management, CRM insights, and knowledge base",
     category: "hub",
     icon: "Bot",
   },
   {
     key: "office",
     label: "Office",
-    description: "Productivity suite (documents, spreadsheets, collaboration)",
+    description: "AI-powered document automation (Excel, Word, PDF, invoices, reports)",
     category: "hub",
     icon: "FileText",
   },
   {
     key: "marketplace",
     label: "Marketplace",
-    description: "App marketplace and integrations",
+    description: "Buy and sell digital products (templates, visuals, audio, prompts)",
     category: "hub",
     icon: "Store",
   },
   {
-    key: "arena",
-    label: "Arena",
-    description: "Gamification and engagement platform",
+    key: "apps",
+    label: "Apps",
+    description: "Third-party app integrations and connectors",
     category: "hub",
-    icon: "Trophy",
-  },
-  {
-    key: "pay",
-    label: "Pay",
-    description: "Payment processing and billing",
-    category: "hub",
-    icon: "CreditCard",
-  },
-  {
-    key: "trade",
-    label: "Trade",
-    description: "E-commerce and product catalog",
-    category: "hub",
-    icon: "ShoppingCart",
-  },
-  {
-    key: "community",
-    label: "Community",
-    description: "Community management and forums",
-    category: "hub",
-    icon: "Users",
+    icon: "AppWindow",
   },
 ];
 

@@ -14,38 +14,30 @@ interface ModuleNode {
 
 const modules: ModuleNode[] = [
   { id: "meta_hub", label: "Meta Hub", sub: "WhatsApp API", href: "/products/meta-hub", accent: "gold" },
-  { id: "helper", label: "Helper", sub: "AI Copilot", href: "/products/helper", accent: "magenta" },
-  { id: "studio", label: "Studio", sub: "Graph/Tracks", href: "/products/studio", accent: "gold" },
-  { id: "office", label: "Office", sub: "Sheets/Excel", href: "/products/office", accent: "neutral" },
-  { id: "marketplace", label: "Marketplace", sub: "Templates", href: "/products/marketplace", accent: "neutral" },
-  { id: "apps", label: "Apps", sub: "App Catalog", href: "/products/apps", accent: "neutral" },
-  { id: "pay", label: "Pay", sub: "Billing", href: "/products/pay", accent: "gold" },
-  { id: "trade", label: "Trade", sub: "Insights", href: "/products/trade", accent: "neutral" },
-  { id: "arena", label: "Arena", sub: "Engagement", href: "/products/arena", accent: "neutral" },
-  { id: "community", label: "Community", sub: "Feedback", href: "/products/community", accent: "neutral" },
+  { id: "helper", label: "Helper", sub: "AI Assistant", href: "/products/helper", accent: "magenta" },
+  { id: "studio", label: "Studio", sub: "Creative Suite", href: "/products/studio", accent: "gold" },
+  { id: "office", label: "Office", sub: "AI Documents", href: "/products/office", accent: "neutral" },
+  { id: "marketplace", label: "Marketplace", sub: "Digital Products", href: "/products/marketplace", accent: "neutral" },
+  { id: "apps", label: "Apps", sub: "Integrations", href: "/products/apps", accent: "neutral" },
 ];
 
 const CORE_COORDS = { x: 220, y: 220 };
 
-// Precomputed node positions (pixels on 440x440 view) and percentages to avoid runtime floating differences
+// Precomputed node positions (pixels on 440x440 view) and percentages — 6 nodes evenly around core
 const NODE_POSITIONS: Record<ModuleNode["id"], { x: number; y: number; leftPct: number; topPct: number }> = {
   meta_hub: { x: 220, y: 45, leftPct: 50, topPct: 10.2273 },
-  helper: { x: 322.8624, y: 78.422, leftPct: 73.3778, topPct: 17.8232 },
-  studio: { x: 386.4349, y: 165.922, leftPct: 87.8261, topPct: 37.7095 },
-  office: { x: 386.4349, y: 274.078, leftPct: 87.8261, topPct: 62.2905 },
-  marketplace: { x: 322.8624, y: 361.578, leftPct: 73.3778, topPct: 82.1768 },
-  apps: { x: 220, y: 395, leftPct: 50, topPct: 89.7727 },
-  pay: { x: 117.1376, y: 361.578, leftPct: 26.6222, topPct: 82.1768 },
-  trade: { x: 53.5651, y: 274.078, leftPct: 12.1739, topPct: 62.2905 },
-  arena: { x: 53.5651, y: 165.922, leftPct: 12.1739, topPct: 37.7095 },
-  community: { x: 117.1376, y: 78.422, leftPct: 26.6222, topPct: 17.8232 },
+  helper: { x: 371.5, y: 132.5, leftPct: 84.43, topPct: 30.11 },
+  studio: { x: 371.5, y: 307.5, leftPct: 84.43, topPct: 69.89 },
+  office: { x: 220, y: 395, leftPct: 50, topPct: 89.7727 },
+  marketplace: { x: 68.5, y: 307.5, leftPct: 15.57, topPct: 69.89 },
+  apps: { x: 68.5, y: 132.5, leftPct: 15.57, topPct: 30.11 },
 };
 
 // Secondary mesh connections (subtle inter-node lines)
 const meshLines = [
-  { key: "meta_hub-apps", x1: 220, y1: 45, x2: 220, y2: 395 },
-  { key: "studio-marketplace", x1: 386.4349, y1: 165.922, x2: 322.8624, y2: 361.578 },
-  { key: "helper-office", x1: 322.8624, y1: 78.422, x2: 386.4349, y2: 274.078 },
+  { key: "meta_hub-office", x1: 220, y1: 45, x2: 220, y2: 395 },
+  { key: "helper-marketplace", x1: 371.5, y1: 132.5, x2: 68.5, y2: 307.5 },
+  { key: "studio-apps", x1: 371.5, y1: 307.5, x2: 68.5, y2: 132.5 },
 ];
 
 // Get accent classes - enhanced with glow filters

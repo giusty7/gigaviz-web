@@ -9,29 +9,29 @@ import { treeNodes, type NodePillar } from "./ecosystem-tree.data";
  * 
  * Visual Structure:
  * - Core at center where trunk meets branches
- * - Community (cream) branch spreads UPWARD as arc at top
- * - Build (magenta) branch spreads to the LEFT
- * - Growth (gold) branch spreads to the RIGHT
+ * - Create (magenta) branch spreads to the LEFT (Helper, Studio, Office, Graph, Tracks)
+ * - Connect (gold) branch spreads to the RIGHT (Meta Hub)
+ * - Commerce (cream) branch spreads UPWARD (Marketplace, Apps)
  * - Roots at the bottom
  */
 
 function getPillarStyles(pillar: NodePillar) {
   switch (pillar) {
-    case "growth":
+    case "connect":
       return {
         border: "border-gigaviz-gold/40",
         text: "text-gigaviz-gold",
         glow: "shadow-[0_0_20px_-4px_var(--gv-gold)]",
         stroke: "var(--gv-gold)",
       };
-    case "build":
+    case "create":
       return {
         border: "border-gigaviz-magenta/45",
         text: "text-gigaviz-magenta",
         glow: "shadow-[0_0_24px_-4px_var(--gv-magenta)]",
         stroke: "var(--gv-magenta)",
       };
-    case "community":
+    case "commerce":
       return {
         border: "border-gigaviz-cream/25",
         text: "text-gigaviz-cream/90",
@@ -69,15 +69,15 @@ function jitter(id: string, salt: number, scale = 4) {
 // Pillar anchors (main branch bases)
 const coreBase: Point = { x: 50, y: 62 };
 const trunkTop: Point = { x: 50, y: 32 };
-const buildAnchor: Point = { x: 50, y: 14 }; // Build goes upward
-const growthAnchor: Point = { x: 78, y: 40 }; // Growth to the right
-const communityAnchor: Point = { x: 22, y: 40 }; // Community to the left
+const commerceAnchor: Point = { x: 50, y: 14 }; // Commerce goes upward
+const connectAnchor: Point = { x: 78, y: 40 }; // Connect to the right
+const createAnchor: Point = { x: 22, y: 40 }; // Create to the left
 
 const pillarAnchors: Record<NodePillar, Point> = {
   core: trunkTop,
-  build: buildAnchor,
-  growth: growthAnchor,
-  community: communityAnchor,
+  commerce: commerceAnchor,
+  connect: connectAnchor,
+  create: createAnchor,
 };
 
 const mainBranchPaths = [
@@ -88,36 +88,36 @@ const mainBranchPaths = [
     width: 3,
   },
   {
-    key: "branch-build",
+    key: "branch-commerce",
     d: cubicPath(
       trunkTop,
-      { x: 50 + jitter("build", 1, 2), y: 26 + jitter("build", 2, 2) },
-      { x: 50 + jitter("build", 3, 2), y: 20 + jitter("build", 4, 2) },
-      buildAnchor
+      { x: 50 + jitter("commerce", 1, 2), y: 26 + jitter("commerce", 2, 2) },
+      { x: 50 + jitter("commerce", 3, 2), y: 20 + jitter("commerce", 4, 2) },
+      commerceAnchor
     ),
-    stroke: "var(--gv-magenta)",
+    stroke: "var(--gv-cream)",
     width: 2.2,
   },
   {
-    key: "branch-growth",
+    key: "branch-connect",
     d: cubicPath(
       trunkTop,
-      { x: 60 + jitter("growth", 1, 2), y: 34 + jitter("growth", 2, 2) },
-      { x: 70 + jitter("growth", 3, 2), y: 36 + jitter("growth", 4, 2) },
-      growthAnchor
+      { x: 60 + jitter("connect", 1, 2), y: 34 + jitter("connect", 2, 2) },
+      { x: 70 + jitter("connect", 3, 2), y: 36 + jitter("connect", 4, 2) },
+      connectAnchor
     ),
     stroke: "var(--gv-gold)",
     width: 2.2,
   },
   {
-    key: "branch-community",
+    key: "branch-create",
     d: cubicPath(
       trunkTop,
-      { x: 40 + jitter("community", 1, 2), y: 34 + jitter("community", 2, 2) },
-      { x: 32 + jitter("community", 3, 2), y: 36 + jitter("community", 4, 2) },
-      communityAnchor
+      { x: 40 + jitter("create", 1, 2), y: 34 + jitter("create", 2, 2) },
+      { x: 32 + jitter("create", 3, 2), y: 36 + jitter("create", 4, 2) },
+      createAnchor
     ),
-    stroke: "var(--gv-cream)",
+    stroke: "var(--gv-magenta)",
     width: 2.2,
   },
 ];

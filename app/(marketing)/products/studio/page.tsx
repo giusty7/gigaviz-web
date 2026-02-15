@@ -8,8 +8,8 @@ import { studioChildren, moduleStatusLabel } from "@/lib/modules/catalog";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Gigaviz Studio - Office, Graph, Tracks",
-  description: "Studio suite includes Office, Graph, and Tracks for creative and productive teams.",
+  title: "Gigaviz Studio - AI Creative Suite: Office, Graph, Tracks",
+  description: "AI-powered creative suite. Auto-generate documents (Office), images and videos (Graph), and music (Tracks) for your business.",
 };
 
 export default function StudioPage() {
@@ -22,10 +22,10 @@ export default function StudioPage() {
                 Gigaviz Studio
               </p>
               <h1 className="text-balance text-3xl font-gvDisplay font-semibold md:text-4xl">
-                Office, Graph, and Tracks in one suite
+                AI-Powered Creative Suite for Business
               </h1>
               <p className="text-sm text-muted-foreground md:text-base">
-                Studio combines document automation (Office), visual generation (Graph), and workflow orchestration (Tracks).
+                Studio combines AI document automation (Office), AI image and video creation (Graph), and AI music production (Tracks) — all powered by Helper AI.
               </p>
             </div>
           </div>

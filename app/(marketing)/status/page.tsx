@@ -97,32 +97,11 @@ export default async function StatusPage() {
       next: [t("marketplaceN1")],
     },
     {
-      slug: "arena",
-      name: t("arenaName"),
-      status: "beta" as StatusType,
-      available: [t("arenaA1"), t("arenaA2"), t("arenaA3")],
-      next: [t("arenaN1")],
-    },
-    {
       slug: "apps",
       name: t("appsName"),
       status: "beta" as StatusType,
       available: [t("appsA1"), t("appsA2"), t("appsA3")],
       next: [t("appsN1")],
-    },
-    {
-      slug: "pay",
-      name: t("payName"),
-      status: "beta" as StatusType,
-      available: [t("payA1"), t("payA2"), t("payA3")],
-      next: [t("payN1")],
-    },
-    {
-      slug: "community",
-      name: t("communityName"),
-      status: "coming" as StatusType,
-      available: [t("communityA1"), t("communityA2")],
-      next: [t("communityN1")],
     },
   ];
 

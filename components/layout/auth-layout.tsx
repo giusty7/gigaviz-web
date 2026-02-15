@@ -9,7 +9,7 @@ type AuthLayoutProps = {
   disclaimerLines?: readonly [string, string];
   /** Show the Technology Provider trust badge */
   showTrustBadge?: boolean;
-  /** Show the 10-pillar ecosystem grid */
+  /** Show the 7-product ecosystem grid */
   showPillarGrid?: boolean;
 };
 

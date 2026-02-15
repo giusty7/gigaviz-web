@@ -23,10 +23,7 @@ export async function generateStaticParams() {
     "office",
     "studio",
     "marketplace",
-    "arena",
     "apps",
-    "pay",
-    "community",
   ]);
   return products
     .filter((product) => !excluded.has(product.slug))

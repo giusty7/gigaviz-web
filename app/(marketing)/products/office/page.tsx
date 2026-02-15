@@ -9,57 +9,57 @@ import { ProductPreview } from "@/components/marketing/product-preview";
 export const metadata: Metadata = {
   title: "Gigaviz Office",
   description:
-    "Productivity suite for work templates, formula assistant, workflow automation, and document/dashboard generator.",
+    "AI-powered document automation: auto-generate Excel spreadsheets, Word documents, PDF reports, invoices, and dashboards from your business data.",
   alternates: {
     canonical: "/products/office",
   },
   openGraph: {
     title: "Gigaviz Office",
     description:
-      "Productivity suite for work templates, formula assistant, workflow automation, and document/dashboard generator.",
+      "AI-powered document automation: auto-generate Excel spreadsheets, Word documents, PDF reports, invoices, and dashboards from your business data.",
     url: "/products/office",
   },
 };
 
 const summaryPoints = [
-  "Ready-to-use templates for Excel, Google Sheets, and Docs.",
-  "Formula Assistant helps build formulas quickly and consistently.",
-  "Workflow automation for cross-module import/export data.",
-  "Document and dashboard generator for instant reports.",
+  "AI-generated Excel spreadsheets with formulas and data analysis.",
+  "Auto-create Word documents, contracts, and business letters.",
+  "PDF report and invoice generator from structured data.",
+  "Dashboard and KPI report builder for instant business insights.",
 ];
 
 const problemPoints = [
-  "Speed up monthly reporting without redoing formats.",
-  "Reduce formula errors and keep team data consistent.",
-  "Standardize outputs so every team uses the same format.",
-  "Automate input/output so data doesn't need to be re-entered.",
-  "Ensure reports are audit-ready with a clear change trail.",
+  "Spend hours creating the same Excel reports every month.",
+  "Manually formatting invoices and business documents.",
+  "Inconsistent document formats across teams and departments.",
+  "No automated way to generate reports from business data.",
+  "Need audit-ready documents with professional formatting.",
 ];
 
 const featureCards = [
   {
-    title: "Template Library",
-    desc: "Collection of Excel, Sheets, and Docs templates for reports, invoices, and operations.",
+    title: "AI Excel Generator",
+    desc: "Create spreadsheets with formulas, charts, and data analysis using AI prompts.",
   },
   {
-    title: "Formula Assistant",
-    desc: "Build formulas with AI guidance so they're faster and less error-prone.",
+    title: "AI Word Document Creator",
+    desc: "Generate business letters, contracts, proposals, and reports with AI.",
   },
   {
-    title: "Import/Export Automation",
-    desc: "Synchronize CSV/XLSX data. Google Sheets connector is on the roadmap.",
+    title: "PDF Report Generator",
+    desc: "Auto-create professional PDF reports from your business data.",
   },
   {
-    title: "Document Generator",
-    desc: "Generate reports, invoices, or letters with one click from structured data.",
+    title: "Invoice & Receipt Builder",
+    desc: "Generate invoices and receipts with your brand and payment details.",
   },
   {
     title: "Dashboard Builder",
-    desc: "Build simple KPI dashboards for performance monitoring.",
+    desc: "Build KPI dashboards and visual summaries for performance monitoring.",
   },
   {
-    title: "Data Validation & Formatting",
-    desc: "Help keep number, date, and category formats consistent.",
+    title: "Template Library",
+    desc: "Pre-built templates for common business documents — customizable with AI.",
   },
 ];
 

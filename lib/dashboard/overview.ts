@@ -35,7 +35,7 @@ export type UnifiedDashboard = {
 };
 
 /**
- * Get unified dashboard overview for all 10 products
+ * Get unified dashboard overview for all 7 products
  */
 export async function getUnifiedDashboard(
   workspaceId: string,
@@ -222,50 +222,7 @@ export async function getUnifiedDashboard(
     });
   }
 
-  // P2: Coming Soon Products (Arena, Pay, Community, Trade)
-  const comingSoonProducts = [
-    {
-      key: "arena",
-      name: "Arena",
-      description: "Competitive insights & games",
-      launchDate: "Q2 2026",
-    },
-    {
-      key: "pay",
-      name: "Pay",
-      description: "Payment processing",
-      launchDate: "Q2 2026",
-    },
-    {
-      key: "community",
-      name: "Community",
-      description: "Forums & events",
-      launchDate: "Q3 2026",
-    },
-    {
-      key: "trade",
-      name: "Trade",
-      description: "E-commerce insights",
-      launchDate: "In development",
-    },
-  ];
-
-  comingSoonProducts.forEach((product) => {
-    products.push({
-      productKey: product.key,
-      productName: product.name,
-      status: "coming-soon",
-      priority: 2,
-      metrics: [
-        { label: "Status", value: product.description },
-        { label: "Launch", value: product.launchDate },
-      ],
-      quickAction: {
-        label: "Request early access",
-        href: `${platformData.baseHref}/products`,
-      },
-    });
-  });
+  // Products section complete — no more coming-soon placeholders
 
   return {
     workspaceId,

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -9,10 +9,6 @@ import {
   Palette,
   LayoutGrid,
   Store,
-  Trophy,
-  CreditCard,
-  Users,
-  TrendingUp,
   Shield,
   Lock,
   Calendar,
@@ -25,9 +21,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-   10-PILLAR DATA
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+/* G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��
+   7-PRODUCT DATA
+   G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G�� */
 type Pillar = {
   id: string;
   name: string;
@@ -40,18 +36,14 @@ const PILLARS: Pillar[] = [
   { id: "platform", name: "Platform", tagline: "Multi-tenant SaaS backbone", icon: Building2, active: true },
   { id: "meta-hub", name: "Meta Hub", tagline: "WhatsApp & Meta integrations", icon: MessageSquare, active: true },
   { id: "helper", name: "Helper", tagline: "AI-powered assistant", icon: Bot, active: true },
-  { id: "studio", name: "Studio", tagline: "Template & content builder", icon: Palette, active: true },
-  { id: "apps", name: "Apps", tagline: "Micro-app marketplace", icon: LayoutGrid, active: true },
-  { id: "marketplace", name: "Marketplace", tagline: "Solution directory", icon: Store, active: true },
-  { id: "arena", name: "Arena", tagline: "Gamification & leaderboards", icon: Trophy, active: true },
-  { id: "pay", name: "Pay", tagline: "Embedded payments", icon: CreditCard, active: false },
-  { id: "community", name: "Community", tagline: "Forums & groups", icon: Users, active: false },
-  { id: "trade", name: "Trade", tagline: "Commerce automation", icon: TrendingUp, active: false },
+  { id: "studio", name: "Studio", tagline: "AI creative suite", icon: Palette, active: true },
+  { id: "apps", name: "Apps", tagline: "Third-party integrations", icon: LayoutGrid, active: true },
+  { id: "marketplace", name: "Marketplace", tagline: "Digital product marketplace", icon: Store, active: true },
 ];
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+/* G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��
    ANIMATION VARIANTS
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+   G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G�� */
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -86,9 +78,9 @@ const pillarVariant = {
   },
 };
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+/* G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��
    ARTICLE METADATA
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+   G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G�� */
 const ARTICLE = {
   title: "Introducing Gigaviz Imperium v2.0",
   subtitle: "A New Era of Trust, Design, and Digital Excellence",
@@ -97,15 +89,15 @@ const ARTICLE = {
   author: "Gigaviz Team",
 };
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+/* G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��
    MAIN COMPONENT
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+   G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G�� */
 export default function ImperiumEraBlogPage() {
   return (
     <main className="flex-1">
-      {/* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��
           HERO SECTION
-         ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+         G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G�� */}
       <header className="relative overflow-hidden border-b border-[#d4af37]/20">
         {/* Ambient background */}
         <div className="absolute inset-0">
@@ -149,7 +141,7 @@ export default function ImperiumEraBlogPage() {
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             >
               <Shield className="h-4 w-4" />
-              Official Technology Provider ΓÇö WhatsApp Business Platform
+              Official Technology Provider G�� WhatsApp Business Platform
             </motion.div>
           </motion.div>
 
@@ -183,20 +175,20 @@ export default function ImperiumEraBlogPage() {
               <Calendar className="h-4 w-4" />
               {ARTICLE.date}
             </span>
-            <span className="text-[#d4af37]/40">ΓÇó</span>
+            <span className="text-[#d4af37]/40">G��</span>
             <span className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
               {ARTICLE.readTime}
             </span>
-            <span className="text-[#d4af37]/40">ΓÇó</span>
+            <span className="text-[#d4af37]/40">G��</span>
             <span>{ARTICLE.author}</span>
           </motion.div>
         </div>
       </header>
 
-      {/* ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      {/* G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��
           ARTICLE CONTENT
-         ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+         G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G��G�� */}
       <article className="container mx-auto px-4 py-16 md:py-24">
         <div className="mx-auto max-w-4xl space-y-16">
           {/* Section 1: The Milestone */}
@@ -224,7 +216,7 @@ export default function ImperiumEraBlogPage() {
               </p>
 
               <p className="text-[#f5f5dc]/80 leading-relaxed">
-                This verification ΓÇö visible directly in Meta&apos;s Business Manager and the official Tech Provider Directory ΓÇö 
+                This verification G�� visible directly in Meta&apos;s Business Manager and the official Tech Provider Directory G�� 
                 confirms that Gigaviz meets Meta&apos;s technical, security, and policy requirements for building on their platform.
               </p>
 
@@ -295,12 +287,12 @@ export default function ImperiumEraBlogPage() {
             </div>
 
             <p className="text-[#f5f5dc]/80 leading-relaxed">
-              Every element ΓÇö from the constellation-patterned backgrounds to the glassmorphic cards ΓÇö 
+              Every element G�� from the constellation-patterned backgrounds to the glassmorphic cards G�� 
               has been crafted to reflect the premium, enterprise-grade nature of the Gigaviz ecosystem.
             </p>
           </motion.section>
 
-          {/* Section 3: The 10-Pillar Ecosystem */}
+          {/* Section 3: The 7-Product Ecosystem */}
           <motion.section
             variants={fadeInUp}
             initial="hidden"
@@ -313,19 +305,19 @@ export default function ImperiumEraBlogPage() {
                 <Zap className="h-5 w-5" />
               </div>
               <h2 className="text-2xl font-bold text-[#f5f5dc] md:text-3xl">
-                The 10-Pillar Ecosystem
+                The 7-Product Ecosystem
               </h2>
             </div>
 
             <p className="text-[#f5f5dc]/80 leading-relaxed">
-              Gigaviz is not a single product ΓÇö it&apos;s an interconnected ecosystem of 10 specialized modules, 
+              Gigaviz is not a single product G�� it&apos;s an interconnected ecosystem of 10 specialized modules, 
               each designed to handle a specific domain of digital operations. Together, they form a complete 
               infrastructure for modern businesses.
             </p>
 
-            {/* 10-Pillar Grid */}
+            {/* 7-Product Grid */}
             <motion.div
-              className="grid grid-cols-2 gap-4 sm:grid-cols-5"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
@@ -405,7 +397,7 @@ export default function ImperiumEraBlogPage() {
                 },
                 {
                   title: "Future-Proof Architecture",
-                  desc: "Benefit from continuous updates as we expand to all 10 pillars.",
+                  desc: "Benefit from continuous updates as we expand to all 7 products.",
                 },
                 {
                   title: "Policy-First Design",

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type NodePillar = "core" | "growth" | "build" | "community";
+type NodePillar = "core" | "connect" | "create" | "commerce";
 
 interface OrbitNode {
   id: string;
@@ -12,29 +12,25 @@ interface OrbitNode {
   href: string;
   pillar: NodePillar;
   orbit: number;      // 1, 2, or 3 (inner to outer)
-  angle: number;      // degrees position on orbit
+  angle: number;       // degrees position on orbit
 }
 
-// Orbital Layout - 3 tilted rings around central core
+// Orbital Layout - 3 tilted rings around central core (7 products)
 const nodes: OrbitNode[] = [
   // CORE - Center
   { id: "core", title: "GIGAVIZ", subtitle: "Platform Core", href: "/products/platform", pillar: "core", orbit: 0, angle: 0 },
 
-  // ORBIT 1 - Inner ring (Build - magenta)
-  { id: "helper", title: "HELPER", subtitle: "AI Copilot", href: "/products/helper", pillar: "build", orbit: 1, angle: 0 },
-  { id: "studio", title: "STUDIO", subtitle: "Graph/Tracks", href: "/products/studio", pillar: "build", orbit: 1, angle: 120 },
-  { id: "office", title: "OFFICE", subtitle: "Sheets/Excel", href: "/products/office", pillar: "build", orbit: 1, angle: 240 },
+  // ORBIT 1 - Inner ring (Create - magenta)
+  { id: "helper", title: "HELPER", subtitle: "AI Assistant", href: "/products/helper", pillar: "create", orbit: 1, angle: 0 },
+  { id: "studio", title: "STUDIO", subtitle: "Creative Suite", href: "/products/studio", pillar: "create", orbit: 1, angle: 120 },
+  { id: "office", title: "OFFICE", subtitle: "AI Documents", href: "/products/office", pillar: "create", orbit: 1, angle: 240 },
 
-  // ORBIT 2 - Middle ring (Growth - gold)
-  { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "growth", orbit: 2, angle: 45 },
-  { id: "pay", title: "PAY", subtitle: "Billing", href: "/products/pay", pillar: "growth", orbit: 2, angle: 165 },
-  { id: "trade", title: "TRADE", subtitle: "Insights", href: "/products/trade", pillar: "growth", orbit: 2, angle: 285 },
+  // ORBIT 2 - Middle ring (Connect - gold)
+  { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "connect", orbit: 2, angle: 90 },
 
-  // ORBIT 3 - Outer ring (Community - cream)
-  { id: "community", title: "COMMUNITY", subtitle: "Feedback", href: "/products/community", pillar: "community", orbit: 3, angle: 20 },
-  { id: "arena", title: "ARENA", subtitle: "Engagement", href: "/products/arena", pillar: "community", orbit: 3, angle: 110 },
-  { id: "marketplace", title: "MARKETPLACE", subtitle: "Templates", href: "/products/marketplace", pillar: "community", orbit: 3, angle: 200 },
-  { id: "apps", title: "APPS", subtitle: "App Catalog", href: "/products/apps", pillar: "community", orbit: 3, angle: 290 },
+  // ORBIT 3 - Outer ring (Commerce - cream)
+  { id: "marketplace", title: "MARKETPLACE", subtitle: "Digital Products", href: "/products/marketplace", pillar: "commerce", orbit: 3, angle: 60 },
+  { id: "apps", title: "APPS", subtitle: "Integrations", href: "/products/apps", pillar: "commerce", orbit: 3, angle: 200 },
 ];
 
 // Orbit ring configurations (radiusX, radiusY for ellipse, tilt)
@@ -53,21 +49,21 @@ const orbitColors = {
 
 function getPillarStyles(pillar: NodePillar) {
   switch (pillar) {
-    case "growth":
+    case "connect":
       return {
         border: "border-gigaviz-gold/50",
         bg: "bg-gigaviz-card/90",
         text: "text-gigaviz-gold",
         glow: "shadow-[0_0_24px_-4px_var(--gv-gold),0_0_48px_-8px_var(--gv-gold)]",
       };
-    case "build":
+    case "create":
       return {
         border: "border-gigaviz-magenta/50",
         bg: "bg-gigaviz-card/90",
         text: "text-gigaviz-magenta",
         glow: "shadow-[0_0_24px_-4px_var(--gv-magenta),0_0_48px_-8px_var(--gv-magenta)]",
       };
-    case "community":
+    case "commerce":
       return {
         border: "border-gigaviz-cream/40",
         bg: "bg-gigaviz-card/90",
@@ -284,13 +280,13 @@ export function EcosystemOrbital() {
 
         {/* Orbit Labels (subtle, outside rings) */}
         <div className="pointer-events-none absolute left-[8%] top-[30%] -rotate-12 text-[7px] font-medium uppercase tracking-widest text-gigaviz-magenta/40 sm:text-[8px]">
-          Build
+          Create
         </div>
         <div className="pointer-events-none absolute right-[5%] top-[25%] rotate-6 text-[7px] font-medium uppercase tracking-widest text-gigaviz-gold/40 sm:text-[8px]">
-          Growth
+          Connect
         </div>
         <div className="pointer-events-none absolute bottom-[15%] left-[12%] -rotate-3 text-[7px] font-medium uppercase tracking-widest text-gigaviz-cream/30 sm:text-[8px]">
-          Community
+          Commerce
         </div>
 
       </div>

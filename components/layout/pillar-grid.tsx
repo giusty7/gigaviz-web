@@ -8,10 +8,6 @@ import {
   Palette,
   LayoutGrid,
   Store,
-  Trophy,
-  CreditCard,
-  Users,
-  TrendingUp,
   Lock,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -31,10 +27,6 @@ const PILLARS: Pillar[] = [
   { id: "studio", name: "Studio", icon: Palette, active: true },
   { id: "apps", name: "Apps", icon: LayoutGrid, active: true },
   { id: "marketplace", name: "Marketplace", icon: Store, active: true },
-  { id: "arena", name: "Arena", icon: Trophy, active: true },
-  { id: "pay", name: "Pay", icon: CreditCard, active: false },
-  { id: "community", name: "Community", icon: Users, active: false },
-  { id: "trade", name: "Trade", icon: TrendingUp, active: false },
 ];
 
 const containerVariants = {
@@ -68,10 +60,10 @@ export function PillarGrid() {
   return (
     <div className="mt-8 space-y-4">
       <p className="text-center text-xs font-medium uppercase tracking-widest text-[#f5f5dc]/50">
-        The 10-Pillar Ecosystem
+        The 7-Product Ecosystem
       </p>
       <motion.div
-        className="grid grid-cols-5 gap-3"
+        className="grid grid-cols-3 gap-3 sm:grid-cols-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

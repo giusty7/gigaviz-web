@@ -26,10 +26,10 @@ const FEATURED_POSTS = [
   {
     slug: "imperium-era",
     date: "2026-01-16",
-    title: "Part 4: The Dawn of an Imperium — 10 Pillars of Digital Sovereignty",
+    title: "Part 4: The Dawn of an Imperium — 7 Pillars of Digital Sovereignty",
     description:
-      "From a technical struggle to a digital powerhouse. Discover how Gigaviz evolved into a 10-pillar ecosystem, officially verified by Meta to redefine digital infrastructure.",
-    tags: ["IMPERIUM", "10 PILLARS", "META VERIFIED", "ECOSYSTEM", "VISION"],
+      "From a technical struggle to a digital powerhouse. Discover how Gigaviz evolved into a 7-product ecosystem, officially verified by Meta to redefine digital infrastructure.",
+    tags: ["IMPERIUM", "7 PRODUCTS", "META VERIFIED", "ECOSYSTEM", "VISION"],
     isNew: true,
   },
 ];

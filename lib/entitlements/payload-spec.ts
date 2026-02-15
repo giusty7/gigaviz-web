@@ -7,10 +7,7 @@ export const ENTITLEMENT_KEYS = [
   "helper",
   "office",
   "marketplace",
-  "arena",
-  "pay",
-  "trade",
-  "community",
+  "apps",
 ] as const;
 
 export type EntitlementKey = (typeof ENTITLEMENT_KEYS)[number];
@@ -51,10 +48,7 @@ const payloadSchemas: Record<EntitlementKey, typeof BasePayloadSchema> = {
   helper: BasePayloadSchema,
   office: BasePayloadSchema,
   marketplace: BasePayloadSchema,
-  arena: BasePayloadSchema,
-  pay: BasePayloadSchema,
-  trade: BasePayloadSchema,
-  community: BasePayloadSchema,
+  apps: BasePayloadSchema,
 };
 
 function getPayloadSchema(key: string) {

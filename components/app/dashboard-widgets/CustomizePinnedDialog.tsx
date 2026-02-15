@@ -9,10 +9,6 @@ import {
   Palette,
   LayoutGrid,
   Store,
-  Trophy,
-  CreditCard,
-  Users,
-  TrendingUp,
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -41,15 +37,10 @@ const iconMap: Record<ModuleIcon, LucideIcon> = {
   office: LayoutGrid,
   studio: Palette,
   marketplace: Store,
-  arena: Trophy,
   apps: LayoutGrid,
-  pay: CreditCard,
-  community: Users,
 };
 
-const keyIconOverrides: Record<string, LucideIcon> = {
-  trade: TrendingUp,
-};
+const keyIconOverrides: Record<string, LucideIcon> = {};
 
 type CustomizePinnedDialogProps = {
   open: boolean;

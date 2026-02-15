@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Introducing Gigaviz Imperium v2.0 | Official Meta Technology Provider",
   description:
-    "Gigaviz achieves Official Technology Provider status on WhatsApp Business Platform. Discover the new Imperium identity and the 10-pillar ecosystem.",
+    "Gigaviz achieves Official Technology Provider status on WhatsApp Business Platform. Discover the new Imperium identity and the 7-product ecosystem.",
   keywords: [
     "Gigaviz",
     "Imperium",
     "Meta Technology Provider",
     "WhatsApp Business Platform",
     "Enterprise SaaS",
-    "10-pillar ecosystem",
+    "7-product ecosystem",
   ],
   authors: [{ name: "Gigaviz Team" }],
   openGraph: {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Introducing Gigaviz Imperium v2.0",
     description:
-      "Official Meta Technology Provider status achieved. Explore the 10-pillar ecosystem.",
+      "Official Meta Technology Provider status achieved. Explore the 7-product ecosystem.",
   },
   alternates: {
     canonical: "/blog/imperium-era",

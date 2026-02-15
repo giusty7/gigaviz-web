@@ -82,12 +82,8 @@ const ENTITLEMENT_META: Record<string, { label: string; description: string; ico
   meta_hub: { label: "Meta Hub", description: "WhatsApp, Instagram, Messenger integration", icon: "ðŸ“±" },
   studio: { label: "Studio", description: "Creative suite (Office, Graph, Tracks)", icon: "ðŸŽ¨" },
   helper: { label: "Helper", description: "AI Assistant, Chat, RAG, Workflows", icon: "ðŸ¤–" },
-  office: { label: "Office", description: "Document & spreadsheet tools", icon: "ðŸ“„" },
-  marketplace: { label: "Marketplace", description: "Template & plugin marketplace", icon: "ðŸ›’" },
-  arena: { label: "Arena", description: "Competitive insights", icon: "ðŸ†" },
-  pay: { label: "Pay", description: "Payment processing", icon: "ðŸ’³" },
-  trade: { label: "Trade", description: "E-commerce features", icon: "ðŸ›ï¸" },
-  community: { label: "Community", description: "User forums & support", icon: "ðŸ‘¥" },
+  office: { label: "Office", description: "AI document automation", icon: "ðŸ“„" },
+  marketplace: { label: "Marketplace", description: "Digital product marketplace", icon: "ðŸ›’" },
 };
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

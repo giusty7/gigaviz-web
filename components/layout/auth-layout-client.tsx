@@ -15,33 +15,30 @@ type AuthLayoutProps = {
   disclaimerLines?: readonly [string, string];
   /** Show the Technology Provider trust badge */
   showTrustBadge?: boolean;
-  /** Show the 10-pillar ecosystem grid */
+  /** Show the 7-product ecosystem grid */
   showPillarGrid?: boolean;
 };
 
 /** 
- * Pre-computed constellation node positions (10 nodes for 10 pillars)
+ * Pre-computed constellation node positions (7 nodes for 7 products)
  * Distributed in a pleasing pattern across the viewport
  */
 const CONSTELLATION_NODES = [
   { x: 15, y: 20 },
-  { x: 35, y: 12 },
-  { x: 55, y: 25 },
-  { x: 75, y: 15 },
-  { x: 88, y: 30 },
-  { x: 12, y: 55 },
-  { x: 30, y: 70 },
-  { x: 50, y: 60 },
-  { x: 70, y: 75 },
-  { x: 85, y: 65 },
+  { x: 40, y: 12 },
+  { x: 65, y: 22 },
+  { x: 88, y: 15 },
+  { x: 25, y: 60 },
+  { x: 50, y: 55 },
+  { x: 75, y: 65 },
 ];
 
 /** Pre-computed connections between nodes */
 const CONSTELLATION_CONNECTIONS = [
-  [0, 1], [1, 2], [2, 3], [3, 4],
-  [0, 5], [5, 6], [6, 7], [7, 8], [8, 9],
-  [1, 6], [2, 7], [3, 8], [4, 9],
-  [5, 0], [6, 2], [7, 3], [8, 4],
+  [0, 1], [1, 2], [2, 3],
+  [0, 4], [4, 5], [5, 6],
+  [1, 5], [2, 6], [3, 6],
+  [4, 1], [5, 2],
 ];
 
 export function AuthLayoutClient({
@@ -155,7 +152,7 @@ export function AuthLayoutClient({
                 {/* Form content */}
                 <div>{children}</div>
 
-                {/* 10-Pillar Grid */}
+                {/* 7-Product Grid */}
                 {showPillarGrid && <PillarGrid />}
 
                 {/* Legal disclaimer */}

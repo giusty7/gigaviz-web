@@ -1,8 +1,8 @@
-﻿// Ecosystem Tree Node Data Configuration
+// Ecosystem Tree Node Data Configuration
 // Positions are in percentages relative to a 100x100 coordinate system
-// Tree Structure: Core at center, Build (magenta) LEFT, Growth (gold) RIGHT, Community (cream) TOP
+// Tree Structure: Core at center, Create (magenta) LEFT, Connect (gold) RIGHT, Commerce (cream) TOP
 
-export type NodePillar = "core" | "growth" | "build" | "community";
+export type NodePillar = "core" | "connect" | "create" | "commerce";
 
 export interface TreeNode {
   id: string;
@@ -17,21 +17,20 @@ export interface TreeNode {
 }
 
 /**
- * POLISHED Node Layout (Tree Structure):
+ * 7-Product Ecosystem Layout (Tree Structure):
  * 
- *        [Community]  [Arena]  [Marketplace]  [Apps]     <- TOP cluster (cream, evenly spaced arc)
- *              \        \          /        /
- *               \        \        /        /
- *   [Helper]     \________\______/________/     [Meta Hub]
- *       \                   |                      /
- *   [Studio]         [CORE/TRUNK]            [Pay]        <- Core at center
- *       /                   |                      \
- *   [Office]               |                   [Trade]
- *                       (roots)
- * 
- * LEFT = Build (magenta): Helper, Studio, Office
- * RIGHT = Growth (gold): Meta Hub, Pay, Trade
- * TOP = Community (cream): Community, Arena, Marketplace, Apps
+ *              [Marketplace]     [Apps]                   <- TOP cluster (commerce)
+ *                     \          /
+ *                      \        /
+ *   [Helper]            \______/            [Meta Hub]    <- Upper branches
+ *       \                  |                   /
+ *   [Studio]         [PLATFORM]                           <- Core at center
+ *    /   |  \           (trunk)
+ * [Office] [Graph] [Tracks]                               <- Studio children (roots)
+ *
+ * LEFT = Create (magenta): Helper, Studio, Office, Graph, Tracks
+ * RIGHT = Connect (gold): Meta Hub
+ * TOP = Commerce (cream): Marketplace, Apps
  */
 
 export const treeNodes: TreeNode[] = [
@@ -39,135 +38,110 @@ export const treeNodes: TreeNode[] = [
   {
     id: "core",
     title: "GIGAVIZ PLATFORM",
-    subtitle: "Auth · Billing · Audit",
+    subtitle: "Auth · Billing · Payments · Audit",
     href: "/products/platform",
     pillar: "core",
     x: 50,
     y: 50,
   },
 
-  // COMMUNITY BRANCH - TOP cluster (cream accent) - evenly spaced arc
-  {
-    id: "community",
-    title: "COMMUNITY",
-    subtitle: "Feedback",
-    href: "/products/community",
-    pillar: "community",
-    x: 20,
-    y: 12,
-  },
-  {
-    id: "arena",
-    title: "ARENA",
-    subtitle: "Engagement",
-    href: "/products/arena",
-    pillar: "community",
-    x: 40,
-    y: 8,
-  },
+  // COMMERCE BRANCH - TOP cluster (cream accent)
   {
     id: "marketplace",
     title: "MARKETPLACE",
-    subtitle: "Templates",
+    subtitle: "Digital Products",
     href: "/products/marketplace",
-    pillar: "community",
-    x: 60,
+    pillar: "commerce",
+    x: 35,
     y: 8,
   },
   {
     id: "apps",
     title: "APPS",
-    subtitle: "App Catalog",
+    subtitle: "Integrations",
     href: "/products/apps",
-    pillar: "community",
-    x: 80,
-    y: 12,
+    pillar: "commerce",
+    x: 65,
+    y: 8,
   },
 
-  // 
-  // BUILD BRANCH - LEFT side (magenta accent)
-  // 
+  // CREATE BRANCH - LEFT side (magenta accent)
   {
     id: "helper",
     title: "HELPER",
-    subtitle: "AI Copilot",
+    subtitle: "AI Engine",
     href: "/products/helper",
-    pillar: "build",
+    pillar: "create",
     x: 12,
-    y: 35,
+    y: 30,
   },
   {
     id: "studio",
     title: "STUDIO",
-    subtitle: "Graph/Tracks",
+    subtitle: "Creative Suite",
     href: "/products/studio",
-    pillar: "build",
+    pillar: "create",
     x: 10,
     y: 55,
   },
   {
     id: "office",
     title: "OFFICE",
-    subtitle: "Sheets/Excel",
+    subtitle: "Excel · Word · PDF",
     href: "/products/office",
-    pillar: "build",
-    x: 15,
-    y: 75,
+    pillar: "create",
+    x: 5,
+    y: 80,
+  },
+  {
+    id: "graph",
+    title: "GRAPH",
+    subtitle: "Image · Video",
+    href: "/products/graph",
+    pillar: "create",
+    x: 22,
+    y: 85,
+  },
+  {
+    id: "tracks",
+    title: "TRACKS",
+    subtitle: "Music · Audio",
+    href: "/products/tracks",
+    pillar: "create",
+    x: 38,
+    y: 80,
   },
 
-  // 
-  // GROWTH BRANCH - RIGHT side (gold accent)
-  // 
+  // CONNECT BRANCH - RIGHT side (gold accent)
   {
     id: "meta_hub",
     title: "META HUB",
-    subtitle: "WhatsApp API",
+    subtitle: "WhatsApp · IG · Messenger",
     href: "/products/meta-hub",
-    pillar: "growth",
+    pillar: "connect",
     x: 88,
     y: 35,
-  },
-  {
-    id: "pay",
-    title: "PAY",
-    subtitle: "Billing",
-    href: "/products/pay",
-    pillar: "growth",
-    x: 90,
-    y: 55,
-  },
-  {
-    id: "trade",
-    title: "TRADE",
-    subtitle: "Insights",
-    href: "/products/trade",
-    pillar: "growth",
-    x: 85,
-    y: 75,
   },
 ];
 
 // Branch path definitions for SVG
-// Updated paths to match new node positions
 export const branchPaths = {
   // Main trunk: vertical from roots through core
   trunk: "M 50 95 L 50 50",
 
-  // Community branch paths (TOP - spreading upward as arc)
-  communityLeft: "M 50 50 Q 35 30, 20 12",      // to Community
-  communityMidLeft: "M 50 50 Q 45 28, 40 8",    // to Arena
-  communityMidRight: "M 50 50 Q 55 28, 60 8",   // to Marketplace
-  communityRight: "M 50 50 Q 65 30, 80 12",     // to Apps
+  // Commerce branch paths (TOP - spreading upward)
+  commerceLeft: "M 50 50 Q 42 28, 35 8",        // to Marketplace
+  commerceRight: "M 50 50 Q 58 28, 65 8",       // to Apps
 
-  // Build branch paths (LEFT side)
-  buildUpper: "M 50 50 Q 30 42, 12 35",        // to Helper
-  buildMiddle: "M 50 50 Q 28 52, 10 55",       // to Studio
-  buildLower: "M 50 50 Q 32 62, 15 75",        // to Office
+  // Create branch paths (LEFT side)
+  createUpper: "M 50 50 Q 30 38, 12 30",        // to Helper
+  createMiddle: "M 50 50 Q 28 52, 10 55",       // to Studio
+  createOffice: "M 10 55 Q 7 68, 5 80",         // Studio to Office
+  createGraph: "M 10 55 Q 16 70, 22 85",        // Studio to Graph
+  createTracks: "M 10 55 Q 24 68, 38 80",       // Studio to Tracks
 
-  // Growth branch paths (RIGHT side)
-  growthUpper: "M 50 50 Q 70 42, 88 35",       // to Meta Hub
-  growthMiddle: "M 50 50 Q 72 52, 90 55",      // to Pay
-  growthLower: "M 50 50 Q 68 62, 85 75",       // to Trade
+  // Connect branch paths (RIGHT side)
+  connectUpper: "M 50 50 Q 70 42, 88 35",       // to Meta Hub
 
   // Roots (decorative, below trunk)
   rootLeft: "M 50 95 Q 35 100, 25 105",
@@ -178,17 +152,15 @@ export const branchPaths = {
 // Map nodes to their branch paths for hover highlighting
 export const nodeToBranch: Record<string, string[]> = {
   core: ["trunk"],
-  // Community (top)
-  community: ["trunk", "communityLeft"],
-  arena: ["trunk", "communityMidLeft"],
-  marketplace: ["trunk", "communityMidRight"],
-  apps: ["trunk", "communityRight"],
-  // Build (left)
-  helper: ["trunk", "buildUpper"],
-  studio: ["trunk", "buildMiddle"],
-  office: ["trunk", "buildLower"],
-  // Growth (right)
-  meta_hub: ["trunk", "growthUpper"],
-  pay: ["trunk", "growthMiddle"],
-  trade: ["trunk", "growthLower"],
+  // Commerce (top)
+  marketplace: ["trunk", "commerceLeft"],
+  apps: ["trunk", "commerceRight"],
+  // Create (left)
+  helper: ["trunk", "createUpper"],
+  studio: ["trunk", "createMiddle"],
+  office: ["trunk", "createMiddle", "createOffice"],
+  graph: ["trunk", "createMiddle", "createGraph"],
+  tracks: ["trunk", "createMiddle", "createTracks"],
+  // Connect (right)
+  meta_hub: ["trunk", "connectUpper"],
 };
