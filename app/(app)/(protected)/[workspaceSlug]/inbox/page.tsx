@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { UnifiedInboxClient } from "@/components/meta-hub/UnifiedInboxClient";
 import { getAppContext } from "@/lib/app-context";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
@@ -27,12 +28,14 @@ export default async function InboxPage({ params }: Props) {
 
   await ensureWorkspaceCookie(workspace.id);
 
+  const t = await getTranslations("inbox");
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-[#f9d976]">Inbox</h1>
+        <h1 className="text-3xl font-bold text-[#f9d976]">{t("title")}</h1>
         <p className="text-[#f5f5dc]/70 mt-2">
-          Manage all your conversations across WhatsApp, Instagram, and Messenger in one place
+          {t("pageDescription")}
         </p>
       </div>
       <UnifiedInboxClient

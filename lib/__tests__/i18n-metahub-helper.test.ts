@@ -162,17 +162,32 @@ describe("helper i18n namespace", () => {
     expect(id.helper).toHaveProperty(key);
   });
 
-  it("all helper values are non-empty strings in en.json", () => {
+  it("all helper values are non-empty strings or objects in en.json", () => {
     for (const [key, value] of Object.entries(en.helper)) {
       expect(value, `helper.${key} should not be empty`).toBeTruthy();
-      expect(typeof value, `helper.${key} should be string`).toBe("string");
+      if (typeof value === "object" && value !== null) {
+        // Nested namespace (e.g. crm, leads) — verify all nested values are strings
+        for (const [subKey, subValue] of Object.entries(value as Record<string, unknown>)) {
+          expect(typeof subValue, `helper.${key}.${subKey} should be string`).toBe("string");
+          expect(subValue, `helper.${key}.${subKey} should not be empty`).toBeTruthy();
+        }
+      } else {
+        expect(typeof value, `helper.${key} should be string`).toBe("string");
+      }
     }
   });
 
-  it("all helper values are non-empty strings in id.json", () => {
+  it("all helper values are non-empty strings or objects in id.json", () => {
     for (const [key, value] of Object.entries(id.helper)) {
       expect(value, `helper.${key} should not be empty`).toBeTruthy();
-      expect(typeof value, `helper.${key} should be string`).toBe("string");
+      if (typeof value === "object" && value !== null) {
+        for (const [subKey, subValue] of Object.entries(value as Record<string, unknown>)) {
+          expect(typeof subValue, `helper.${key}.${subKey} should be string`).toBe("string");
+          expect(subValue, `helper.${key}.${subKey} should not be empty`).toBeTruthy();
+        }
+      } else {
+        expect(typeof value, `helper.${key} should be string`).toBe("string");
+      }
     }
   });
 

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Channel = "all" | "whatsapp" | "instagram" | "messenger";
 type ThreadStatus = "all" | "open" | "pending" | "resolved";
@@ -40,6 +41,7 @@ interface UnifiedInboxClientProps {
 
 export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxClientProps) {
   const { toast } = useToast();
+  const t = useTranslations("inbox");
   const [loading, setLoading] = useState(true);
   const [threads, setThreads] = useState<UnifiedThread[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel>("all");
@@ -73,8 +75,8 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
     } catch (error) {
       logger.error("Failed to fetch threads:", error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to load inbox",
+        title: t("errorTitle"),
+        description: error instanceof Error ? error.message : t("loadError"),
         variant: "destructive",
       });
     } finally {
@@ -126,11 +128,11 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t("justNow");
+    if (diffMins < 60) return t("minutesAgo", { count: diffMins });
+    if (diffHours < 24) return t("hoursAgo", { count: diffHours });
+    if (diffDays === 1) return t("yesterday");
+    if (diffDays < 7) return t("daysAgo", { count: diffDays });
     return date.toLocaleDateString();
   };
 
@@ -141,7 +143,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#f9d976]">Unified Inbox</h2>
+            <h2 className="text-xl font-bold text-[#f9d976]">{t("unifiedInbox")}</h2>
             <Button
               variant="outline"
               size="sm"
@@ -149,7 +151,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
               disabled={loading}
               className="border-[#d4af37]/30"
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("refresh")}
             </Button>
           </div>
 
@@ -167,7 +169,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                 )}
               >
                 {channel !== "all" && getChannelIcon(channel)}
-                <span className="ml-1 capitalize">{channel}</span>
+                <span className="ml-1 capitalize">{t(`channel${channel.charAt(0).toUpperCase()}${channel.slice(1)}` as "channelAll" | "channelWhatsapp" | "channelInstagram" | "channelMessenger")}</span>
               </Button>
             ))}
           </div>
@@ -185,7 +187,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                   selectedStatus === status && "bg-[#d4af37]/20 text-[#d4af37]"
                 )}
               >
-                {status}
+                {t(`status${status.charAt(0).toUpperCase()}${status.slice(1)}` as "statusAll" | "statusOpen" | "statusPending" | "statusResolved")}
               </Button>
             ))}
           </div>
@@ -194,7 +196,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
             <Input
-              placeholder="Search conversations..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-[#0a0a0a] border-[#d4af37]/30"
@@ -210,7 +212,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
             </div>
           ) : filteredThreads.length === 0 ? (
             <div className="text-center py-8 text-[#f5f5dc]/60">
-              <p>No conversations found</p>
+              <p>{t("noConversations")}</p>
             </div>
           ) : (
             <AnimatePresence>
@@ -299,19 +301,19 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                 }}
                 className="border-[#d4af37]/30"
               >
-                Open in {selectedThread.channel}
+                {t("openInChannel", { channel: selectedThread.channel })}
               </Button>
             </div>
             <div className="text-center text-[#f5f5dc]/60 py-12">
-              <p>Select a thread to view messages</p>
-              <p className="text-sm mt-2">Or click &quot;Open&quot; to view in dedicated inbox</p>
+              <p>{t("selectThread")}</p>
+              <p className="text-sm mt-2">{t("clickOpenHint")}</p>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-[#f5f5dc]/60">
             <div className="text-center">
               <MessageSquare className="h-16 w-16 mx-auto mb-4 text-[#d4af37]/40" />
-              <p className="text-lg">Select a conversation to start messaging</p>
+              <p className="text-lg">{t("selectConversation")}</p>
             </div>
           </div>
         )}

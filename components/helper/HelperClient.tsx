@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
 import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 import { ConversationList } from "./ConversationList";
 import { MessageList } from "./MessageList";
 import { ChatEmptyState } from "./ChatEmptyState";
@@ -75,6 +76,7 @@ function toLocalMessage(m: ApiMessage): HelperMessage {
 function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, initialConversations }: Props) {
   const { toast } = useToast();
   const copy = COPY_EN.helper;
+  const t = useTranslations("helper");
 
   // State
   const [conversations, setConversations] = useState<HelperConversation[]>(
@@ -145,11 +147,11 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
         setMessages((data.messages ?? []).map(toLocalMessage));
       }
     } catch {
-      toast({ title: "Failed to load messages", variant: "destructive" });
+      toast({ title: t("loadMessagesFailed"), variant: "destructive" });
     } finally {
       setLoadingMessages(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -202,9 +204,9 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
         body: JSON.stringify({ title: newTitle }),
       });
     } catch {
-      toast({ title: "Failed to rename conversation", variant: "destructive" });
+      toast({ title: t("renameFailed"), variant: "destructive" });
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     setConversations((prev) => prev.filter((c) => c.id !== id));
@@ -216,14 +218,14 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
         method: "DELETE",
       });
     } catch {
-      toast({ title: "Failed to delete conversation", variant: "destructive" });
+      toast({ title: t("deleteFailed"), variant: "destructive" });
     }
-  }, [selectedId, conversations, workspaceId, toast]);
+  }, [selectedId, conversations, workspaceId, toast, t]);
 
   const handleSend = useCallback(async () => {
     if (!selectedId || !composer.trim()) return;
     if (isOverBudget) {
-      toast({ title: "Monthly token budget exceeded", variant: "destructive" });
+      toast({ title: t("budgetExceeded"), variant: "destructive" });
       return;
     }
 
@@ -326,7 +328,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
           case "error": {
             const error = event.data as { code?: string; message?: string; provider?: string | null };
             toast({
-              title: error.message ?? "Streaming failed",
+              title: error.message ?? t("streamingFailed"),
               variant: "destructive",
             });
             const providerFromError = (error.provider ?? undefined) as HelperMessage["provider"];
@@ -337,7 +339,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
                       ...m,
                       status: "error",
                       provider: providerFromError ?? m.provider ?? (provider === "auto" ? undefined : provider),
-                      content: accumulatedContent || error.message || "Error occurred",
+                      content: accumulatedContent || error.message || t("errorOccurred"),
                     }
                   : m
               )
@@ -355,7 +357,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
           )
         );
       } else {
-        const message = err instanceof Error ? err.message : "Send failed";
+        const message = err instanceof Error ? err.message : t("sendFailed");
         toast({ title: message, variant: "destructive" });
         // Mark as error
         setMessages((prev) =>
@@ -368,7 +370,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
       setSending(false);
       abortControllerRef.current = null;
     }
-  }, [selectedId, composer, workspaceId, mode, provider, toast, isOverBudget, fetchUsage]);
+  }, [selectedId, composer, workspaceId, mode, provider, toast, isOverBudget, fetchUsage, t]);
 
   const handleStopStreaming = useCallback(() => {
     if (abortControllerRef.current) {
