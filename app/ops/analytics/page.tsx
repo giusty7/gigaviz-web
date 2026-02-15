@@ -16,7 +16,7 @@ export default async function AnalyticsPage() {
   if (!admin.ok) redirect("/");
 
   return (
-    <OpsShell>
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <AnalyticsDashboardClient />
     </OpsShell>
   );

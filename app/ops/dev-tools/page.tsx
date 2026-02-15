@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { OpsShell } from "@/components/platform/OpsShell";
 import Link from "next/link";
@@ -13,10 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DevToolsPage() {
   const admin = await requirePlatformAdmin();
-
-  if (!admin.ok) {
-    throw new Error("Unauthorized");
-  }
+  if (!admin.ok) redirect("/");
 
   const tools = [
     {

@@ -48,11 +48,11 @@ export default async function OperationsPage() {
   if (!admin.ok) redirect("/");
 
   return (
-    <OpsShell>
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Advanced Operations</h1>
-          <p className="text-zinc-400">
+          <p className="text-slate-400 mt-1">
             Bulk operations, scheduled actions, and workspace management
           </p>
         </div>
@@ -62,18 +62,18 @@ export default async function OperationsPage() {
             <Link
               key={tool.href}
               href={tool.href}
-              className="group rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 transition-all hover:border-zinc-700 hover:bg-zinc-800/50"
+              className="group rounded-xl border border-slate-800 bg-slate-900/50 p-6 transition-all hover:border-slate-700 hover:bg-slate-800/50"
             >
               <div className="flex items-start justify-between">
                 <div className={`rounded-lg p-3 ${tool.color}`}>
                   <tool.icon className="h-6 w-6" />
                 </div>
-                <ArrowRight className="h-5 w-5 text-zinc-600 transition-colors group-hover:text-zinc-400" />
+                <ArrowRight className="h-5 w-5 text-slate-600 transition-colors group-hover:text-slate-400" />
               </div>
               <h3 className="mt-4 text-lg font-semibold text-white">
                 {tool.title}
               </h3>
-              <p className="mt-1 text-sm text-zinc-400">{tool.description}</p>
+              <p className="mt-1 text-sm text-slate-400">{tool.description}</p>
             </Link>
           ))}
         </div>

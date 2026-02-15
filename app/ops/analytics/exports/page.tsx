@@ -16,7 +16,7 @@ export default async function ExportsPage() {
   if (!admin.ok) redirect("/");
 
   return (
-    <OpsShell>
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <ExportsClient />
     </OpsShell>
   );

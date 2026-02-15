@@ -16,7 +16,7 @@ export default async function BulkOpsPage() {
   if (!admin.ok) redirect("/");
 
   return (
-    <OpsShell>
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <BulkOperationsClient />
     </OpsShell>
   );

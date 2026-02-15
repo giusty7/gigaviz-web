@@ -1,18 +1,13 @@
 import { OpsShell } from "@/components/platform/OpsShell";
 import CannedResponsesClient from "@/components/ops/CannedResponsesClient";
-import { assertOpsEnabled } from "@/lib/ops/guard";
 import { requirePlatformAdmin } from "@/lib/platform-admin/require";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function CannedResponsesPage() {
-  assertOpsEnabled();
-  
   const admin = await requirePlatformAdmin();
-  if (!admin.ok) {
-    redirect("/login");
-  }
+  if (!admin.ok) redirect("/");
 
   return (
     <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>

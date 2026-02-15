@@ -16,7 +16,7 @@ export default async function FiltersPage() {
   if (!admin.ok) redirect("/");
 
   return (
-    <OpsShell>
+    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
       <SavedFiltersClient />
     </OpsShell>
   );
