@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,15 @@ type RouteCtx = { params: Promise<{ itemId: string }> };
  */
 export const GET = withErrorHandler(async (req: NextRequest, ctx?: RouteCtx) => {
   const { itemId } = await ctx!.params;
+
+  // Rate limit: 60 clicks per minute per IP to prevent click inflation
+  const forwarded = req.headers.get("x-forwarded-for");
+  const clientIp = forwarded?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`link_click:${clientIp}`, { windowMs: 60_000, max: 60 });
+  if (!rl.ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const db = supabaseAdmin();
 
   // Fetch item and its page
@@ -48,13 +58,11 @@ export const GET = withErrorHandler(async (req: NextRequest, ctx?: RouteCtx) => 
   // Get referrer
   const referrer = req.headers.get("referer") ?? null;
 
-  // Hash IP for unique visitor detection
-  const forwarded = req.headers.get("x-forwarded-for");
-  const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
+  // Hash IP for unique visitor detection (reuse clientIp from rate limit above)
   let ipHash: string | null = null;
   try {
     const encoder = new TextEncoder();
-    const data = encoder.encode(ip + "_gv_links_salt_2026");
+    const data = encoder.encode(clientIp + "_gv_links_salt_2026");
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
     ipHash = Array.from(new Uint8Array(hashBuffer))
       .map((b) => b.toString(16).padStart(2, "0"))

@@ -4,14 +4,14 @@ test.describe("Marketing Pages", () => {
   test("homepage loads and has key content", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Gigaviz/i);
-    // Main hero section should be visible
-    await expect(page.locator("main")).toBeVisible();
+    // Main hero section should be visible (use .first() to handle SSR Suspense shells)
+    await expect(page.locator("main").first()).toBeVisible();
   });
 
   test("pricing page loads", async ({ page }) => {
     await page.goto("/pricing");
     await expect(page).toHaveTitle(/Pricing|Gigaviz/i);
-    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("main").first()).toBeVisible();
   });
 
   test("login page loads", async ({ page }) => {

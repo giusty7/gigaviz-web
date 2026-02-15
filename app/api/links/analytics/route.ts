@@ -19,7 +19,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
   // Total clicks per page
   let pagesQuery = db
     .from("link_clicks")
-    .select("page_id, item_id, clicked_at, device_type")
+    .select("page_id, item_id, clicked_at, device_type, session_id")
     .eq("workspace_id", workspaceId)
     .gte("clicked_at", since)
     .order("clicked_at", { ascending: false })
@@ -56,8 +56,9 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
     const itemKey = c.item_id as string;
     byItem[itemKey] = (byItem[itemKey] ?? 0) + 1;
 
-    // Unique (approximate via session)
-    uniqueVisitors.add(c.item_id + "_approx");
+    // Unique visitors via session ID
+    const sid = c.session_id as string | null;
+    if (sid) uniqueVisitors.add(sid);
   }
 
   // Get item names for top items

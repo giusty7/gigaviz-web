@@ -19,11 +19,28 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LinkItem } from "@/types/links";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type PageData = {
   id: string;
@@ -31,7 +48,7 @@ type PageData = {
   slug: string;
   bio: string | null;
   avatar_url: string | null;
-  theme: any;
+  theme: Record<string, string> | null;
   seo_title: string | null;
   seo_description: string | null;
   published: boolean;
@@ -88,7 +105,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
   /* ── Add item ── */
   const addItem = async (type: string) => {
     setAdding(true);
-    const defaults: Record<string, any> = {
+    const defaults: Record<string, Record<string, unknown>> = {
       url: { title: "My Link", url: "https://", link_type: "url" },
       whatsapp: { title: "Chat on WhatsApp", link_type: "whatsapp", metadata: { phone: "+62", message: "Hi! I found you via your bio page" } },
       product: { title: "Product", link_type: "product", metadata: { price: 0, currency: "IDR" } },
@@ -130,16 +147,27 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
     } catch { /* noop */ }
   };
 
-  /* ── Move item ── */
-  const moveItem = (index: number, direction: "up" | "down") => {
-    const newItems = [...items];
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= newItems.length) return;
-    [newItems[index], newItems[target]] = [newItems[target], newItems[index]];
-    // Update sort_order
-    const reordered = newItems.map((it, i) => ({ ...it, sort_order: i }));
+  /* ── Move item (drag-and-drop) ── */
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = items.findIndex((i) => i.id === active.id);
+    const newIndex = items.findIndex((i) => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(items, oldIndex, newIndex).map((it, i) => ({
+      ...it,
+      sort_order: i,
+    }));
     setItems(reordered);
-    // Persist
+
+    // Persist reorder
     fetch(`/api/links/pages/${page.id}/items?workspace_id=${workspaceSlug}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -218,20 +246,21 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
             <PageSettingsForm page={page} onSave={savePage} saving={saving} />
           )}
 
-          {/* Link items */}
-          <div className="space-y-2">
-            {items.map((item, i) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                index={i}
-                total={items.length}
-                onUpdate={updateItem}
-                onDelete={deleteItem}
-                onMove={moveItem}
-              />
-            ))}
-          </div>
+          {/* Link items (drag-and-drop sortable) */}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <SortableItemRow
+                    key={item.id}
+                    item={item}
+                    onUpdate={updateItem}
+                    onDelete={deleteItem}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
 
           {/* Add link */}
           {addType ? (
@@ -292,55 +321,285 @@ function PageSettingsForm({
 }) {
   const [title, setTitle] = useState(page.title);
   const [bio, setBio] = useState(page.bio ?? "");
+  const [seoTitle, setSeoTitle] = useState(page.seo_title ?? "");
+  const [seoDesc, setSeoDesc] = useState(page.seo_description ?? "");
+  const [tab, setTab] = useState<"general" | "appearance" | "seo">("general");
+
+  // Theme state
+  const theme = page.theme ?? {};
+  const [bg, setBg] = useState(theme.bg ?? "#0f172a");
+  const [textColor, setTextColor] = useState(theme.text ?? "#f5f5dc");
+  const [accent, setAccent] = useState(theme.accent ?? "#d4af37");
+  const [buttonStyle, setButtonStyle] = useState<string>(theme.buttonStyle ?? "filled");
+  const [radius, setRadius] = useState<string>(theme.radius ?? "lg");
+
+  const PRESETS = [
+    { name: "Midnight Gold", bg: "#0f172a", text: "#f5f5dc", accent: "#d4af37" },
+    { name: "Ocean Blue", bg: "#0c1929", text: "#e2e8f0", accent: "#38bdf8" },
+    { name: "Forest", bg: "#0a1f0f", text: "#ecfdf5", accent: "#34d399" },
+    { name: "Sunset", bg: "#1c0a12", text: "#fef2f2", accent: "#fb923c" },
+    { name: "Lavender", bg: "#1a0a2e", text: "#f0e7ff", accent: "#a78bfa" },
+    { name: "Clean Light", bg: "#f8fafc", text: "#0f172a", accent: "#2563eb" },
+    { name: "Snow", bg: "#ffffff", text: "#1e293b", accent: "#e11d48" },
+    { name: "Cream", bg: "#fffbeb", text: "#292524", accent: "#d97706" },
+  ];
+
+  const tabs = [
+    { key: "general" as const, label: "General" },
+    { key: "appearance" as const, label: "Appearance" },
+    { key: "seo" as const, label: "SEO" },
+  ];
+
+  const saveGeneral = () => onSave({ title, bio: bio || null });
+  const saveSeo = () => onSave({ seo_title: seoTitle || null, seo_description: seoDesc || null });
+  const saveTheme = () => onSave({ theme: { bg, text: textColor, accent, buttonStyle, radius } } as Partial<PageData>);
 
   return (
-    <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] p-4 space-y-3">
-      <div>
-        <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">Title</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none"
-        />
+    <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] overflow-hidden">
+      {/* Tabs */}
+      <div className="flex border-b border-[#f5f5dc]/[0.06]">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={cn(
+              "flex-1 py-2 text-[10px] font-semibold uppercase tracking-wider transition",
+              tab === t.key
+                ? "text-[#d4af37] border-b-2 border-[#d4af37] bg-[#d4af37]/[0.04]"
+                : "text-[#f5f5dc]/30 hover:text-[#f5f5dc]/50"
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
-      <div>
-        <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">Bio</label>
-        <textarea
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          rows={2}
-          className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none resize-none"
-          maxLength={300}
-        />
+
+      <div className="p-4 space-y-3">
+        {/* General tab */}
+        {tab === "general" && (
+          <>
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">Title</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">Bio</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={2}
+                className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none resize-none"
+                maxLength={300}
+              />
+            </div>
+            <button
+              onClick={saveGeneral}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#f5f5dc]/[0.06] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/60 transition hover:bg-[#f5f5dc]/[0.10]"
+            >
+              <Save className="h-3 w-3" />
+              Save
+            </button>
+          </>
+        )}
+
+        {/* Appearance tab */}
+        {tab === "appearance" && (
+          <>
+            {/* Theme presets */}
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-2">Presets</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {PRESETS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    onClick={() => {
+                      setBg(preset.bg);
+                      setTextColor(preset.text);
+                      setAccent(preset.accent);
+                    }}
+                    className={cn(
+                      "rounded-lg p-1.5 border transition hover:scale-[1.03]",
+                      bg === preset.bg && textColor === preset.text && accent === preset.accent
+                        ? "border-[#d4af37]/60 ring-1 ring-[#d4af37]/30"
+                        : "border-[#f5f5dc]/[0.06]"
+                    )}
+                    title={preset.name}
+                  >
+                    <div className="rounded-md overflow-hidden h-8 flex flex-col" style={{ background: preset.bg }}>
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="h-2 w-2 rounded-full" style={{ background: preset.accent }} />
+                      </div>
+                      <div className="h-1.5" style={{ background: preset.accent + "30" }} />
+                    </div>
+                    <p className="text-[7px] text-[#f5f5dc]/30 mt-1 text-center truncate">{preset.name}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color pickers */}
+            <div className="grid grid-cols-3 gap-2">
+              <ColorField label="Background" value={bg} onChange={setBg} />
+              <ColorField label="Text" value={textColor} onChange={setTextColor} />
+              <ColorField label="Accent" value={accent} onChange={setAccent} />
+            </div>
+
+            {/* Button style */}
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1.5">Button Style</label>
+              <div className="flex gap-1.5">
+                {(["filled", "outline", "soft"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setButtonStyle(s)}
+                    className={cn(
+                      "flex-1 rounded-lg px-2 py-2 text-[10px] font-medium capitalize transition",
+                      s === "filled" && "border",
+                      s === "outline" && "border",
+                      s === "soft" && "border",
+                      buttonStyle === s
+                        ? "border-[#d4af37]/50 bg-[#d4af37]/10 text-[#d4af37]"
+                        : "border-[#f5f5dc]/[0.06] text-[#f5f5dc]/30 hover:text-[#f5f5dc]/50"
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Border radius */}
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1.5">Corner Radius</label>
+              <div className="flex gap-1.5">
+                {(["none", "sm", "md", "lg", "full"] as const).map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRadius(r)}
+                    className={cn(
+                      "flex-1 border px-2 py-2 text-[10px] font-medium uppercase transition",
+                      radius === r
+                        ? "border-[#d4af37]/50 bg-[#d4af37]/10 text-[#d4af37]"
+                        : "border-[#f5f5dc]/[0.06] text-[#f5f5dc]/30 hover:text-[#f5f5dc]/50",
+                      r === "none" && "rounded-none",
+                      r === "sm" && "rounded",
+                      r === "md" && "rounded-md",
+                      r === "lg" && "rounded-lg",
+                      r === "full" && "rounded-full"
+                    )}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={saveTheme}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#d4af37]/10 px-3 py-1.5 text-[11px] font-medium text-[#d4af37] transition hover:bg-[#d4af37]/20"
+            >
+              <Save className="h-3 w-3" />
+              Apply Theme
+            </button>
+          </>
+        )}
+
+        {/* SEO tab */}
+        {tab === "seo" && (
+          <>
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">SEO Title</label>
+              <input
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+                className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none"
+                placeholder={page.title}
+                maxLength={120}
+              />
+              <p className="text-[9px] text-[#f5f5dc]/20 mt-0.5">Shown in search results & social previews</p>
+            </div>
+            <div>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">SEO Description</label>
+              <textarea
+                value={seoDesc}
+                onChange={(e) => setSeoDesc(e.target.value)}
+                rows={2}
+                className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none resize-none"
+                placeholder={page.bio ?? "A short description of your page"}
+                maxLength={300}
+              />
+            </div>
+            <button
+              onClick={saveSeo}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#f5f5dc]/[0.06] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/60 transition hover:bg-[#f5f5dc]/[0.10]"
+            >
+              <Save className="h-3 w-3" />
+              Save SEO
+            </button>
+          </>
+        )}
       </div>
-      <button
-        onClick={() => onSave({ title, bio: bio || null })}
-        disabled={saving}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-[#f5f5dc]/[0.06] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/60 transition hover:bg-[#f5f5dc]/[0.10]"
-      >
-        <Save className="h-3 w-3" />
-        Save Settings
-      </button>
     </div>
   );
 }
 
-/* ── Item row (inline editor) ── */
-function ItemRow({
+/* ── Color picker field ── */
+function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">{label}</label>
+      <div className="flex items-center gap-1.5 rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-2 py-1">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-5 w-5 rounded border-0 cursor-pointer bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded [&::-webkit-color-swatch]:border-0"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 bg-transparent text-[10px] font-mono text-[#f5f5dc]/50 focus:outline-none w-0"
+          maxLength={7}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ── Sortable item row (drag-and-drop) ── */
+function SortableItemRow({
   item,
-  index,
-  total,
   onUpdate,
   onDelete,
-  onMove,
 }: {
   item: LinkItem;
-  index: number;
-  total: number;
   onUpdate: (id: string, patch: Partial<LinkItem>) => void;
   onDelete: (id: string) => void;
-  onMove: (index: number, dir: "up" | "down") => void;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.title);
   const [url, setUrl] = useState(item.url ?? "");
@@ -348,15 +607,26 @@ function ItemRow({
   const Icon = meta.icon;
 
   const save = () => {
-    const patch: any = { title };
+    const patch: Record<string, unknown> = { title };
     if (item.link_type !== "heading") patch.url = url || null;
-    onUpdate(item.id, patch);
+    onUpdate(item.id, patch as Partial<LinkItem>);
     setEditing(false);
   };
 
   if (item.link_type === "heading") {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-[#f5f5dc]/[0.04] bg-transparent px-3 py-2">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="flex items-center gap-2 rounded-xl border border-[#f5f5dc]/[0.04] bg-transparent px-3 py-2"
+      >
+        <button
+          {...attributes}
+          {...listeners}
+          className="text-[#f5f5dc]/15 hover:text-[#f5f5dc]/40 transition cursor-grab active:cursor-grabbing touch-none shrink-0"
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
         <Type className="h-3 w-3 text-[#f5f5dc]/30 shrink-0" />
         {editing ? (
           <input
@@ -383,25 +653,20 @@ function ItemRow({
   }
 
   return (
-    <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-3 py-2.5 group">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-3 py-2.5 group"
+    >
       <div className="flex items-center gap-2">
-        {/* Drag handle + move */}
-        <div className="flex flex-col gap-0.5 shrink-0">
-          <button
-            onClick={() => onMove(index, "up")}
-            disabled={index === 0}
-            className="text-[#f5f5dc]/15 hover:text-[#f5f5dc]/40 transition disabled:opacity-30"
-          >
-            <ChevronUp className="h-3 w-3" />
-          </button>
-          <button
-            onClick={() => onMove(index, "down")}
-            disabled={index === total - 1}
-            className="text-[#f5f5dc]/15 hover:text-[#f5f5dc]/40 transition disabled:opacity-30"
-          >
-            <ChevronDown className="h-3 w-3" />
-          </button>
-        </div>
+        {/* Drag handle */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="text-[#f5f5dc]/15 hover:text-[#f5f5dc]/40 transition cursor-grab active:cursor-grabbing touch-none shrink-0"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
 
         {/* Icon + type */}
         <div className={cn("shrink-0", meta.color)}>
@@ -422,8 +687,8 @@ function ItemRow({
               {item.link_type === "whatsapp" ? (
                 <div className="flex gap-2">
                   <input
-                    value={(item.metadata as any)?.phone ?? ""}
-                    onChange={(e) => onUpdate(item.id, { metadata: { ...item.metadata as any, phone: e.target.value } })}
+                    value={(item.metadata as Record<string, string>)?.phone ?? ""}
+                    onChange={(e) => onUpdate(item.id, { metadata: { ...item.metadata as Record<string, unknown>, phone: e.target.value } } as Partial<LinkItem>)}
                     className="flex-1 bg-transparent text-[11px] text-[#f5f5dc]/50 focus:outline-none border-b border-[#f5f5dc]/[0.06] pb-1 font-mono"
                     placeholder="+628xxx"
                   />
@@ -446,7 +711,7 @@ function ItemRow({
               <p className="text-xs font-medium text-[#f5f5dc] truncate">{item.title}</p>
               <p className="text-[10px] text-[#f5f5dc]/30 truncate font-mono">
                 {item.link_type === "whatsapp"
-                  ? `wa.me/${((item.metadata as any)?.phone ?? "").replace(/[^0-9]/g, "")}`
+                  ? `wa.me/${(((item.metadata as Record<string, string>)?.phone ?? "").replace(/[^0-9]/g, ""))}`
                   : item.url ?? "—"}
               </p>
             </div>
