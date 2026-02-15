@@ -98,7 +98,7 @@ export default async function PricingPage() {
       features: [
         { name: t("compWorkspaces"), free: "1", starter: "1", growth: "3", business: "10", enterprise: t("unlimited") },
         { name: t("compSeats"), free: "1", starter: "3", growth: "10", business: "25", enterprise: t("unlimited") },
-        { name: t("compModules"), free: "2", starter: "4", growth: "7", business: t("all10"), enterprise: t("all10") },
+        { name: t("compModules"), free: "2", starter: "4", growth: t("all10"), business: t("all10"), enterprise: t("all10") },
         { name: t("compStorage"), free: "100 MB", starter: "1 GB", growth: "5 GB", business: "25 GB", enterprise: t("unlimited") },
       ],
     },

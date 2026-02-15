@@ -31,24 +31,20 @@ const TrustConsole = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Gigaviz Ecosystem — Technology Provider for WhatsApp Business Platform",
+  title: "Gigaviz — All-in-One Business Platform for WhatsApp, AI & Operations",
   description:
-    "A verified control plane for Growth, Build, and Community rooms. Workspace isolation, billing, audit, AI, and operations on one surface.",
+    "Everything your business needs — from WhatsApp Business API to AI assistants — in one workspace with built-in billing and audit.",
 };
 
 // Suites are resolved inside the component with translations
 
 const moduleShortOverrides: Record<string, string> = {
-  platform: "The control plane with auth, roles, billing, audit, and token governance.",
-  meta_hub: "Official WhatsApp Cloud API onboarding with templates, inbox, and delivery checks.",
-  helper: "AI co-pilot for replies, briefs, and summaries with guardrails.",
-  studio: "Create docs, stories, and tracks with shared context and permissions.",
-  apps: "Requests, roadmap, and catalog to launch what your team needs next.",
-  marketplace: "Templates, prompt packs, assets, and mini-apps you can publish or use.",
-  arena: "Interactive drops and engagement utilities for your campaigns.",
-  pay: "Invoices, payment links, and subscriptions on one ledger.",
-  community: "Feedback, showcases, and events with clear membership visibility.",
-  trade: "Partner and market workflows with shared guardrails and audit.",
+  platform: "Authentication, roles, billing, audit trails, and workspace management for your entire team.",
+  meta_hub: "Official WhatsApp Cloud API with templates, unified inbox, delivery tracking, and automation.",
+  helper: "AI assistant for smart replies, copywriting, summaries, and CRM insights.",
+  studio: "AI-powered creative suite for documents, images, and audio content.",
+  apps: "Third-party integrations and custom tools to extend your workspace.",
+  marketplace: "Buy and sell templates, prompt packs, and digital assets.",
 };
 
 const complianceItems = [
@@ -91,27 +87,27 @@ const integrationCategories = [
 
 const timelineItems = [
   {
-    title: "Meta Hub Technology Provider",
+    title: "Meta Hub + Platform",
     status: "Live",
-    detail: "Official onboarding, template submission, inbox, and delivery status.",
+    detail: "WhatsApp Business API, unified inbox, contacts, templates, billing, and team management.",
     accent: "emerald",
   },
   {
-    title: "Helper AI",
+    title: "Helper AI + CRM",
     status: "In progress",
-    detail: "Workspace-aware assistance for replies, briefs, and summaries.",
+    detail: "AI assistant for smart replies, lead insights, knowledge base, and workflow automation.",
     accent: "cyan",
   },
   {
     title: "Studio (Office / Graph / Tracks)",
     status: "Planned",
-    detail: "Content, analytics, and runbooks on the same operating system.",
+    detail: "AI-powered document generation, image creation, and audio production.",
     accent: "violet",
   },
   {
-    title: "Community & Advanced RBAC",
+    title: "Marketplace & Apps",
     status: "Planned",
-    detail: "Deeper roles, collaboration, and governance upgrades.",
+    detail: "Buy/sell digital products, templates, and integrate third-party tools.",
     accent: "amber",
   },
 ];
@@ -222,12 +218,12 @@ export default async function HomePage() {
           <div className="container py-16 md:py-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Rooms</p>
+                <p className="text-xs uppercase tracking-[0.25em] text-[#d4af37]">Pillars</p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent md:text-3xl">
                   {t("suitesTitle")}
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-[#f5f5dc]/65">
-                  Growth, Build, and Community all ride the same verified control plane with workspace isolation, billing, and audit baked in.
+                  Connect, Create, and Commerce — three pillars on one verified platform with workspace isolation, billing, and audit built in.
                 </p>
               </div>
               <Link
@@ -268,7 +264,7 @@ export default async function HomePage() {
                   Products ready to launch
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-[#f5f5dc]/65">
-                  Each product sits in the Growth, Build, or Community room and inherits the same identity, billing, and audit controls from the verified Platform.
+                  Each product belongs to Connect, Create, or Commerce and inherits the same identity, billing, and audit controls from Platform.
                 </p>
               </div>
               <Link
@@ -387,7 +383,7 @@ export default async function HomePage() {
                   Integrations teams expect
                 </h2>
                 <p className="mt-2 max-w-lg text-sm text-[#f5f5dc]/65">
-                  Connect messaging, AI, data, and deployment tooling to the same control plane. No implied partnerships—just integrations that work.
+                  Connect messaging, AI, data, and deployment tools to the same platform. No implied partnerships—just integrations that work.
                 </p>
               </div>
               <Link
@@ -631,7 +627,7 @@ export default async function HomePage() {
               <div className="relative space-y-2">
                 <h2 className="text-2xl font-gvDisplay font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{t("ctaSectionTitle")}</h2>
                 <p className="max-w-md text-sm text-[#f5f5dc]/65">
-                  We are an official Technology Provider for the WhatsApp Cloud API. Request onboarding to activate your rooms and products; use token usage for AI and API actions with governance in place.
+                  Start free and connect your WhatsApp Business account in minutes. Manage customers, automate with AI, and scale your operations — all in one place.
                 </p>
               </div>
               <div className="relative mt-6 flex flex-wrap gap-3 md:mt-0">
