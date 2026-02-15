@@ -397,7 +397,7 @@ export default function ImperiumEraBlogPage() {
                 },
                 {
                   title: "Future-Proof Architecture",
-                  desc: "Benefit from continuous updates as we expand to all 7 products.",
+                  desc: "Benefit from continuous updates as we expand to all 8 products.",
                 },
                 {
                   title: "Policy-First Design",

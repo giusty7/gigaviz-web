@@ -8,6 +8,7 @@ import {
   Building2,
   MessageSquare,
   Bot,
+  Link2,
   Palette,
   LayoutGrid,
   Store,
@@ -21,6 +22,7 @@ const iconMap: Record<ModuleIcon, LucideIcon> = {
   platform: Building2,
   meta: MessageSquare,
   helper: Bot,
+  links: Link2,
   office: LayoutGrid,
   studio: Palette,
   marketplace: Store,
@@ -91,7 +93,7 @@ export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLa
       <div className="relative">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-[#f5f5dc]">Quick Launch</h3>
-          <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">7 Products</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">8 Products</span>
         </div>
 
         <div className="mt-4 grid grid-cols-5 gap-2">

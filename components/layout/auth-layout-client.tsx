@@ -20,7 +20,7 @@ type AuthLayoutProps = {
 };
 
 /** 
- * Pre-computed constellation node positions (7 nodes for 7 products)
+ * Pre-computed constellation node positions (8 nodes for 8 products)
  * Distributed in a pleasing pattern across the viewport
  */
 const CONSTELLATION_NODES = [
@@ -31,6 +31,7 @@ const CONSTELLATION_NODES = [
   { x: 25, y: 60 },
   { x: 50, y: 55 },
   { x: 75, y: 65 },
+  { x: 90, y: 50 },
 ];
 
 /** Pre-computed connections between nodes */
@@ -38,7 +39,7 @@ const CONSTELLATION_CONNECTIONS = [
   [0, 1], [1, 2], [2, 3],
   [0, 4], [4, 5], [5, 6],
   [1, 5], [2, 6], [3, 6],
-  [4, 1], [5, 2],
+  [4, 1], [5, 2], [6, 7], [3, 7],
 ];
 
 export function AuthLayoutClient({

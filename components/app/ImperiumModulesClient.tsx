@@ -56,7 +56,7 @@ export default function ImperiumModulesClient(props: ImperiumModulesClientProps)
             </div>
             <div className="flex items-center gap-2 rounded-full bg-[#d4af37]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#d4af37]">
               <Sparkles className="h-3 w-3" />
-              7 Products
+              8 Products
             </div>
           </div>
 

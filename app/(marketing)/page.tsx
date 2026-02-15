@@ -42,6 +42,7 @@ const moduleShortOverrides: Record<string, string> = {
   platform: "Authentication, roles, billing, audit trails, and workspace management for your entire team.",
   meta_hub: "Official WhatsApp Cloud API with templates, unified inbox, delivery tracking, and automation.",
   helper: "AI assistant for smart replies, copywriting, summaries, and CRM insights.",
+  links: "Smart bio pages, QR codes, click-to-WhatsApp links, and conversion tracking.",
   studio: "AI-powered creative suite for documents, images, and audio content.",
   apps: "Third-party integrations and custom tools to extend your workspace.",
   marketplace: "Buy and sell templates, prompt packs, and digital assets.",

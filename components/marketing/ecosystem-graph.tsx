@@ -15,6 +15,7 @@ interface ModuleNode {
 const modules: ModuleNode[] = [
   { id: "meta_hub", label: "Meta Hub", sub: "WhatsApp API", href: "/products/meta-hub", accent: "gold" },
   { id: "helper", label: "Helper", sub: "AI Assistant", href: "/products/helper", accent: "magenta" },
+  { id: "links", label: "Links", sub: "Bio & QR", href: "/products/links", accent: "gold" },
   { id: "studio", label: "Studio", sub: "Creative Suite", href: "/products/studio", accent: "gold" },
   { id: "office", label: "Office", sub: "AI Documents", href: "/products/office", accent: "neutral" },
   { id: "marketplace", label: "Marketplace", sub: "Digital Products", href: "/products/marketplace", accent: "neutral" },
@@ -23,21 +24,23 @@ const modules: ModuleNode[] = [
 
 const CORE_COORDS = { x: 220, y: 220 };
 
-// Precomputed node positions (pixels on 440x440 view) and percentages — 6 nodes evenly around core
+// Precomputed node positions (pixels on 440x440 view) — 7 nodes evenly around core
 const NODE_POSITIONS: Record<ModuleNode["id"], { x: number; y: number; leftPct: number; topPct: number }> = {
-  meta_hub: { x: 220, y: 45, leftPct: 50, topPct: 10.2273 },
-  helper: { x: 371.5, y: 132.5, leftPct: 84.43, topPct: 30.11 },
-  studio: { x: 371.5, y: 307.5, leftPct: 84.43, topPct: 69.89 },
-  office: { x: 220, y: 395, leftPct: 50, topPct: 89.7727 },
-  marketplace: { x: 68.5, y: 307.5, leftPct: 15.57, topPct: 69.89 },
-  apps: { x: 68.5, y: 132.5, leftPct: 15.57, topPct: 30.11 },
+  meta_hub: { x: 220, y: 45, leftPct: 50, topPct: 10.23 },
+  helper: { x: 360, y: 106, leftPct: 81.82, topPct: 24.09 },
+  links: { x: 392, y: 269, leftPct: 89.09, topPct: 61.14 },
+  studio: { x: 304, y: 385, leftPct: 69.09, topPct: 87.50 },
+  office: { x: 136, y: 385, leftPct: 30.91, topPct: 87.50 },
+  marketplace: { x: 48, y: 269, leftPct: 10.91, topPct: 61.14 },
+  apps: { x: 80, y: 106, leftPct: 18.18, topPct: 24.09 },
 };
 
 // Secondary mesh connections (subtle inter-node lines)
 const meshLines = [
-  { key: "meta_hub-office", x1: 220, y1: 45, x2: 220, y2: 395 },
-  { key: "helper-marketplace", x1: 371.5, y1: 132.5, x2: 68.5, y2: 307.5 },
-  { key: "studio-apps", x1: 371.5, y1: 307.5, x2: 68.5, y2: 132.5 },
+  { key: "meta_hub-office", x1: 220, y1: 45, x2: 136, y2: 385 },
+  { key: "helper-marketplace", x1: 360, y1: 106, x2: 48, y2: 269 },
+  { key: "links-apps", x1: 392, y1: 269, x2: 80, y2: 106 },
+  { key: "studio-apps", x1: 304, y1: 385, x2: 80, y2: 106 },
 ];
 
 // Get accent classes - enhanced with glow filters

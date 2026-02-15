@@ -5,11 +5,12 @@ export type FeatureKey =
   | "plan_comparison_view"
   | "billing_manage"
   | "tokens_view"
-  // 7 Hubs (modules)
+  // 8 Hubs (modules)
   | "core_os"
   | "meta_hub"
   | "studio"
   | "helper"
+  | "links"
   | "office"
   | "marketplace"
   | "apps"
@@ -211,6 +212,7 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "meta_webhooks",
     "meta_connect",
     "helper",
+    "links",
     "office",
     "graph",
     "tracks",
@@ -229,6 +231,7 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "meta_webhooks",
     "meta_connect",
     "helper",
+    "links",
     "office",
     "graph",
     "tracks",
@@ -290,7 +293,7 @@ export const planMeta: PlanMeta[] = [
     billing_mode: "team",
     seat_limit: 25,
     highlightBenefits: [
-      "All 7 modules unlocked",
+      "All 8 modules unlocked",
       "50.000 WA messages/month",
       "Mass broadcast & advanced analytics",
     ],

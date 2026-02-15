@@ -4,6 +4,7 @@ export type ModuleIcon =
   | "platform"
   | "meta"
   | "helper"
+  | "links"
   | "office"
   | "studio"
   | "marketplace"
@@ -109,6 +110,31 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     requiresEntitlement: "helper",
     hrefMarketing: "/products/helper",
     hrefApp: "/[workspaceSlug]/helper",
+    topLevel: true,
+  },
+  {
+    key: "links",
+    slug: "links",
+    name: "Gigaviz Links",
+    short: "Smart bio pages, QR codes, and click-to-WhatsApp links with analytics.",
+    description:
+      "Create bio link pages, QR codes, and smart links that route visitors straight to your WhatsApp inbox. Track every click, see which links convert to conversations, and measure ROI — all connected to your CRM.",
+    status: "beta",
+    icon: "links",
+    categories: ["Marketing", "Analytics", "Lead Generation"],
+    features: [
+      "Bio link pages with custom branding",
+      "Click-to-WhatsApp smart links",
+      "QR code generator for offline-to-online",
+      "Link analytics: clicks, conversions, sources",
+      "Mini product catalog on bio pages",
+      "Smart routing to different agents/departments",
+    ],
+    whoFor: ["Marketing teams", "Sales teams", "Retail & F&B businesses", "Event organizers"],
+    related: ["meta_hub", "helper", "marketplace"],
+    requiresEntitlement: "links",
+    hrefMarketing: "/products/links",
+    hrefApp: "/[workspaceSlug]/links",
     topLevel: true,
   },
   {

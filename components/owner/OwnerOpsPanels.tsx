@@ -187,7 +187,7 @@ export function OwnerEntitlementsPanel({
       {/* Hubs Section */}
       <div>
         <h4 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Hubs (7 Products)
+          Hubs (8 Products)
         </h4>
         <div className="space-y-3">
           {HUB_ENTITLEMENT_KEYS.map(renderEntitlementRow)}

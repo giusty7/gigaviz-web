@@ -45,11 +45,12 @@ export default async function BillingPage({
     plan_comparison_view: "View plan comparison",
     billing_manage: "Manage billing",
     tokens_view: "View tokens",
-    // 7 Products
+    // 8 Products
     core_os: "Core OS",
     meta_hub: "Meta Hub",
     studio: "Studio",
     helper: "Helper AI",
+    links: "Links",
     office: "Office docs",
     marketplace: "Marketplace",
     apps: "Apps",

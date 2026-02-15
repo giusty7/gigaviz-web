@@ -15,7 +15,7 @@ interface OrbitNode {
   angle: number;       // degrees position on orbit
 }
 
-// Orbital Layout - 3 tilted rings around central core (7 products)
+// Orbital Layout - 3 tilted rings around central core (8 products)
 const nodes: OrbitNode[] = [
   // CORE - Center
   { id: "core", title: "GIGAVIZ", subtitle: "Platform Core", href: "/products/platform", pillar: "core", orbit: 0, angle: 0 },
@@ -26,7 +26,8 @@ const nodes: OrbitNode[] = [
   { id: "office", title: "OFFICE", subtitle: "AI Documents", href: "/products/office", pillar: "create", orbit: 1, angle: 240 },
 
   // ORBIT 2 - Middle ring (Connect - gold)
-  { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "connect", orbit: 2, angle: 90 },
+  { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "connect", orbit: 2, angle: 60 },
+  { id: "links", title: "LINKS", subtitle: "Bio & QR", href: "/products/links", pillar: "connect", orbit: 2, angle: 180 },
 
   // ORBIT 3 - Outer ring (Commerce - cream)
   { id: "marketplace", title: "MARKETPLACE", subtitle: "Digital Products", href: "/products/marketplace", pillar: "commerce", orbit: 3, angle: 60 },

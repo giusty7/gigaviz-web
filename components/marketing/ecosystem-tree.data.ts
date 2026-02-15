@@ -17,19 +17,19 @@ export interface TreeNode {
 }
 
 /**
- * 7-Product Ecosystem Layout (Tree Structure):
+ * 8-Product Ecosystem Layout (Tree Structure):
  * 
  *              [Marketplace]     [Apps]                   <- TOP cluster (commerce)
  *                     \          /
  *                      \        /
  *   [Helper]            \______/            [Meta Hub]    <- Upper branches
  *       \                  |                   /
- *   [Studio]         [PLATFORM]                           <- Core at center
+ *   [Studio]         [PLATFORM]           [Links]         <- Core at center
  *    /   |  \           (trunk)
  * [Office] [Graph] [Tracks]                               <- Studio children (roots)
  *
  * LEFT = Create (magenta): Helper, Studio, Office, Graph, Tracks
- * RIGHT = Connect (gold): Meta Hub
+ * RIGHT = Connect (gold): Meta Hub, Links
  * TOP = Commerce (cream): Marketplace, Apps
  */
 
@@ -122,6 +122,15 @@ export const treeNodes: TreeNode[] = [
     x: 88,
     y: 35,
   },
+  {
+    id: "links",
+    title: "LINKS",
+    subtitle: "Bio Pages · QR · Smart Links",
+    href: "/products/links",
+    pillar: "connect",
+    x: 90,
+    y: 60,
+  },
 ];
 
 // Branch path definitions for SVG
@@ -142,6 +151,7 @@ export const branchPaths = {
 
   // Connect branch paths (RIGHT side)
   connectUpper: "M 50 50 Q 70 42, 88 35",       // to Meta Hub
+  connectLower: "M 88 35 Q 89 48, 90 60",       // Meta Hub to Links
 
   // Roots (decorative, below trunk)
   rootLeft: "M 50 95 Q 35 100, 25 105",
@@ -163,4 +173,5 @@ export const nodeToBranch: Record<string, string[]> = {
   tracks: ["trunk", "createMiddle", "createTracks"],
   // Connect (right)
   meta_hub: ["trunk", "connectUpper"],
+  links: ["trunk", "connectUpper", "connectLower"],
 };

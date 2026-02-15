@@ -18,7 +18,7 @@ export type EntitlementDefinition = {
 };
 
 /**
- * Hub Entitlements (7 modules)
+ * Hub Entitlements (8 modules)
  * 
  * Hubs are major product modules that workspaces can access.
  * Each hub may contain multiple capabilities.
@@ -40,18 +40,25 @@ export const HUB_ENTITLEMENTS: EntitlementDefinition[] = [
     icon: "MessageCircle",
   },
   {
-    key: "studio",
-    label: "Studio",
-    description: "AI-powered creative suite (Office docs, Graph visuals, Tracks music)",
-    category: "hub",
-    icon: "Workflow",
-  },
-  {
     key: "helper",
     label: "Helper",
     description: "AI assistant with conversation management, CRM insights, and knowledge base",
     category: "hub",
     icon: "Bot",
+  },
+  {
+    key: "links",
+    label: "Links",
+    description: "Smart bio pages, QR codes, click-to-WhatsApp links, and analytics",
+    category: "hub",
+    icon: "Link",
+  },
+  {
+    key: "studio",
+    label: "Studio",
+    description: "AI-powered creative suite (Office docs, Graph visuals, Tracks music)",
+    category: "hub",
+    icon: "Workflow",
   },
   {
     key: "office",

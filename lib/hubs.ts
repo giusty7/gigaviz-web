@@ -75,6 +75,26 @@ export const HUBS: HubDef[] = [
     ],
   },
   {
+    slug: "links",
+    title: "Gigaviz Links",
+    description: "Smart bio pages, QR codes, and click-to-WhatsApp links.",
+    status: "OPEN",
+    flow: [
+      { title: "Create a bio page", desc: "Design your branded landing page with links." },
+      { title: "Add smart links", desc: "Click-to-WhatsApp, product catalog, social links." },
+      { title: "Generate QR codes", desc: "Print for offline: menus, events, business cards." },
+      { title: "Track performance", desc: "See clicks, conversions, and visitor sources." },
+      { title: "Route to inbox", desc: "Visitors go directly to your WhatsApp inbox." },
+    ],
+    bullets: [
+      "Bio link pages with custom branding",
+      "Click-to-WhatsApp smart links",
+      "QR code generator for offline-to-online",
+      "Link analytics with conversion tracking",
+      "Connects visitors to Meta Hub inbox",
+    ],
+  },
+  {
     slug: "studio",
     title: "Gigaviz Studio",
     description: "AI-powered creative suite: Office docs, Graph visuals, Tracks music.",

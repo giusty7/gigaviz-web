@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 import SetPasswordModal from "@/components/auth/SetPasswordModal";
 import AdminPanel from "@/components/app/AdminPanel";
 import { UnifiedProductGrid } from "@/components/app/dashboard-widgets/UnifiedProductGrid";
@@ -44,38 +43,25 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background pattern */}
-      <div className="pointer-events-none fixed inset-0 batik-pattern opacity-[0.03]" aria-hidden />
-      
       <SetPasswordModal />
 
       <div className="relative space-y-8 pb-12">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden rounded-3xl border border-[#d4af37]/30 bg-gradient-to-br from-[#0a1229]/90 via-[#0a1229]/80 to-[#0a1229]/90 p-8 shadow-2xl backdrop-blur-sm">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 via-transparent to-transparent" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-6 flex-wrap">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-3">
-                  <Sparkles className="h-8 w-8 text-[#d4af37]" />
-                  <h1 className="text-3xl font-black text-[#f5f5dc] tracking-tight">
-                    {t("welcomeBack", { workspace: workspace.name })}
-                  </h1>
-                </div>
-                <p className="text-[#f5f5dc]/70 text-lg max-w-2xl">
-                  {t("subtitle")}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Link
-                  href={`/${workspace.slug}/settings`}
-                  className="rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/80 px-6 py-3 text-sm font-bold text-[#d4af37] transition hover:border-[#d4af37]/60 hover:bg-[#d4af37]/10"
-                >
-                  {t("workspaceSettings")}
-                </Link>
-              </div>
-            </div>
+        {/* Compact Hero */}
+        <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#f5f5dc] tracking-tight sm:text-3xl">
+              {t("welcomeBack", { workspace: workspace.name })}
+            </h1>
+            <p className="mt-1 text-sm text-[#f5f5dc]/50 max-w-xl">
+              {t("subtitle")}
+            </p>
           </div>
+          <Link
+            href={`/${workspace.slug}/settings`}
+            className="inline-flex items-center self-start rounded-lg border border-[#d4af37]/20 bg-[#d4af37]/5 px-4 py-2 text-xs font-medium text-[#d4af37] transition hover:bg-[#d4af37]/10 sm:self-auto"
+          >
+            {t("workspaceSettings")}
+          </Link>
         </section>
 
         {/* Unified Product Grid */}

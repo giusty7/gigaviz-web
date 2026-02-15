@@ -22,7 +22,7 @@ export function AppShell({ sidebar, header, children, className, collapsed = fal
           columnTemplate
         )}
       >
-        {/* Left Sidebar - Navy Glassmorphism (7 Products Navigation) */}
+        {/* Left Sidebar - Navy Glassmorphism (8 Products Navigation) */}
         <aside
           className={cn(
             "hidden flex-col border-r border-[#d4af37]/10 bg-[#050a18]/95 py-6 backdrop-blur-2xl transition-[width,padding] duration-200 ease-out lg:flex",

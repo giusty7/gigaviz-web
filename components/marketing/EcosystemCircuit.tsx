@@ -15,7 +15,7 @@ interface CircuitNode {
   gridY: number; // 0-4 rows
 }
 
-// Circuit Board Grid Layout (7 columns x 5 rows) — 7 products
+// Circuit Board Grid Layout (7 columns x 5 rows) — 8 products
 // Core at center, modules arranged in circuit pattern
 const nodes: CircuitNode[] = [
   // CORE - Center (col 3, row 2)
@@ -32,6 +32,7 @@ const nodes: CircuitNode[] = [
 
   // CONNECT - Right side (gold)
   { id: "meta_hub", title: "META HUB", subtitle: "WhatsApp API", href: "/products/meta-hub", pillar: "connect", gridX: 6, gridY: 2 },
+  { id: "links", title: "LINKS", subtitle: "Bio & QR", href: "/products/links", pillar: "connect", gridX: 6, gridY: 4 },
 ];
 
 // Circuit traces - 90° angle paths connecting nodes
@@ -52,6 +53,7 @@ const circuitTraces = [
 
   // Connect traces (gold) - right side
   { from: "meta_hub", to: "core", pillar: "connect" as NodePillar, path: "M 85.7 60 L 85.7 50 L 58 50" },
+  { from: "meta_hub", to: "links", pillar: "connect" as NodePillar, path: "M 85.7 60 L 85.7 78" },
 ];
 
 function getPillarStyles(pillar: NodePillar) {

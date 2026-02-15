@@ -29,7 +29,7 @@ const FEATURED_POSTS = [
     title: "Part 4: The Dawn of an Imperium — 7 Pillars of Digital Sovereignty",
     description:
       "From a technical struggle to a digital powerhouse. Discover how Gigaviz evolved into a 7-product ecosystem, officially verified by Meta to redefine digital infrastructure.",
-    tags: ["IMPERIUM", "7 PRODUCTS", "META VERIFIED", "ECOSYSTEM", "VISION"],
+    tags: ["IMPERIUM", "8 PRODUCTS", "META VERIFIED", "ECOSYSTEM", "VISION"],
     isNew: true,
   },
 ];

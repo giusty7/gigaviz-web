@@ -35,7 +35,7 @@ export type UnifiedDashboard = {
 };
 
 /**
- * Get unified dashboard overview for all 7 products
+ * Get unified dashboard overview for all 8 products
  */
 export async function getUnifiedDashboard(
   workspaceId: string,
@@ -48,6 +48,7 @@ export async function getUnifiedDashboard(
     platformData,
     metaHubData,
     helperData,
+    linksData,
     studioData,
     appsData,
     marketplaceData,
@@ -56,6 +57,7 @@ export async function getUnifiedDashboard(
     getPlatformMetrics(workspaceId, db),
     getMetaHubMetrics(workspaceId, entitlements),
     getHelperMetrics(workspaceId, entitlements),
+    getLinksMetrics(workspaceId, entitlements),
     getStudioMetrics(workspaceId, entitlements),
     getAppsMetrics(workspaceId),
     getMarketplaceMetrics(workspaceId, entitlements),
@@ -160,6 +162,25 @@ export async function getUnifiedDashboard(
         type: "warning",
         message: `AI usage at ${helperData.usagePercent}% of monthly cap`,
       } : undefined,
+    });
+  }
+
+  // P1: Links (bio pages, QR, smart links)
+  if (linksData) {
+    products.push({
+      productKey: "links",
+      productName: "Links",
+      status: linksData.status,
+      priority: 1,
+      metrics: [
+        { label: "Bio Pages", value: linksData.pagesCount, icon: "🔗" },
+        { label: "Total Clicks", value: linksData.totalClicks.toLocaleString() },
+        { label: "QR Codes", value: linksData.qrCount },
+      ],
+      quickAction: {
+        label: linksData.pagesCount === 0 ? "Create bio page" : "Open Links",
+        href: linksData.linksHref,
+      },
     });
   }
 
@@ -444,6 +465,33 @@ async function getMarketplaceMetrics(workspaceId: string, entitlements: string[]
       revenue: creatorData.data?.creator_revenue || 0,
       itemsCount: creatorData.data?.items_count || 0,
       marketplaceHref: `/${workspace.data?.slug}/marketplace`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Links metrics (bio pages, QR codes, smart links)
+ */
+async function getLinksMetrics(workspaceId: string, entitlements: string[]) {
+  if (!entitlements.includes("links")) return null;
+
+  try {
+    const db = supabaseAdmin();
+    const { data: workspace } = await db
+      .from("workspaces")
+      .select("slug")
+      .eq("id", workspaceId)
+      .single();
+
+    // Links tables don't exist yet — return stub metrics
+    return {
+      status: "beta" as ProductStatus,
+      pagesCount: 0,
+      totalClicks: 0,
+      qrCount: 0,
+      linksHref: `/${workspace?.slug}/links`,
     };
   } catch {
     return null;
