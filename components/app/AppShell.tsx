@@ -133,7 +133,7 @@ export default function AppShell({
     if (label === "Meta Hub") return pathname.includes("/meta-hub");
     if (label === "Helper AI") return pathname.includes("/helper");
     if (label === "Links") return pathname.includes("/links");
-    if (label === "Studio") return pathname.includes("/studio") || pathname.includes("/modules");
+    if (label === "Studio") return pathname.includes("/modules/studio") || pathname.includes("/modules/office") || pathname.includes("/modules/graph") || pathname.includes("/modules/tracks");
     return pathname.startsWith(href);
   };
 

@@ -182,7 +182,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["helper", "platform", "marketplace"],
     requiresEntitlement: "office",
     hrefMarketing: "/products/office",
-    hrefApp: "/[workspaceSlug]/modules/office",
+    hrefApp: "/[workspaceSlug]/modules/studio/office",
     parentKey: "studio",
   },
   {
@@ -207,7 +207,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["helper", "tracks", "marketplace"],
     requiresEntitlement: "graph",
     hrefMarketing: "/products/graph",
-    hrefApp: "/[workspaceSlug]/modules/graph",
+    hrefApp: "/[workspaceSlug]/modules/studio/graph",
     parentKey: "studio",
   },
   {
@@ -232,7 +232,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     related: ["helper", "graph", "marketplace"],
     requiresEntitlement: "tracks",
     hrefMarketing: "/products/tracks",
-    hrefApp: "/[workspaceSlug]/modules/tracks",
+    hrefApp: "/[workspaceSlug]/modules/studio/tracks",
     parentKey: "studio",
   },
   {
