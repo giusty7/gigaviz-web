@@ -262,13 +262,21 @@ async function getPlatformMetrics(workspaceId: string, db: ReturnType<typeof sup
     db.from("subscriptions").select("plan_id").eq("workspace_id", workspaceId).maybeSingle(),
   ]);
 
+  // Estimate storage from document/attachment counts (proxy until storage API is wired)
+  const { count: docCount } = await db
+    .from("office_documents")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId);
+  // Rough estimate: ~50KB avg per document
+  const storageUsedMB = docCount ? Math.round((docCount * 50) / 1024 * 100) / 100 : null;
+
   const planName = subscription.data?.plan_id || "free_locked";
   const slug = workspaceData.data?.slug || "";
 
   return {
     planName: planName.replace("_", " ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
     memberCount: memberCount.count || 0,
-    storageUsed: null, // TODO: Implement storage tracking
+    storageUsed: storageUsedMB,
     settingsHref: `/${slug}/settings`,
     creditsHref: `/${slug}/credits`,
     baseHref: `/${slug}`,
@@ -297,6 +305,22 @@ async function getMetaHubMetrics(workspaceId: string, entitlements: string[]) {
       .eq("workspace_id", workspaceId)
       .gte("created_at", today.toISOString());
 
+    // Calculate trend: compare today vs yesterday
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const { count: messagesYesterday } = await db
+      .from("outbox_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId)
+      .gte("created_at", yesterday.toISOString())
+      .lt("created_at", today.toISOString());
+
+    const todayCount = messagesToday || 0;
+    const yesterdayCount = messagesYesterday || 0;
+    const messagesTrend = yesterdayCount > 0
+      ? Math.round(((todayCount - yesterdayCount) / yesterdayCount) * 100)
+      : todayCount > 0 ? 100 : 0;
+
     // Get active threads count
     const { count: activeThreads } = await db
       .from("threads")
@@ -309,7 +333,7 @@ async function getMetaHubMetrics(workspaceId: string, entitlements: string[]) {
     return {
       status: "live" as ProductStatus,
       messagesToday: messagesToday || 0,
-      messagesTrend: 0, // TODO: Calculate trend
+      messagesTrend,
       activeThreads: activeThreads || 0,
       templatesCount: (overview.kpis.templates.approved || 0) + (overview.kpis.templates.pending || 0) + (overview.kpis.templates.rejected || 0),
       pendingTemplates: overview.kpis.templates.pending || 0,
@@ -359,7 +383,14 @@ async function getHelperMetrics(workspaceId: string, entitlements: string[]) {
       .gte("usage_date", firstDayOfMonth.toISOString().split("T")[0]);
 
     const monthlyTotal = monthlyUsage?.reduce((sum, day) => sum + (day.tokens_used || 0), 0) || 0;
-    const monthlyCap = 100000; // TODO: Get from plan
+
+    // Get monthly cap from token_settings (plan-specific)
+    const { data: tokenSettings } = await db
+      .from("token_settings")
+      .select("monthly_cap")
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    const monthlyCap = Number(tokenSettings?.monthly_cap) || 100000;
     const usagePercent = monthlyCap > 0 ? Math.round((monthlyTotal / monthlyCap) * 100) : 0;
 
     const { data: workspace } = await db.from("workspaces").select("slug").eq("id", workspaceId).single();
@@ -397,7 +428,7 @@ async function getStudioMetrics(workspaceId: string, entitlements: string[]) {
     if (totalActivity === 0) return null;
 
     return {
-      status: "beta" as ProductStatus,
+      status: "live" as ProductStatus,
       documentsCount: documentsCount.count || 0,
       chartsCount: chartsCount.count || 0,
       workflowsCount: workflowsCount.count || 0,

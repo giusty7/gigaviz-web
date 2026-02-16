@@ -1415,5 +1415,313 @@
     "success": "Anda berhasil berlangganan! 🎉",
     "successDetail": "Kami akan mengirim update — tanpa spam, janji.",
     "error": "Terjadi kesalahan. Coba lagi."
+  },
+  "studio": {
+    "common": {
+      "unlocked": "Terbuka",
+      "locked": "Terkunci",
+      "public": "Publik",
+      "private": "Privat",
+      "save": "Simpan",
+      "saveChanges": "Simpan Perubahan",
+      "cancel": "Batal",
+      "delete": "Hapus",
+      "deleteConfirm": "Hapus secara permanen?",
+      "yesDelete": "Ya, hapus",
+      "creating": "Membuat...",
+      "networkError": "Kesalahan jaringan — silakan coba lagi.",
+      "networkErrorShort": "Kesalahan jaringan",
+      "updateFailed": "Gagal memperbarui",
+      "deleteFailed": "Gagal menghapus",
+      "updatedPrefix": "Diperbarui ",
+      "createdPrefix": "Dibuat ",
+      "titleLabel": "Judul",
+      "descriptionOptionalLabel": "Deskripsi (Opsional)",
+      "descriptionPlaceholder": "Deskripsi...",
+      "tagsOptionalLabel": "Tag (Opsional)",
+      "tagPlaceholder": "Tambah tag...",
+      "addButton": "Tambah",
+      "back": "Kembali",
+      "edit": "Edit",
+      "tokensUsed": "{count} token"
+    },
+    "hub": {
+      "badge": "Suite Kreatif AI",
+      "title": "Studio Hub",
+      "description": "Buat apa saja — dokumen, visual, grafik, alur kerja, musik — didukung AI dan terhubung ke percakapan Meta Hub dan kecerdasan Helper Anda.",
+      "openButton": "Buka",
+      "upgradeButton": "Upgrade",
+      "modules": {
+        "office": {
+          "name": "Office",
+          "description": "Buat dokumen, spreadsheet, faktur, dan laporan bertenaga AI dengan template cerdas.",
+          "statLabel": "Dokumen",
+          "features": ["Pembuatan dokumen AI", "Perpustakaan template", "Ekspor PDF/Excel/Word"]
+        },
+        "graph": {
+          "name": "Graph",
+          "description": "Buat grafik, dashboard, gambar AI, dan konten video untuk pemasaran dan analitik.",
+          "statLabel": "Grafik",
+          "features": ["Pembuat grafik", "Desainer dashboard", "Pembuatan gambar AI"]
+        },
+        "tracks": {
+          "name": "Tracks",
+          "description": "Bangun alur kerja otomatis, pemicu, dan pembuatan audio AI untuk kampanye pemasaran.",
+          "statLabel": "Alur Kerja",
+          "features": ["Otomasi alur kerja", "Riwayat eksekusi", "Musik & audio AI"]
+        }
+      },
+      "integrations": {
+        "title": "Integrasi Terhubung",
+        "metaHub": {
+          "title": "Integrasi Meta Hub",
+          "description": "Buat template WhatsApp, laporan, dan aset pemasaran dari data Meta Hub langsung di Studio."
+        },
+        "helperAi": {
+          "title": "Integrasi Helper AI",
+          "description": "Gunakan Helper AI untuk membuat dokumen, menganalisis data, membuat visual, dan membuat audio — semuanya dengan bahasa alami."
+        }
+      },
+      "comingSoon": {
+        "title": "Segera Hadir: AI Media Studio",
+        "description": "Buat gambar pemasaran, video produk, jingle, dan audio brand langsung dari workspace Anda. Semuanya terhubung ke kampanye Meta Hub dan Helper AI."
+      }
+    },
+    "layout": {
+      "lockedTitle": "Studio Suite terkunci",
+      "lockedDescription": "Upgrade paket Anda untuk membuka Office, Graph, dan Tracks — suite kreatif bertenaga AI."
+    },
+    "sidebar": {
+      "brand": "Studio",
+      "subtitle": "Suite Kreatif",
+      "sections": {
+        "overview": "Ringkasan",
+        "office": "Office",
+        "graph": "Graph",
+        "tracks": "Tracks"
+      },
+      "nav": {
+        "studioHub": "Studio Hub",
+        "documents": "Dokumen",
+        "templates": "Template",
+        "newDocument": "Dokumen Baru",
+        "charts": "Grafik",
+        "dashboards": "Dashboard",
+        "aiImages": "Gambar AI",
+        "aiVideos": "Video AI",
+        "workflows": "Alur Kerja",
+        "runHistory": "Riwayat Eksekusi",
+        "aiMusic": "Musik AI"
+      },
+      "badges": {
+        "new": "Baru",
+        "beta": "Beta",
+        "soon": "Segera"
+      },
+      "poweredBadge": "Suite Kreatif Bertenaga AI",
+      "ownerGrant": "Dibuka oleh pemilik"
+    },
+    "graph": {
+      "title": "Grafik & Visualisasi",
+      "description": "Buat grafik indah bertenaga AI dan visualisasi data untuk tim Anda.",
+      "newChart": "Grafik Baru",
+      "stats": {
+        "charts": "Grafik",
+        "dashboards": "Dashboard",
+        "chartTypes": "Jenis Grafik"
+      },
+      "yourCharts": "Grafik Anda",
+      "sourcePrefix": "Sumber: ",
+      "emptyTitle": "Belum ada grafik",
+      "emptyDescription": "Buat grafik pertama Anda untuk memulai.",
+      "lockedTitle": "Gigaviz Graph terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih untuk membuat grafik, dashboard, dan visual bertenaga AI.",
+      "backToCharts": "Grafik",
+      "new": {
+        "title": "Grafik Baru",
+        "description": "Pilih jenis grafik dan konfigurasikan visualisasi Anda.",
+        "chartTypeLabel": "Jenis Grafik",
+        "dataSourceLabel": "Sumber Data",
+        "titlePlaceholder": "mis. Grafik Pendapatan Bulanan",
+        "descriptionPlaceholder": "Jelaskan apa yang divisualisasikan grafik ini...",
+        "createButton": "Buat Grafik",
+        "chartTypes": {
+          "bar": "Grafik Batang",
+          "line": "Grafik Garis",
+          "pie": "Grafik Lingkaran",
+          "area": "Grafik Area",
+          "scatter": "Scatter Plot",
+          "radar": "Grafik Radar"
+        },
+        "dataSources": {
+          "manual": "Input Manual",
+          "csv": "Upload CSV",
+          "api": "API Endpoint",
+          "database": "Query Database"
+        }
+      },
+      "detail": {
+        "configTitle": "Konfigurasi Grafik",
+        "configHint": "Visualisasi grafik akan ditampilkan di sini setelah data dikonfigurasi."
+      },
+      "actions": {
+        "titlePlaceholder": "Judul grafik...",
+        "editChart": "Edit Grafik"
+      }
+    },
+    "dashboards": {
+      "title": "Dashboard",
+      "description": "Susun grafik menjadi dashboard interaktif dan bagikan dengan tim Anda.",
+      "newDashboard": "Dashboard Baru",
+      "emptyTitle": "Belum ada dashboard",
+      "emptyDescription": "Buat dashboard pertama Anda untuk memulai.",
+      "lockedTitle": "Dashboard terkunci",
+      "lockedDescription": "Upgrade untuk mengakses pembuat dashboard.",
+      "backLink": "Dashboard",
+      "new": {
+        "title": "Dashboard Baru",
+        "description": "Buat dashboard untuk menyusun grafik menjadi tata letak interaktif.",
+        "titleLabel": "Judul Dashboard",
+        "visibilityLabel": "Visibilitas",
+        "publicHint": "Dashboard publik dapat dibagikan dengan pihak eksternal.",
+        "previewHint": "Setelah dibuat, Anda dapat menambah grafik ke dashboard menggunakan editor tata letak.",
+        "createButton": "Buat Dashboard",
+        "titlePlaceholder": "mis. Ringkasan Kinerja Q1",
+        "descriptionPlaceholder": "Apa yang dilacak dashboard ini..."
+      },
+      "detail": {
+        "layoutTitle": "Tata Letak Dashboard",
+        "emptyCharts": "Belum ada grafik ditambahkan ke dashboard ini."
+      },
+      "actions": {
+        "titlePlaceholder": "Judul dashboard...",
+        "editDashboard": "Edit Dashboard"
+      }
+    },
+    "tracks": {
+      "title": "Alur Kerja",
+      "description": "Bangun dan atur alur kerja otomatis. Hubungkan ke Meta Hub, Helper AI, dan API eksternal.",
+      "newWorkflow": "Alur Kerja Baru",
+      "stats": {
+        "total": "Total",
+        "active": "Aktif",
+        "totalRuns": "Total Eksekusi",
+        "successRate": "Tingkat Keberhasilan"
+      },
+      "yourWorkflows": "Alur Kerja Anda",
+      "runsCount": "{count} eksekusi",
+      "tokensPerRun": "{count} token/eksekusi",
+      "emptyTitle": "Belum ada alur kerja",
+      "emptyDescription": "Buat alur kerja pertama Anda untuk memulai.",
+      "viewAllRuns": "Lihat Semua Eksekusi",
+      "lockedTitle": "Gigaviz Tracks terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih untuk membangun alur kerja otomatis dan audio AI.",
+      "backLink": "Alur Kerja",
+      "new": {
+        "title": "Alur Kerja Baru",
+        "description": "Buat alur kerja otomatis. Hubungkan ke Meta Hub, Helper AI, dan layanan eksternal.",
+        "nameLabel": "Nama Alur Kerja",
+        "triggerLabel": "Jenis Pemicu",
+        "namePlaceholder": "mis. Otomasi Follow-Up Lead",
+        "descriptionPlaceholder": "Jelaskan fungsi alur kerja ini...",
+        "createButton": "Buat Alur Kerja",
+        "previewHint": "Setelah dibuat, Anda dapat menambah langkah dan mengkonfigurasi pemicu di editor alur kerja.",
+        "triggers": {
+          "manual": "Manual",
+          "manualDesc": "Jalankan sesuai kebutuhan",
+          "schedule": "Jadwal",
+          "scheduleDesc": "Pemicu berbasis waktu",
+          "webhook": "Webhook",
+          "webhookDesc": "Pemicu API eksternal"
+        }
+      },
+      "detail": {
+        "totalRuns": "Total Eksekusi",
+        "successes": "Berhasil",
+        "failures": "Gagal",
+        "tokensPerRun": "Token/Eksekusi",
+        "trigger": "Pemicu",
+        "steps": "Langkah",
+        "workflowBuilder": "Pembuat Alur Kerja",
+        "builderHint": "Gunakan editor visual untuk menambah kondisi pemicu dan langkah aksi.",
+        "recentRuns": "Eksekusi Terbaru"
+      },
+      "runs": {
+        "title": "Riwayat Eksekusi",
+        "description": "Lihat riwayat eksekusi untuk semua alur kerja Anda.",
+        "totalRuns": "Total Eksekusi",
+        "completed": "Selesai",
+        "tokensUsed": "Token Digunakan",
+        "runId": "ID Eksekusi",
+        "stepLabel": "Langkah: {step}",
+        "emptyTitle": "Belum ada eksekusi",
+        "emptyDescription": "Aktifkan alur kerja untuk melihat riwayat eksekusi di sini.",
+        "lockedTitle": "Riwayat Eksekusi terkunci"
+      },
+      "actions": {
+        "activate": "Aktifkan",
+        "pause": "Jeda",
+        "resume": "Lanjutkan",
+        "archive": "Arsipkan",
+        "statusChangeFailed": "Gagal mengubah status"
+      }
+    },
+    "office": {
+      "title": "Dokumen Office",
+      "description": "Buat dan kelola dokumen, spreadsheet, faktur, dan laporan bertenaga AI.",
+      "newDocument": "Dokumen Baru",
+      "stats": {
+        "documents": "Dokumen",
+        "templates": "Template",
+        "lastUpdated": "Terakhir Diperbarui"
+      },
+      "recentDocuments": "Dokumen Terbaru",
+      "createDocument": "Buat Dokumen",
+      "emptyTitle": "Belum ada dokumen",
+      "emptyDescription": "Buat dokumen pertama Anda dengan bantuan AI.",
+      "lockedTitle": "Gigaviz Office terkunci",
+      "lockedDescription": "Upgrade ke paket Starter atau lebih untuk membuat dokumen, spreadsheet, dan laporan bertenaga AI.",
+      "new": {
+        "title": "Dokumen Baru",
+        "description": "Pilih jenis dokumen dan biarkan AI membantu Anda membuatnya.",
+        "typeLabel": "Jenis Dokumen",
+        "aiPromptLabel": "Instruksi AI (Opsional)",
+        "titlePlaceholder": "mis. Laporan Penjualan Q1",
+        "aiPromptPlaceholder": "Jelaskan isi dokumen yang Anda inginkan. AI akan membuat konten awal untuk Anda...",
+        "aiPromptHint": "Biarkan kosong untuk memulai dengan dokumen kosong.",
+        "createButton": "Buat Dokumen",
+        "types": {
+          "document": "Dokumen",
+          "documentDesc": "Dokumen bergaya Word dengan penulisan AI",
+          "spreadsheet": "Spreadsheet",
+          "spreadsheetDesc": "Data bergaya Excel dengan formula AI",
+          "report": "Laporan",
+          "reportDesc": "Laporan bisnis berbasis AI",
+          "invoice": "Faktur",
+          "invoiceDesc": "Template faktur profesional",
+          "presentation": "Presentasi",
+          "presentationDesc": "Slide deck bertenaga AI"
+        }
+      },
+      "detail": {
+        "emptyContent": "Dokumen ini belum memiliki konten.",
+        "emptyHint": "Gunakan editor untuk menambah konten atau buat dengan AI."
+      },
+      "templates": {
+        "title": "Template Dokumen",
+        "description": "Mulai dari template atau buat sendiri. Template mendukung pembuatan dokumen AI.",
+        "usageCount": "{count} penggunaan",
+        "useTemplate": "Gunakan Template",
+        "emptyTitle": "Belum ada template",
+        "emptyDescription": "Template akan muncul di sini saat Anda membuat format dokumen yang dapat digunakan kembali.",
+        "lockedTitle": "Template Office terkunci",
+        "lockedDescription": "Upgrade untuk mengakses perpustakaan template."
+      },
+      "actions": {
+        "contentLabel": "Konten",
+        "contentPlaceholder": "Mulai menulis dokumen Anda...",
+        "editDocument": "Edit Dokumen"
+      }
+    }
   }
 }

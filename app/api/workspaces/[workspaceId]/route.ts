@@ -12,6 +12,10 @@ const updateSchema = z.object({
   workspace_type: z.enum(["individual", "team"]).optional(),
 });
 
+const deleteConfirmSchema = z.object({
+  confirmName: z.string().min(1, "Confirmation name is required"),
+});
+
 /**
  * PATCH /api/workspaces/[workspaceId]
  * Update workspace settings
@@ -136,7 +140,8 @@ export const DELETE = withErrorHandler(async (
 
     // Safety check: Verify confirmation (require workspace name in request body)
     const body = await req.json();
-    if (body.confirmName !== workspace?.name) {
+    const { confirmName } = deleteConfirmSchema.parse(body);
+    if (confirmName !== workspace?.name) {
       return NextResponse.json(
         { error: "Workspace name confirmation does not match" },
         { status: 400 }

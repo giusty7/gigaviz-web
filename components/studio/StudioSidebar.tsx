@@ -17,6 +17,7 @@ import {
   VideoIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 /* ─── Types ────────────────────────────────────────────────── */
 
@@ -45,6 +46,7 @@ type StudioSidebarProps = {
 /* ─── Badge Component ──────────────────────────────────────── */
 
 function StatusBadge({ badge }: { badge: "beta" | "new" | "soon" }) {
+  const t = useTranslations("studio");
   const styles = {
     beta: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
     new: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -58,44 +60,44 @@ function StatusBadge({ badge }: { badge: "beta" | "new" | "soon" }) {
         styles[badge]
       )}
     >
-      {badge}
+      {t(`sidebar.badges.${badge}`)}
     </span>
   );
 }
 
 /* ─── Build Nav Sections ───────────────────────────────────── */
 
-function buildSections(basePath: string): NavSection[] {
+function buildSections(basePath: string, t: (key: string) => string): NavSection[] {
   return [
     {
-      label: "Overview",
+      label: t("sidebar.sections.overview"),
       items: [
-        { id: "hub", label: "Studio Hub", icon: Palette, href: basePath },
+        { id: "hub", label: t("sidebar.nav.studioHub"), icon: Palette, href: basePath },
       ],
     },
     {
-      label: "Office",
+      label: t("sidebar.sections.office"),
       items: [
-        { id: "office", label: "Documents", icon: FileText, href: `${basePath}/office`, badge: "beta" },
-        { id: "office-templates", label: "Templates", icon: FolderOpen, href: `${basePath}/office/templates`, badge: "beta" },
-        { id: "office-new", label: "New Document", icon: Plus, href: `${basePath}/office/new`, badge: "beta" },
+        { id: "office", label: t("sidebar.nav.documents"), icon: FileText, href: `${basePath}/office`, badge: "beta" },
+        { id: "office-templates", label: t("sidebar.nav.templates"), icon: FolderOpen, href: `${basePath}/office/templates`, badge: "beta" },
+        { id: "office-new", label: t("sidebar.nav.newDocument"), icon: Plus, href: `${basePath}/office/new`, badge: "beta" },
       ],
     },
     {
-      label: "Graph",
+      label: t("sidebar.sections.graph"),
       items: [
-        { id: "graph", label: "Charts", icon: BarChart3, href: `${basePath}/graph`, badge: "beta" },
-        { id: "graph-dashboards", label: "Dashboards", icon: LayoutDashboard, href: `${basePath}/graph/dashboards`, badge: "beta" },
-        { id: "graph-images", label: "AI Images", icon: ImageIcon, href: `${basePath}/graph/images`, badge: "soon" },
-        { id: "graph-videos", label: "AI Videos", icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "soon" },
+        { id: "graph", label: t("sidebar.nav.charts"), icon: BarChart3, href: `${basePath}/graph`, badge: "beta" },
+        { id: "graph-dashboards", label: t("sidebar.nav.dashboards"), icon: LayoutDashboard, href: `${basePath}/graph/dashboards`, badge: "beta" },
+        { id: "graph-images", label: t("sidebar.nav.aiImages"), icon: ImageIcon, href: `${basePath}/graph/images`, badge: "soon" },
+        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "soon" },
       ],
     },
     {
-      label: "Tracks",
+      label: t("sidebar.sections.tracks"),
       items: [
-        { id: "tracks", label: "Workflows", icon: Workflow, href: `${basePath}/tracks`, badge: "beta" },
-        { id: "tracks-runs", label: "Run History", icon: HistoryIcon, href: `${basePath}/tracks/runs`, badge: "beta" },
-        { id: "tracks-music", label: "AI Music", icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "soon" },
+        { id: "tracks", label: t("sidebar.nav.workflows"), icon: Workflow, href: `${basePath}/tracks`, badge: "beta" },
+        { id: "tracks-runs", label: t("sidebar.nav.runHistory"), icon: HistoryIcon, href: `${basePath}/tracks/runs`, badge: "beta" },
+        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "soon" },
       ],
     },
   ];
@@ -125,7 +127,8 @@ function useActiveItem(sections: NavSection[], pathname: string): string | null 
 
 export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
   const pathname = usePathname();
-  const sections = buildSections(basePath);
+  const t = useTranslations("studio");
+  const sections = buildSections(basePath, t);
   const activeId = useActiveItem(sections, pathname);
 
   return (
@@ -138,9 +141,9 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">
-              Studio
+              {t("sidebar.brand")}
             </p>
-            <h1 className="text-base font-semibold text-[#f5f5dc]">Creative Suite</h1>
+            <h1 className="text-base font-semibold text-[#f5f5dc]">{t("sidebar.subtitle")}</h1>
           </div>
         </div>
       </div>
@@ -202,7 +205,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
       <div className="mt-6 flex items-center gap-2 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2">
         <SparklesIcon className="h-4 w-4 text-cyan-400" />
         <span className="text-[10px] font-semibold text-cyan-400">
-          AI-Powered Creative Suite
+          {t("sidebar.poweredBadge")}
         </span>
       </div>
 
@@ -219,7 +222,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
                   : "bg-amber-500/15 text-amber-400"
               )}
             >
-              {access[mod] ? "Unlocked" : "Locked"}
+              {access[mod] ? t("common.unlocked") : t("common.locked")}
             </span>
           </div>
         ))}
@@ -243,6 +246,7 @@ export function StudioLayoutShell({
   access,
   ownerGrantActive = false,
 }: StudioLayoutShellProps) {
+  const t = useTranslations("studio");
   return (
     <div className="relative min-h-[600px]">
       <div className="relative grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -250,7 +254,7 @@ export function StudioLayoutShell({
         <section className="space-y-6">
           {ownerGrantActive && (
             <div className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-              Unlocked by owner grant
+              {t("sidebar.ownerGrant")}
             </div>
           )}
           {children}

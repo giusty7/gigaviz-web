@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { guardWorkspace, requireWorkspaceRole } from "@/lib/auth/guard";
 import { logger } from "@/lib/logging";
 import { graphUrl } from "@/lib/meta/graph";
 import { resolveWorkspaceMetaToken } from "@/lib/meta/token";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+
+const obaRequestSchema = z.object({
+  business_website_url: z.string().url("Must be a valid URL"),
+  additional_supporting_information: z.string().max(1000).optional(),
+  parent_business_or_brand: z.string().max(200).optional(),
+  primary_country_of_operation: z.string().max(100).optional(),
+  primary_language: z.string().max(50).optional(),
+  supporting_links: z.array(z.string().url()).max(10).optional().default([]),
+});
 
 export const runtime = "nodejs";
 
@@ -175,56 +185,49 @@ export const POST = withErrorHandler(
     }
 
     // Read body from CLONED request (original consumed by guardWorkspace)
-    const body = await clonedReq.json().catch(() => ({}));
+    const rawBody = await clonedReq.json().catch(() => ({}));
 
-    logger.info("[oba] POST body", {
-      phoneNumberId,
-      workspaceId,
-      bodyKeys: Object.keys(body),
-      hasWebsiteUrl: Boolean(body?.business_website_url),
-    });
-
-    // Build OBA payload — match Meta docs exactly:
-    // POST /<PHONE_NUMBER_ID>/official_business_account  Content-Type: application/json
-    // https://developers.facebook.com/docs/whatsapp/official-business-accounts
-    const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
-    const obaPayload: Record<string, string | string[]> = {};
-
-    if (str(body.business_website_url))
-      obaPayload.business_website_url = str(body.business_website_url);
-    if (str(body.additional_supporting_information))
-      obaPayload.additional_supporting_information = str(
-        body.additional_supporting_information
-      );
-    if (str(body.parent_business_or_brand))
-      obaPayload.parent_business_or_brand = str(
-        body.parent_business_or_brand
-      );
-    if (str(body.primary_country_of_operation))
-      obaPayload.primary_country_of_operation = str(
-        body.primary_country_of_operation
-      );
-    if (str(body.primary_language))
-      obaPayload.primary_language = str(body.primary_language);
-
-    if (Array.isArray(body.supporting_links)) {
-      const links = body.supporting_links
-        .map((l: unknown) => (typeof l === "string" ? l.trim() : ""))
-        .filter((l: string) => /^https?:\/\//i.test(l));
-      if (links.length > 0) obaPayload.supporting_links = links;
-    }
-
-    if (!obaPayload.business_website_url) {
+    // Validate with Zod
+    const parseResult = obaRequestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
       return withCookies(
         NextResponse.json(
           {
             error: "validation",
-            message: "business_website_url is required",
+            message: parseResult.error.issues[0]?.message || "Invalid input",
+            details: parseResult.error.issues,
           },
           { status: 400 }
         )
       );
     }
+
+    const validated = parseResult.data;
+
+    logger.info("[oba] POST body", {
+      phoneNumberId,
+      workspaceId,
+      bodyKeys: Object.keys(validated),
+      hasWebsiteUrl: Boolean(validated.business_website_url),
+    });
+
+    // Build OBA payload — match Meta docs exactly:
+    // POST /<PHONE_NUMBER_ID>/official_business_account  Content-Type: application/json
+    // https://developers.facebook.com/docs/whatsapp/official-business-accounts
+    const obaPayload: Record<string, string | string[]> = {
+      business_website_url: validated.business_website_url,
+    };
+
+    if (validated.additional_supporting_information)
+      obaPayload.additional_supporting_information = validated.additional_supporting_information;
+    if (validated.parent_business_or_brand)
+      obaPayload.parent_business_or_brand = validated.parent_business_or_brand;
+    if (validated.primary_country_of_operation)
+      obaPayload.primary_country_of_operation = validated.primary_country_of_operation;
+    if (validated.primary_language)
+      obaPayload.primary_language = validated.primary_language;
+    if (validated.supporting_links && validated.supporting_links.length > 0)
+      obaPayload.supporting_links = validated.supporting_links;
 
     // Meta docs: POST with Content-Type: application/json
     const apiUrl = graphUrl(

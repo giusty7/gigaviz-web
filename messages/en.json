@@ -1415,5 +1415,313 @@
     "success": "You're subscribed! 🎉",
     "successDetail": "We'll send you updates — no spam, promise.",
     "error": "Something went wrong. Try again."
+  },
+  "studio": {
+    "common": {
+      "unlocked": "Unlocked",
+      "locked": "Locked",
+      "public": "Public",
+      "private": "Private",
+      "save": "Save",
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleteConfirm": "Delete permanently?",
+      "yesDelete": "Yes, delete",
+      "creating": "Creating...",
+      "networkError": "Network error — please try again.",
+      "networkErrorShort": "Network error",
+      "updateFailed": "Update failed",
+      "deleteFailed": "Delete failed",
+      "updatedPrefix": "Updated ",
+      "createdPrefix": "Created ",
+      "titleLabel": "Title",
+      "descriptionOptionalLabel": "Description (Optional)",
+      "descriptionPlaceholder": "Description...",
+      "tagsOptionalLabel": "Tags (Optional)",
+      "tagPlaceholder": "Add a tag...",
+      "addButton": "Add",
+      "back": "Back",
+      "edit": "Edit",
+      "tokensUsed": "{count} tokens"
+    },
+    "hub": {
+      "badge": "AI Creative Suite",
+      "title": "Studio Hub",
+      "description": "Create anything — documents, visuals, charts, workflows, music — powered by AI and connected to your Meta Hub conversations and Helper intelligence.",
+      "openButton": "Open",
+      "upgradeButton": "Upgrade",
+      "modules": {
+        "office": {
+          "name": "Office",
+          "description": "Create AI-powered documents, spreadsheets, invoices, and reports with intelligent templates.",
+          "statLabel": "Documents",
+          "features": ["AI document generation", "Template library", "Export PDF/Excel/Word"]
+        },
+        "graph": {
+          "name": "Graph",
+          "description": "Create charts, dashboards, AI images, and video content for marketing and analytics.",
+          "statLabel": "Charts",
+          "features": ["Chart builder", "Dashboard designer", "AI image generation"]
+        },
+        "tracks": {
+          "name": "Tracks",
+          "description": "Build automated workflows, triggers, and AI audio creation for marketing campaigns.",
+          "statLabel": "Workflows",
+          "features": ["Workflow automation", "Run history", "AI music & audio"]
+        }
+      },
+      "integrations": {
+        "title": "Connected Integrations",
+        "metaHub": {
+          "title": "Meta Hub Integration",
+          "description": "Generate WhatsApp templates, reports, and marketing assets from Meta Hub data directly in Studio."
+        },
+        "helperAi": {
+          "title": "Helper AI Integration",
+          "description": "Use Helper AI to generate documents, analyze data, create visuals, and compose audio — all with natural language."
+        }
+      },
+      "comingSoon": {
+        "title": "Coming Soon: AI Media Studio",
+        "description": "Generate marketing images, product videos, jingles, and brand audio directly from your workspace. All connected to your Meta Hub campaigns and Helper AI."
+      }
+    },
+    "layout": {
+      "lockedTitle": "Studio Suite is locked",
+      "lockedDescription": "Upgrade your plan to unlock Office, Graph, and Tracks — your AI-powered creative suite."
+    },
+    "sidebar": {
+      "brand": "Studio",
+      "subtitle": "Creative Suite",
+      "sections": {
+        "overview": "Overview",
+        "office": "Office",
+        "graph": "Graph",
+        "tracks": "Tracks"
+      },
+      "nav": {
+        "studioHub": "Studio Hub",
+        "documents": "Documents",
+        "templates": "Templates",
+        "newDocument": "New Document",
+        "charts": "Charts",
+        "dashboards": "Dashboards",
+        "aiImages": "AI Images",
+        "aiVideos": "AI Videos",
+        "workflows": "Workflows",
+        "runHistory": "Run History",
+        "aiMusic": "AI Music"
+      },
+      "badges": {
+        "new": "New",
+        "beta": "Beta",
+        "soon": "Soon"
+      },
+      "poweredBadge": "AI-Powered Creative Suite",
+      "ownerGrant": "Unlocked by owner grant"
+    },
+    "graph": {
+      "title": "Charts & Visualizations",
+      "description": "Create beautiful, AI-powered charts and data visualizations for your team.",
+      "newChart": "New Chart",
+      "stats": {
+        "charts": "Charts",
+        "dashboards": "Dashboards",
+        "chartTypes": "Chart Types"
+      },
+      "yourCharts": "Your Charts",
+      "sourcePrefix": "Source: ",
+      "emptyTitle": "No charts yet",
+      "emptyDescription": "Create your first chart to get started.",
+      "lockedTitle": "Gigaviz Graph is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to create AI-powered charts, dashboards, and visuals.",
+      "backToCharts": "Charts",
+      "new": {
+        "title": "New Chart",
+        "description": "Choose a chart type and configure your visualization.",
+        "chartTypeLabel": "Chart Type",
+        "dataSourceLabel": "Data Source",
+        "titlePlaceholder": "e.g. Monthly Revenue Chart",
+        "descriptionPlaceholder": "Describe what this chart visualizes...",
+        "createButton": "Create Chart",
+        "chartTypes": {
+          "bar": "Bar Chart",
+          "line": "Line Chart",
+          "pie": "Pie Chart",
+          "area": "Area Chart",
+          "scatter": "Scatter Plot",
+          "radar": "Radar Chart"
+        },
+        "dataSources": {
+          "manual": "Manual Entry",
+          "csv": "CSV Upload",
+          "api": "API Endpoint",
+          "database": "Database Query"
+        }
+      },
+      "detail": {
+        "configTitle": "Chart Configuration",
+        "configHint": "Chart visualization will render here once data is configured."
+      },
+      "actions": {
+        "titlePlaceholder": "Chart title...",
+        "editChart": "Edit Chart"
+      }
+    },
+    "dashboards": {
+      "title": "Dashboards",
+      "description": "Compose charts into interactive dashboards and share with your team.",
+      "newDashboard": "New Dashboard",
+      "emptyTitle": "No dashboards yet",
+      "emptyDescription": "Create your first dashboard to get started.",
+      "lockedTitle": "Dashboards are locked",
+      "lockedDescription": "Upgrade to access dashboard builder.",
+      "backLink": "Dashboards",
+      "new": {
+        "title": "New Dashboard",
+        "description": "Create a dashboard to compose charts into interactive layouts.",
+        "titleLabel": "Dashboard Title",
+        "visibilityLabel": "Visibility",
+        "publicHint": "Public dashboards can be shared with external stakeholders.",
+        "previewHint": "After creation, you can add charts to this dashboard using the layout editor.",
+        "createButton": "Create Dashboard",
+        "titlePlaceholder": "e.g. Q1 Performance Overview",
+        "descriptionPlaceholder": "What does this dashboard track..."
+      },
+      "detail": {
+        "layoutTitle": "Dashboard Layout",
+        "emptyCharts": "No charts added to this dashboard yet."
+      },
+      "actions": {
+        "titlePlaceholder": "Dashboard title...",
+        "editDashboard": "Edit Dashboard"
+      }
+    },
+    "tracks": {
+      "title": "Workflows",
+      "description": "Build and orchestrate automated workflows. Connect to Meta Hub, Helper AI, and external APIs.",
+      "newWorkflow": "New Workflow",
+      "stats": {
+        "total": "Total",
+        "active": "Active",
+        "totalRuns": "Total Runs",
+        "successRate": "Success Rate"
+      },
+      "yourWorkflows": "Your Workflows",
+      "runsCount": "{count} runs",
+      "tokensPerRun": "{count} tokens/run",
+      "emptyTitle": "No workflows yet",
+      "emptyDescription": "Create your first workflow to get started.",
+      "viewAllRuns": "View All Runs",
+      "lockedTitle": "Gigaviz Tracks is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to build automated workflows and AI audio.",
+      "backLink": "Workflows",
+      "new": {
+        "title": "New Workflow",
+        "description": "Create an automated workflow. Connect to Meta Hub, Helper AI, and external services.",
+        "nameLabel": "Workflow Name",
+        "triggerLabel": "Trigger Type",
+        "namePlaceholder": "e.g. Lead Follow-Up Automation",
+        "descriptionPlaceholder": "Describe what this workflow does...",
+        "createButton": "Create Workflow",
+        "previewHint": "After creation, you can add steps and configure triggers in the workflow editor.",
+        "triggers": {
+          "manual": "Manual",
+          "manualDesc": "Run on demand",
+          "schedule": "Schedule",
+          "scheduleDesc": "Time-based triggers",
+          "webhook": "Webhook",
+          "webhookDesc": "External API triggers"
+        }
+      },
+      "detail": {
+        "totalRuns": "Total Runs",
+        "successes": "Successes",
+        "failures": "Failures",
+        "tokensPerRun": "Tokens/Run",
+        "trigger": "Trigger",
+        "steps": "Steps",
+        "workflowBuilder": "Workflow Builder",
+        "builderHint": "Use the visual editor to add trigger conditions and action steps.",
+        "recentRuns": "Recent Runs"
+      },
+      "runs": {
+        "title": "Run History",
+        "description": "View execution history for all your workflows.",
+        "totalRuns": "Total Runs",
+        "completed": "Completed",
+        "tokensUsed": "Tokens Used",
+        "runId": "Run ID",
+        "stepLabel": "Step: {step}",
+        "emptyTitle": "No runs yet",
+        "emptyDescription": "Activate a workflow to see execution history here.",
+        "lockedTitle": "Run History is locked"
+      },
+      "actions": {
+        "activate": "Activate",
+        "pause": "Pause",
+        "resume": "Resume",
+        "archive": "Archive",
+        "statusChangeFailed": "Status change failed"
+      }
+    },
+    "office": {
+      "title": "Office Documents",
+      "description": "Create and manage AI-powered documents, spreadsheets, invoices, and reports.",
+      "newDocument": "New Document",
+      "stats": {
+        "documents": "Documents",
+        "templates": "Templates",
+        "lastUpdated": "Last Updated"
+      },
+      "recentDocuments": "Recent Documents",
+      "createDocument": "Create Document",
+      "emptyTitle": "No documents yet",
+      "emptyDescription": "Create your first document with AI assistance.",
+      "lockedTitle": "Gigaviz Office is locked",
+      "lockedDescription": "Upgrade to Starter plan or above to create AI-powered documents, spreadsheets, and reports.",
+      "new": {
+        "title": "New Document",
+        "description": "Choose a document type and let AI help you create it.",
+        "typeLabel": "Document Type",
+        "aiPromptLabel": "AI Instructions (Optional)",
+        "titlePlaceholder": "e.g. Q1 Sales Report",
+        "aiPromptPlaceholder": "Describe what you want the document to contain. AI will generate the initial content for you...",
+        "aiPromptHint": "Leave blank to start with an empty document.",
+        "createButton": "Create Document",
+        "types": {
+          "document": "Document",
+          "documentDesc": "Word-style document with AI writing",
+          "spreadsheet": "Spreadsheet",
+          "spreadsheetDesc": "Excel-style data with AI formulas",
+          "report": "Report",
+          "reportDesc": "AI-generated business report",
+          "invoice": "Invoice",
+          "invoiceDesc": "Professional invoice template",
+          "presentation": "Presentation",
+          "presentationDesc": "AI-powered slide deck"
+        }
+      },
+      "detail": {
+        "emptyContent": "This document has no content yet.",
+        "emptyHint": "Use the editor to add content or generate with AI."
+      },
+      "templates": {
+        "title": "Document Templates",
+        "description": "Start from a template or create your own. Templates power AI document generation.",
+        "usageCount": "{count} uses",
+        "useTemplate": "Use Template",
+        "emptyTitle": "No templates yet",
+        "emptyDescription": "Templates will appear here as you create reusable document formats.",
+        "lockedTitle": "Office Templates is locked",
+        "lockedDescription": "Upgrade to access the template library."
+      },
+      "actions": {
+        "contentLabel": "Content",
+        "contentPlaceholder": "Start writing your document...",
+        "editDocument": "Edit Document"
+      }
+    }
   }
 }

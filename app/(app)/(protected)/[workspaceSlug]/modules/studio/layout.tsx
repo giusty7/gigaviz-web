@@ -4,6 +4,7 @@ import LockedScreen from "@/components/app/LockedScreen";
 import { StudioLayoutShell } from "@/components/studio/StudioSidebar";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanFeatures, getPlanMeta, type FeatureKey } from "@/lib/entitlements";
+import { getTranslations } from "next-intl/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
@@ -53,6 +54,8 @@ export default async function StudioLayout({ children, params }: LayoutProps) {
     tracks: checkAccess("tracks"),
   };
 
+  const t = await getTranslations("studio");
+
   // Studio hub itself requires at least one sub-module or studio entitlement
   const hasAnyStudioAccess = access.office || access.graph || access.tracks || checkAccess("studio");
 
@@ -68,8 +71,8 @@ export default async function StudioLayout({ children, params }: LayoutProps) {
     return (
       <StudioLayoutShell basePath={basePath} access={access}>
         <LockedScreen
-          title="Studio Suite is locked"
-          description="Upgrade your plan to unlock Office, Graph, and Tracks — your AI-powered creative suite."
+          title={t("layout.lockedTitle")}
+          description={t("layout.lockedDescription")}
           workspaceSlug={workspace.slug}
         />
       </StudioLayoutShell>
