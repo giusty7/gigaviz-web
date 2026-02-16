@@ -1,0 +1,84 @@
+---
+title: "Studio AI Media: Images, Videos & Music Now Live"
+date: "2026-02-16"
+summary: "Launch AI Images, AI Videos, and AI Music inside Gigaviz Studio — full CRUD with 3 new DB tables, 6 API routes, 9 pages, Zod validation, RLS security, i18n support (EN+ID), and zero lint warnings."
+audience: ["public", "app"]
+tags: ["studio", "graph", "tracks", "ai-images", "ai-videos", "ai-music", "media-generation", "new-feature"]
+type: "shipped"
+---
+
+Three new AI media modules are now **LIVE** inside Gigaviz Studio. What was previously marked "Coming Soon" is now fully operational with complete CRUD workflows.
+
+## What shipped
+
+### 🎨 AI Images (Graph module)
+- **10 style presets**: Photo-realistic, Illustration, 3D Render, Watercolor, Pixel Art, Abstract, Flat Design, Anime, Logo, Icon
+- **Image list page** with thumbnail grid, style badges, status indicators, and stats
+- **Creation form** with visual style selector (5-column grid), AI prompt textarea, format selector (PNG/JPG/WebP/SVG), and tags
+- **Detail page** with full image preview (or prompt display while generating), dimensions, and metadata
+- **Full CRUD API** at `/api/studio/graph/images` with Zod validation and entitlement gating
+
+### 🎬 AI Videos (Graph module)
+- **8 style presets**: Marketing, Explainer, Product Demo, Social Reel, Animation, Cinematic, Tutorial, Testimonial
+- **Video list page** with aspect-ratio thumbnails, duration overlay badge, and total duration stats
+- **Creation form** with style selector, AI prompt, duration input (5–300s), resolution (720p/1080p/4K), and tags
+- **Detail page** with HTML5 video player, resolution/format metadata, and prompt display
+- **Full CRUD API** at `/api/studio/graph/videos` with Zod validation and entitlement gating
+
+### 🎵 AI Music (Tracks module)
+- **12 genre presets**: Pop, Rock, Electronic, Ambient, Jazz, Classical, Hip-Hop, Lo-Fi, Cinematic, Jingle, Podcast Intro, Sound Effect
+- **Music list page** with genre-colored badges, BPM display, duration formatting, and stats
+- **Creation form** with genre selector (4-column grid), AI prompt, duration (5–600s), BPM (40–300), format (MP3/WAV/OGG/FLAC)
+- **Detail page** with HTML5 audio player, key signature display, and waveform placeholder
+- **Full CRUD API** at `/api/studio/tracks/music` with Zod validation and entitlement gating
+
+## Database migration
+
+New migration `20260216200000_studio_media.sql` adds three tables:
+
+- **`graph_images`** — 14 columns including style, prompt, negative_prompt, dimensions, format, image_url, thumbnail_url
+- **`graph_videos`** — 14 columns including style, prompt, duration_seconds, resolution, format, video_url, thumbnail_url
+- **`tracks_music`** — 15 columns including genre, prompt, duration_seconds, bpm, key_signature, format, audio_url, waveform_json
+
+All tables have: RLS enabled, workspace_id + status indexes, and workspace_members access policies.
+
+## UI improvements
+
+- **Sidebar updated**: All three items changed from "SOON" (disabled div) to "BETA" (clickable Link)
+- **Hub page updated**: Removed "Coming Soon" teaser, module stats now include images/videos/music counts
+- **next/image optimization**: All thumbnails use Next.js `<Image>` component instead of raw `<img>`
+- **18 loading/error files**: Skeleton loading states and error boundaries for all 9 route segments
+
+## i18n (English + Indonesian)
+
+Added **45+ translation keys** across both locale files:
+- `studio.images.*` — title, description, stats, empty states, locked states
+- `studio.videos.*` — title, description, stats, empty states, locked states
+- `studio.music.*` — title, description, stats, empty states, locked states
+
+## Quality checks
+
+- ✅ `npm run lint` — 0 errors, 0 warnings
+- ✅ `npm run typecheck` — clean (no new errors)
+- ✅ `npm run build` — compiled successfully in 43s
+
+## By the numbers
+
+| Metric | Count |
+|--------|-------|
+| New files | 37 |
+| Modified files | 4 |
+| Lines added | +3,289 |
+| DB tables | 3 |
+| API routes | 6 |
+| Pages | 9 |
+| Components | 3 |
+| Loading/Error files | 18 |
+| i18n keys | 45+ |
+
+## What's next
+
+- Connect AI generation backends (OpenAI DALL-E, Stable Diffusion for images; Runway, Pika for videos; Suno, Udio for music)
+- Batch generation and template-based media creation
+- Integration with Meta Hub for campaign-ready assets
+- Media library with search, filtering, and bulk operations
