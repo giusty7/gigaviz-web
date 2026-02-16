@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { LayoutDashboard, Plus, Clock, ArrowRight } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
@@ -63,23 +64,23 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
             Compose charts into interactive dashboards and share with your team.
           </p>
         </div>
-        <button
-          disabled
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600/50 px-4 text-sm font-medium text-white/60 cursor-not-allowed"
-          title="Dashboard builder coming soon"
+        <Link
+          href={`/${workspaceSlug}/modules/studio/graph/dashboards/new`}
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           New Dashboard
-        </button>
+        </Link>
       </div>
 
       {/* Dashboard List */}
       {items.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map((dash) => (
-            <div
+            <Link
               key={dash.id}
-              className="group rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
+              href={`/${workspaceSlug}/modules/studio/graph/dashboards/${dash.id}`}
+              className="group block rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
             >
               <div className="mb-3 flex items-start justify-between">
                 <LayoutDashboard className="h-6 w-6 text-purple-400" />
@@ -102,7 +103,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
                 </span>
                 <ArrowRight className="h-3 w-3 text-[#f5f5dc]/20 group-hover:text-purple-400 transition-colors" />
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
@@ -110,7 +111,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
           <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
           <p className="text-sm font-medium text-[#f5f5dc]/40">No dashboards yet</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/25">
-            Dashboards will appear here once the dashboard builder is ready.
+            Create your first dashboard to get started.
           </p>
         </div>
       )}

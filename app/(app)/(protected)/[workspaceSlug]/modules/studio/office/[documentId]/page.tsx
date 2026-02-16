@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { FileText, ArrowLeft, Clock, User, Tag } from "lucide-react";
+import { DocumentActions } from "@/components/studio/DocumentActions";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -91,29 +92,16 @@ export default async function DocumentDetailPage({ params }: PageProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
-        <button
-          disabled
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-cyan-600/50 px-4 text-xs font-medium text-white/60 cursor-not-allowed"
-          title="Rich editor coming soon"
-        >
-          Edit Document
-        </button>
-        <button
-          disabled
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#f5f5dc]/10 px-4 text-xs font-medium text-[#f5f5dc]/30 cursor-not-allowed"
-          title="PDF export coming soon"
-        >
-          Export PDF
-        </button>
-        <button
-          disabled
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#f5f5dc]/10 px-4 text-xs font-medium text-[#f5f5dc]/30 cursor-not-allowed"
-          title="WhatsApp integration coming soon"
-        >
-          Send via WhatsApp
-        </button>
-      </div>
+      <DocumentActions
+        documentId={documentId}
+        workspaceSlug={workspaceSlug}
+        title={doc.title}
+        content={
+          typeof doc.content_json === "string"
+            ? doc.content_json
+            : JSON.stringify(doc.content_json ?? "", null, 2)
+        }
+      />
     </div>
   );
 }

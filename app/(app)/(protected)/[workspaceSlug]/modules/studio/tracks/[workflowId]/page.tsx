@@ -1,0 +1,213 @@
+import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import {
+  Workflow,
+  ArrowLeft,
+  Clock,
+  Zap,
+  CheckCircle2,
+  XCircle,
+  Play,
+  Pause,
+} from "lucide-react";
+import { getAppContext } from "@/lib/app-context";
+import { supabaseServer } from "@/lib/supabase/server";
+import { WorkflowActions } from "@/components/studio/WorkflowActions";
+
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  params: Promise<{ workspaceSlug: string; workflowId: string }>;
+};
+
+const statusConfig: Record<string, { icon: typeof Play; color: string; bg: string }> = {
+  active: { icon: Play, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+  paused: { icon: Pause, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+  draft: { icon: Workflow, color: "text-[#f5f5dc]/40", bg: "bg-[#f5f5dc]/5 border-[#f5f5dc]/10" },
+  archived: { icon: XCircle, color: "text-[#f5f5dc]/25", bg: "bg-[#f5f5dc]/5 border-[#f5f5dc]/10" },
+};
+
+export default async function WorkflowDetailPage({ params }: PageProps) {
+  const { workspaceSlug, workflowId } = await params;
+  const ctx = await getAppContext(workspaceSlug);
+  if (!ctx.user) redirect("/login");
+  if (!ctx.currentWorkspace) redirect("/onboarding");
+
+  const db = await supabaseServer();
+  const { data: wf, error } = await db
+    .from("tracks_workflows")
+    .select("*")
+    .eq("id", workflowId)
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .single();
+
+  if (error || !wf) notFound();
+
+  const basePath = `/${workspaceSlug}/modules/studio/tracks`;
+  const cfg = statusConfig[wf.status] || statusConfig.draft;
+  const StatusIcon = cfg.icon;
+
+  // Fetch recent runs
+  const { data: runs } = await db
+    .from("tracks_runs")
+    .select("id, status, started_at, duration_ms, tokens_used")
+    .eq("workflow_id", workflowId)
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .order("started_at", { ascending: false })
+    .limit(5);
+
+  const recentRuns = runs ?? [];
+
+  return (
+    <div className="space-y-6">
+      {/* Back + Status */}
+      <div className="flex items-center gap-3">
+        <Link
+          href={basePath}
+          className="inline-flex items-center gap-1 rounded-lg border border-[#f5f5dc]/10 px-3 py-1.5 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Workflows
+        </Link>
+        <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize ${cfg.bg} ${cfg.color}`}>
+          <StatusIcon className="h-3 w-3" />
+          {wf.status}
+        </span>
+      </div>
+
+      {/* Title */}
+      <div>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{wf.title}</h1>
+        {wf.description && (
+          <p className="mt-1 text-sm text-[#f5f5dc]/50">{wf.description}</p>
+        )}
+        <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#f5f5dc]/30">
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Updated {new Date(wf.updated_at).toLocaleString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            {wf.runs_count ?? 0} runs
+          </span>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid gap-4 sm:grid-cols-4">
+        <div className="rounded-xl border border-teal-500/20 bg-[#0a1229]/60 p-4">
+          <p className="text-lg font-bold text-[#f5f5dc]">{wf.runs_count ?? 0}</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">Total Runs</p>
+        </div>
+        <div className="rounded-xl border border-emerald-500/20 bg-[#0a1229]/60 p-4">
+          <p className="text-lg font-bold text-emerald-400">{wf.success_count ?? 0}</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">Successes</p>
+        </div>
+        <div className="rounded-xl border border-red-500/20 bg-[#0a1229]/60 p-4">
+          <p className="text-lg font-bold text-red-400">{wf.failure_count ?? 0}</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">Failures</p>
+        </div>
+        <div className="rounded-xl border border-blue-500/20 bg-[#0a1229]/60 p-4">
+          <p className="text-lg font-bold text-blue-400">{wf.estimated_tokens_per_run ?? "—"}</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">Tokens/Run</p>
+        </div>
+      </div>
+
+      {/* Workflow Configuration */}
+      <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
+        {wf.steps_json || wf.triggers_json ? (
+          <div className="space-y-4">
+            {wf.triggers_json && (
+              <div>
+                <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-2">Trigger</h3>
+                <pre className="whitespace-pre-wrap text-sm text-[#f5f5dc]/70 font-mono rounded-lg bg-[#0a1229]/60 p-4">
+                  {JSON.stringify(wf.triggers_json, null, 2)}
+                </pre>
+              </div>
+            )}
+            {wf.steps_json && (
+              <div>
+                <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-2">Steps</h3>
+                <pre className="whitespace-pre-wrap text-sm text-[#f5f5dc]/70 font-mono rounded-lg bg-[#0a1229]/60 p-4">
+                  {JSON.stringify(wf.steps_json, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-12 text-center">
+            <Workflow className="mx-auto mb-3 h-12 w-12 text-teal-400/20" />
+            <p className="text-sm text-[#f5f5dc]/40">
+              Workflow steps will appear here once configured.
+            </p>
+            <p className="mt-1 text-xs text-[#f5f5dc]/25">
+              Use the visual editor to add trigger conditions and action steps.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Runs */}
+      {recentRuns.length > 0 && (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
+            Recent Runs
+          </h2>
+          <div className="space-y-2">
+            {recentRuns.map((run) => (
+              <div
+                key={run.id}
+                className="flex items-center justify-between rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-3"
+              >
+                <div className="flex items-center gap-3">
+                  {run.status === "completed" ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  ) : run.status === "failed" ? (
+                    <XCircle className="h-4 w-4 text-red-400" />
+                  ) : (
+                    <Play className="h-4 w-4 text-blue-400 animate-pulse" />
+                  )}
+                  <span className="text-xs text-[#f5f5dc]/60">
+                    {new Date(run.started_at).toLocaleString()}
+                    {run.duration_ms ? ` · ${(run.duration_ms / 1000).toFixed(1)}s` : ""}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {run.tokens_used > 0 && (
+                    <span className="text-[10px] text-[#f5f5dc]/25">{run.tokens_used} tokens</span>
+                  )}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${
+                      run.status === "completed"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : run.status === "failed"
+                        ? "bg-red-500/10 text-red-400"
+                        : "bg-blue-500/10 text-blue-400"
+                    }`}
+                  >
+                    {run.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link
+            href={`${basePath}/runs`}
+            className="mt-2 inline-flex text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors"
+          >
+            View all runs →
+          </Link>
+        </div>
+      )}
+
+      {/* Actions */}
+      <WorkflowActions
+        workflowId={workflowId}
+        workspaceSlug={workspaceSlug}
+        title={wf.title}
+        description={wf.description ?? ""}
+        status={wf.status}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,155 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { LayoutDashboard, Sparkles, Loader2, Globe, Lock } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type Props = { params: Promise<{ workspaceSlug: string }> };
+
+export default function NewDashboardPage({ params: _params }: Props) {
+  const router = useRouter();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+    setCreating(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/studio/graph/dashboards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          is_public: isPublic,
+        }),
+      });
+
+      if (res.ok) {
+        const { workspaceSlug } = await _params;
+        router.push(`/${workspaceSlug}/modules/studio/graph/dashboards`);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || `Failed to create dashboard (${res.status})`);
+      }
+    } catch {
+      setError("Network error — please try again.");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">New Dashboard</h1>
+        <p className="mt-1 text-sm text-[#f5f5dc]/50">
+          Create a dashboard to compose charts into interactive layouts.
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      {/* Title */}
+      <div>
+        <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
+          Dashboard Title
+        </label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Q1 2026 Performance Overview"
+          className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
+          Description (Optional)
+        </label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe the purpose of this dashboard..."
+          rows={3}
+          className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
+        />
+      </div>
+
+      {/* Visibility */}
+      <div>
+        <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
+          Visibility
+        </label>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setIsPublic(false)}
+            className={cn(
+              "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all",
+              !isPublic
+                ? "border-purple-400 bg-purple-500/20 text-purple-300"
+                : "border-[#f5f5dc]/10 bg-[#0a1229]/40 text-[#f5f5dc]/50 hover:border-[#f5f5dc]/20"
+            )}
+          >
+            <Lock className="h-4 w-4" />
+            Private
+          </button>
+          <button
+            onClick={() => setIsPublic(true)}
+            className={cn(
+              "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all",
+              isPublic
+                ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
+                : "border-[#f5f5dc]/10 bg-[#0a1229]/40 text-[#f5f5dc]/50 hover:border-[#f5f5dc]/20"
+            )}
+          >
+            <Globe className="h-4 w-4" />
+            Public
+          </button>
+        </div>
+        <p className="mt-1 text-[10px] text-[#f5f5dc]/25">
+          Public dashboards can be shared with external stakeholders.
+        </p>
+      </div>
+
+      {/* Preview */}
+      <div className="rounded-xl border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-8 text-center">
+        <LayoutDashboard className="mx-auto mb-2 h-8 w-8 text-purple-400/30" />
+        <p className="text-xs text-[#f5f5dc]/30">
+          After creation, you can add charts to this dashboard using the layout editor.
+        </p>
+      </div>
+
+      {/* Create Button */}
+      <button
+        onClick={handleCreate}
+        disabled={!title.trim() || creating}
+        className="inline-flex h-10 items-center gap-2 rounded-lg bg-purple-600 px-6 text-sm font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {creating ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Creating...
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4" />
+            Create Dashboard
+          </>
+        )}
+      </button>
+    </div>
+  );
+}

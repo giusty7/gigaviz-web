@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   Workflow,
   Plus,
@@ -83,14 +84,13 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             Build and orchestrate automated workflows. Connect to Meta Hub, Helper AI, and external APIs.
           </p>
         </div>
-        <button
-          disabled
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600/50 px-4 text-sm font-medium text-white/60 cursor-not-allowed"
-          title="Workflow builder coming soon"
+        <Link
+          href={`/${workspaceSlug}/modules/studio/tracks/new`}
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           New Workflow
-        </button>
+        </Link>
       </div>
 
       {/* Stats */}
@@ -146,8 +146,9 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
               const cfg = statusConfig[wf.status] || statusConfig.draft;
               const StatusIcon = cfg.icon;
               return (
-                <div
+                <Link
                   key={wf.id}
+                  href={`/${workspaceSlug}/modules/studio/tracks/${wf.id}`}
                   className="group flex items-center justify-between rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-teal-500/20 hover:bg-[#0a1229]/60"
                 >
                   <div className="flex items-center gap-4">
@@ -185,7 +186,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
                       {wf.status}
                     </span>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -194,7 +195,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             <Workflow className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
             <p className="text-sm font-medium text-[#f5f5dc]/40">No workflows yet</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Workflows will appear here once the workflow builder is ready.
+              Create your first workflow to get started.
             </p>
           </div>
         )}

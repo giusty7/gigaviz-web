@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   BarChart3,
   Plus,
@@ -96,14 +97,13 @@ export default async function GraphChartsPage({ params }: PageProps) {
             Create charts, dashboards, and data visualizations. Connected to your workspace data.
           </p>
         </div>
-        <button
-          disabled
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600/50 px-4 text-sm font-medium text-white/60 cursor-not-allowed"
-          title="Chart builder coming soon"
+        <Link
+          href={`/${workspaceSlug}/modules/studio/graph/new`}
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           New Chart
-        </button>
+        </Link>
       </div>
 
       {/* Stats */}
@@ -150,9 +150,10 @@ export default async function GraphChartsPage({ params }: PageProps) {
               const Icon = chartTypeIcons[chart.chart_type] || BarChart3;
               const color = chartTypeColors[chart.chart_type] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
               return (
-                <div
+                <Link
                   key={chart.id}
-                  className="group rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
+                  href={`/${workspaceSlug}/modules/studio/graph/${chart.id}`}
+                  className="group block rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
                 >
                   <div className="mb-3 flex items-start justify-between">
                     <div className={`flex h-9 w-9 items-center justify-center rounded-lg border ${color}`}>
@@ -176,7 +177,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
                     {chart.data_source && `Source: ${chart.data_source} · `}
                     Updated {new Date(chart.updated_at).toLocaleDateString()}
                   </p>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -185,7 +186,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
             <BarChart3 className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
             <p className="text-sm font-medium text-[#f5f5dc]/40">No charts yet</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Charts will appear here once the chart builder is ready.
+              Create your first chart to get started.
             </p>
           </div>
         )}
