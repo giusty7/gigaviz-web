@@ -88,8 +88,8 @@ function buildSections(basePath: string, t: (key: string) => string): NavSection
       items: [
         { id: "graph", label: t("sidebar.nav.charts"), icon: BarChart3, href: `${basePath}/graph`, badge: "beta" },
         { id: "graph-dashboards", label: t("sidebar.nav.dashboards"), icon: LayoutDashboard, href: `${basePath}/graph/dashboards`, badge: "beta" },
-        { id: "graph-images", label: t("sidebar.nav.aiImages"), icon: ImageIcon, href: `${basePath}/graph/images`, badge: "soon" },
-        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "soon" },
+        { id: "graph-images", label: t("sidebar.nav.aiImages"), icon: ImageIcon, href: `${basePath}/graph/images`, badge: "beta" },
+        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "beta" },
       ],
     },
     {
@@ -97,7 +97,7 @@ function buildSections(basePath: string, t: (key: string) => string): NavSection
       items: [
         { id: "tracks", label: t("sidebar.nav.workflows"), icon: Workflow, href: `${basePath}/tracks`, badge: "beta" },
         { id: "tracks-runs", label: t("sidebar.nav.runHistory"), icon: HistoryIcon, href: `${basePath}/tracks/runs`, badge: "beta" },
-        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "soon" },
+        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "beta" },
       ],
     },
   ];
@@ -158,21 +158,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
             <div className="space-y-0.5">
               {section.items.map((item) => {
                 const isActive = activeId === item.id;
-                const isSoon = item.badge === "soon";
                 const Icon = item.icon;
-
-                if (isSoon) {
-                  return (
-                    <div
-                      key={item.id}
-                      className="group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[#f5f5dc]/30 cursor-not-allowed"
-                    >
-                      <Icon className="h-4 w-4 text-[#f5f5dc]/20" />
-                      <span className="truncate">{item.label}</span>
-                      <StatusBadge badge="soon" />
-                    </div>
-                  );
-                }
 
                 return (
                   <Link

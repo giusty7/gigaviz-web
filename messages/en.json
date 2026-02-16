@@ -1722,6 +1722,51 @@
         "contentPlaceholder": "Start writing your document...",
         "editDocument": "Edit Document"
       }
+    },
+    "images": {
+      "title": "AI Images",
+      "description": "Generate stunning visuals and graphics with AI — logos, illustrations, marketing assets, and more.",
+      "newImage": "New Image",
+      "stats": {
+        "images": "Images",
+        "styles": "Styles Used",
+        "generated": "Generated"
+      },
+      "yourImages": "Your Images",
+      "emptyTitle": "No images yet",
+      "emptyDescription": "Create your first AI-generated image to get started.",
+      "lockedTitle": "AI Images is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered images and visuals."
+    },
+    "videos": {
+      "title": "AI Videos",
+      "description": "Create professional videos with AI — marketing clips, explainers, product demos, and social content.",
+      "newVideo": "New Video",
+      "stats": {
+        "videos": "Videos",
+        "totalDuration": "Total Duration",
+        "generated": "Generated"
+      },
+      "yourVideos": "Your Videos",
+      "emptyTitle": "No videos yet",
+      "emptyDescription": "Create your first AI-generated video to get started.",
+      "lockedTitle": "AI Videos is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered videos and animations."
+    },
+    "music": {
+      "title": "AI Music",
+      "description": "Compose original music tracks, jingles, podcast intros, and sound effects with AI.",
+      "newTrack": "New Track",
+      "stats": {
+        "tracks": "Tracks",
+        "totalDuration": "Total Duration",
+        "generated": "Generated"
+      },
+      "yourTracks": "Your Tracks",
+      "emptyTitle": "No tracks yet",
+      "emptyDescription": "Create your first AI music track to get started.",
+      "lockedTitle": "AI Music is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to compose AI-powered music and audio."
     }
   }
 }

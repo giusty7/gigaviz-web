@@ -1722,6 +1722,51 @@
         "contentPlaceholder": "Mulai menulis dokumen Anda...",
         "editDocument": "Edit Dokumen"
       }
+    },
+    "images": {
+      "title": "AI Gambar",
+      "description": "Buat visual dan grafis menakjubkan dengan AI — logo, ilustrasi, aset pemasaran, dan lainnya.",
+      "newImage": "Gambar Baru",
+      "stats": {
+        "images": "Gambar",
+        "styles": "Gaya Digunakan",
+        "generated": "Dihasilkan"
+      },
+      "yourImages": "Gambar Anda",
+      "emptyTitle": "Belum ada gambar",
+      "emptyDescription": "Buat gambar AI pertama Anda untuk memulai.",
+      "lockedTitle": "AI Gambar terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat gambar dan visual bertenaga AI."
+    },
+    "videos": {
+      "title": "AI Video",
+      "description": "Buat video profesional dengan AI — klip pemasaran, explainer, demo produk, dan konten sosial.",
+      "newVideo": "Video Baru",
+      "stats": {
+        "videos": "Video",
+        "totalDuration": "Total Durasi",
+        "generated": "Dihasilkan"
+      },
+      "yourVideos": "Video Anda",
+      "emptyTitle": "Belum ada video",
+      "emptyDescription": "Buat video AI pertama Anda untuk memulai.",
+      "lockedTitle": "AI Video terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat video dan animasi bertenaga AI."
+    },
+    "music": {
+      "title": "AI Musik",
+      "description": "Komposisi musik orisinal, jingle, intro podcast, dan efek suara dengan AI.",
+      "newTrack": "Track Baru",
+      "stats": {
+        "tracks": "Track",
+        "totalDuration": "Total Durasi",
+        "generated": "Dihasilkan"
+      },
+      "yourTracks": "Track Anda",
+      "emptyTitle": "Belum ada track",
+      "emptyDescription": "Buat track musik AI pertama Anda untuk memulai.",
+      "lockedTitle": "AI Musik terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat musik dan audio bertenaga AI."
     }
   }
 }

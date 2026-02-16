@@ -8,8 +8,6 @@ import {
   Sparkles,
   MessageSquare,
   Bot,
-  ImageIcon,
-  MusicIcon,
   Zap,
 } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
@@ -33,7 +31,7 @@ export default async function StudioHubPage({ params }: PageProps) {
   const db = await supabaseServer();
 
   // Fetch stats in parallel
-  const [docsResult, chartsResult, workflowsResult, subResult] = await Promise.all([
+  const [docsResult, chartsResult, workflowsResult, imagesResult, videosResult, musicResult, subResult] = await Promise.all([
     db
       .from("office_documents")
       .select("id", { count: "exact", head: true })
@@ -44,6 +42,18 @@ export default async function StudioHubPage({ params }: PageProps) {
       .eq("workspace_id", workspace.id),
     db
       .from("tracks_workflows")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("graph_images")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("graph_videos")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("tracks_music")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspace.id),
     db
@@ -82,7 +92,7 @@ export default async function StudioHubPage({ params }: PageProps) {
       icon: BarChart3,
       color: "purple",
       href: `${basePath}/graph`,
-      stat: chartsResult.count ?? 0,
+      stat: (chartsResult.count ?? 0) + (imagesResult.count ?? 0) + (videosResult.count ?? 0),
       statLabel: t("hub.modules.graph.statLabel"),
       unlocked: check("graph"),
       features: t.raw("hub.modules.graph.features") as string[],
@@ -94,7 +104,7 @@ export default async function StudioHubPage({ params }: PageProps) {
       icon: Workflow,
       color: "teal",
       href: `${basePath}/tracks`,
-      stat: workflowsResult.count ?? 0,
+      stat: (workflowsResult.count ?? 0) + (musicResult.count ?? 0),
       statLabel: t("hub.modules.tracks.statLabel"),
       unlocked: check("tracks"),
       features: t.raw("hub.modules.tracks.features") as string[],
@@ -238,18 +248,6 @@ export default async function StudioHubPage({ params }: PageProps) {
             );
           })}
         </div>
-      </div>
-
-      {/* Coming Soon Teaser */}
-      <div className="rounded-2xl border border-dashed border-cyan-500/20 bg-cyan-500/5 p-6 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <ImageIcon className="h-4 w-4 text-cyan-400/60" />
-          <MusicIcon className="h-4 w-4 text-cyan-400/60" />
-        </div>
-        <h3 className="text-sm font-semibold text-cyan-300">{t("hub.comingSoon.title")}</h3>
-        <p className="mt-1 text-xs text-[#f5f5dc]/40 max-w-md mx-auto">
-          {t("hub.comingSoon.description")}
-        </p>
       </div>
     </div>
   );
