@@ -19,6 +19,10 @@ import {
   Layers,
   CloudLightning,
   Settings,
+  Bot,
+  Users,
+  Send,
+  Inbox,
 } from "lucide-react";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
 import type { MetaHubAccess, MetaHubSetup } from "@/lib/meta-hub/access";
@@ -74,14 +78,17 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Overview: Activity,
   Connections: Link2,
   Webhooks: Webhook,
-  "Messaging - WhatsApp": MessageSquare,
-  "Messaging - Instagram": Instagram,
-  "Messaging - Messenger": MessagesSquare,
+  WhatsApp: MessageSquare,
+  Instagram: Instagram,
+  Messenger: MessagesSquare,
   Ads: Megaphone,
   Automation: Zap,
+  "AI Auto-Reply": Bot,
   Insights: BarChart3,
   Templates: MessageSquare,
-  Inbox: MessagesSquare,
+  Inbox: Inbox,
+  Contacts: Users,
+  Outbox: Send,
   Assets: Layers,
   Events: CloudLightning,
   Settings: Settings,
@@ -98,12 +105,17 @@ type NavItem = {
   children?: NavItem[];
 };
 
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
+
 function buildNav(
   flags: MetaHubFlags,
   base: string,
   access: MetaHubAccess,
   setup: MetaHubSetup
-): NavItem[] {
+): NavSection[] {
   const metaHubStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const connectionsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const whatsappStatus: BadgeStatus = access.metaHub
@@ -127,55 +139,49 @@ function buildNav(
   const insightsStatus: BadgeStatus = access.metaHub ? "live" : "locked";
   const automationStatus: BadgeStatus = access.metaHub ? "live" : "locked";
 
-  // Extract workspaceSlug from base path (e.g., "/owner-gigaviz/meta-hub" -> "owner-gigaviz")
-  const workspaceSlug = base.split("/")[1] || "";
-  const unifiedInboxHref = workspaceSlug ? `/${workspaceSlug}/inbox` : "/inbox";
+  const waBase = `${base}/messaging/whatsapp`;
 
   return [
-    { label: "Overview", href: `${base}`, status: metaHubStatus },
-    { label: "Connections", href: `${base}/connections`, status: connectionsStatus },
-    { label: "Assets", href: `${base}/assets`, status: connectionsStatus },
-    { label: "Events", href: `${base}/events`, status: connectionsStatus },
-    { label: "Webhooks", href: `${base}/webhooks`, status: webhooksStatus },
     {
-      label: "Messaging - WhatsApp",
-      href: `${base}/messaging/whatsapp`,
-      status: whatsappStatus,
-      children: [
-        { label: "Templates", href: `${base}/messaging/whatsapp`, status: templatesStatus },
-        { label: "Inbox", href: unifiedInboxHref, status: "live" },
+      label: "Setup",
+      items: [
+        { label: "Overview", href: `${base}`, status: metaHubStatus },
+        { label: "Connections", href: `${base}/connections`, status: connectionsStatus },
+        { label: "Assets", href: `${base}/assets`, status: connectionsStatus },
+        { label: "Events", href: `${base}/events`, status: connectionsStatus },
+        { label: "Webhooks", href: `${base}/webhooks`, status: webhooksStatus },
       ],
     },
     {
-      label: "Messaging - Instagram",
-      href: `${base}/messaging/instagram`,
-      status: instagramStatus,
+      label: "WhatsApp",
+      items: [
+        { label: "Templates", href: waBase, status: templatesStatus },
+        { label: "Inbox", href: `${waBase}/inbox`, status: whatsappStatus },
+        { label: "Contacts", href: `${waBase}/contacts`, status: whatsappStatus },
+        { label: "Outbox", href: `${waBase}/outbox`, status: whatsappStatus },
+      ],
     },
     {
-      label: "Messaging - Messenger",
-      href: `${base}/messaging/messenger`,
-      status: messengerStatus,
-    },
-    { label: "Ads", href: `${base}/ads`, status: adsStatus },
-    {
-      label: "Automation",
-      href: `${base}/automation`,
-      status: automationStatus,
+      label: "Channels",
+      items: [
+        { label: "Instagram", href: `${base}/messaging/instagram`, status: instagramStatus },
+        { label: "Messenger", href: `${base}/messaging/messenger`, status: messengerStatus },
+      ],
     },
     {
-      label: "AI Auto-Reply",
-      href: `${base}/ai-reply`,
-      status: automationStatus,
+      label: "Growth",
+      items: [
+        { label: "Ads", href: `${base}/ads`, status: adsStatus },
+        { label: "Automation", href: `${base}/automation`, status: automationStatus },
+        { label: "AI Auto-Reply", href: `${base}/ai-reply`, status: automationStatus },
+      ],
     },
     {
-      label: "Insights",
-      href: `${base}/insights`,
-      status: insightsStatus,
-    },
-    {
-      label: "Settings",
-      href: `${base}/settings`,
-      status: "live",
+      label: "Analytics",
+      items: [
+        { label: "Insights", href: `${base}/insights`, status: insightsStatus },
+        { label: "Settings", href: `${base}/settings`, status: "live" },
+      ],
     },
   ];
 }
@@ -218,18 +224,14 @@ export function ImperiumMetaHubSidebar({
 }) {
   const pathname = usePathname();
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
-  const items = buildNav(flags, basePath, access, setup);
-  const channelItems = items.filter((item) =>
-    [
-      "Messaging - WhatsApp",
-      "Messaging - Instagram",
-      "Messaging - Messenger",
-      "Ads",
-      "Insights",
-    ].includes(item.label)
-  );
-  const totalChannels = channelItems.length;
-  const activeChannels = channelItems.filter((item) => item.status === "live").length;
+  const sections = buildNav(flags, basePath, access, setup);
+
+  // Count messaging channels for stats (WhatsApp + Instagram + Messenger)
+  const channelSection = sections.find((s) => s.label === "Channels");
+  const waSection = sections.find((s) => s.label === "WhatsApp");
+  const totalChannels = (channelSection?.items.length ?? 0) + (waSection ? 1 : 0);
+  const waActive = waSection?.items.some((i) => i.status === "live") ? 1 : 0;
+  const activeChannels = (channelSection?.items.filter((i) => i.status === "live").length ?? 0) + waActive;
 
   if (!mounted) {
     return (
@@ -248,8 +250,8 @@ export function ImperiumMetaHubSidebar({
           </div>
         </div>
         <div className="space-y-2">
-          {items.map((item) => (
-            <div key={item.href} className="h-10 animate-pulse rounded-xl bg-[#f5f5dc]/5" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-10 animate-pulse rounded-xl bg-[#f5f5dc]/5" />
           ))}
         </div>
       </aside>
@@ -282,78 +284,93 @@ export function ImperiumMetaHubSidebar({
 
       {/* Navigation */}
       <motion.nav
-        className="space-y-1"
+        className="space-y-5"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {items.map((item) => {
-          const Icon = NAV_ICONS[item.label] || Activity;
-          const active = pathname === item.href || (pathname?.startsWith(item.href) && item.href !== basePath);
-          const isExactOverview = item.label === "Overview" && pathname === basePath;
-          const isActive = isExactOverview || active;
-          const hasChildren = item.children && item.children.length > 0;
+        {sections.map((section) => (
+          <div key={section.label}>
+            {/* Section Header */}
+            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/30">
+              {section.label}
+            </p>
 
-          return (
-            <motion.div key={item.href} variants={navItemVariants} className="space-y-1">
-              <Link
-                href={item.href}
-                className={`group relative flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#d4af37]/15 to-[#f9d976]/5 text-[#d4af37] shadow-[inset_0_0_20px_rgba(212,175,55,0.1)]"
-                    : "text-[#f5f5dc]/60 hover:bg-[#f5f5dc]/5 hover:text-[#f5f5dc]"
-                }`}
-              >
-                <span className="flex items-center gap-3">
-                  <Icon
-                    className={`h-4 w-4 ${
-                      isActive ? "text-[#d4af37]" : "text-[#f5f5dc]/40 group-hover:text-[#f5f5dc]/60"
-                    }`}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </span>
-                <span className="flex items-center gap-2">
-                  <ImperiumStatusBadge status={item.status} />
-                  {isActive && <ChevronRight className="h-3.5 w-3.5 text-[#d4af37]" />}
-                </span>
-              </Link>
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const Icon = NAV_ICONS[item.label] || Activity;
+                const isExactOverview = item.label === "Overview" && pathname === basePath;
+                // Best-match: only highlight if no sibling has a longer matching prefix
+                const matchesSelf = pathname === item.href || (pathname?.startsWith(item.href + "/") && item.href !== basePath);
+                const siblingHasBetterMatch = section.items.some(
+                  (s) => s.href !== item.href && s.href.length > item.href.length && (pathname === s.href || pathname?.startsWith(s.href + "/"))
+                );
+                const isActive = isExactOverview || (matchesSelf && !siblingHasBetterMatch);
+                const hasChildren = item.children && item.children.length > 0;
 
-              {/* Children */}
-              <AnimatePresence>
-                {hasChildren && isActive && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="ml-4 space-y-1 overflow-hidden border-l border-[#d4af37]/20 pl-3"
-                  >
-                    {item.children!.map((child) => {
-                      const ChildIcon = NAV_ICONS[child.label] || Activity;
-                      const childActive = pathname === child.href;
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs transition ${
-                            childActive
-                              ? "bg-[#d4af37]/10 text-[#d4af37]"
-                              : "text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/5 hover:text-[#f5f5dc]"
+                return (
+                  <motion.div key={item.href} variants={navItemVariants} className="space-y-0.5">
+                    <Link
+                      href={item.href}
+                      className={`group relative flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-gradient-to-r from-[#d4af37]/15 to-[#f9d976]/5 text-[#d4af37] shadow-[inset_0_0_20px_rgba(212,175,55,0.1)]"
+                          : "text-[#f5f5dc]/60 hover:bg-[#f5f5dc]/5 hover:text-[#f5f5dc]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon
+                          className={`h-4 w-4 ${
+                            isActive ? "text-[#d4af37]" : "text-[#f5f5dc]/40 group-hover:text-[#f5f5dc]/60"
                           }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <ImperiumStatusBadge status={item.status} />
+                        {isActive && <ChevronRight className="h-3.5 w-3.5 text-[#d4af37]" />}
+                      </span>
+                    </Link>
+
+                    {/* Children */}
+                    <AnimatePresence>
+                      {hasChildren && isActive && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="ml-4 space-y-0.5 overflow-hidden border-l border-[#d4af37]/20 pl-3"
                         >
-                          <span className="flex items-center gap-2">
-                            <ChildIcon className="h-3.5 w-3.5" />
-                            {child.label}
-                          </span>
-                          <ImperiumStatusBadge status={child.status} />
-                        </Link>
-                      );
-                    })}
+                          {item.children!.map((child) => {
+                            const ChildIcon = NAV_ICONS[child.label] || Activity;
+                            const childActive = pathname === child.href;
+                            return (
+                              <Link
+                                key={child.href}
+                                href={child.href}
+                                className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs transition ${
+                                  childActive
+                                    ? "bg-[#d4af37]/10 text-[#d4af37]"
+                                    : "text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/5 hover:text-[#f5f5dc]"
+                                }`}
+                              >
+                                <span className="flex items-center gap-2">
+                                  <ChildIcon className="h-3.5 w-3.5" />
+                                  {child.label}
+                                </span>
+                                <ImperiumStatusBadge status={child.status} />
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </motion.nav>
 
       {/* Footer Stats */}

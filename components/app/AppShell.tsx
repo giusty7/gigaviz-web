@@ -230,9 +230,9 @@ export default function AppShell({
           </div>
           <nav className="flex flex-col gap-0.5">
             {mainItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
-            <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">Products</p>
+            <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">{t("products")}</p>
             {productItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
-            <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">Manage</p>
+            <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">{t("manage")}</p>
             {manageItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
           </nav>
           {/* Mobile user info */}
@@ -288,9 +288,9 @@ export default function AppShell({
             {/* Navigation */}
             <nav className={cn("mt-1 flex flex-col gap-0.5", isCollapsed && "w-full items-center")}>
               {mainItems.map((item) => <DesktopNavLink key={item.href} item={item} />)}
-              <SectionLabel label="Products" />
+              <SectionLabel label={t("products")} />
               {productItems.map((item) => <DesktopNavLink key={item.href} item={item} />)}
-              <SectionLabel label="Manage" />
+              <SectionLabel label={t("manage")} />
               {manageItems.map((item) => <DesktopNavLink key={item.href} item={item} />)}
             </nav>
 

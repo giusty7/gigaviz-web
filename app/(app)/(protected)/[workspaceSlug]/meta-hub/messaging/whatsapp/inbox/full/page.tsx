@@ -173,8 +173,7 @@ export default async function FullWhatsappInboxPage({ params }: Props) {
   }));
 
   return (
-    <div className="fixed inset-0 z-[9999] h-screen w-screen overflow-hidden bg-[#050a18]">
-      <ImperiumInboxClient
+    <ImperiumInboxClient
         workspaceId={workspaceId}
         workspaceSlug={workspaceSlug}
         userId={ctx.user.id}
@@ -195,6 +194,5 @@ export default async function FullWhatsappInboxPage({ params }: Props) {
         templates={approvedTemplates}
         fullMode={true}
       />
-    </div>
   );
 }
