@@ -5,6 +5,8 @@ import { VideoIcon, ArrowLeft, Clock, Tag, Monitor, Timer } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { VideoActions } from "@/components/studio/VideoActions";
+import { VideoStoryboard } from "@/components/studio/VideoStoryboard";
+import { GenerateButton } from "@/components/studio/GenerateButton";
 
 export const dynamic = "force-dynamic";
 
@@ -102,9 +104,9 @@ export default async function VideoDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Video Preview */}
-      <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
-        {video.video_url ? (
+      {/* Video Preview / Storyboard */}
+      {video.video_url ? (
+        <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
           <div className="flex justify-center">
             <video
               src={video.video_url}
@@ -113,8 +115,26 @@ export default async function VideoDetailPage({ params }: PageProps) {
               poster={video.thumbnail_url || undefined}
             />
           </div>
-        ) : (
-          <div className="py-12 text-center">
+        </div>
+      ) : video.metadata_json && typeof video.metadata_json === "object" && "storyboard" in (video.metadata_json as Record<string, unknown>) ? (
+        <>
+          <VideoStoryboard
+            storyboard={((video.metadata_json as Record<string, unknown>).storyboard as Array<{ scene: number; description: string; duration_seconds: number; visual_notes: string }>)}
+            script={(video.metadata_json as Record<string, unknown>).script as string | undefined}
+            musicSuggestion={(video.metadata_json as Record<string, unknown>).music_suggestion as string | undefined}
+          />
+          <GenerateButton
+            type="video"
+            entityId={videoId}
+            prompt={video.prompt || video.description || video.title}
+            hasPrompt={Boolean(video.prompt)}
+            meta={{ style: video.style, duration_seconds: video.duration_seconds }}
+            label={t("common.regenerate")}
+          />
+        </>
+      ) : (
+        <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
+          <div className="py-8 text-center">
             <VideoIcon className="mx-auto mb-3 h-12 w-12 text-purple-400/20" />
             {video.prompt ? (
               <>
@@ -122,9 +142,20 @@ export default async function VideoDetailPage({ params }: PageProps) {
                 <p className="mx-auto max-w-lg rounded-lg bg-[#0a1229]/60 px-4 py-3 text-sm text-[#f5f5dc]/60 italic">
                   &ldquo;{video.prompt}&rdquo;
                 </p>
-                <p className="mt-3 text-xs text-[#f5f5dc]/25">
-                  {t("videos.detail.generationPending")}
-                </p>
+                <div className="mt-4">
+                  <GenerateButton
+                    type="video"
+                    entityId={videoId}
+                    prompt={video.prompt}
+                    hasPrompt={true}
+                    meta={{ style: video.style, duration_seconds: video.duration_seconds }}
+                  />
+                </div>
+                {video.status === "generating" && (
+                  <p className="mt-3 text-xs text-amber-400 animate-pulse">
+                    ⏳ {t("common.generating")}
+                  </p>
+                )}
               </>
             ) : (
               <>
@@ -135,8 +166,8 @@ export default async function VideoDetailPage({ params }: PageProps) {
               </>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Actions */}
       <VideoActions

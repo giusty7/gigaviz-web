@@ -13,6 +13,8 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ChartActions } from "@/components/studio/ChartActions";
+import { ChartRenderer } from "@/components/studio/ChartRenderer";
+import { GenerateButton } from "@/components/studio/GenerateButton";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -108,37 +110,62 @@ export default async function ChartDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Chart Preview Area */}
-      <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
-        {chart.config_json || chart.data_json ? (
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-[#f5f5dc]/60">{t("graph.detail.configTitle")}</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {chart.chart_type && (
-                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
-                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Type</p>
-                  <p className="text-sm text-[#f5f5dc]/70 capitalize">{chart.chart_type}</p>
-                </div>
-              )}
-              {chart.data_source && (
-                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
-                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">{t("graph.sourcePrefix")}</p>
-                  <p className="text-sm text-[#f5f5dc]/70 capitalize">{chart.data_source}</p>
-                </div>
-              )}
-            </div>
-            <div className="rounded-lg border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-8 text-center">
-              <Icon className="mx-auto mb-2 h-10 w-10 text-purple-400/30" />
-              <p className="text-xs text-[#f5f5dc]/30">{t("graph.detail.configHint")}</p>
-            </div>
-          </div>
+      {/* Chart Visualization */}
+      <div className="space-y-4">
+        {chart.data_json?.labels && chart.data_json?.datasets ? (
+          <ChartRenderer
+            chartType={chart.chart_type}
+            dataJson={chart.data_json as { labels: string[]; datasets: Array<{ label: string; data: number[]; backgroundColor?: string | string[]; borderColor?: string }> }}
+            configJson={chart.config_json as { title?: string; x_axis?: string; y_axis?: string; show_legend?: boolean; show_grid?: boolean } | null}
+            height={380}
+          />
         ) : (
-          <div className="py-12 text-center">
-            <Icon className="mx-auto mb-3 h-12 w-12 text-purple-400/20" />
-            <p className="text-sm text-[#f5f5dc]/40">
-              {t("graph.detail.configHint")}
-            </p>
+          <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
+            <div className="py-8 text-center">
+              <Icon className="mx-auto mb-3 h-12 w-12 text-purple-400/20" />
+              <p className="text-sm text-[#f5f5dc]/40 mb-4">
+                {t("graph.detail.configHint")}
+              </p>
+              <GenerateButton
+                type="chart"
+                entityId={chartId}
+                prompt={chart.description || chart.title}
+                hasPrompt={Boolean(chart.description || chart.title)}
+                meta={{ chart_type: chart.chart_type }}
+                label={t("common.generateWithAI")}
+              />
+            </div>
           </div>
+        )}
+
+        {/* Chart Config Info */}
+        {(chart.config_json || chart.data_json) && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {chart.chart_type && (
+              <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Type</p>
+                <p className="text-sm text-[#f5f5dc]/70 capitalize">{chart.chart_type}</p>
+              </div>
+            )}
+            {chart.data_source && (
+              <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">{t("graph.sourcePrefix")}</p>
+                <p className="text-sm text-[#f5f5dc]/70 capitalize">{chart.data_source}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Regenerate button for existing charts with data */}
+        {chart.data_json?.labels && (
+          <GenerateButton
+            type="chart"
+            entityId={chartId}
+            prompt={chart.description || chart.title}
+            hasPrompt={Boolean(chart.description || chart.title)}
+            meta={{ chart_type: chart.chart_type }}
+            label={t("common.regenerate")}
+          />
         )}
       </div>
 

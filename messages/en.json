@@ -1443,7 +1443,17 @@
       "addButton": "Add",
       "back": "Back",
       "edit": "Edit",
-      "tokensUsed": "{count} tokens"
+      "tokensUsed": "{count} tokens",
+      "generateWithAI": "Generate with AI",
+      "generating": "Generating...",
+      "generationFailed": "AI generation failed. Please try again.",
+      "insufficientTokens": "Insufficient tokens. Please top up your balance.",
+      "aiGenerated": "AI Generated",
+      "regenerate": "Regenerate",
+      "useTemplate": "Use this template",
+      "cloning": "Creating from template...",
+      "cloneSuccess": "Document created from template",
+      "cloneFailed": "Failed to create from template"
     },
     "hub": {
       "badge": "AI Creative Suite",
@@ -1544,6 +1554,8 @@
         "dataSourceLabel": "Data Source",
         "titlePlaceholder": "e.g. Monthly Revenue Chart",
         "descriptionPlaceholder": "Describe what this chart visualizes...",
+        "aiPromptPlaceholder": "Describe the data you want to visualize. AI will generate chart data and configuration...",
+        "aiPromptHint": "AI will generate sample data and chart configuration based on your description.",
         "createButton": "Create Chart",
         "chartTypes": {
           "bar": "Bar Chart",
@@ -1587,7 +1599,9 @@
         "previewHint": "After creation, you can add charts to this dashboard using the layout editor.",
         "createButton": "Create Dashboard",
         "titlePlaceholder": "e.g. Q1 Performance Overview",
-        "descriptionPlaceholder": "What does this dashboard track..."
+        "descriptionPlaceholder": "What does this dashboard track...",
+        "aiPromptPlaceholder": "Describe your dashboard. AI will generate widgets, charts, and stats...",
+        "aiPromptHint": "AI will create a dashboard layout with widgets based on your description."
       },
       "detail": {
         "layoutTitle": "Dashboard Layout",

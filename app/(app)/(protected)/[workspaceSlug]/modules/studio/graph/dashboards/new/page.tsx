@@ -13,6 +13,7 @@ export default function NewDashboardPage({ params: _params }: Props) {
   const t = useTranslations("studio");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,13 +30,31 @@ export default function NewDashboardPage({ params: _params }: Props) {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || undefined,
+          prompt: prompt.trim() || undefined,
           is_public: isPublic,
         }),
       });
 
       if (res.ok) {
+        const { data } = await res.json();
         const { workspaceSlug } = await _params;
-        router.push(`/${workspaceSlug}/modules/studio/graph/dashboards`);
+        const detailUrl = `/${workspaceSlug}/modules/studio/graph/dashboards/${data.id}`;
+
+        // Auto-trigger AI generation if prompt was provided
+        if (prompt.trim()) {
+          fetch("/api/studio/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "dashboard",
+              entityId: data.id,
+              prompt: prompt.trim(),
+              title: title.trim(),
+            }),
+          }).catch(() => {}); // Fire-and-forget
+        }
+
+        router.push(detailUrl);
       } else {
         const body = await res.json().catch(() => ({}));
         setError(body.error || `Failed to create dashboard (${res.status})`);
@@ -88,6 +107,24 @@ export default function NewDashboardPage({ params: _params }: Props) {
           rows={3}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
         />
+      </div>
+
+      {/* AI Prompt */}
+      <div>
+        <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
+          <Sparkles className="h-3 w-3 text-purple-400" />
+          {t("common.generateWithAI")}
+        </label>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder={t("dashboards.new.aiPromptPlaceholder")}
+          rows={3}
+          className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
+        />
+        <p className="mt-1 text-[10px] text-[#f5f5dc]/25">
+          {t("dashboards.new.aiPromptHint")}
+        </p>
       </div>
 
       {/* Visibility */}

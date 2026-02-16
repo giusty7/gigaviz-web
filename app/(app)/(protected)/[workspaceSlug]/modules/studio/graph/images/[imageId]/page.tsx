@@ -6,6 +6,7 @@ import { ImageIcon, ArrowLeft, Clock, Tag, Maximize2 } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ImageActions } from "@/components/studio/ImageActions";
+import { GenerateButton } from "@/components/studio/GenerateButton";
 
 export const dynamic = "force-dynamic";
 
@@ -123,9 +124,20 @@ export default async function ImageDetailPage({ params }: PageProps) {
                 <p className="mx-auto max-w-lg rounded-lg bg-[#0a1229]/60 px-4 py-3 text-sm text-[#f5f5dc]/60 italic">
                   &ldquo;{image.prompt}&rdquo;
                 </p>
-                <p className="mt-3 text-xs text-[#f5f5dc]/25">
-                  {t("images.detail.generationPending")}
-                </p>
+                <div className="mt-4">
+                  <GenerateButton
+                    type="image"
+                    entityId={imageId}
+                    prompt={image.prompt}
+                    hasPrompt={true}
+                    meta={{ style: image.style, width: image.width, height: image.height }}
+                  />
+                </div>
+                {image.status === "generating" && (
+                  <p className="mt-3 text-xs text-amber-400 animate-pulse">
+                    ⏳ {t("common.generating")}
+                  </p>
+                )}
               </>
             ) : (
               <>

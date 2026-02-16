@@ -1,12 +1,20 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { FileText, ArrowLeft, Clock, User, Tag } from "lucide-react";
+import { FileText, ArrowLeft, Clock, User, Tag, Sparkles } from "lucide-react";
 import { DocumentActions } from "@/components/studio/DocumentActions";
+import { GenerateButton } from "@/components/studio/GenerateButton";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+/** Check if content_json matches the AI-generated document structure */
+function isAIDocument(content: unknown): content is { title?: string; sections: Array<{ heading: string; body: string }>; summary?: string } {
+  if (!content || typeof content !== "object") return false;
+  const c = content as Record<string, unknown>;
+  return Array.isArray(c.sections) && c.sections.length > 0 && typeof c.sections[0]?.heading === "string";
+}
 
 type PageProps = {
   params: Promise<{ workspaceSlug: string; documentId: string }>;
@@ -76,7 +84,41 @@ export default async function DocumentDetailPage({ params }: PageProps) {
       <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
         {doc.content_json ? (
           <div className="prose prose-invert prose-sm max-w-none">
-            {typeof doc.content_json === "string" ? (
+            {/* AI-generated structured content */}
+            {isAIDocument(doc.content_json) ? (
+              <div className="space-y-6">
+                {(doc.content_json as { summary?: string }).summary && (
+                  <div className="flex items-start gap-2 rounded-lg border border-cyan-500/20 bg-cyan-500/5 px-4 py-3">
+                    <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
+                    <p className="text-sm text-cyan-300/80">{(doc.content_json as { summary: string }).summary}</p>
+                  </div>
+                )}
+                {((doc.content_json as { sections?: Array<{ heading: string; body: string }> }).sections ?? []).map((section, i) => (
+                  <div key={i} className="space-y-2">
+                    <h3 className="text-base font-semibold text-[#f5f5dc]/80 border-b border-[#f5f5dc]/10 pb-2">
+                      {section.heading}
+                    </h3>
+                    <div className="space-y-2">
+                      {section.body.split("\n").filter(Boolean).map((para, j) => (
+                        <p key={j} className="text-sm leading-relaxed text-[#f5f5dc]/60">
+                          {para}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Regenerate */}
+                <GenerateButton
+                  type="document"
+                  entityId={documentId}
+                  prompt={doc.title}
+                  hasPrompt={true}
+                  meta={{ category: doc.category, title: doc.title }}
+                  label={t("common.regenerate")}
+                />
+              </div>
+            ) : typeof doc.content_json === "string" ? (
               <div className="space-y-3">
                 {doc.content_json.split("\n").filter(Boolean).map((paragraph: string, i: number) => (
                   <p key={i} className="text-sm leading-relaxed text-[#f5f5dc]/70">
@@ -96,12 +138,16 @@ export default async function DocumentDetailPage({ params }: PageProps) {
             )}
           </div>
         ) : (
-          <div className="py-12 text-center">
+          <div className="py-8 text-center">
             <FileText className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-            <p className="text-sm text-[#f5f5dc]/40">{t("office.detail.emptyContent")}</p>
-            <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              {t("office.detail.emptyHint")}
-            </p>
+            <p className="text-sm text-[#f5f5dc]/40 mb-4">{t("office.detail.emptyContent")}</p>
+            <GenerateButton
+              type="document"
+              entityId={documentId}
+              prompt={doc.title}
+              hasPrompt={true}
+              meta={{ category: doc.category, title: doc.title }}
+            />
           </div>
         )}
       </div>

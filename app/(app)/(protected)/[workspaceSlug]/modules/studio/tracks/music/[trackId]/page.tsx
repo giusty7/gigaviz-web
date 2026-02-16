@@ -5,6 +5,8 @@ import { MusicIcon, ArrowLeft, Clock, Tag, Gauge, Music2 } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { MusicActions } from "@/components/studio/MusicActions";
+import { WaveformVisualizer } from "@/components/studio/WaveformVisualizer";
+import { GenerateButton } from "@/components/studio/GenerateButton";
 
 export const dynamic = "force-dynamic";
 
@@ -106,20 +108,65 @@ export default async function MusicDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Audio Player / Preview */}
-      <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
-        {track.audio_url ? (
-          <div className="space-y-4">
-            <audio src={track.audio_url} controls className="w-full" />
-            <div className="flex items-center gap-4 text-xs text-[#f5f5dc]/40">
-              <span>{track.genre}</span>
-              <span>{track.bpm} BPM</span>
-              <span>Key: {track.key_signature}</span>
-              <span>{Math.floor(track.duration_seconds / 60)}:{String(track.duration_seconds % 60).padStart(2, "0")}</span>
-            </div>
+      {/* Audio Player / Waveform */}
+      {track.audio_url ? (
+        <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6 space-y-4">
+          <audio src={track.audio_url} controls className="w-full" />
+          <div className="flex items-center gap-4 text-xs text-[#f5f5dc]/40">
+            <span>{track.genre}</span>
+            <span>{track.bpm} BPM</span>
+            <span>Key: {track.key_signature}</span>
+            <span>{Math.floor(track.duration_seconds / 60)}:{String(track.duration_seconds % 60).padStart(2, "0")}</span>
           </div>
-        ) : (
-          <div className="py-12 text-center">
+        </div>
+      ) : track.waveform_json && Array.isArray(track.waveform_json) && track.waveform_json.length > 0 ? (
+        <div className="space-y-4">
+          <WaveformVisualizer
+            waveformData={track.waveform_json as number[]}
+            title={track.title}
+            duration={track.duration_seconds}
+          />
+
+          {/* Composition Details */}
+          {track.metadata_json && typeof track.metadata_json === "object" && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {!!(track.metadata_json as Record<string, unknown>).structure && (
+                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Structure</p>
+                  <p className="text-sm text-[#f5f5dc]/60">{String((track.metadata_json as Record<string, unknown>).structure)}</p>
+                </div>
+              )}
+              {!!(track.metadata_json as Record<string, unknown>).mood && (
+                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Mood</p>
+                  <p className="text-sm text-[#f5f5dc]/60">{String((track.metadata_json as Record<string, unknown>).mood)}</p>
+                </div>
+              )}
+              {Array.isArray((track.metadata_json as Record<string, unknown>).instruments) && (
+                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3 sm:col-span-2">
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Instruments</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {((track.metadata_json as Record<string, unknown>).instruments as string[]).map((inst) => (
+                      <span key={inst} className="rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] text-teal-400">{inst}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <GenerateButton
+            type="music"
+            entityId={trackId}
+            prompt={track.prompt || track.description || track.title}
+            hasPrompt={Boolean(track.prompt)}
+            meta={{ genre: track.genre, bpm: track.bpm, key_signature: track.key_signature, duration_seconds: track.duration_seconds }}
+            label={t("common.regenerate")}
+          />
+        </div>
+      ) : (
+        <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
+          <div className="py-8 text-center">
             <MusicIcon className="mx-auto mb-3 h-12 w-12 text-teal-400/20" />
             {track.prompt ? (
               <>
@@ -127,9 +174,20 @@ export default async function MusicDetailPage({ params }: PageProps) {
                 <p className="mx-auto max-w-lg rounded-lg bg-[#0a1229]/60 px-4 py-3 text-sm text-[#f5f5dc]/60 italic">
                   &ldquo;{track.prompt}&rdquo;
                 </p>
-                <p className="mt-3 text-xs text-[#f5f5dc]/25">
-                  {t("music.detail.generationPending")}
-                </p>
+                <div className="mt-4">
+                  <GenerateButton
+                    type="music"
+                    entityId={trackId}
+                    prompt={track.prompt}
+                    hasPrompt={true}
+                    meta={{ genre: track.genre, bpm: track.bpm, key_signature: track.key_signature, duration_seconds: track.duration_seconds }}
+                  />
+                </div>
+                {track.status === "generating" && (
+                  <p className="mt-3 text-xs text-amber-400 animate-pulse">
+                    ⏳ {t("common.generating")}
+                  </p>
+                )}
               </>
             ) : (
               <>
@@ -140,8 +198,8 @@ export default async function MusicDetailPage({ params }: PageProps) {
               </>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Actions */}
       <MusicActions

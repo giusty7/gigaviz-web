@@ -9,6 +9,7 @@ import { withErrorHandler } from "@/lib/api/with-error-handler";
 const createSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().max(2000).optional(),
+  prompt: z.string().max(4000).optional(),
   is_public: z.boolean().optional(),
 });
 
@@ -85,6 +86,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
       slug: slugify(validated.title),
       description: validated.description ?? null,
       is_public: validated.is_public ?? false,
+      prompt: validated.prompt ?? null,
       created_by: ctx.user!.id,
     })
     .select("id, title, slug, created_at")

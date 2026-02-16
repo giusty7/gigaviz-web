@@ -1443,7 +1443,17 @@
       "addButton": "Tambah",
       "back": "Kembali",
       "edit": "Edit",
-      "tokensUsed": "{count} token"
+      "tokensUsed": "{count} token",
+      "generateWithAI": "Generate dengan AI",
+      "generating": "Sedang membuat...",
+      "generationFailed": "Pembuatan AI gagal. Silakan coba lagi.",
+      "insufficientTokens": "Token tidak cukup. Silakan isi ulang saldo Anda.",
+      "aiGenerated": "Dibuat AI",
+      "regenerate": "Buat Ulang",
+      "useTemplate": "Gunakan template ini",
+      "cloning": "Membuat dari template...",
+      "cloneSuccess": "Dokumen dibuat dari template",
+      "cloneFailed": "Gagal membuat dari template"
     },
     "hub": {
       "badge": "Suite Kreatif AI",
@@ -1544,6 +1554,8 @@
         "dataSourceLabel": "Sumber Data",
         "titlePlaceholder": "mis. Grafik Pendapatan Bulanan",
         "descriptionPlaceholder": "Jelaskan apa yang divisualisasikan grafik ini...",
+        "aiPromptPlaceholder": "Deskripsikan data yang ingin divisualisasikan. AI akan menghasilkan data dan konfigurasi grafik...",
+        "aiPromptHint": "AI akan menghasilkan data sampel dan konfigurasi grafik berdasarkan deskripsi Anda.",
         "createButton": "Buat Grafik",
         "chartTypes": {
           "bar": "Grafik Batang",
@@ -1587,7 +1599,9 @@
         "previewHint": "Setelah dibuat, Anda dapat menambah grafik ke dashboard menggunakan editor tata letak.",
         "createButton": "Buat Dashboard",
         "titlePlaceholder": "mis. Ringkasan Kinerja Q1",
-        "descriptionPlaceholder": "Apa yang dilacak dashboard ini..."
+        "descriptionPlaceholder": "Apa yang dilacak dashboard ini...",
+        "aiPromptPlaceholder": "Deskripsikan dashboard Anda. AI akan menghasilkan widget, grafik, dan statistik...",
+        "aiPromptHint": "AI akan membuat tata letak dashboard dengan widget berdasarkan deskripsi Anda."
       },
       "detail": {
         "layoutTitle": "Tata Letak Dashboard",

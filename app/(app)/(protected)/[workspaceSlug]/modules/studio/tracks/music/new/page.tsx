@@ -92,7 +92,25 @@ export default function NewMusicPage({ params: _params }: Props) {
       if (res.ok) {
         const { data } = await res.json();
         const { workspaceSlug } = await _params;
-        router.push(`/${workspaceSlug}/modules/studio/tracks/music/${data.id}`);
+        const detailUrl = `/${workspaceSlug}/modules/studio/tracks/music/${data.id}`;
+
+        // Auto-trigger AI generation if prompt was provided
+        if (prompt.trim()) {
+          fetch("/api/studio/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "music",
+              entityId: data.id,
+              prompt: prompt.trim(),
+              genre,
+              bpm,
+              duration_seconds: duration,
+            }),
+          }).catch(() => {}); // Fire-and-forget
+        }
+
+        router.push(detailUrl);
       } else {
         const body = await res.json().catch(() => ({}));
         setError(body.error || `Failed to create track (${res.status})`);

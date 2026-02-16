@@ -13,6 +13,7 @@ const createSchema = z.object({
   config_json: z.unknown().optional(),
   data_source: z.enum(["manual", "api", "database", "csv"]).optional(),
   data_json: z.unknown().optional(),
+  prompt: z.string().max(4000).optional(),
   tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
@@ -75,6 +76,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
       config_json: validated.config_json ?? null,
       data_source: validated.data_source ?? "manual",
       data_json: validated.data_json ?? null,
+      prompt: validated.prompt ?? null,
       tags: validated.tags ?? [],
       created_by: ctx.user!.id,
     })

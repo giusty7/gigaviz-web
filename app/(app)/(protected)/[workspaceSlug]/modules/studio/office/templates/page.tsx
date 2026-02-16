@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { FolderOpen, FileText, Star, ArrowRight } from "lucide-react";
+import { FolderOpen, FileText, Star } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
+import { UseTemplateButton } from "@/components/studio/UseTemplateButton";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -56,7 +56,6 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
 
   const allTemplates = templates ?? [];
   const categories = [...new Set(allTemplates.map((t) => t.category))];
-  const basePath = `/${workspaceSlug}/modules/studio/office`;
 
   return (
     <div className="space-y-6">
@@ -111,12 +110,7 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
                   </span>
                 ))}
               </div>
-              <Link
-                href={`${basePath}/new?template=${template.id}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                {t("office.templates.useTemplate")} <ArrowRight className="h-3 w-3" />
-              </Link>
+              <UseTemplateButton templateId={template.id} workspaceSlug={workspaceSlug} />
             </div>
           ))}
         </div>

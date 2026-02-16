@@ -54,7 +54,24 @@ export default function NewDocumentPage({ params: _params }: Props) {
       if (res.ok) {
         const { data } = await res.json();
         const { workspaceSlug } = await _params;
-        router.push(`/${workspaceSlug}/modules/studio/office/${data.id}`);
+        const detailUrl = `/${workspaceSlug}/modules/studio/office/${data.id}`;
+
+        // Auto-trigger AI generation if prompt was provided
+        if (aiPrompt.trim()) {
+          fetch("/api/studio/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "document",
+              entityId: data.id,
+              prompt: aiPrompt.trim(),
+              category: selectedType,
+              title: title.trim(),
+            }),
+          }).catch(() => {}); // Fire-and-forget
+        }
+
+        router.push(detailUrl);
       } else {
         const body = await res.json().catch(() => ({}));
         setError(body.error || `Failed to create document (${res.status})`);

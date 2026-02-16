@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   LayoutDashboard,
   ArrowLeft,
-  BarChart3,
   Clock,
   Globe,
   Lock,
@@ -11,6 +10,8 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { DashboardActions } from "@/components/studio/DashboardActions";
+import { DashboardRenderer } from "@/components/studio/DashboardRenderer";
+import { GenerateButton } from "@/components/studio/GenerateButton";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -97,38 +98,46 @@ export default async function DashboardDetailPage({ params }: PageProps) {
       />
 
       {/* Layout / Content Area */}
-      <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
-        {dashboard.layout_json ? (
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-              {t("dashboards.detail.layoutTitle")}
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.isArray(dashboard.layout_json)
-                ? (dashboard.layout_json as Array<Record<string, unknown>>).map((item, i) => (
-                    <div key={i} className="rounded-lg border border-purple-500/10 bg-[#0a1229]/60 p-4">
-                      <div className="mb-2 flex h-20 items-center justify-center rounded-lg border border-dashed border-purple-500/20 bg-[#0a1229]/30">
-                        <BarChart3 className="h-6 w-6 text-purple-400/20" />
-                      </div>
-                      <p className="text-xs font-medium text-[#f5f5dc]/50 truncate">
-                        {(item.title as string) || (item.chart_id as string) || `Widget ${i + 1}`}
-                      </p>
-                    </div>
-                  ))
-                : (
-                  <div className="col-span-full rounded-lg border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-8 text-center">
-                    <LayoutDashboard className="mx-auto mb-2 h-8 w-8 text-purple-400/20" />
-                    <p className="text-xs text-[#f5f5dc]/30">{t("dashboards.detail.layoutTitle")}</p>
-                  </div>
-                )}
-            </div>
-          </div>
+      <div className="space-y-4">
+        {dashboard.layout_json && Array.isArray(dashboard.layout_json) && dashboard.layout_json.length > 0 ? (
+          <>
+            <DashboardRenderer
+              widgets={dashboard.layout_json as Array<{
+                title: string;
+                type: "chart" | "stat" | "table" | "text";
+                chart_type?: string;
+                data?: { labels?: string[]; datasets?: Array<{ label: string; data: number[]; backgroundColor?: string | string[]; borderColor?: string }> };
+                value?: string;
+                description?: string;
+                w?: number;
+                h?: number;
+              }>}
+            />
+            {/* Regenerate */}
+            <GenerateButton
+              type="dashboard"
+              entityId={dashboardId}
+              prompt={dashboard.description || dashboard.title}
+              hasPrompt={Boolean(dashboard.description || dashboard.title)}
+              meta={{ title: dashboard.title }}
+              label={t("common.regenerate")}
+            />
+          </>
         ) : (
-          <div className="py-12 text-center">
-            <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-            <p className="text-sm text-[#f5f5dc]/40">
-              {t("dashboards.detail.emptyCharts")}
-            </p>
+          <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
+            <div className="py-8 text-center">
+              <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
+              <p className="text-sm text-[#f5f5dc]/40 mb-4">
+                {t("dashboards.detail.emptyCharts")}
+              </p>
+              <GenerateButton
+                type="dashboard"
+                entityId={dashboardId}
+                prompt={dashboard.description || dashboard.title || "Business analytics dashboard"}
+                hasPrompt={true}
+                meta={{ title: dashboard.title }}
+              />
+            </div>
           </div>
         )}
       </div>
