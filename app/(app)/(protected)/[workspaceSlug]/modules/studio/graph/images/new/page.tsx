@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ImageIcon, Sparkles, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ const colorMap: Record<string, { base: string; selected: string; text: string }>
 };
 
 export default function NewImagePage({ params: _params }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [style, setStyle] = useState("photo-realistic");
   const [title, setTitle] = useState("");
@@ -88,7 +90,7 @@ export default function NewImagePage({ params: _params }: Props) {
         setError(body.error || `Failed to create image (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -97,9 +99,9 @@ export default function NewImagePage({ params: _params }: Props) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New AI Image</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("images.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Choose a style and describe what you want to generate.
+          {t("images.new.description")}
         </p>
       </div>
 
@@ -112,7 +114,7 @@ export default function NewImagePage({ params: _params }: Props) {
       {/* Style Selector */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Image Style
+          {t("images.new.styleLabel")}
         </label>
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-5">
           {STYLES.map((s) => {
@@ -140,13 +142,13 @@ export default function NewImagePage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Title
+          {t("images.new.titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Hero Banner for Landing Page"
+          placeholder={t("images.new.titlePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
         />
       </div>
@@ -154,12 +156,12 @@ export default function NewImagePage({ params: _params }: Props) {
       {/* AI Prompt */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          AI Prompt
+          {t("images.new.aiPromptLabel")}
         </label>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the image you want AI to generate... e.g. 'A futuristic city skyline at sunset with neon lights'"
+          placeholder={t("images.new.aiPromptPlaceholder")}
           rows={4}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
         />
@@ -168,13 +170,13 @@ export default function NewImagePage({ params: _params }: Props) {
       {/* Description */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Description (Optional)
+          {t("images.new.descriptionLabel")}
         </label>
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Internal notes about this image..."
+          placeholder={t("images.new.descriptionPlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
         />
       </div>
@@ -182,7 +184,7 @@ export default function NewImagePage({ params: _params }: Props) {
       {/* Format */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Output Format
+          {t("images.new.formatLabel")}
         </label>
         <div className="flex flex-wrap gap-2">
           {FORMATS.map((f) => (
@@ -205,7 +207,7 @@ export default function NewImagePage({ params: _params }: Props) {
       {/* Tags */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Tags (Optional)
+          {t("common.tagsOptionalLabel")}
         </label>
         <div className="flex gap-2">
           <input
@@ -213,11 +215,11 @@ export default function NewImagePage({ params: _params }: Props) {
             value={tag}
             onChange={(e) => setTag(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-            placeholder="Add a tag..."
+            placeholder={t("common.tagPlaceholder")}
             className="flex-1 rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
           />
           <button onClick={addTag} className="rounded-lg border border-[#f5f5dc]/10 px-3 py-2 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]">
-            Add
+            {t("common.addButton")}
           </button>
         </div>
         {tags.length > 0 && (
@@ -243,12 +245,12 @@ export default function NewImagePage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Image
+            {t("images.new.createButton")}
           </>
         )}
       </button>

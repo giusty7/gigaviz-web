@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Pencil, Trash2, Loader2, Save, X, Globe, Lock } from "lucide-react";
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle, description: initDesc, isPublic: initPublic }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(initTitle);
@@ -34,13 +36,13 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error || "Update failed");
+        setError(body.error || t("common.updateFailed"));
         return;
       }
       setEditing(false);
       router.refresh();
     } catch {
-      setError("Network error");
+      setError(t("common.networkErrorShort"));
     } finally {
       setSaving(false);
     }
@@ -53,13 +55,13 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
       const res = await fetch(`/api/studio/graph/dashboards/${dashboardId}`, { method: "DELETE" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error || "Delete failed");
+        setError(body.error || t("common.deleteFailed"));
         setDeleting(false);
         return;
       }
       router.push(`/${workspaceSlug}/modules/studio/graph/dashboards`);
     } catch {
-      setError("Network error");
+      setError(t("common.networkErrorShort"));
       setDeleting(false);
     }
   };
@@ -77,14 +79,14 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-3 py-2 text-sm text-[#f5f5dc] focus:border-purple-500/50 focus:outline-none"
-            placeholder="Dashboard title"
+            placeholder={t("dashboards.actions.titlePlaceholder")}
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-3 py-2 text-sm text-[#f5f5dc] focus:border-purple-500/50 focus:outline-none resize-none"
             rows={3}
-            placeholder="Description..."
+            placeholder={t("common.descriptionPlaceholder")}
           />
           <div className="flex items-center gap-3">
             <button
@@ -97,7 +99,7 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
               }`}
             >
               {isPublic ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-              {isPublic ? "Public" : "Private"}
+              {isPublic ? t("common.public") : t("common.private")}
             </button>
           </div>
           <div className="flex gap-2">
@@ -107,14 +109,14 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-purple-600 px-4 text-xs font-medium text-white hover:bg-purple-500 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-              Save
+              {t("common.save")}
             </button>
             <button
               onClick={() => { setEditing(false); setTitle(initTitle); setDescription(initDesc); setIsPublic(initPublic); }}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#f5f5dc]/10 px-3 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]"
             >
               <X className="h-3 w-3" />
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -125,23 +127,23 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-xs font-medium text-white hover:bg-purple-500 transition-colors"
           >
             <Pencil className="h-3 w-3" />
-            Edit Dashboard
+            {t("dashboards.actions.editDashboard")}
           </button>
           {confirmDelete ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-red-400">Delete permanently?</span>
+              <span className="text-xs text-red-400">{t("common.deleteConfirm")}</span>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-50"
               >
-                {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Yes, delete"}
+                {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.yesDelete")}
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
                 className="inline-flex h-9 items-center rounded-lg border border-[#f5f5dc]/10 px-3 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           ) : (
@@ -150,7 +152,7 @@ export function DashboardActions({ dashboardId, workspaceSlug, title: initTitle,
               className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-500/20 px-4 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <Trash2 className="h-3 w-3" />
-              Delete
+              {t("common.delete")}
             </button>
           )}
         </div>

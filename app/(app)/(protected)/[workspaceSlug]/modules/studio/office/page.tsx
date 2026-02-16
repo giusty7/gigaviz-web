@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import {
   FileText,
   Plus,
@@ -38,6 +39,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
 
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
 
   // Check entitlement
   const { data: sub } = await db
@@ -57,8 +59,8 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
   if (!hasAccess) {
     return (
       <LockedScreen
-        title="Gigaviz Office is locked"
-        description="Upgrade to Starter plan or above to create AI-powered documents, spreadsheets, and reports."
+        title={t("office.lockedTitle")}
+        description={t("office.lockedDescription")}
         workspaceSlug={workspaceSlug}
       />
     );
@@ -87,9 +89,9 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#f5f5dc]">Office Documents</h1>
+          <h1 className="text-xl font-bold text-[#f5f5dc]">{t("office.title")}</h1>
           <p className="mt-1 text-sm text-[#f5f5dc]/50">
-            Create and manage AI-powered documents, spreadsheets, invoices, and reports.
+            {t("office.description")}
           </p>
         </div>
         <Link
@@ -97,7 +99,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-cyan-600 px-4 text-sm font-medium text-white transition-colors hover:bg-cyan-500"
         >
           <Plus className="h-4 w-4" />
-          New Document
+          {t("office.newDocument")}
         </Link>
       </div>
 
@@ -108,7 +110,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
             <FileText className="h-7 w-7 text-blue-400" />
             <div>
               <p className="text-2xl font-bold text-[#f5f5dc]">{documents.length}</p>
-              <p className="text-xs text-[#f5f5dc]/40">Documents</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("office.stats.documents")}</p>
             </div>
           </div>
         </div>
@@ -117,7 +119,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
             <FolderOpen className="h-7 w-7 text-purple-400" />
             <div>
               <p className="text-2xl font-bold text-[#f5f5dc]">{templateCount}</p>
-              <p className="text-xs text-[#f5f5dc]/40">Templates</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("office.stats.templates")}</p>
             </div>
           </div>
         </div>
@@ -130,7 +132,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
                   ? new Date(documents[0].updated_at).toLocaleDateString()
                   : "—"}
               </p>
-              <p className="text-xs text-[#f5f5dc]/40">Last Updated</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("office.stats.lastUpdated")}</p>
             </div>
           </div>
         </div>
@@ -139,7 +141,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
       {/* Documents List */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
-          Recent Documents
+          {t("office.recentDocuments")}
         </h2>
         {documents.length > 0 ? (
           <div className="space-y-2">
@@ -170,15 +172,15 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
         ) : (
           <div className="rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 text-center">
             <FileText className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-            <p className="text-sm font-medium text-[#f5f5dc]/40">No documents yet</p>
+            <p className="text-sm font-medium text-[#f5f5dc]/40">{t("office.emptyTitle")}</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Create your first document with AI assistance.
+              {t("office.emptyDescription")}
             </p>
             <Link
               href={`${basePath}/new`}
               className="mt-4 inline-flex items-center gap-2 rounded-lg bg-cyan-600/80 px-4 py-2 text-xs font-medium text-white hover:bg-cyan-500"
             >
-              <Plus className="h-3 w-3" /> Create Document
+              <Plus className="h-3 w-3" /> {t("office.createDocument")}
             </Link>
           </div>
         )}

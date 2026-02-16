@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { VideoIcon, ArrowLeft, Clock, Tag, Monitor, Timer } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -38,6 +39,7 @@ export default async function VideoDetailPage({ params }: PageProps) {
 
   if (error || !video) notFound();
 
+  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/graph/videos`;
   const color = styleColors[video.style] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
 
@@ -50,7 +52,7 @@ export default async function VideoDetailPage({ params }: PageProps) {
           className="inline-flex items-center gap-1 rounded-lg border border-[#f5f5dc]/10 px-3 py-1.5 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          Videos
+          {t("videos.backLink")}
         </Link>
         <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium capitalize ${color}`}>
           <VideoIcon className="h-3 w-3" />
@@ -75,7 +77,7 @@ export default async function VideoDetailPage({ params }: PageProps) {
         <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#f5f5dc]/30">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Updated {new Date(video.updated_at).toLocaleString()}
+            {t("common.updatedPrefix")}{new Date(video.updated_at).toLocaleString()}
           </span>
           <span className="flex items-center gap-1">
             <Timer className="h-3 w-3" />
@@ -116,19 +118,19 @@ export default async function VideoDetailPage({ params }: PageProps) {
             <VideoIcon className="mx-auto mb-3 h-12 w-12 text-purple-400/20" />
             {video.prompt ? (
               <>
-                <p className="text-sm text-[#f5f5dc]/40 mb-3">AI Prompt:</p>
+                <p className="text-sm text-[#f5f5dc]/40 mb-3">{t("videos.detail.aiPromptLabel")}</p>
                 <p className="mx-auto max-w-lg rounded-lg bg-[#0a1229]/60 px-4 py-3 text-sm text-[#f5f5dc]/60 italic">
                   &ldquo;{video.prompt}&rdquo;
                 </p>
                 <p className="mt-3 text-xs text-[#f5f5dc]/25">
-                  Video will appear here once generation is complete.
+                  {t("videos.detail.generationPending")}
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm text-[#f5f5dc]/40">No video generated yet</p>
+                <p className="text-sm text-[#f5f5dc]/40">{t("videos.detail.noVideo")}</p>
                 <p className="mt-1 text-xs text-[#f5f5dc]/25">
-                  Add a prompt and generate your AI video.
+                  {t("videos.detail.noVideoHint")}
                 </p>
               </>
             )}

@@ -1736,7 +1736,31 @@
       "emptyTitle": "No images yet",
       "emptyDescription": "Create your first AI-generated image to get started.",
       "lockedTitle": "AI Images is locked",
-      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered images and visuals."
+      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered images and visuals.",
+      "backLink": "Images",
+      "new": {
+        "title": "New AI Image",
+        "description": "Choose a style and describe what you want to generate.",
+        "styleLabel": "Image Style",
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Hero Banner for Landing Page",
+        "aiPromptLabel": "AI Prompt",
+        "aiPromptPlaceholder": "Describe the image you want AI to generate...",
+        "descriptionLabel": "Description (Optional)",
+        "descriptionPlaceholder": "Internal notes about this image...",
+        "formatLabel": "Output Format",
+        "createButton": "Create Image"
+      },
+      "detail": {
+        "aiPromptLabel": "AI Prompt:",
+        "generationPending": "Image will appear here once generation is complete.",
+        "noImage": "No image generated yet",
+        "noImageHint": "Add a prompt and generate your AI image."
+      },
+      "actions": {
+        "editImage": "Edit Image",
+        "titlePlaceholder": "Image title..."
+      }
     },
     "videos": {
       "title": "AI Videos",
@@ -1751,7 +1775,32 @@
       "emptyTitle": "No videos yet",
       "emptyDescription": "Create your first AI-generated video to get started.",
       "lockedTitle": "AI Videos is locked",
-      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered videos and animations."
+      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered videos and animations.",
+      "backLink": "Videos",
+      "new": {
+        "title": "New AI Video",
+        "description": "Choose a video style and describe your content.",
+        "styleLabel": "Video Style",
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Product Launch Teaser",
+        "aiPromptLabel": "AI Prompt",
+        "aiPromptPlaceholder": "Describe the video you want AI to generate...",
+        "durationLabel": "Duration (seconds)",
+        "resolutionLabel": "Resolution",
+        "descriptionLabel": "Description (Optional)",
+        "descriptionPlaceholder": "Internal notes about this video...",
+        "createButton": "Create Video"
+      },
+      "detail": {
+        "aiPromptLabel": "AI Prompt:",
+        "generationPending": "Video will appear here once generation is complete.",
+        "noVideo": "No video generated yet",
+        "noVideoHint": "Add a prompt and generate your AI video."
+      },
+      "actions": {
+        "editVideo": "Edit Video",
+        "titlePlaceholder": "Video title..."
+      }
     },
     "music": {
       "title": "AI Music",
@@ -1766,7 +1815,31 @@
       "emptyTitle": "No tracks yet",
       "emptyDescription": "Create your first AI music track to get started.",
       "lockedTitle": "AI Music is locked",
-      "lockedDescription": "Upgrade to Growth plan or above to compose AI-powered music and audio."
+      "lockedDescription": "Upgrade to Growth plan or above to compose AI-powered music and audio.",
+      "backLink": "Music",
+      "new": {
+        "title": "New AI Music Track",
+        "description": "Choose a genre and describe the audio you want to generate.",
+        "genreLabel": "Genre",
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Brand Jingle for Campaign",
+        "aiPromptLabel": "AI Prompt",
+        "aiPromptPlaceholder": "Describe the music you want to create...",
+        "durationLabel": "Duration (seconds)",
+        "bpmLabel": "BPM",
+        "formatLabel": "Output Format",
+        "createButton": "Create Track"
+      },
+      "detail": {
+        "aiPromptLabel": "AI Prompt:",
+        "generationPending": "Audio will appear here once generation is complete.",
+        "noAudio": "No audio generated yet",
+        "noAudioHint": "Add a prompt and generate your AI music track."
+      },
+      "actions": {
+        "editTrack": "Edit",
+        "titlePlaceholder": "Track title..."
+      }
     }
   }
 }

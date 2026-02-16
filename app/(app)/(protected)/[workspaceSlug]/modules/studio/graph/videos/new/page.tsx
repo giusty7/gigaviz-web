@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { VideoIcon, Sparkles, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,7 @@ const colorMap: Record<string, { base: string; selected: string; text: string }>
 };
 
 export default function NewVideoPage({ params: _params }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [style, setStyle] = useState("marketing");
   const [title, setTitle] = useState("");
@@ -85,7 +87,7 @@ export default function NewVideoPage({ params: _params }: Props) {
         setError(body.error || `Failed to create video (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -94,9 +96,9 @@ export default function NewVideoPage({ params: _params }: Props) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New AI Video</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("videos.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Choose a video style and describe your content.
+          {t("videos.new.description")}
         </p>
       </div>
 
@@ -109,7 +111,7 @@ export default function NewVideoPage({ params: _params }: Props) {
       {/* Style Selector */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Video Style
+          {t("videos.new.styleLabel")}
         </label>
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
           {STYLES.map((s) => {
@@ -137,13 +139,13 @@ export default function NewVideoPage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Title
+          {t("videos.new.titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Product Launch Teaser"
+          placeholder={t("videos.new.titlePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
         />
       </div>
@@ -151,12 +153,12 @@ export default function NewVideoPage({ params: _params }: Props) {
       {/* AI Prompt */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          AI Prompt
+          {t("videos.new.aiPromptLabel")}
         </label>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the video you want AI to generate... e.g. 'A 30-second product showcase with smooth transitions'"
+          placeholder={t("videos.new.aiPromptPlaceholder")}
           rows={4}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
         />
@@ -166,7 +168,7 @@ export default function NewVideoPage({ params: _params }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-            Duration (seconds)
+            {t("videos.new.durationLabel")}
           </label>
           <input
             type="number"
@@ -179,7 +181,7 @@ export default function NewVideoPage({ params: _params }: Props) {
         </div>
         <div>
           <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-            Resolution
+            {t("videos.new.resolutionLabel")}
           </label>
           <div className="flex flex-wrap gap-2">
             {RESOLUTIONS.map((r) => (
@@ -203,13 +205,13 @@ export default function NewVideoPage({ params: _params }: Props) {
       {/* Description */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Description (Optional)
+          {t("videos.new.descriptionLabel")}
         </label>
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Internal notes about this video..."
+          placeholder={t("videos.new.descriptionPlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
         />
       </div>
@@ -217,7 +219,7 @@ export default function NewVideoPage({ params: _params }: Props) {
       {/* Tags */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Tags (Optional)
+          {t("common.tagsOptionalLabel")}
         </label>
         <div className="flex gap-2">
           <input
@@ -225,11 +227,11 @@ export default function NewVideoPage({ params: _params }: Props) {
             value={tag}
             onChange={(e) => setTag(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-            placeholder="Add a tag..."
+            placeholder={t("common.tagPlaceholder")}
             className="flex-1 rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
           />
           <button onClick={addTag} className="rounded-lg border border-[#f5f5dc]/10 px-3 py-2 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]">
-            Add
+            {t("common.addButton")}
           </button>
         </div>
         {tags.length > 0 && (
@@ -255,12 +257,12 @@ export default function NewVideoPage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Video
+            {t("videos.new.createButton")}
           </>
         )}
       </button>

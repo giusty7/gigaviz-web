@@ -5,6 +5,7 @@ import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
 
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
 
   const { data: sub } = await db
     .from("subscriptions")
@@ -38,8 +40,8 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
   if (!hasAccess) {
     return (
       <LockedScreen
-        title="Dashboards are locked"
-        description="Upgrade to access dashboard builder."
+        title={t("dashboards.lockedTitle")}
+        description={t("dashboards.lockedDescription")}
         workspaceSlug={workspaceSlug}
       />
     );
@@ -59,9 +61,9 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#f5f5dc]">Dashboards</h1>
+          <h1 className="text-xl font-bold text-[#f5f5dc]">{t("dashboards.title")}</h1>
           <p className="mt-1 text-sm text-[#f5f5dc]/50">
-            Compose charts into interactive dashboards and share with your team.
+            {t("dashboards.description")}
           </p>
         </div>
         <Link
@@ -69,7 +71,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New Dashboard
+          {t("dashboards.newDashboard")}
         </Link>
       </div>
 
@@ -86,7 +88,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
                 <LayoutDashboard className="h-6 w-6 text-purple-400" />
                 {dash.is_public && (
                   <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
-                    Public
+                    {t("common.public")}
                   </span>
                 )}
               </div>
@@ -109,9 +111,9 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
       ) : (
         <div className="rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 text-center">
           <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-          <p className="text-sm font-medium text-[#f5f5dc]/40">No dashboards yet</p>
+          <p className="text-sm font-medium text-[#f5f5dc]/40">{t("dashboards.emptyTitle")}</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/25">
-            Create your first dashboard to get started.
+            {t("dashboards.emptyDescription")}
           </p>
         </div>
       )}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   LayoutDashboard,
   ArrowLeft,
+  BarChart3,
   Clock,
   Globe,
   Lock,
@@ -10,6 +11,7 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { DashboardActions } from "@/components/studio/DashboardActions";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,7 @@ export default async function DashboardDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/graph/dashboards`;
 
   return (
@@ -48,7 +51,7 @@ export default async function DashboardDetailPage({ params }: PageProps) {
           className="inline-flex items-center gap-1 rounded-lg border border-[#f5f5dc]/10 px-3 py-1.5 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          Dashboards
+          {t("dashboards.backLink")}
         </Link>
         <span
           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
@@ -59,11 +62,11 @@ export default async function DashboardDetailPage({ params }: PageProps) {
         >
           {dashboard.is_public ? (
             <>
-              <Globe className="h-3 w-3" /> Public
+              <Globe className="h-3 w-3" /> {t("common.public")}
             </>
           ) : (
             <>
-              <Lock className="h-3 w-3" /> Private
+              <Lock className="h-3 w-3" /> {t("common.private")}
             </>
           )}
         </span>
@@ -80,7 +83,7 @@ export default async function DashboardDetailPage({ params }: PageProps) {
         )}
         <p className="mt-2 flex items-center gap-1 text-xs text-[#f5f5dc]/30 ml-9">
           <Clock className="h-3 w-3" />
-          Updated {new Date(dashboard.updated_at).toLocaleString()}
+          {t("common.updatedPrefix")} {new Date(dashboard.updated_at).toLocaleString()}
         </p>
       </div>
 
@@ -96,24 +99,35 @@ export default async function DashboardDetailPage({ params }: PageProps) {
       {/* Layout / Content Area */}
       <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
         {dashboard.layout_json ? (
-          <div>
-            <h3 className="mb-3 text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-              Dashboard Layout
+          <div className="space-y-4">
+            <h3 className="text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
+              {t("dashboards.detail.layoutTitle")}
             </h3>
-            <pre className="text-xs text-[#f5f5dc]/50 font-mono whitespace-pre-wrap bg-[#0a1229]/60 p-4 rounded-lg border border-[#f5f5dc]/5">
-              {typeof dashboard.layout_json === "string"
-                ? dashboard.layout_json
-                : JSON.stringify(dashboard.layout_json, null, 2)}
-            </pre>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.isArray(dashboard.layout_json)
+                ? (dashboard.layout_json as Array<Record<string, unknown>>).map((item, i) => (
+                    <div key={i} className="rounded-lg border border-purple-500/10 bg-[#0a1229]/60 p-4">
+                      <div className="mb-2 flex h-20 items-center justify-center rounded-lg border border-dashed border-purple-500/20 bg-[#0a1229]/30">
+                        <BarChart3 className="h-6 w-6 text-purple-400/20" />
+                      </div>
+                      <p className="text-xs font-medium text-[#f5f5dc]/50 truncate">
+                        {(item.title as string) || (item.chart_id as string) || `Widget ${i + 1}`}
+                      </p>
+                    </div>
+                  ))
+                : (
+                  <div className="col-span-full rounded-lg border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-8 text-center">
+                    <LayoutDashboard className="mx-auto mb-2 h-8 w-8 text-purple-400/20" />
+                    <p className="text-xs text-[#f5f5dc]/30">{t("dashboards.detail.layoutTitle")}</p>
+                  </div>
+                )}
+            </div>
           </div>
         ) : (
           <div className="py-12 text-center">
             <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
             <p className="text-sm text-[#f5f5dc]/40">
-              No charts added to this dashboard yet.
-            </p>
-            <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Add charts from your library to compose this dashboard.
+              {t("dashboards.detail.emptyCharts")}
             </p>
           </div>
         )}

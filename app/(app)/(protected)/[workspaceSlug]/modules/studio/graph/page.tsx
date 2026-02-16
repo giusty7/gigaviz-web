@@ -12,6 +12,7 @@ import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
 
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
 
   // Entitlement check
   const { data: sub } = await db
@@ -63,8 +65,8 @@ export default async function GraphChartsPage({ params }: PageProps) {
   if (!hasAccess) {
     return (
       <LockedScreen
-        title="Gigaviz Graph is locked"
-        description="Upgrade to Growth plan or above to create AI-powered charts, dashboards, and visuals."
+        title={t("graph.lockedTitle")}
+        description={t("graph.lockedDescription")}
         workspaceSlug={workspaceSlug}
       />
     );
@@ -92,9 +94,9 @@ export default async function GraphChartsPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#f5f5dc]">Charts & Visualizations</h1>
+          <h1 className="text-xl font-bold text-[#f5f5dc]">{t("graph.title")}</h1>
           <p className="mt-1 text-sm text-[#f5f5dc]/50">
-            Create charts, dashboards, and data visualizations. Connected to your workspace data.
+            {t("graph.description")}
           </p>
         </div>
         <Link
@@ -102,7 +104,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New Chart
+          {t("graph.newChart")}
         </Link>
       </div>
 
@@ -113,7 +115,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
             <BarChart3 className="h-7 w-7 text-blue-400" />
             <div>
               <p className="text-2xl font-bold text-[#f5f5dc]">{charts.length}</p>
-              <p className="text-xs text-[#f5f5dc]/40">Charts</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("graph.stats.charts")}</p>
             </div>
           </div>
         </div>
@@ -133,7 +135,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
               <p className="text-2xl font-bold text-[#f5f5dc]">
                 {[...new Set(charts.map((c) => c.chart_type))].length}
               </p>
-              <p className="text-xs text-[#f5f5dc]/40">Chart Types</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("graph.stats.chartTypes")}</p>
             </div>
           </div>
         </div>
@@ -142,7 +144,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
       {/* Charts Grid */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
-          Your Charts
+          {t("graph.yourCharts")}
         </h2>
         {charts.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -174,7 +176,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
                     ))}
                   </div>
                   <p className="text-[10px] text-[#f5f5dc]/25">
-                    {chart.data_source && `Source: ${chart.data_source} · `}
+                    {chart.data_source && `${t("graph.sourcePrefix")} ${chart.data_source} · `}
                     Updated {new Date(chart.updated_at).toLocaleDateString()}
                   </p>
                 </Link>
@@ -184,9 +186,9 @@ export default async function GraphChartsPage({ params }: PageProps) {
         ) : (
           <div className="rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 text-center">
             <BarChart3 className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-            <p className="text-sm font-medium text-[#f5f5dc]/40">No charts yet</p>
+            <p className="text-sm font-medium text-[#f5f5dc]/40">{t("graph.emptyTitle")}</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Create your first chart to get started.
+              {t("graph.emptyDescription")}
             </p>
           </div>
         )}

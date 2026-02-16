@@ -13,6 +13,7 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ChartActions } from "@/components/studio/ChartActions";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function ChartDetailPage({ params }: PageProps) {
 
   if (error || !chart) notFound();
 
+  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/graph`;
   const Icon = typeIcons[chart.chart_type] || BarChart3;
   const color = typeColors[chart.chart_type] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
@@ -66,7 +68,7 @@ export default async function ChartDetailPage({ params }: PageProps) {
           className="inline-flex items-center gap-1 rounded-lg border border-[#f5f5dc]/10 px-3 py-1.5 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          Charts
+          {t("graph.backToCharts")}
         </Link>
         <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium capitalize ${color}`}>
           <Icon className="h-3 w-3" />
@@ -83,12 +85,12 @@ export default async function ChartDetailPage({ params }: PageProps) {
         <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#f5f5dc]/30">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Updated {new Date(chart.updated_at).toLocaleString()}
+            {t("common.updatedPrefix")} {new Date(chart.updated_at).toLocaleString()}
           </span>
           {chart.data_source && (
             <span className="flex items-center gap-1">
               <Database className="h-3 w-3" />
-              Source: {chart.data_source}
+              {t("graph.sourcePrefix")} {chart.data_source}
             </span>
           )}
         </div>
@@ -109,20 +111,32 @@ export default async function ChartDetailPage({ params }: PageProps) {
       {/* Chart Preview Area */}
       <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
         {chart.config_json || chart.data_json ? (
-          <div className="prose prose-invert prose-sm max-w-none">
-            <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-3">Chart Configuration</h3>
-            <pre className="whitespace-pre-wrap text-sm text-[#f5f5dc]/70 font-mono rounded-lg bg-[#0a1229]/60 p-4">
-              {JSON.stringify(chart.config_json || chart.data_json, null, 2)}
-            </pre>
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-[#f5f5dc]/60">{t("graph.detail.configTitle")}</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {chart.chart_type && (
+                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Type</p>
+                  <p className="text-sm text-[#f5f5dc]/70 capitalize">{chart.chart_type}</p>
+                </div>
+              )}
+              {chart.data_source && (
+                <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">{t("graph.sourcePrefix")}</p>
+                  <p className="text-sm text-[#f5f5dc]/70 capitalize">{chart.data_source}</p>
+                </div>
+              )}
+            </div>
+            <div className="rounded-lg border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-8 text-center">
+              <Icon className="mx-auto mb-2 h-10 w-10 text-purple-400/30" />
+              <p className="text-xs text-[#f5f5dc]/30">{t("graph.detail.configHint")}</p>
+            </div>
           </div>
         ) : (
           <div className="py-12 text-center">
             <Icon className="mx-auto mb-3 h-12 w-12 text-purple-400/20" />
             <p className="text-sm text-[#f5f5dc]/40">
-              Chart visualization will render here once data is configured.
-            </p>
-            <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Use the edit button to add chart configuration and data.
+              {t("graph.detail.configHint")}
             </p>
           </div>
         )}

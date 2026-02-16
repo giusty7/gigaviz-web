@@ -14,6 +14,7 @@ import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
+  const t = await getTranslations("studio");
   const db = await supabaseServer();
 
   // Entitlement check
@@ -55,8 +57,8 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
   if (!hasAccess) {
     return (
       <LockedScreen
-        title="Gigaviz Tracks is locked"
-        description="Upgrade to Growth plan or above to build workflows, automations, and AI audio content."
+        title={t("tracks.lockedTitle")}
+        description={t("tracks.lockedDescription")}
         workspaceSlug={workspaceSlug}
       />
     );
@@ -79,9 +81,9 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#f5f5dc]">Workflows</h1>
+          <h1 className="text-xl font-bold text-[#f5f5dc]">{t("tracks.title")}</h1>
           <p className="mt-1 text-sm text-[#f5f5dc]/50">
-            Build and orchestrate automated workflows. Connect to Meta Hub, Helper AI, and external APIs.
+            {t("tracks.description")}
           </p>
         </div>
         <Link
@@ -89,7 +91,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          New Workflow
+          {t("tracks.newWorkflow")}
         </Link>
       </div>
 
@@ -100,7 +102,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             <Workflow className="h-6 w-6 text-teal-400" />
             <div>
               <p className="text-xl font-bold text-[#f5f5dc]">{items.length}</p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Total</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.stats.total")}</p>
             </div>
           </div>
         </div>
@@ -109,7 +111,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             <Play className="h-6 w-6 text-emerald-400" />
             <div>
               <p className="text-xl font-bold text-[#f5f5dc]">{activeCount}</p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Active</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.stats.active")}</p>
             </div>
           </div>
         </div>
@@ -118,7 +120,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             <Zap className="h-6 w-6 text-blue-400" />
             <div>
               <p className="text-xl font-bold text-[#f5f5dc]">{totalRuns}</p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Total Runs</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.stats.totalRuns")}</p>
             </div>
           </div>
         </div>
@@ -129,7 +131,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
               <p className="text-xl font-bold text-[#f5f5dc]">
                 {totalRuns > 0 ? Math.round((totalSuccess / totalRuns) * 100) : 0}%
               </p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Success Rate</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.stats.successRate")}</p>
             </div>
           </div>
         </div>
@@ -138,7 +140,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
       {/* Workflow List */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
-          Your Workflows
+          {t("tracks.yourWorkflows")}
         </h2>
         {items.length > 0 ? (
           <div className="space-y-3">
@@ -160,7 +162,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
                         {wf.title}
                       </h3>
                       <div className="mt-1 flex items-center gap-3 text-[10px] text-[#f5f5dc]/30">
-                        <span>{wf.runs_count ?? 0} runs</span>
+                        <span>{t("tracks.runsCount", { count: wf.runs_count ?? 0 })}</span>
                         <span className="flex items-center gap-0.5">
                           <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
                           {wf.success_count ?? 0}
@@ -170,7 +172,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
                           {wf.failure_count ?? 0}
                         </span>
                         {wf.estimated_tokens_per_run && (
-                          <span>~{wf.estimated_tokens_per_run} tokens/run</span>
+                          <span>~{t("tracks.tokensPerRun", { count: wf.estimated_tokens_per_run })}</span>
                         )}
                       </div>
                     </div>
@@ -193,9 +195,9 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
         ) : (
           <div className="rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 text-center">
             <Workflow className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-            <p className="text-sm font-medium text-[#f5f5dc]/40">No workflows yet</p>
+            <p className="text-sm font-medium text-[#f5f5dc]/40">{t("tracks.emptyTitle")}</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Create your first workflow to get started.
+              {t("tracks.emptyDescription")}
             </p>
           </div>
         )}

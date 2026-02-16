@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Props = { params: Promise<{ workspaceSlug: string }> };
 
@@ -33,6 +34,7 @@ const DATA_SOURCES = [
 
 export default function NewChartPage({ params: _params }: Props) {
   const router = useRouter();
+  const t = useTranslations("studio");
   const [chartType, setChartType] = useState("bar");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -77,7 +79,7 @@ export default function NewChartPage({ params: _params }: Props) {
         setError(body.error || `Failed to create chart (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -95,9 +97,9 @@ export default function NewChartPage({ params: _params }: Props) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New Chart</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("graph.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Choose a chart type and configure your visualization.
+          {t("graph.new.description")}
         </p>
       </div>
 
@@ -110,7 +112,7 @@ export default function NewChartPage({ params: _params }: Props) {
       {/* Chart Type Selector */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Chart Type
+          {t("graph.new.chartTypeLabel")}
         </label>
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
           {CHART_TYPES.map((type) => {
@@ -128,7 +130,7 @@ export default function NewChartPage({ params: _params }: Props) {
               >
                 <Icon className={cn("h-6 w-6", isSelected ? c.text : "text-[#f5f5dc]/40")} />
                 <span className={cn("text-xs font-semibold", isSelected ? "text-[#f5f5dc]" : "text-[#f5f5dc]/60")}>
-                  {type.label}
+                  {t(`graph.new.chartTypes.${type.key}`)}
                 </span>
               </button>
             );
@@ -139,13 +141,13 @@ export default function NewChartPage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Title
+          {t("common.titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Monthly Revenue by Product"
+          placeholder={t("graph.new.titlePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
         />
       </div>
@@ -153,12 +155,12 @@ export default function NewChartPage({ params: _params }: Props) {
       {/* Description */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Description (Optional)
+          {t("common.descriptionOptionalLabel")}
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe what this chart visualizes..."
+          placeholder={t("graph.new.descriptionPlaceholder")}
           rows={3}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
         />
@@ -167,7 +169,7 @@ export default function NewChartPage({ params: _params }: Props) {
       {/* Data Source */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Data Source
+          {t("graph.new.dataSourceLabel")}
         </label>
         <div className="flex flex-wrap gap-2">
           {DATA_SOURCES.map((ds) => (
@@ -181,7 +183,7 @@ export default function NewChartPage({ params: _params }: Props) {
                   : "border-[#f5f5dc]/10 bg-[#0a1229]/40 text-[#f5f5dc]/50 hover:border-[#f5f5dc]/20"
               )}
             >
-              {ds.label}
+              {t(`graph.new.dataSources.${ds.key}`)}
             </button>
           ))}
         </div>
@@ -190,7 +192,7 @@ export default function NewChartPage({ params: _params }: Props) {
       {/* Tags */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Tags (Optional)
+          {t("common.tagsOptionalLabel")}
         </label>
         <div className="flex gap-2">
           <input
@@ -198,11 +200,11 @@ export default function NewChartPage({ params: _params }: Props) {
             value={tag}
             onChange={(e) => setTag(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-            placeholder="Add a tag..."
+            placeholder={t("common.tagPlaceholder")}
             className="flex-1 rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
           />
           <button onClick={addTag} className="rounded-lg border border-[#f5f5dc]/10 px-3 py-2 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]">
-            Add
+            {t("common.addButton")}
           </button>
         </div>
         {tags.length > 0 && (
@@ -228,12 +230,12 @@ export default function NewChartPage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Chart
+            {t("graph.new.createButton")}
           </>
         )}
       </button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Edit3, Trash2, Save, X, Loader2 } from "lucide-react";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function MusicActions({ trackId, workspaceSlug, title, description }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
@@ -72,14 +74,14 @@ export function MusicActions({ trackId, workspaceSlug, title, description }: Pro
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-teal-600 px-3 text-xs font-medium text-white hover:bg-teal-500 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-              Save
+              {t("common.save")}
             </button>
             <button
               onClick={() => { setEditing(false); setEditTitle(title); setEditDescription(description); }}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#f5f5dc]/10 px-3 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]"
             >
               <X className="h-3 w-3" />
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -90,24 +92,24 @@ export function MusicActions({ trackId, workspaceSlug, title, description }: Pro
             className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#f5f5dc]/10 px-3 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
           >
             <Edit3 className="h-3 w-3" />
-            Edit
+            {t("music.actions.editTrack")}
           </button>
 
           {confirmDelete ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-red-400">Confirm delete?</span>
+              <span className="text-xs text-red-400">{t("common.deleteConfirm")}</span>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
                 className="inline-flex h-8 items-center gap-1 rounded-lg bg-red-600 px-3 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-50"
               >
-                {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Yes"}
+                {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.yesDelete")}
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
                 className="inline-flex h-8 items-center rounded-lg border border-[#f5f5dc]/10 px-3 text-xs text-[#f5f5dc]/50"
               >
-                No
+                {t("common.cancel")}
               </button>
             </div>
           ) : (
@@ -116,7 +118,7 @@ export function MusicActions({ trackId, workspaceSlug, title, description }: Pro
               className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-500/20 px-3 text-xs font-medium text-red-400/70 hover:text-red-400 hover:border-red-500/40 transition-colors"
             >
               <Trash2 className="h-3 w-3" />
-              Delete
+              {t("common.delete")}
             </button>
           )}
         </>

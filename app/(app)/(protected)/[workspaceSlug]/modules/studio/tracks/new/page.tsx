@@ -4,16 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Workflow, Sparkles, Loader2, Zap, Clock, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Props = { params: Promise<{ workspaceSlug: string }> };
 
 const TRIGGER_TYPES = [
-  { key: "manual", label: "Manual", desc: "Run on demand", icon: Zap },
-  { key: "schedule", label: "Schedule", desc: "Time-based triggers", icon: Clock },
-  { key: "webhook", label: "Webhook", desc: "External API triggers", icon: Globe },
+  { key: "manual", icon: Zap },
+  { key: "schedule", icon: Clock },
+  { key: "webhook", icon: Globe },
 ] as const;
 
 export default function NewWorkflowPage({ params: _params }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -46,7 +48,7 @@ export default function NewWorkflowPage({ params: _params }: Props) {
         setError(body.error || `Failed to create workflow (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -55,9 +57,9 @@ export default function NewWorkflowPage({ params: _params }: Props) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New Workflow</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("tracks.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Create an automated workflow. Connect to Meta Hub, Helper AI, and external services.
+          {t("tracks.new.description")}
         </p>
       </div>
 
@@ -70,13 +72,13 @@ export default function NewWorkflowPage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Workflow Name
+          {t("tracks.new.nameLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Lead Follow-Up Automation"
+          placeholder={t("tracks.new.namePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
         />
       </div>
@@ -84,12 +86,12 @@ export default function NewWorkflowPage({ params: _params }: Props) {
       {/* Description */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Description (Optional)
+          {t("common.descriptionOptionalLabel")}
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe what this workflow does..."
+          placeholder={t("tracks.new.descriptionPlaceholder")}
           rows={3}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30 resize-none"
         />
@@ -98,7 +100,7 @@ export default function NewWorkflowPage({ params: _params }: Props) {
       {/* Trigger Type */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Trigger Type
+          {t("tracks.new.triggerLabel")}
         </label>
         <div className="grid gap-3 sm:grid-cols-3">
           {TRIGGER_TYPES.map((trigger) => {
@@ -117,9 +119,9 @@ export default function NewWorkflowPage({ params: _params }: Props) {
               >
                 <Icon className={cn("h-6 w-6", isSelected ? "text-teal-400" : "text-[#f5f5dc]/40")} />
                 <span className={cn("text-xs font-semibold", isSelected ? "text-[#f5f5dc]" : "text-[#f5f5dc]/60")}>
-                  {trigger.label}
+                  {t(`tracks.new.triggers.${trigger.key}`)}
                 </span>
-                <span className="text-[10px] text-[#f5f5dc]/30">{trigger.desc}</span>
+                <span className="text-[10px] text-[#f5f5dc]/30">{t(`tracks.new.triggers.${trigger.key}Desc`)}</span>
               </button>
             );
           })}
@@ -130,7 +132,7 @@ export default function NewWorkflowPage({ params: _params }: Props) {
       <div className="rounded-xl border border-dashed border-teal-500/20 bg-[#0a1229]/30 p-8 text-center">
         <Workflow className="mx-auto mb-2 h-8 w-8 text-teal-400/30" />
         <p className="text-xs text-[#f5f5dc]/30">
-          Workflow will start as &quot;Draft&quot;. Activate it when you&apos;re ready to run.
+          {t("tracks.new.previewHint")}
         </p>
       </div>
 
@@ -143,12 +145,12 @@ export default function NewWorkflowPage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Workflow
+            {t("tracks.new.createButton")}
           </>
         )}
       </button>

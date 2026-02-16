@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Pencil, Trash2, Loader2, Save, X, Play, Pause, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, description: initDesc, status }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(initTitle);
@@ -32,7 +34,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Update failed");
+      throw new Error(data.error || t("common.updateFailed"));
     }
   };
 
@@ -44,7 +46,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
       setEditing(false);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Update failed");
+      setError(e instanceof Error ? e.message : t("common.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -57,7 +59,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
       await patchWorkflow({ status: newStatus });
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Status change failed");
+      setError(e instanceof Error ? e.message : t("tracks.actions.statusChangeFailed"));
     } finally {
       setStatusChanging(false);
     }
@@ -70,13 +72,13 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
       const res = await fetch(`/api/studio/tracks/workflows/${workflowId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || "Delete failed");
+        setError(data.error || t("common.deleteFailed"));
         setDeleting(false);
         return;
       }
       router.push(`/${workspaceSlug}/modules/studio/tracks`);
     } catch {
-      setError("Network error");
+      setError(t("common.networkErrorShort"));
       setDeleting(false);
     }
   };
@@ -108,14 +110,14 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-teal-600 px-4 text-xs font-medium text-white hover:bg-teal-500 disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-              Save
+              {t("common.save")}
             </button>
             <button
               onClick={() => { setEditing(false); setTitle(initTitle); setDescription(initDesc); }}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#f5f5dc]/10 px-3 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]"
             >
               <X className="h-3 w-3" />
-              Cancel
+              {t("common.cancel")}
             </button>
           </div>
         </div>
@@ -127,7 +129,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-4 text-xs font-medium text-white hover:bg-teal-500 transition-colors"
           >
             <Pencil className="h-3 w-3" />
-            Edit
+            {t("common.edit")}
           </button>
 
           {/* Status toggles */}
@@ -138,7 +140,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
             >
               {statusChanging ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-              Activate
+              {t("tracks.actions.activate")}
             </button>
           )}
           {status === "active" && (
@@ -148,7 +150,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-amber-600 px-4 text-xs font-medium text-white hover:bg-amber-500 disabled:opacity-50 transition-colors"
             >
               {statusChanging ? <Loader2 className="h-3 w-3 animate-spin" /> : <Pause className="h-3 w-3" />}
-              Pause
+              {t("tracks.actions.pause")}
             </button>
           )}
           {status === "paused" && (
@@ -158,7 +160,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
               className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
             >
               {statusChanging ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-              Resume
+              {t("tracks.actions.resume")}
             </button>
           )}
           {(status === "active" || status === "paused") && (
@@ -171,26 +173,26 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
               )}
             >
               <Archive className="h-3 w-3" />
-              Archive
+              {t("tracks.actions.archive")}
             </button>
           )}
 
           {/* Delete */}
           {confirmDelete ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-red-400">Delete permanently?</span>
+              <span className="text-xs text-red-400">{t("common.deleteConfirm")}</span>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-red-600 px-3 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-50"
               >
-                {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : "Yes, delete"}
+                {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : t("common.yesDelete")}
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
                 className="inline-flex h-9 items-center rounded-lg border border-[#f5f5dc]/10 px-3 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           ) : (
@@ -199,7 +201,7 @@ export function WorkflowActions({ workflowId, workspaceSlug, title: initTitle, d
               className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-500/20 px-4 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <Trash2 className="h-3 w-3" />
-              Delete
+              {t("common.delete")}
             </button>
           )}
         </div>

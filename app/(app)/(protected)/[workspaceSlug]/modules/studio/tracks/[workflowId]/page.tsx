@@ -13,6 +13,7 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { WorkflowActions } from "@/components/studio/WorkflowActions";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
+  const t = await getTranslations("studio");
   const db = await supabaseServer();
   const { data: wf, error } = await db
     .from("tracks_workflows")
@@ -67,7 +69,7 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
           className="inline-flex items-center gap-1 rounded-lg border border-[#f5f5dc]/10 px-3 py-1.5 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          Workflows
+          {t("tracks.backLink")}
         </Link>
         <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize ${cfg.bg} ${cfg.color}`}>
           <StatusIcon className="h-3 w-3" />
@@ -84,11 +86,11 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
         <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#f5f5dc]/30">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Updated {new Date(wf.updated_at).toLocaleString()}
+            {t("common.updatedPrefix")}{new Date(wf.updated_at).toLocaleString()}
           </span>
           <span className="flex items-center gap-1">
             <Zap className="h-3 w-3" />
-            {wf.runs_count ?? 0} runs
+            {t("tracks.runsCount", { count: wf.runs_count ?? 0 })}
           </span>
         </div>
       </div>
@@ -97,40 +99,77 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-xl border border-teal-500/20 bg-[#0a1229]/60 p-4">
           <p className="text-lg font-bold text-[#f5f5dc]">{wf.runs_count ?? 0}</p>
-          <p className="text-[10px] text-[#f5f5dc]/40">Total Runs</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.detail.totalRuns")}</p>
         </div>
         <div className="rounded-xl border border-emerald-500/20 bg-[#0a1229]/60 p-4">
           <p className="text-lg font-bold text-emerald-400">{wf.success_count ?? 0}</p>
-          <p className="text-[10px] text-[#f5f5dc]/40">Successes</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.detail.successes")}</p>
         </div>
         <div className="rounded-xl border border-red-500/20 bg-[#0a1229]/60 p-4">
           <p className="text-lg font-bold text-red-400">{wf.failure_count ?? 0}</p>
-          <p className="text-[10px] text-[#f5f5dc]/40">Failures</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.detail.failures")}</p>
         </div>
         <div className="rounded-xl border border-blue-500/20 bg-[#0a1229]/60 p-4">
           <p className="text-lg font-bold text-blue-400">{wf.estimated_tokens_per_run ?? "—"}</p>
-          <p className="text-[10px] text-[#f5f5dc]/40">Tokens/Run</p>
+          <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.detail.tokensPerRun")}</p>
         </div>
       </div>
 
       {/* Workflow Configuration */}
       <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-6">
         {wf.steps_json || wf.triggers_json ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {wf.triggers_json && (
               <div>
-                <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-2">Trigger</h3>
-                <pre className="whitespace-pre-wrap text-sm text-[#f5f5dc]/70 font-mono rounded-lg bg-[#0a1229]/60 p-4">
-                  {JSON.stringify(wf.triggers_json, null, 2)}
-                </pre>
+                <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-3">{t("tracks.detail.trigger")}</h3>
+                {Array.isArray(wf.triggers_json) ? (
+                  <div className="flex flex-wrap gap-2">
+                    {(wf.triggers_json as Array<Record<string, unknown>>).map((trigger, i) => (
+                      <div key={i} className="inline-flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+                        <Zap className="h-3.5 w-3.5 text-amber-400" />
+                        <span className="text-xs font-medium text-amber-300">{(trigger.type as string) || (trigger.event as string) || `Trigger ${i + 1}`}</span>
+                        {trigger.schedule ? <span className="text-[10px] text-amber-400/50 ml-1">({String(trigger.schedule)})</span> : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+                    <Zap className="h-3.5 w-3.5 text-amber-400" />
+                    <span className="text-xs font-medium text-amber-300">
+                      {typeof wf.triggers_json === "object" && wf.triggers_json !== null
+                        ? ((wf.triggers_json as Record<string, unknown>).type as string) || t("tracks.detail.trigger")
+                        : t("tracks.detail.trigger")}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             {wf.steps_json && (
               <div>
-                <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-2">Steps</h3>
-                <pre className="whitespace-pre-wrap text-sm text-[#f5f5dc]/70 font-mono rounded-lg bg-[#0a1229]/60 p-4">
-                  {JSON.stringify(wf.steps_json, null, 2)}
-                </pre>
+                <h3 className="text-sm font-semibold text-[#f5f5dc]/60 mb-3">{t("tracks.detail.steps")}</h3>
+                {Array.isArray(wf.steps_json) ? (
+                  <div className="space-y-2">
+                    {(wf.steps_json as Array<Record<string, unknown>>).map((step, i) => (
+                      <div key={i} className="flex items-start gap-3 rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-500/10 border border-teal-500/20 text-[10px] font-bold text-teal-400">
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[#f5f5dc]/70 truncate">
+                            {(step.name as string) || (step.action as string) || (step.type as string) || `Step ${i + 1}`}
+                          </p>
+                          {step.description ? (
+                            <p className="mt-0.5 text-xs text-[#f5f5dc]/40 truncate">{String(step.description)}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
+                    <p className="text-sm text-[#f5f5dc]/70">{t("tracks.detail.steps")}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -138,10 +177,10 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
           <div className="py-12 text-center">
             <Workflow className="mx-auto mb-3 h-12 w-12 text-teal-400/20" />
             <p className="text-sm text-[#f5f5dc]/40">
-              Workflow steps will appear here once configured.
+              {t("tracks.detail.workflowBuilder")}
             </p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Use the visual editor to add trigger conditions and action steps.
+              {t("tracks.detail.builderHint")}
             </p>
           </div>
         )}
@@ -151,7 +190,7 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
       {recentRuns.length > 0 && (
         <div>
           <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
-            Recent Runs
+            {t("tracks.detail.recentRuns")}
           </h2>
           <div className="space-y-2">
             {recentRuns.map((run) => (
@@ -195,7 +234,7 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
             href={`${basePath}/runs`}
             className="mt-2 inline-flex text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors"
           >
-            View all runs →
+            {t("tracks.viewAllRuns")} →
           </Link>
         </div>
       )}

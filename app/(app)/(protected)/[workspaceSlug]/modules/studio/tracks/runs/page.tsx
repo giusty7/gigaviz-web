@@ -13,6 +13,7 @@ import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
+  const t = await getTranslations("studio");
   const db = await supabaseServer();
 
   const { data: sub } = await db
@@ -45,7 +47,7 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
 
   if (!hasAccess) {
     return (
-      <LockedScreen title="Run History is locked" workspaceSlug={workspaceSlug} />
+      <LockedScreen title={t("tracks.runs.lockedTitle")} workspaceSlug={workspaceSlug} />
     );
   }
 
@@ -82,14 +84,14 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
           className="inline-flex items-center gap-1 rounded-lg border border-[#f5f5dc]/10 px-3 py-1.5 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          Workflows
+          {t("tracks.backLink")}
         </Link>
       </div>
 
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">Run History</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("tracks.runs.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          View execution history, status, duration, and token usage for all workflow runs.
+          {t("tracks.runs.description")}
         </p>
       </div>
 
@@ -100,7 +102,7 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
             <HistoryIcon className="h-6 w-6 text-teal-400" />
             <div>
               <p className="text-xl font-bold text-[#f5f5dc]">{items.length}</p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Total Runs</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.runs.totalRuns")}</p>
             </div>
           </div>
         </div>
@@ -111,7 +113,7 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
               <p className="text-xl font-bold text-[#f5f5dc]">
                 {items.filter((r) => r.status === "completed").length}
               </p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Completed</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.runs.completed")}</p>
             </div>
           </div>
         </div>
@@ -122,7 +124,7 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
               <p className="text-xl font-bold text-[#f5f5dc]">
                 {items.reduce((acc, r) => acc + (r.tokens_used ?? 0), 0)}
               </p>
-              <p className="text-[10px] text-[#f5f5dc]/40">Tokens Used</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("tracks.runs.tokensUsed")}</p>
             </div>
           </div>
         </div>
@@ -140,12 +142,12 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
                 {statusIcon(run.status)}
                 <div>
                   <p className="text-sm font-medium text-[#f5f5dc]">
-                    Run {run.id.slice(0, 8)}
+                    {t("tracks.runs.runId")} {run.id.slice(0, 8)}
                   </p>
                   <p className="text-[10px] text-[#f5f5dc]/25">
                     {new Date(run.started_at).toLocaleString()}
                     {run.duration_ms ? ` · ${(run.duration_ms / 1000).toFixed(1)}s` : ""}
-                    {run.current_step ? ` · Step: ${run.current_step}` : ""}
+                    {run.current_step ? ` · ${t("tracks.runs.stepLabel", { step: run.current_step })}` : ""}
                   </p>
                 </div>
               </div>
@@ -165,9 +167,9 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
       ) : (
         <div className="rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 text-center">
           <HistoryIcon className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-          <p className="text-sm font-medium text-[#f5f5dc]/40">No runs yet</p>
+          <p className="text-sm font-medium text-[#f5f5dc]/40">{t("tracks.runs.emptyTitle")}</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/25">
-            Activate a workflow to see execution history here.
+            {t("tracks.runs.emptyDescription")}
           </p>
         </div>
       )}

@@ -1736,7 +1736,31 @@
       "emptyTitle": "Belum ada gambar",
       "emptyDescription": "Buat gambar AI pertama Anda untuk memulai.",
       "lockedTitle": "AI Gambar terkunci",
-      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat gambar dan visual bertenaga AI."
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat gambar dan visual bertenaga AI.",
+      "backLink": "Gambar",
+      "new": {
+        "title": "Gambar AI Baru",
+        "description": "Pilih gaya dan deskripsikan apa yang ingin Anda hasilkan.",
+        "styleLabel": "Gaya Gambar",
+        "titleLabel": "Judul",
+        "titlePlaceholder": "mis. Banner Hero untuk Landing Page",
+        "aiPromptLabel": "Prompt AI",
+        "aiPromptPlaceholder": "Deskripsikan gambar yang ingin Anda hasilkan dengan AI...",
+        "descriptionLabel": "Deskripsi (Opsional)",
+        "descriptionPlaceholder": "Catatan internal tentang gambar ini...",
+        "formatLabel": "Format Output",
+        "createButton": "Buat Gambar"
+      },
+      "detail": {
+        "aiPromptLabel": "Prompt AI:",
+        "generationPending": "Gambar akan muncul di sini setelah pembuatan selesai.",
+        "noImage": "Belum ada gambar yang dihasilkan",
+        "noImageHint": "Tambahkan prompt dan hasilkan gambar AI Anda."
+      },
+      "actions": {
+        "editImage": "Edit Gambar",
+        "titlePlaceholder": "Judul gambar..."
+      }
     },
     "videos": {
       "title": "AI Video",
@@ -1751,7 +1775,32 @@
       "emptyTitle": "Belum ada video",
       "emptyDescription": "Buat video AI pertama Anda untuk memulai.",
       "lockedTitle": "AI Video terkunci",
-      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat video dan animasi bertenaga AI."
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat video dan animasi bertenaga AI.",
+      "backLink": "Video",
+      "new": {
+        "title": "Video AI Baru",
+        "description": "Pilih gaya video dan deskripsikan konten Anda.",
+        "styleLabel": "Gaya Video",
+        "titleLabel": "Judul",
+        "titlePlaceholder": "mis. Teaser Peluncuran Produk",
+        "aiPromptLabel": "Prompt AI",
+        "aiPromptPlaceholder": "Deskripsikan video yang ingin Anda hasilkan dengan AI...",
+        "durationLabel": "Durasi (detik)",
+        "resolutionLabel": "Resolusi",
+        "descriptionLabel": "Deskripsi (Opsional)",
+        "descriptionPlaceholder": "Catatan internal tentang video ini...",
+        "createButton": "Buat Video"
+      },
+      "detail": {
+        "aiPromptLabel": "Prompt AI:",
+        "generationPending": "Video akan muncul di sini setelah pembuatan selesai.",
+        "noVideo": "Belum ada video yang dihasilkan",
+        "noVideoHint": "Tambahkan prompt dan hasilkan video AI Anda."
+      },
+      "actions": {
+        "editVideo": "Edit Video",
+        "titlePlaceholder": "Judul video..."
+      }
     },
     "music": {
       "title": "AI Musik",
@@ -1766,7 +1815,31 @@
       "emptyTitle": "Belum ada track",
       "emptyDescription": "Buat track musik AI pertama Anda untuk memulai.",
       "lockedTitle": "AI Musik terkunci",
-      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat musik dan audio bertenaga AI."
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat musik dan audio bertenaga AI.",
+      "backLink": "Musik",
+      "new": {
+        "title": "Track Musik AI Baru",
+        "description": "Pilih genre dan deskripsikan audio yang ingin Anda hasilkan.",
+        "genreLabel": "Genre",
+        "titleLabel": "Judul",
+        "titlePlaceholder": "mis. Jingle Brand untuk Kampanye",
+        "aiPromptLabel": "Prompt AI",
+        "aiPromptPlaceholder": "Deskripsikan musik yang ingin Anda buat...",
+        "durationLabel": "Durasi (detik)",
+        "bpmLabel": "BPM",
+        "formatLabel": "Format Output",
+        "createButton": "Buat Track"
+      },
+      "detail": {
+        "aiPromptLabel": "Prompt AI:",
+        "generationPending": "Audio akan muncul di sini setelah pembuatan selesai.",
+        "noAudio": "Belum ada audio yang dihasilkan",
+        "noAudioHint": "Tambahkan prompt dan hasilkan track musik AI Anda."
+      },
+      "actions": {
+        "editTrack": "Edit",
+        "titlePlaceholder": "Judul track..."
+      }
     }
   }
 }

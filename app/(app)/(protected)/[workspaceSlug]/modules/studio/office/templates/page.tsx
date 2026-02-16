@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { FolderOpen, FileText, Star, ArrowRight } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
@@ -20,6 +21,7 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
 
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
 
   const { data: sub } = await db
     .from("subscriptions")
@@ -38,8 +40,8 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
   if (!hasAccess) {
     return (
       <LockedScreen
-        title="Office Templates is locked"
-        description="Upgrade to access the template library."
+        title={t("office.templates.lockedTitle")}
+        description={t("office.templates.lockedDescription")}
         workspaceSlug={workspaceSlug}
       />
     );
@@ -60,9 +62,9 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">Document Templates</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("office.templates.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Start from a template or create your own. Templates power AI document generation.
+          {t("office.templates.description")}
         </p>
       </div>
 
@@ -92,7 +94,7 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
                 <FolderOpen className="h-5 w-5 text-blue-400" />
                 <div className="flex items-center gap-1 text-xs text-[#f5f5dc]/30">
                   <Star className="h-3 w-3" />
-                  <span>{template.usage_count} uses</span>
+                  <span>{t("office.templates.usageCount", { count: template.usage_count })}</span>
                 </div>
               </div>
               <h3 className="text-sm font-semibold text-[#f5f5dc] mb-1">{template.title}</h3>
@@ -113,7 +115,7 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
                 href={`${basePath}/new?template=${template.id}`}
                 className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
               >
-                Use Template <ArrowRight className="h-3 w-3" />
+                {t("office.templates.useTemplate")} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           ))}
@@ -121,9 +123,9 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
       ) : (
         <div className="rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 text-center">
           <FileText className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
-          <p className="text-sm font-medium text-[#f5f5dc]/40">No templates yet</p>
+          <p className="text-sm font-medium text-[#f5f5dc]/40">{t("office.templates.emptyTitle")}</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/25">
-            Templates will appear here as you create reusable document formats.
+            {t("office.templates.emptyDescription")}
           </p>
         </div>
       )}

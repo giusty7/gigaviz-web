@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   FileText,
   FileSpreadsheet,
@@ -18,14 +19,15 @@ type Props = {
 };
 
 const DOC_TYPES = [
-  { key: "document", label: "Document", description: "Word-style document with AI writing", icon: FileType, color: "blue" },
-  { key: "spreadsheet", label: "Spreadsheet", description: "Excel-style data with AI formulas", icon: FileSpreadsheet, color: "green" },
-  { key: "report", label: "Report", description: "AI-generated business report", icon: LayoutTemplate, color: "purple" },
-  { key: "invoice", label: "Invoice", description: "Professional invoice from data", icon: Receipt, color: "amber" },
-  { key: "presentation", label: "Presentation", description: "Slide deck with AI content", icon: FileText, color: "pink" },
+  { key: "document", labelKey: "office.new.types.document" as const, icon: FileType, color: "blue" },
+  { key: "spreadsheet", labelKey: "office.new.types.spreadsheet" as const, icon: FileSpreadsheet, color: "green" },
+  { key: "report", labelKey: "office.new.types.report" as const, icon: LayoutTemplate, color: "purple" },
+  { key: "invoice", labelKey: "office.new.types.invoice" as const, icon: Receipt, color: "amber" },
+  { key: "presentation", labelKey: "office.new.types.presentation" as const, icon: FileText, color: "pink" },
 ] as const;
 
 export default function NewDocumentPage({ params: _params }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [selectedType, setSelectedType] = useState<string>("document");
   const [title, setTitle] = useState("");
@@ -58,7 +60,7 @@ export default function NewDocumentPage({ params: _params }: Props) {
         setError(body.error || `Failed to create document (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -84,9 +86,9 @@ export default function NewDocumentPage({ params: _params }: Props) {
     <div className="max-w-2xl space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New Document</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("office.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Choose a document type and let AI help you create it.
+          {t("office.new.description")}
         </p>
       </div>
 
@@ -100,7 +102,7 @@ export default function NewDocumentPage({ params: _params }: Props) {
       {/* Document Type Selector */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Document Type
+          {t("office.new.typeLabel")}
         </label>
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
           {DOC_TYPES.map((type) => {
@@ -126,10 +128,7 @@ export default function NewDocumentPage({ params: _params }: Props) {
                   )}
                 />
                 <span className={cn("text-xs font-semibold", isSelected ? "text-[#f5f5dc]" : "text-[#f5f5dc]/60")}>
-                  {type.label}
-                </span>
-                <span className="text-[10px] text-[#f5f5dc]/30 leading-tight">
-                  {type.description}
+                  {t(type.labelKey)}
                 </span>
               </button>
             );
@@ -140,13 +139,13 @@ export default function NewDocumentPage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Title
+          {t("common.titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Monthly Sales Report Q1 2026"
+          placeholder={t("office.new.titlePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
         />
       </div>
@@ -155,17 +154,17 @@ export default function NewDocumentPage({ params: _params }: Props) {
       <div>
         <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
           <Sparkles className="h-3 w-3 text-cyan-400" />
-          AI Instructions (Optional)
+          {t("office.new.aiPromptLabel")}
         </label>
         <textarea
           value={aiPrompt}
           onChange={(e) => setAiPrompt(e.target.value)}
-          placeholder="Describe what you want the document to contain. AI will generate the initial content for you..."
+          placeholder={t("office.new.aiPromptPlaceholder")}
           rows={4}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 resize-none"
         />
         <p className="mt-1 text-[10px] text-[#f5f5dc]/25">
-          e.g. &quot;Create a Q1 sales report with revenue breakdown by product, customer acquisition metrics, and growth projections.&quot;
+          {t("office.new.aiPromptHint")}
         </p>
       </div>
 
@@ -178,12 +177,12 @@ export default function NewDocumentPage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Document
+            {t("office.new.createButton")}
           </>
         )}
       </button>

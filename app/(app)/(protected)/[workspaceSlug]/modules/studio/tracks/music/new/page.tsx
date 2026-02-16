@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { MusicIcon, Sparkles, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +46,7 @@ const colorMap: Record<string, { base: string; selected: string; text: string }>
 };
 
 export default function NewMusicPage({ params: _params }: Props) {
+  const t = useTranslations("studio");
   const router = useRouter();
   const [genre, setGenre] = useState("ambient");
   const [title, setTitle] = useState("");
@@ -96,7 +98,7 @@ export default function NewMusicPage({ params: _params }: Props) {
         setError(body.error || `Failed to create track (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -105,9 +107,9 @@ export default function NewMusicPage({ params: _params }: Props) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New AI Music Track</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("music.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Choose a genre and describe the audio you want to generate.
+          {t("music.new.description")}
         </p>
       </div>
 
@@ -120,7 +122,7 @@ export default function NewMusicPage({ params: _params }: Props) {
       {/* Genre Selector */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Genre
+          {t("music.new.genreLabel")}
         </label>
         <div className="grid gap-3 grid-cols-3 sm:grid-cols-4">
           {GENRES.map((g) => {
@@ -148,13 +150,13 @@ export default function NewMusicPage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Title
+          {t("music.new.titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Brand Jingle for Campaign"
+          placeholder={t("music.new.titlePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
         />
       </div>
@@ -162,12 +164,12 @@ export default function NewMusicPage({ params: _params }: Props) {
       {/* AI Prompt */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          AI Prompt
+          {t("music.new.aiPromptLabel")}
         </label>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the music... e.g. 'Upbeat corporate jingle with piano and light percussion, 120 BPM'"
+          placeholder={t("music.new.aiPromptPlaceholder")}
           rows={4}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30 resize-none"
         />
@@ -177,7 +179,7 @@ export default function NewMusicPage({ params: _params }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-            Duration (seconds)
+            {t("music.new.durationLabel")}
           </label>
           <input
             type="number"
@@ -190,7 +192,7 @@ export default function NewMusicPage({ params: _params }: Props) {
         </div>
         <div>
           <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-            BPM
+            {t("music.new.bpmLabel")}
           </label>
           <input
             type="number"
@@ -206,7 +208,7 @@ export default function NewMusicPage({ params: _params }: Props) {
       {/* Format */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Output Format
+          {t("music.new.formatLabel")}
         </label>
         <div className="flex flex-wrap gap-2">
           {FORMATS.map((f) => (
@@ -229,7 +231,7 @@ export default function NewMusicPage({ params: _params }: Props) {
       {/* Tags */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Tags (Optional)
+          {t("common.tagsOptionalLabel")}
         </label>
         <div className="flex gap-2">
           <input
@@ -237,11 +239,11 @@ export default function NewMusicPage({ params: _params }: Props) {
             value={tag}
             onChange={(e) => setTag(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-            placeholder="Add a tag..."
+            placeholder={t("common.tagPlaceholder")}
             className="flex-1 rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
           />
           <button onClick={addTag} className="rounded-lg border border-[#f5f5dc]/10 px-3 py-2 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]">
-            Add
+            {t("common.addButton")}
           </button>
         </div>
         {tags.length > 0 && (
@@ -267,12 +269,12 @@ export default function NewMusicPage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Track
+            {t("music.new.createButton")}
           </>
         )}
       </button>

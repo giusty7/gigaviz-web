@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Sparkles, Loader2, Globe, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Props = { params: Promise<{ workspaceSlug: string }> };
 
 export default function NewDashboardPage({ params: _params }: Props) {
   const router = useRouter();
+  const t = useTranslations("studio");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
@@ -39,7 +41,7 @@ export default function NewDashboardPage({ params: _params }: Props) {
         setError(body.error || `Failed to create dashboard (${res.status})`);
       }
     } catch {
-      setError("Network error — please try again.");
+      setError(t("common.networkError"));
     } finally {
       setCreating(false);
     }
@@ -48,9 +50,9 @@ export default function NewDashboardPage({ params: _params }: Props) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#f5f5dc]">New Dashboard</h1>
+        <h1 className="text-xl font-bold text-[#f5f5dc]">{t("dashboards.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
-          Create a dashboard to compose charts into interactive layouts.
+          {t("dashboards.new.description")}
         </p>
       </div>
 
@@ -63,13 +65,13 @@ export default function NewDashboardPage({ params: _params }: Props) {
       {/* Title */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Dashboard Title
+          {t("dashboards.new.titleLabel")}
         </label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Q1 2026 Performance Overview"
+          placeholder={t("dashboards.new.titlePlaceholder")}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30"
         />
       </div>
@@ -77,12 +79,12 @@ export default function NewDashboardPage({ params: _params }: Props) {
       {/* Description */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Description (Optional)
+          {t("common.descriptionOptionalLabel")}
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the purpose of this dashboard..."
+          placeholder={t("dashboards.new.descriptionPlaceholder")}
           rows={3}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30 resize-none"
         />
@@ -91,7 +93,7 @@ export default function NewDashboardPage({ params: _params }: Props) {
       {/* Visibility */}
       <div>
         <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
-          Visibility
+          {t("dashboards.new.visibilityLabel")}
         </label>
         <div className="flex gap-3">
           <button
@@ -104,7 +106,7 @@ export default function NewDashboardPage({ params: _params }: Props) {
             )}
           >
             <Lock className="h-4 w-4" />
-            Private
+            {t("common.private")}
           </button>
           <button
             onClick={() => setIsPublic(true)}
@@ -116,11 +118,11 @@ export default function NewDashboardPage({ params: _params }: Props) {
             )}
           >
             <Globe className="h-4 w-4" />
-            Public
+            {t("common.public")}
           </button>
         </div>
         <p className="mt-1 text-[10px] text-[#f5f5dc]/25">
-          Public dashboards can be shared with external stakeholders.
+          {t("dashboards.new.publicHint")}
         </p>
       </div>
 
@@ -128,7 +130,7 @@ export default function NewDashboardPage({ params: _params }: Props) {
       <div className="rounded-xl border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-8 text-center">
         <LayoutDashboard className="mx-auto mb-2 h-8 w-8 text-purple-400/30" />
         <p className="text-xs text-[#f5f5dc]/30">
-          After creation, you can add charts to this dashboard using the layout editor.
+          {t("dashboards.new.previewHint")}
         </p>
       </div>
 
@@ -141,12 +143,12 @@ export default function NewDashboardPage({ params: _params }: Props) {
         {creating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Creating...
+            {t("common.creating")}
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            Create Dashboard
+            {t("dashboards.new.createButton")}
           </>
         )}
       </button>
