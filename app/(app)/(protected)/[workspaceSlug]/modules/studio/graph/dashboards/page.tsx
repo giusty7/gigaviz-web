@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, Plus, Clock, ArrowRight } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +18,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   const { data: sub } = await db
     .from("subscriptions")
@@ -53,7 +52,6 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
     .limit(20);
 
   const items = dashboards ?? [];
-  const basePath = `/${workspaceSlug}/modules/studio/graph`;
 
   return (
     <div className="space-y-6">
@@ -65,22 +63,22 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
             Compose charts into interactive dashboards and share with your team.
           </p>
         </div>
-        <Link
-          href={`${basePath}/dashboards/new`}
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white transition-colors hover:bg-purple-500"
+        <button
+          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600/50 px-4 text-sm font-medium text-white/60 cursor-not-allowed"
+          title="Dashboard builder coming soon"
         >
           <Plus className="h-4 w-4" />
           New Dashboard
-        </Link>
+        </button>
       </div>
 
       {/* Dashboard List */}
       {items.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {items.map((dash) => (
-            <Link
+            <div
               key={dash.id}
-              href={`${basePath}/dashboards/${dash.slug || dash.id}`}
               className="group rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
             >
               <div className="mb-3 flex items-start justify-between">
@@ -104,7 +102,7 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
                 </span>
                 <ArrowRight className="h-3 w-3 text-[#f5f5dc]/20 group-hover:text-purple-400 transition-colors" />
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       ) : (
@@ -112,14 +110,8 @@ export default async function GraphDashboardsPage({ params }: PageProps) {
           <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
           <p className="text-sm font-medium text-[#f5f5dc]/40">No dashboards yet</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/25">
-            Create a dashboard to visualize your charts in one view.
+            Dashboards will appear here once the dashboard builder is ready.
           </p>
-          <Link
-            href={`${basePath}/dashboards/new`}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-purple-600/80 px-4 py-2 text-xs font-medium text-white hover:bg-purple-500"
-          >
-            <Plus className="h-3 w-3" /> Create Dashboard
-          </Link>
         </div>
       )}
     </div>

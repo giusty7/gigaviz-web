@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { FileText, ArrowLeft, Clock, User, Tag } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   const { data: doc, error } = await db
     .from("office_documents")
@@ -92,13 +92,25 @@ export default async function DocumentDetailPage({ params }: PageProps) {
 
       {/* Actions */}
       <div className="flex gap-3">
-        <button className="inline-flex h-9 items-center gap-2 rounded-lg bg-cyan-600 px-4 text-xs font-medium text-white hover:bg-cyan-500 transition-colors">
+        <button
+          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-cyan-600/50 px-4 text-xs font-medium text-white/60 cursor-not-allowed"
+          title="Rich editor coming soon"
+        >
           Edit Document
         </button>
-        <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#f5f5dc]/10 px-4 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors">
+        <button
+          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#f5f5dc]/10 px-4 text-xs font-medium text-[#f5f5dc]/30 cursor-not-allowed"
+          title="PDF export coming soon"
+        >
           Export PDF
         </button>
-        <button className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#f5f5dc]/10 px-4 text-xs font-medium text-[#f5f5dc]/50 hover:text-[#f5f5dc] hover:border-[#f5f5dc]/20 transition-colors">
+        <button
+          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#f5f5dc]/10 px-4 text-xs font-medium text-[#f5f5dc]/30 cursor-not-allowed"
+          title="WhatsApp integration coming soon"
+        >
           Send via WhatsApp
         </button>
       </div>

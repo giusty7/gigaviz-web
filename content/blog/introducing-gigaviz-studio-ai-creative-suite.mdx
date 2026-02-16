@@ -1,0 +1,100 @@
+---
+title: "Introducing Gigaviz Studio: An AI-Powered Creative Suite for Business Teams"
+description: "Meet Gigaviz Studio — a unified creative workspace with three modules: Office (AI document automation), Graph (data visualization), and Tracks (workflow automation). Built into the Gigaviz platform so your team never leaves the workspace."
+date: "2026-02-16"
+tags: ["Studio", "AI", "Office", "Graph", "Tracks", "Document Automation", "Data Visualization", "Workflow", "Product Launch"]
+published: true
+---
+
+# Introducing Gigaviz Studio: An AI-Powered Creative Suite for Business Teams
+
+Most business teams juggle half a dozen apps to get work done: one for documents, another for charts, a third for automation, and a fourth to glue them all together. That fragmentation kills focus, breaks context, and wastes time.
+
+Today we're launching **Gigaviz Studio** — a creative suite built directly into the Gigaviz platform. Three specialized modules, one workspace, zero context-switching.
+
+## The three modules
+
+### 🏢 Office — AI Document Automation
+
+Office turns your data into production-ready documents. Upload a spreadsheet, connect a template, and let AI fill in the rest.
+
+- **Supported formats**: Excel (`.xlsx`), Word (`.docx`), PDF export
+- **AI-powered**: Auto-generate reports, invoices, and proposals from your CRM data
+- **Template library**: Start from pre-built templates or create your own
+- **Create & manage**: Full document lifecycle — create, view details, track status
+
+Whether you're generating monthly reports for 50 clients or drafting proposals from contact records, Office handles the heavy lifting.
+
+### 📊 Graph — Data Visualization
+
+Graph helps you turn raw numbers into clear, shareable visuals.
+
+- **Chart types**: Bar, line, pie, area, scatter, and more
+- **Dashboard builder**: Compose multiple charts into interactive dashboards (coming soon)
+- **Live data**: Charts pull from your workspace data — always up to date
+- **Share & embed**: Public dashboards for stakeholders, embeddable charts for external sites
+
+No more exporting CSVs to another tool just to make a chart. Your data stays in Gigaviz, and your charts stay current.
+
+### 🎵 Tracks — Workflow Automation
+
+Tracks automates the repetitive work that drains your team.
+
+- **Visual workflow builder**: Define triggers, conditions, and actions (coming soon)
+- **Execution monitoring**: Track every run with status, duration, and error details
+- **Pre-built templates**: Common automations ready to deploy
+- **Integration-ready**: Connect with Meta Hub for WhatsApp-triggered workflows
+
+Send a follow-up message when a lead goes cold. Generate a report when a deal closes. Tracks handles the plumbing so your team can focus on strategy.
+
+## Architecture decisions we're proud of
+
+### Server-first, always
+
+Studio follows the same server-first architecture as the rest of Gigaviz. Every page is a React Server Component by default. Client-side JavaScript is used only where interaction demands it (forms, modals, drag-and-drop).
+
+This means Studio pages load fast, even on slow connections.
+
+### Entitlement-gated access
+
+Each module has its own entitlement key: `office`, `graph`, `tracks`. Access is checked both at the page level (Server Component) and the API level (middleware). If your plan doesn't include Graph, you see a clear upgrade prompt — not a broken page.
+
+### RLS-scoped queries
+
+Every database query is filtered by `workspace_id` and uses RLS-respecting Supabase clients. Studio inherits the same multi-tenant security model that protects Meta Hub and Helper data.
+
+### Proper error boundaries
+
+Every Studio sub-route has dedicated `loading.tsx` and `error.tsx` files. If something goes wrong, users see a clear error message with a retry button — not a white screen.
+
+## What's live today
+
+| Feature | Status |
+|---------|--------|
+| Studio hub (module catalog) | ✅ Live |
+| Office — document list & creation | ✅ Live |
+| Office — document detail view | ✅ Live |
+| Graph — chart listing & stats | ✅ Live |
+| Graph — dashboard listing | ✅ Live |
+| Tracks — workflow listing & stats | ✅ Live |
+| Tracks — execution run history | ✅ Live |
+| Entitlement gating (all modules) | ✅ Live |
+| API routes with error handling | ✅ Live |
+
+## What's coming next
+
+- **Office template builder** — design custom document templates with drag-and-drop
+- **Graph chart builder** — create and customize charts visually
+- **Graph dashboard composer** — arrange multiple charts into interactive layouts
+- **Tracks workflow designer** — visual builder for automation workflows
+- **Cross-module integration** — generate an Office report from Graph data, triggered by a Tracks workflow
+
+## Try it now
+
+If you already have a Gigaviz workspace, head to **Modules → Studio** in your sidebar. If you're new, [sign up](https://gigaviz.com/register) and explore Studio from your dashboard.
+
+Studio is available on all plans with the appropriate entitlements. Contact us if you'd like early access to the builder features.
+
+---
+
+*Studio is part of the Gigaviz ecosystem — alongside Platform, Meta Hub, Helper, Apps, and Marketplace. One workspace, seven products, built for teams that move fast.*

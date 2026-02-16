@@ -12,7 +12,7 @@ import {
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ export default async function TracksRunHistoryPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   const { data: sub } = await db
     .from("subscriptions")

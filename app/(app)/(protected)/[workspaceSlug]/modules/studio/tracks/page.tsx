@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Workflow,
@@ -13,7 +12,7 @@ import {
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +34,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   // Entitlement check
   const { data: sub } = await db
@@ -73,7 +72,6 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
   const activeCount = items.filter((w) => w.status === "active").length;
   const totalRuns = items.reduce((acc, w) => acc + (w.runs_count ?? 0), 0);
   const totalSuccess = items.reduce((acc, w) => acc + (w.success_count ?? 0), 0);
-  const basePath = `/${workspaceSlug}/modules/studio/tracks`;
 
   return (
     <div className="space-y-6">
@@ -85,13 +83,14 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             Build and orchestrate automated workflows. Connect to Meta Hub, Helper AI, and external APIs.
           </p>
         </div>
-        <Link
-          href={`${basePath}/new`}
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white transition-colors hover:bg-teal-500"
+        <button
+          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600/50 px-4 text-sm font-medium text-white/60 cursor-not-allowed"
+          title="Workflow builder coming soon"
         >
           <Plus className="h-4 w-4" />
           New Workflow
-        </Link>
+        </button>
       </div>
 
       {/* Stats */}
@@ -147,9 +146,8 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
               const cfg = statusConfig[wf.status] || statusConfig.draft;
               const StatusIcon = cfg.icon;
               return (
-                <Link
+                <div
                   key={wf.id}
-                  href={`${basePath}/workflows/${wf.slug || wf.id}`}
                   className="group flex items-center justify-between rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-teal-500/20 hover:bg-[#0a1229]/60"
                 >
                   <div className="flex items-center gap-4">
@@ -187,7 +185,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
                       {wf.status}
                     </span>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
@@ -196,14 +194,8 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             <Workflow className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
             <p className="text-sm font-medium text-[#f5f5dc]/40">No workflows yet</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Create your first automation to connect Meta Hub, Helper AI, and more.
+              Workflows will appear here once the workflow builder is ready.
             </p>
-            <Link
-              href={`${basePath}/new`}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal-600/80 px-4 py-2 text-xs font-medium text-white hover:bg-teal-500"
-            >
-              <Plus className="h-3 w-3" /> Create Workflow
-            </Link>
           </div>
         )}
       </div>

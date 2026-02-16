@@ -31,10 +31,12 @@ export default function NewDocumentPage({ params: _params }: Props) {
   const [title, setTitle] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreate = async () => {
     if (!title.trim()) return;
     setCreating(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/studio/office/documents", {
@@ -51,9 +53,12 @@ export default function NewDocumentPage({ params: _params }: Props) {
         const { data } = await res.json();
         const { workspaceSlug } = await _params;
         router.push(`/${workspaceSlug}/modules/studio/office/${data.id}`);
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || `Failed to create document (${res.status})`);
       }
     } catch {
-      // Error handled by UI
+      setError("Network error — please try again.");
     } finally {
       setCreating(false);
     }
@@ -84,6 +89,13 @@ export default function NewDocumentPage({ params: _params }: Props) {
           Choose a document type and let AI help you create it.
         </p>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
 
       {/* Document Type Selector */}
       <div>

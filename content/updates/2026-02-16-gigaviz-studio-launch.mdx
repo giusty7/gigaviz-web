@@ -1,0 +1,56 @@
+---
+title: "Gigaviz Studio: AI Creative Suite Now Live"
+date: "2026-02-16"
+summary: "Launch Gigaviz Studio — a unified creative workspace with three modules: Office (AI document automation), Graph (data visualization), and Tracks (workflow automation). Full entitlement gating, RLS-scoped queries, loading/error boundaries, and hardened API routes."
+audience: ["public", "app"]
+tags: ["studio", "office", "graph", "tracks", "ai", "documents", "visualization", "automation", "new-product"]
+type: "shipped"
+---
+
+We're launching **Gigaviz Studio** — a creative suite built into the Gigaviz platform with three specialized modules.
+
+## What shipped
+
+### Studio Hub
+- Module catalog with Office, Graph, and Tracks cards
+- Real-time stats from your workspace data (document count, chart count, workflow count)
+- Entitlement-gated access per module
+
+### Office — AI Document Automation
+- **Document list** with status, type, and timestamps
+- **Create new document** flow with title, type selector (Excel, Word, PDF), and AI description
+- **Document detail** view with metadata, content preview, and action buttons
+- Full CRUD API (`/api/studio/office/documents`) with `withErrorHandler` wrapper
+
+### Graph — Data Visualization
+- **Chart listing** with type indicators (bar, line, pie, area, scatter) and stats
+- **Dashboard listing** with public/private badges and update timestamps
+- Charts and dashboards API (`/api/studio/graph/charts`) with entitlement checks
+
+### Tracks — Workflow Automation
+- **Workflow listing** with status indicators (active, paused, completed, failed)
+- **Execution run history** with duration, timestamps, and status tracking
+- Workflows API (`/api/studio/tracks/workflows`) with entitlement checks
+
+## Technical improvements
+
+- **All pages** use `supabaseServer()` (RLS-respecting) instead of `supabaseAdmin`
+- **All API routes** wrapped with `withErrorHandler` for correlation IDs, structured logging, and Sentry
+- **Entitlement checks** on every API route (`canAccess("office")`, `canAccess("graph")`, `canAccess("tracks")`)
+- **Loading skeletons** for every sub-route with module-themed accent colors (cyan, purple, teal)
+- **Error boundaries** on every sub-route using `SubRouteError` component
+- **Broken links eliminated** — unbuilt features show disabled buttons with "coming soon" tooltips
+- **Dynamic Tailwind classes** replaced with static color maps for reliable purging
+
+## New files
+
+- 4 API routes: office documents (list + CRUD), graph charts, tracks workflows
+- 10 loading/error boundary files across all sub-routes
+- Studio hub page, layout, and sidebar navigation
+- 8 sub-module pages: Office (list, new, detail), Graph (charts, dashboards), Tracks (workflows, runs)
+
+## What's next
+
+- Visual builders for charts, dashboards, and workflows
+- Office template designer
+- Cross-module automation (Tracks → Office → Graph)

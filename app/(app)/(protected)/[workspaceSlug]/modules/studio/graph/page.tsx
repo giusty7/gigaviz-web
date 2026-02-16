@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   BarChart3,
@@ -11,7 +10,7 @@ import {
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +42,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   // Entitlement check
   const { data: sub } = await db
@@ -86,7 +85,6 @@ export default async function GraphChartsPage({ params }: PageProps) {
 
   const charts = chartsResult.data ?? [];
   const dashboardCount = dashboardsResult.count ?? 0;
-  const basePath = `/${workspaceSlug}/modules/studio/graph`;
 
   return (
     <div className="space-y-6">
@@ -98,13 +96,14 @@ export default async function GraphChartsPage({ params }: PageProps) {
             Create charts, dashboards, and data visualizations. Connected to your workspace data.
           </p>
         </div>
-        <Link
-          href={`${basePath}/new`}
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white transition-colors hover:bg-purple-500"
+        <button
+          disabled
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600/50 px-4 text-sm font-medium text-white/60 cursor-not-allowed"
+          title="Chart builder coming soon"
         >
           <Plus className="h-4 w-4" />
           New Chart
-        </Link>
+        </button>
       </div>
 
       {/* Stats */}
@@ -151,9 +150,8 @@ export default async function GraphChartsPage({ params }: PageProps) {
               const Icon = chartTypeIcons[chart.chart_type] || BarChart3;
               const color = chartTypeColors[chart.chart_type] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
               return (
-                <Link
+                <div
                   key={chart.id}
-                  href={`${basePath}/charts/${chart.id}`}
                   className="group rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
                 >
                   <div className="mb-3 flex items-start justify-between">
@@ -178,7 +176,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
                     {chart.data_source && `Source: ${chart.data_source} · `}
                     Updated {new Date(chart.updated_at).toLocaleDateString()}
                   </p>
-                </Link>
+                </div>
               );
             })}
           </div>
@@ -187,14 +185,8 @@ export default async function GraphChartsPage({ params }: PageProps) {
             <BarChart3 className="mx-auto mb-3 h-10 w-10 text-[#f5f5dc]/15" />
             <p className="text-sm font-medium text-[#f5f5dc]/40">No charts yet</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
-              Create your first chart from workspace data or AI generation.
+              Charts will appear here once the chart builder is ready.
             </p>
-            <Link
-              href={`${basePath}/new`}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-purple-600/80 px-4 py-2 text-xs font-medium text-white hover:bg-purple-500"
-            >
-              <Plus className="h-3 w-3" /> Create Chart
-            </Link>
           </div>
         )}
       </div>

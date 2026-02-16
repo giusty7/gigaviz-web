@@ -4,7 +4,7 @@ import LockedScreen from "@/components/app/LockedScreen";
 import { StudioLayoutShell } from "@/components/studio/StudioSidebar";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanFeatures, getPlanMeta, type FeatureKey } from "@/lib/entitlements";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export default async function StudioLayout({ children, params }: LayoutProps) {
   await ensureWorkspaceCookie(workspace.id);
 
   // Resolve plan
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
   const { data: subscription } = await db
     .from("subscriptions")
     .select("plan_id")

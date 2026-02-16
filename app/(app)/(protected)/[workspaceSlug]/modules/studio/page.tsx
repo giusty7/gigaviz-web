@@ -13,7 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 import { canAccess, getPlanMeta, type FeatureKey } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export default async function StudioHubPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspace = ctx.currentWorkspace;
-  const db = supabaseAdmin();
+  const db = await supabaseServer();
 
   // Fetch stats in parallel
   const [docsResult, chartsResult, workflowsResult, subResult] = await Promise.all([
@@ -100,9 +100,9 @@ export default async function StudioHubPage({ params }: PageProps) {
   ] as const;
 
   const colorMap = {
-    blue: { bg: "from-blue-500/20 to-blue-400/5", border: "border-blue-500/20", text: "text-blue-400", badge: "bg-blue-500/15 text-blue-400" },
-    purple: { bg: "from-purple-500/20 to-purple-400/5", border: "border-purple-500/20", text: "text-purple-400", badge: "bg-purple-500/15 text-purple-400" },
-    teal: { bg: "from-teal-500/20 to-teal-400/5", border: "border-teal-500/20", text: "text-teal-400", badge: "bg-teal-500/15 text-teal-400" },
+    blue: { bg: "from-blue-500/20 to-blue-400/5", border: "border-blue-500/20", text: "text-blue-400", badge: "bg-blue-500/15 text-blue-400", hover: "hover:shadow-blue-500/5" },
+    purple: { bg: "from-purple-500/20 to-purple-400/5", border: "border-purple-500/20", text: "text-purple-400", badge: "bg-purple-500/15 text-purple-400", hover: "hover:shadow-purple-500/5" },
+    teal: { bg: "from-teal-500/20 to-teal-400/5", border: "border-teal-500/20", text: "text-teal-400", badge: "bg-teal-500/15 text-teal-400", hover: "hover:shadow-teal-500/5" },
   } as const;
 
   const integrations = [
@@ -147,7 +147,7 @@ export default async function StudioHubPage({ params }: PageProps) {
           return (
             <div
               key={mod.key}
-              className={`group relative rounded-2xl border ${c.border} bg-[#0a1229]/60 p-6 transition-all duration-300 hover:shadow-lg hover:shadow-${mod.color}-500/5`}
+              className={`group relative rounded-2xl border ${c.border} bg-[#0a1229]/60 p-6 transition-all duration-300 hover:shadow-lg ${c.hover}`}
             >
               {/* Icon + Badge */}
               <div className="flex items-start justify-between mb-4">
