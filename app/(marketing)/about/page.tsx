@@ -54,7 +54,7 @@ export default async function AboutPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
 
-      <main className="flex-1">
+      <>
         <section className="border-b border-[color:var(--gv-border)]">
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
@@ -245,7 +245,7 @@ export default async function AboutPage() {
             </div>
           </div>
         </section>
-      </main>
+      </>
     </>
   );
 }

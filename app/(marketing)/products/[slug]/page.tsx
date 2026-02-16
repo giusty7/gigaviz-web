@@ -59,7 +59,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   return (
-    <main className="flex-1">
+    <>
       <section className="border-b border-[color:var(--gv-border)]">
           <div className="container grid gap-8 py-16 md:grid-cols-[1.2fr_0.8fr] md:items-center md:py-24">
             <div className="space-y-6">
@@ -207,6 +207,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }

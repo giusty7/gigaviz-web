@@ -9,7 +9,7 @@ export default function MarketingLayout({
   return (
     <div className="gv-marketing flex min-h-screen flex-col bg-[color:var(--gv-bg)] font-gv">
       <Navbar variant="marketing" />
-      {children}
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );

@@ -156,7 +156,7 @@ export default async function PricingPage() {
   const tierIds = ["free", "starter", "growth", "business", "enterprise"] as const;
 
   return (
-    <main className="flex-1">
+    <>
       {/* Hero */}
       <section className="border-b border-[color:var(--gv-border)]">
         <div className="container py-16 md:py-24">
@@ -466,6 +466,6 @@ export default async function PricingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-    </main>
+    </>
   );
 }

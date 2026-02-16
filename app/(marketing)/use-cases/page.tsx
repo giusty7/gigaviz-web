@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function UseCasesIndex() {
   return (
-    <main className="flex-1">
+    <>
       {/* Hero */}
       <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]">
         <div className="container py-16 md:py-24">
@@ -91,6 +91,6 @@ export default function UseCasesIndex() {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

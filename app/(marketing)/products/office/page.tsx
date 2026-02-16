@@ -173,7 +173,7 @@ const relatedLinks = [
 
 export default function OfficePage() {
   return (
-    <main className="flex-1">
+    <>
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(214,178,94,0.22),_transparent_60%)]" />
@@ -466,6 +466,6 @@ export default function OfficePage() {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }

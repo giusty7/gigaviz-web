@@ -21,7 +21,7 @@ export default async function RoadmapPage() {
   ] as const;
 
   return (
-    <main className="flex-1">
+    <>
       <section className="border-b border-[color:var(--gv-border)]">
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
@@ -90,6 +90,6 @@ export default async function RoadmapPage() {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }

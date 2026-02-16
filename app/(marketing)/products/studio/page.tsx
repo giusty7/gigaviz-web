@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function StudioPage() {
   return (
-    <main className="flex-1">
+    <>
       <section className="border-b border-border bg-background">
           <div className="container py-16 md:py-24">
             <div className="max-w-3xl space-y-4">
@@ -73,6 +73,6 @@ export default function StudioPage() {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }

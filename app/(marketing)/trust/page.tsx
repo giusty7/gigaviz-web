@@ -25,7 +25,7 @@ export default async function TrustPage() {
   const bullets = [t("meaning1"), t("meaning2"), t("meaning3")];
 
   return (
-    <main className="flex-1">
+    <>
       <section className="border-b border-border bg-gradient-to-b from-background via-card/30 to-background">
           <div className="container space-y-10 py-16 md:py-20">
             <div className="max-w-3xl space-y-3">
@@ -97,6 +97,6 @@ export default async function TrustPage() {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }

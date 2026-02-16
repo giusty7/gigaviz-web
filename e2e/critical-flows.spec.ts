@@ -22,7 +22,7 @@ test.describe("Sales Funnel", () => {
 
   test("pricing page shows plans with CTA buttons", async ({ page }) => {
     await page.goto("/pricing");
-    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("main").first()).toBeVisible();
 
     // Should have at least 2 plan cards (Starter, Growth, Business)
     const planCards = page.locator(
@@ -83,7 +83,7 @@ test.describe("Product Pages", () => {
       expect([200, 500]).toContain(response!.status());
 
       if (response!.status() === 200) {
-        const bodyText = await page.locator("main").textContent();
+        const bodyText = await page.locator("main").first().textContent();
         expect(bodyText).toMatch(keyword);
       }
     });
@@ -133,7 +133,7 @@ test.describe("Contact & Newsletter", () => {
     // 200 = normal, 500 = DB unreachable in CI
     expect([200, 500]).toContain(response!.status());
     if (response!.status() === 200) {
-      await expect(page.locator("main")).toBeVisible();
+      await expect(page.locator("main").first()).toBeVisible();
     }
   });
 

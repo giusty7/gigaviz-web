@@ -30,7 +30,7 @@ export default async function ChangelogPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050a18] py-24">
+    <div className="min-h-screen bg-[#050a18] py-24">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12 text-center">
@@ -108,6 +108,6 @@ export default async function ChangelogPage() {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

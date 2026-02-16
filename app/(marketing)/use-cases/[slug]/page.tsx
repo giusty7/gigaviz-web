@@ -31,7 +31,7 @@ export default async function UseCaseDetail({ params }: Props) {
   if (!uc) notFound();
 
   return (
-    <main className="flex-1">
+    <>
       {/* Hero */}
       <section className="border-b border-[color:var(--gv-border)] bg-[color:var(--gv-bg)]">
         <div className="container py-16 md:py-24">
@@ -144,6 +144,6 @@ export default async function UseCaseDetail({ params }: Props) {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

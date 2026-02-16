@@ -132,7 +132,7 @@ export default async function HomePage() {
   ];
 
   return (
-    <main className="flex-1">
+    <>
       <section className="relative overflow-hidden border-b border-[#d4af37]/15 hero-gradient text-[#f5f5dc]">
           {/* Constellation pattern overlay */}
           <div className="pointer-events-none absolute inset-0 constellation-pattern opacity-60" aria-hidden />
@@ -663,6 +663,6 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }

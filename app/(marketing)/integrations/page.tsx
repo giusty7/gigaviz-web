@@ -43,7 +43,7 @@ export default async function IntegrationsPage() {
   ];
 
   return (
-    <main className="flex-1">
+    <>
       <section className="border-b border-border bg-gradient-to-b from-background via-card/30 to-background">
           <div className="container space-y-10 py-16 md:py-20">
             <div className="max-w-3xl space-y-3">
@@ -111,6 +111,6 @@ export default async function IntegrationsPage() {
             </div>
           </div>
         </section>
-    </main>
+    </>
   );
 }
