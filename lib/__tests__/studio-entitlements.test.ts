@@ -23,9 +23,9 @@ describe("canAccess — Studio features per plan", () => {
   // Define expected access matrix:
   // plan → which Studio features should be accessible
   const accessMatrix: Record<string, Partial<Record<FeatureKey, boolean>>> = {
-    free: { office: false, graph: false, tracks: false, studio: false, studio_graph: false },
-    starter: { office: true, graph: false, tracks: false, studio: false, studio_graph: false },
-    growth: { office: true, graph: true, tracks: true, studio: false, studio_graph: false },
+    free: { office: true, graph: false, tracks: false, studio: true, studio_graph: false },
+    starter: { office: true, graph: true, tracks: true, studio: true, studio_graph: true },
+    growth: { office: true, graph: true, tracks: true, studio: true, studio_graph: true },
     business: { office: true, graph: true, tracks: true, studio: true, studio_graph: true },
     enterprise: { office: true, graph: true, tracks: true, studio: true, studio_graph: true },
   };
@@ -66,14 +66,17 @@ describe("canAccess — admin override", () => {
     }
   });
 
-  it("is_admin=false does not grant override", () => {
+  it("is_admin=false does not grant override for features outside plan", () => {
     const ctx: AccessContext = { plan_id: "free", is_admin: false };
-    expect(canAccess(ctx, "studio")).toBe(false);
+    // free plan now includes studio, so test a feature NOT in free plan
+    expect(canAccess(ctx, "graph")).toBe(false);
+    expect(canAccess(ctx, "tracks")).toBe(false);
   });
 
-  it("is_admin=null does not grant override", () => {
+  it("is_admin=null does not grant override for features outside plan", () => {
     const ctx: AccessContext = { plan_id: "free", is_admin: null };
-    expect(canAccess(ctx, "studio")).toBe(false);
+    expect(canAccess(ctx, "graph")).toBe(false);
+    expect(canAccess(ctx, "tracks")).toBe(false);
   });
 });
 
@@ -110,24 +113,28 @@ describe("canAccess — entitlement overrides", () => {
       plan_id: "free",
       effectiveEntitlements: ["graph"],
     };
-    expect(canAccess(ctx, "studio")).toBe(false);
+    // graph entitlement should NOT grant tracks or meta_hub
     expect(canAccess(ctx, "tracks")).toBe(false);
+    expect(canAccess(ctx, "meta_hub")).toBe(false);
   });
 
-  it("empty entitlement array does not grant access", () => {
+  it("empty entitlement array does not grant premium features", () => {
     const ctx: AccessContext = {
       plan_id: "free",
       effectiveEntitlements: [],
     };
-    expect(canAccess(ctx, "studio")).toBe(false);
+    // free plan has studio+office, but not graph/tracks/meta_hub
+    expect(canAccess(ctx, "graph")).toBe(false);
+    expect(canAccess(ctx, "meta_hub")).toBe(false);
   });
 
-  it("null entitlement array does not grant access", () => {
+  it("null entitlement array does not grant premium features", () => {
     const ctx: AccessContext = {
       plan_id: "free",
       effectiveEntitlements: null,
     };
-    expect(canAccess(ctx, "studio")).toBe(false);
+    expect(canAccess(ctx, "graph")).toBe(false);
+    expect(canAccess(ctx, "meta_hub")).toBe(false);
   });
 });
 
@@ -141,24 +148,26 @@ describe("canAccess — legacy plan IDs", () => {
     expect(canAccess(ctx, "studio_graph")).toBe(true);
   });
 
-  it("ind_pro grants graph and tracks (same as growth)", () => {
+  it("ind_pro grants graph and tracks but not studio (own legacy features)", () => {
     const ctx: AccessContext = { plan_id: "ind_pro" as PlanId };
     expect(canAccess(ctx, "graph")).toBe(true);
     expect(canAccess(ctx, "tracks")).toBe(true);
     expect(canAccess(ctx, "studio")).toBe(false);
+    expect(canAccess(ctx, "studio_graph")).toBe(false);
   });
 
-  it("ind_starter grants office (same as starter)", () => {
+  it("ind_starter grants office but not graph/studio (own legacy features)", () => {
     const ctx: AccessContext = { plan_id: "ind_starter" as PlanId };
     expect(canAccess(ctx, "office")).toBe(true);
     expect(canAccess(ctx, "graph")).toBe(false);
+    expect(canAccess(ctx, "studio")).toBe(false);
   });
 
-  it("free_locked denies all studio features", () => {
+  it("free_locked grants office and studio (same as free)", () => {
     const ctx: AccessContext = { plan_id: "free_locked" as PlanId };
-    expect(canAccess(ctx, "office")).toBe(false);
+    expect(canAccess(ctx, "office")).toBe(true);
+    expect(canAccess(ctx, "studio")).toBe(true);
     expect(canAccess(ctx, "graph")).toBe(false);
-    expect(canAccess(ctx, "studio")).toBe(false);
   });
 });
 
@@ -245,11 +254,13 @@ describe("canonicalizePlanId", () => {
 // getPlanFeatures
 // ═══════════════════════════════════════════════════════════════════
 describe("getPlanFeatures", () => {
-  it("free plan returns only base features", () => {
+  it("free plan returns base features plus office and studio", () => {
     const features = getPlanFeatures("free");
     expect(features).toContain("dashboard_home");
+    expect(features).toContain("office");
+    expect(features).toContain("studio");
     expect(features).not.toContain("meta_hub");
-    expect(features).not.toContain("studio");
+    expect(features).not.toContain("graph");
   });
 
   it("business plan includes studio and studio_graph", () => {
@@ -260,19 +271,21 @@ describe("getPlanFeatures", () => {
     expect(features).toContain("apps");
   });
 
-  it("growth plan includes graph and tracks but not studio", () => {
+  it("growth plan includes graph, tracks, studio, and studio_graph", () => {
     const features = getPlanFeatures("growth");
     expect(features).toContain("graph");
     expect(features).toContain("tracks");
-    expect(features).not.toContain("studio");
-    expect(features).not.toContain("studio_graph");
+    expect(features).toContain("studio");
+    expect(features).toContain("studio_graph");
   });
 
-  it("starter plan includes office but not graph", () => {
+  it("starter plan includes office, graph, tracks, and studio", () => {
     const features = getPlanFeatures("starter");
     expect(features).toContain("office");
-    expect(features).not.toContain("graph");
-    expect(features).not.toContain("tracks");
+    expect(features).toContain("graph");
+    expect(features).toContain("tracks");
+    expect(features).toContain("studio");
+    expect(features).toContain("studio_graph");
   });
 });
 
