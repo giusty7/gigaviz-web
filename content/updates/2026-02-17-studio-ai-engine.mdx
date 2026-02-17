@@ -1,0 +1,46 @@
+---
+title: "Studio AI Engine: Real AI Generation Across All Content Types"
+date: "2026-02-17"
+summary: "Unified AI generation engine now powers all 6 Studio content types — documents (GPT-4o-mini), images (DALL-E 3), charts (recharts), video storyboards, music compositions, and dashboards. Token-gated, auto-triggered on creation, with real visualization components."
+audience: ["public", "app"]
+tags: ["studio", "ai-engine", "gpt-4o-mini", "dall-e-3", "recharts", "token-economy", "generation", "major-feature"]
+type: "shipped"
+---
+
+The Studio AI engine is now **fully wired** — all 6 content types can be generated from a single prompt, with real visualization on detail pages.
+
+## What shipped
+
+### 🧠 Unified Generation API
+- **Single endpoint** `POST /api/studio/generate` handles document, image, chart, video, music, and dashboard generation
+- **Zod discriminated union** validates 6 request types with type-safe fields
+- **Token deduction** before AI calls — 402 on insufficient balance
+- **Status transitions**: draft → generating → completed (or failed with retry)
+- **Entitlement checks** per module (office, graph, tracks)
+
+### 🤖 AI Models
+- **GPT-4o-mini** for structured content: documents (sections + summary), charts (type + data + config), video storyboards (scenes + script + music), music compositions (structure + instruments + waveform), dashboard layouts (stat/chart/text/table widgets)
+- **DALL-E 3** for image generation: 10 style presets mapped to DALL-E sizes, revised prompt returned
+
+### 📊 Real Visualization Components
+- **ChartRenderer** — recharts-based rendering for bar, line, pie, area, radar, scatter with dark theme
+- **DashboardRenderer** — responsive widget grid (stat cards, chart widgets, text, tables)
+- **WaveformVisualizer** — canvas-based audio waveform with play/pause animation and gradient bars
+- **VideoStoryboard** — timeline visualization, scene cards, narration script, music suggestion
+- **GenerateButton** — reusable AI trigger with loading state, error handling, token gating
+
+### ⚡ Auto-Trigger on Creation
+- All 6 "new" pages now fire-and-forget AI generation when a prompt is provided
+- User navigates to detail page immediately — generation happens in background
+- Chart and dashboard new pages now include AI prompt fields
+
+### 📋 Template Cloning
+- `POST /api/studio/office/templates/[templateId]/clone` creates a new document from template
+- Templates page "Use Template" button calls clone API directly (no more redirect to /new)
+- Usage counter incremented atomically
+
+## Technical Details
+- 8 new files, ~2,800 lines of code
+- 28 files changed total (new components + updated pages + API routes + i18n)
+- All checks pass: typecheck ✅ lint ✅ build ✅ (245 pages)
+- i18n: 12 new translation keys (EN + ID) for generation UI

@@ -130,6 +130,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
       alternates: withAlternates(`/blog/${post.slug}`, baseUrl),
     })),
+    // Standalone blog pages not in content/blog/
+    {
+      url: `${baseUrl}/blog/imperium-era`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: withAlternates("/blog/imperium-era", baseUrl),
+    },
     ...policySlugs.map((slug) => ({
       url: `${baseUrl}/policies/${slug}`,
       lastModified: now,

@@ -124,6 +124,72 @@ const POST_FAQ_DATA: Record<string, FAQItem[]> = {
         "Single-tenant setups are more expensive to operate and scale. Multi-tenant architecture provides the same security guarantees at lower cost, with faster updates and shared infrastructure improvements.",
     },
   ],
+  "introducing-gigaviz-studio-ai-creative-suite": [
+    {
+      question: "What is Gigaviz Studio?",
+      answer:
+        "Gigaviz Studio is an AI-powered creative suite for business teams. It includes three modules: Office (AI document automation), Graph (AI charts, dashboards, images, and videos), and Tracks (AI music and workflow automation).",
+    },
+    {
+      question: "What AI models does Studio use?",
+      answer:
+        "Studio uses GPT-4o-mini for structured content generation (documents, charts, storyboards, compositions, dashboards) and DALL-E 3 for image generation. Both are accessed through OpenAI's API.",
+    },
+    {
+      question: "How much does AI generation cost in tokens?",
+      answer:
+        "Token costs vary by type: document generation costs 20 tokens, image generation 40 tokens, chart/video/dashboard generation 40 tokens, and music composition 30 tokens. Tokens are deducted before AI calls.",
+    },
+    {
+      question: "Can I use Studio without AI?",
+      answer:
+        "Yes. All Studio modules support manual creation — you can create documents, charts, dashboards, and other content without using AI. The AI generation is optional and enhances the workflow.",
+    },
+  ],
+  "ai-image-video-music-generation-for-business": [
+    {
+      question: "What image styles does Gigaviz Studio support?",
+      answer:
+        "Studio supports 10 image styles: Photo-realistic, Illustration, 3D Render, Watercolor, Pixel Art, Abstract, Flat Design, Anime, Logo, and Icon. Each style is optimized for different business use cases.",
+    },
+    {
+      question: "Can I generate videos with AI in Gigaviz?",
+      answer:
+        "Yes. Gigaviz Studio generates AI video storyboards with scene breakdowns, narration scripts, and music suggestions. You can choose from 8 video styles including Marketing, Explainer, Product Demo, and Cinematic.",
+    },
+    {
+      question: "What music genres can the AI compose?",
+      answer:
+        "Studio supports 12 music genres: Pop, Rock, Electronic, Ambient, Jazz, Classical, Hip-Hop, Lo-Fi, Cinematic, Jingle, Podcast Intro, and Sound Effect. Each includes BPM, key signature, and duration controls.",
+    },
+    {
+      question: "Are AI-generated assets owned by me?",
+      answer:
+        "Yes. All content generated within your workspace belongs to your business. Generated assets are stored in your workspace and scoped by your workspace_id — they are not shared with other tenants.",
+    },
+  ],
+  "how-we-built-ai-generation-engine-for-saas-creative-suite": [
+    {
+      question: "How does the unified generation endpoint work?",
+      answer:
+        "A single POST /api/studio/generate endpoint handles all 6 content types using a Zod discriminated union. It validates input, checks entitlements, deducts tokens, calls the appropriate AI model, and updates the entity status.",
+    },
+    {
+      question: "Why use GPT-4o-mini instead of GPT-4o?",
+      answer:
+        "Cost efficiency. GPT-4o-mini costs ~$0.15/1M input tokens vs $2.50/1M for GPT-4o — a 16× difference. For structured output generation that doesn't need frontier reasoning, the quality is sufficient while keeping the token economy sustainable.",
+    },
+    {
+      question: "What is fire-and-forget auto-triggering?",
+      answer:
+        "When a user creates content with a prompt, the generation request is fired in the background immediately after creation. The user navigates to the detail page while AI processes in the background — no extra click needed.",
+    },
+    {
+      question: "How are tokens deducted for AI generation?",
+      answer:
+        "Tokens are deducted atomically via a PostgreSQL RPC (consumeTokens) before any AI call is made. If the balance is insufficient, the request returns 402 immediately. This prevents token overdraft in concurrent scenarios.",
+    },
+  ],
 };
 
 type PageProps = {
@@ -159,6 +225,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: post.title,
       description: post.description,
       url: `/blog/${post.slug}`,
+      type: "article",
+      publishedTime: post.date,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
     },
   };
 }

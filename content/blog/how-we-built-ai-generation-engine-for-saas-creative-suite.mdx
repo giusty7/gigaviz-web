@@ -1,0 +1,173 @@
+---
+title: "How We Built an AI Generation Engine for a SaaS Creative Suite"
+description: "A deep dive into the architecture behind Gigaviz Studio's AI generation engine — GPT-4o-mini for content, DALL-E 3 for images, recharts for visualization, token-gated generation, and fire-and-forget auto-triggers. Real code patterns for SaaS builders."
+date: "2026-02-17"
+tags: ["AI Generation", "GPT-4o-mini", "DALL-E 3", "SaaS Architecture", "Studio", "OpenAI", "Token Economy", "Creative Suite", "Next.js", "TypeScript"]
+published: true
+---
+
+# How We Built an AI Generation Engine for a SaaS Creative Suite
+
+Most SaaS platforms add AI as an afterthought — a chatbot in the corner, a "summarize" button nobody clicks. We took a different approach: AI generation is the **core value engine** of Gigaviz Studio. Every document, chart, image, video storyboard, music composition, and dashboard can be generated from a single prompt.
+
+This post covers the architecture decisions, the code patterns, and the lessons learned from building a unified AI generation system that serves 6 different content types inside a multi-tenant SaaS platform.
+
+## The problem: 6 content types, 1 interface
+
+Gigaviz Studio is a creative suite with three modules — Office (documents), Graph (charts, dashboards, images, videos), and Tracks (music). Each module has its own database tables, its own API routes, and its own detail pages.
+
+The challenge: how do you add AI generation to all 6 content types without duplicating logic, breaking the existing CRUD patterns, or making the token economy impossible to manage?
+
+## Architecture decision: unified generation endpoint
+
+We rejected the obvious approach of adding `/generate` sub-routes to each CRUD API. Instead, we built a single `POST /api/studio/generate` endpoint that handles all 6 types through a Zod discriminated union:
+
+```typescript
+const generateSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("document"), entityId: z.string().uuid(), prompt: z.string().min(1), category: z.string().optional(), title: z.string().optional() }),
+  z.object({ type: z.literal("image"), entityId: z.string().uuid(), prompt: z.string().min(1), style: z.string().optional() }),
+  z.object({ type: z.literal("chart"), entityId: z.string().uuid(), prompt: z.string().min(1), chart_type: z.string().optional() }),
+  z.object({ type: z.literal("video"), entityId: z.string().uuid(), prompt: z.string().min(1), style: z.string().optional(), duration_seconds: z.number().optional() }),
+  z.object({ type: z.literal("music"), entityId: z.string().uuid(), prompt: z.string().min(1), genre: z.string().optional(), bpm: z.number().optional() }),
+  z.object({ type: z.literal("dashboard"), entityId: z.string().uuid(), prompt: z.string().min(1), title: z.string().optional() }),
+]);
+```
+
+One schema. One validation path. Six content types. The discriminated union gives us type safety at the boundary — TypeScript knows exactly which fields exist for each type after validation.
+
+## The generation pipeline
+
+Every generation request follows the same 5-step pipeline:
+
+1. **Validate** → Zod discriminated union parses the request body
+2. **Authorize** → Check user session, workspace membership, and entitlement (`graph`, `office`, or `tracks`)
+3. **Deduct tokens** → Call `consumeTokens()` RPC before doing any AI work (fail fast on insufficient balance)
+4. **Generate** → Call the appropriate AI function (GPT-4o-mini or DALL-E 3)
+5. **Persist** → Update the entity's status to `completed` and write generated data to the database
+
+If step 4 fails, we roll back the entity status to `failed` so the user can retry. If step 3 fails (insufficient tokens), we return `402` immediately — no AI calls are made.
+
+## AI model selection
+
+We use two OpenAI models:
+
+**GPT-4o-mini** for structured content generation:
+- Documents (title, sections with heading + body, summary)
+- Charts (chart type recommendation, labels, datasets, config)
+- Video storyboards (scenes, narration, script, music suggestion)
+- Music compositions (structure, instruments, mood, waveform data)
+- Dashboard layouts (stat widgets, chart widgets, text, tables)
+
+**DALL-E 3** for image generation:
+- Maps user dimensions to DALL-E's supported sizes (1024×1024, 1024×1792, 1792×1024)
+- Prepends style instructions to the prompt (e.g., "Create a photo-realistic image: ...")
+- Returns both the image URL and the revised prompt (DALL-E 3 rewrites prompts for quality)
+
+Why GPT-4o-mini over GPT-4o? Cost. At ~$0.15/1M input tokens vs $2.50/1M, the difference is 16× for structured output that doesn't need frontier reasoning. For a token-gated SaaS, cost efficiency is existential.
+
+## Token economy integration
+
+Every AI action has a token cost defined in our rate table:
+
+| Action | Token Cost | Model |
+|--------|-----------|-------|
+| Document generation | 20 tokens | GPT-4o-mini |
+| Image generation | 40 tokens | DALL-E 3 |
+| Chart generation | 40 tokens | GPT-4o-mini |
+| Video storyboard | 40 tokens | GPT-4o-mini |
+| Music composition | 30 tokens | GPT-4o-mini |
+| Dashboard layout | 40 tokens | GPT-4o-mini |
+
+Tokens are deducted **before** the AI call via a PostgreSQL RPC (`consumeTokens`). This is atomic — if two requests race, only one succeeds. The 402 response triggers a clear "Insufficient tokens" message in the UI.
+
+## Fire-and-forget: auto-triggering generation on creation
+
+The UX insight that made everything click: users who write a prompt during entity creation **want generation to start immediately**. They don't want to create the entity, wait for the page to load, then click "Generate."
+
+So after the create form submits successfully, if a prompt was provided, we fire a generation request in the background:
+
+```typescript
+if (res.ok) {
+  const { data } = await res.json();
+  
+  // Auto-trigger AI generation (fire-and-forget)
+  if (prompt.trim()) {
+    fetch("/api/studio/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "image", entityId: data.id, prompt: prompt.trim(), style }),
+    }).catch(() => {}); // Don't block navigation
+  }
+  
+  router.push(detailUrl);
+}
+```
+
+The user navigates to the detail page immediately. When the generation completes (typically 2-8 seconds), a page refresh shows the result. The entity's status transitions from `draft` → `generating` → `completed`.
+
+## Visualization: recharts for real-time chart rendering
+
+AI-generated chart data needs to be rendered — not just stored as JSON. We chose recharts (built on D3) for its React-native API and support for 6 chart types:
+
+- **Bar, Line, Area** → Standard data visualization with dark theme
+- **Pie** → Percentage labels with custom color cells
+- **Radar, Scatter** → Advanced data patterns
+
+The `ChartRenderer` component accepts the same JSON structure that GPT-4o-mini generates (labels + datasets), transforms it to recharts' record format, and renders with a professional dark-theme tooltip and responsive container.
+
+## Canvas-based waveform for music
+
+Music compositions get a visual waveform — a canvas-drawn visualization with gradient bars (purple → cyan), play/pause animation, and progress tracking. The waveform data is a 128-element array of amplitudes generated by GPT-4o-mini.
+
+Why canvas instead of SVG? Performance. 128 animated bars at 60fps would create DOM pressure with SVG elements. Canvas draws directly to pixels.
+
+## Dashboard widget grid
+
+AI-generated dashboards produce widget arrays with 4 types: stat (KPI card with trend), chart (embedded ChartRenderer), text (markdown block), and table (rows + columns). A responsive CSS grid renders them with configurable column spans.
+
+## Status state machine
+
+Every generatable entity follows the same state machine:
+
+```
+draft → generating → completed
+  ↓                      ↓
+  └── (skip if no prompt) └── (regenerate loops back to generating)
+         ↓
+       failed → (retry returns to generating)
+```
+
+This is enforced in the API — only entities in `draft` or `completed` status can trigger generation. The detail page renders different UI based on status (loading animation for `generating`, error state for `failed`, full visualization for `completed`).
+
+## What we'd do differently
+
+**WebSocket for real-time updates.** Currently, users need to refresh the page to see generation results. A WebSocket or SSE connection would push the completed state to the client automatically.
+
+**Streaming for documents.** GPT-4o-mini supports streaming responses. For long documents, streaming tokens to the UI as they generate would feel much faster than waiting for the complete response.
+
+**Image caching in Supabase Storage.** DALL-E 3 returns temporary URLs. We should download and store images in Supabase Storage for permanence and faster loading.
+
+**Queue-based generation.** The current approach is synchronous — the API handler waits for OpenAI to respond. For high concurrency, we should use a job queue (like the existing outbox worker pattern) to decouple request handling from AI execution.
+
+## Results
+
+The unified generation engine serves 6 content types through 1 endpoint, 1 token system, and 1 status machine. It took approximately 2,800 lines of code across 8 new files:
+
+| Component | Lines | Purpose |
+|-----------|-------|---------|
+| `lib/studio/ai-generate.ts` | ~350 | 6 AI generation functions |
+| `app/api/studio/generate/route.ts` | ~280 | Unified generation endpoint |
+| `components/studio/ChartRenderer.tsx` | ~300 | recharts 6-type chart wrapper |
+| `components/studio/DashboardRenderer.tsx` | ~170 | Widget grid renderer |
+| `components/studio/WaveformVisualizer.tsx` | ~150 | Canvas waveform animation |
+| `components/studio/VideoStoryboard.tsx` | ~150 | Scene timeline + script |
+| `components/studio/GenerateButton.tsx` | ~130 | Reusable AI trigger |
+| `components/studio/UseTemplateButton.tsx` | ~70 | Template cloning |
+
+All passing: typecheck, lint, and build (245 pages generated).
+
+If you're building AI generation into a SaaS platform, the key insight is this: don't add AI per-feature. Build a unified generation pipeline, gate it with tokens, and let the AI handle the creative heavy lifting while your CRUD layer handles persistence and security.
+
+---
+
+*Gigaviz Studio is live at [gigaviz.com](https://gigaviz.com). The AI generation engine powers all 6 content types across Office, Graph, and Tracks modules.*
