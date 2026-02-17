@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 import { seedWorkspaceQuotas } from "@/lib/quotas";
 import { logger } from "@/lib/logging";
+import { sendBillingEmail } from "@/lib/billing/emails";
 
 export const runtime = "nodejs";
 
@@ -145,6 +146,19 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     planCode,
     trialEnd: trialEnd.toISOString(),
   });
+
+  // Send trial activation email (best effort)
+  try {
+    if (user.email) {
+      await sendBillingEmail({
+        to: user.email,
+        type: "trial_activated",
+        data: { planName: planCode },
+      });
+    }
+  } catch {
+    // Don't fail trial activation for email errors
+  }
 
   return withCookies(
     NextResponse.json({

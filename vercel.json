@@ -1,5 +1,10 @@
 {
-  "crons": [],
+  "crons": [
+    {
+      "path": "/api/cron/billing",
+      "schedule": "0 2 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)\\.(js|css|woff2?|ttf|ico|svg|png|jpg|webp|avif)",

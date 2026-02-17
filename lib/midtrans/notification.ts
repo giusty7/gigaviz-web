@@ -16,6 +16,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 import { seedWorkspaceQuotas } from "@/lib/quotas";
 import { settlePaymentIntentPaid } from "@/lib/billing/topup";
+import { sendBillingEmail } from "@/lib/billing/emails";
 
 /* ── Public handler ──────────────────────────────────────────────── */
 
@@ -213,6 +214,24 @@ async function handleSubscriptionPayment(
     });
   }
 
+  // Send email notification (best effort)
+  try {
+    const ownerEmail = await getWorkspaceOwnerEmail(db, workspaceId);
+    if (ownerEmail) {
+      await sendBillingEmail({
+        to: ownerEmail.email,
+        type: isRenewal ? "subscription_renewed" : "subscription_activated",
+        data: {
+          workspaceName: ownerEmail.workspaceName,
+          planName: planCode,
+          amount: Number(metadata.amount_idr ?? 0),
+        },
+      });
+    }
+  } catch {
+    // Don't fail the webhook for email errors
+  }
+
   return {
     status: "paid",
     action: isRenewal ? "subscription_renewed" : "subscription_activated",
@@ -257,8 +276,54 @@ async function handleTokenTopup(
     status: result.status,
   });
 
+  // Send email notification (best effort)
+  if (result.status !== "already_paid") {
+    try {
+      const db = supabaseAdmin();
+      const ownerEmail = await getWorkspaceOwnerEmail(db, workspaceId);
+      if (ownerEmail) {
+        await sendBillingEmail({
+          to: ownerEmail.email,
+          type: "topup_success",
+          data: {
+            workspaceName: ownerEmail.workspaceName,
+            tokens: result.tokens,
+            amount: Number(metadata.amount_idr ?? 0),
+          },
+        });
+      }
+    } catch {
+      // Don't fail the webhook for email errors
+    }
+  }
+
   return {
     status: "paid",
     action: result.status === "already_paid" ? "already_credited" : "tokens_credited",
   };
+}
+
+/* ── Helper: resolve workspace owner email ─────────────────────── */
+
+async function getWorkspaceOwnerEmail(
+  db: ReturnType<typeof supabaseAdmin>,
+  workspaceId: string
+): Promise<{ email: string; workspaceName: string } | null> {
+  const { data: workspace } = await db
+    .from("workspaces")
+    .select("name, owner_id")
+    .eq("id", workspaceId)
+    .maybeSingle();
+
+  if (!workspace?.owner_id) return null;
+
+  const { data: profile } = await db
+    .from("profiles")
+    .select("email")
+    .eq("id", workspace.owner_id)
+    .maybeSingle();
+
+  if (!profile?.email) return null;
+
+  return { email: profile.email, workspaceName: workspace.name ?? "Your workspace" };
 }
