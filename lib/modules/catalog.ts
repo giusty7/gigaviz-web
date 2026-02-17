@@ -144,7 +144,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     short: "AI-powered creative suite: Office docs, Graph visuals, Tracks music.",
     description:
       "Creative and productivity studio powered by AI. Auto-generate business documents (Office), images and videos (Graph), and music and audio (Tracks) — all connected to your business data.",
-    status: "beta",
+    status: "available",
     icon: "studio",
     categories: ["Creative", "Productivity", "AI"],
     features: [
@@ -167,7 +167,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     short: "AI-powered document automation: Excel, Word, PDF, invoices, reports.",
     description:
       "Auto-generate business documents with AI. Create Excel spreadsheets, Word documents, PDF reports, invoices, and dashboards from your data — powered by Helper AI.",
-    status: "beta",
+    status: "available",
     icon: "office",
     categories: ["Productivity", "AI", "Operations"],
     features: [
@@ -192,7 +192,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     short: "AI image and video creation for business and marketing.",
     description:
       "Generate images, graphics, videos, and visual content with AI prompts. Create marketing materials, social media content, product visuals, and brand assets — powered by AI.",
-    status: "beta",
+    status: "available",
     icon: "studio",
     categories: ["Creative", "AI", "Marketing"],
     features: [
@@ -217,7 +217,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     short: "AI music and audio creation for content and branding.",
     description:
       "Create original music, jingles, sound effects, and audio content with AI. Perfect for ads, social media, podcasts, and brand audio identity.",
-    status: "beta",
+    status: "available",
     icon: "studio",
     categories: ["Creative", "AI", "Audio"],
     features: [

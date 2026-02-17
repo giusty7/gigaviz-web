@@ -15,6 +15,7 @@ import {
   generateMusicComposition,
   generateDashboardLayout,
 } from "@/lib/studio/ai-generate";
+import { persistImage } from "@/lib/studio/persist-image";
 
 /* ------------------------------------------------------------------ */
 /*  Schema                                                              */
@@ -233,13 +234,20 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
           validated.height
         );
 
-        // Update with generated image
+        // Persist image to Supabase Storage (DALL-E URLs expire)
+        const permanentUrl = await persistImage(
+          result.image_url,
+          workspaceId,
+          validated.image_id
+        );
+
+        // Update with persisted image URL
         const { error: updateErr } = await db
           .from("graph_images")
           .update({
             status: "completed",
-            image_url: result.image_url,
-            metadata_json: { revised_prompt: result.revised_prompt },
+            image_url: permanentUrl,
+            metadata_json: { revised_prompt: result.revised_prompt, original_url: result.image_url },
           })
           .eq("id", validated.image_id)
           .eq("workspace_id", workspaceId);
@@ -395,9 +403,20 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
       await db.from("tracks_music").update({ status: "failed" }).eq("id", validated.music_id).eq("workspace_id", workspaceId);
     }
 
+    // Determine user-friendly error message
+    const errMsg = err instanceof Error ? err.message : String(err);
+    const isConfigError = errMsg.includes("OPENAI_API_KEY") || errMsg.includes("API key");
+    const isRateLimit = errMsg.includes("rate_limit") || errMsg.includes("429");
+
+    const userMessage = isConfigError
+      ? "AI generation is temporarily unavailable. Our team has been notified."
+      : isRateLimit
+        ? "AI service is busy. Please try again in a moment."
+        : "AI generation failed. Please try again or contact support.";
+
     return NextResponse.json(
-      { error: "AI generation failed. Please check your OPENAI_API_KEY configuration." },
-      { status: 500 }
+      { error: userMessage },
+      { status: isRateLimit ? 429 : 500 }
     );
   }
 });

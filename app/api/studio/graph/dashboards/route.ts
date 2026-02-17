@@ -45,18 +45,29 @@ async function requireGraphAccess() {
   return hasAccess ? { ctx, db } : null;
 }
 
-export const GET = withErrorHandler(async () => {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const auth = await requireGraphAccess();
   if (!auth)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ctx, db } = auth;
-  const { data, error } = await db
+  const url = new URL(req.url);
+  const q = url.searchParams.get("q")?.trim() || "";
+  const page = Math.max(Number(url.searchParams.get("page") || 1), 1);
+  const limit = Math.min(Math.max(Number(url.searchParams.get("limit") || 20), 1), 100);
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  let query = db
     .from("graph_dashboards")
-    .select("id, title, slug, description, is_public, updated_at")
+    .select("id, title, slug, description, is_public, updated_at", { count: "exact" })
     .eq("workspace_id", ctx.currentWorkspace!.id)
     .order("updated_at", { ascending: false })
-    .limit(50);
+    .range(from, to);
+
+  if (q) query = query.ilike("title", `%${q}%`);
+
+  const { data, error, count } = await query;
 
   if (error) {
     logger.error("Failed to fetch dashboards", {
@@ -66,7 +77,7 @@ export const GET = withErrorHandler(async () => {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
-  return NextResponse.json({ data });
+  return NextResponse.json({ data, total: count ?? 0, page, limit });
 });
 
 export const POST = withErrorHandler(async (req: NextRequest) => {

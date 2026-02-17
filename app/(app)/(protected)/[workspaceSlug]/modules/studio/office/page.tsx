@@ -77,7 +77,7 @@ export default async function OfficeDocumentsPage({ params }: PageProps) {
     db
       .from("office_templates")
       .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
+      .or(`workspace_id.eq.${workspace.id},is_public.eq.true`),
   ]);
 
   const documents = docsResult.data ?? [];

@@ -49,8 +49,8 @@ export default async function OfficeTemplatesPage({ params }: PageProps) {
 
   const { data: templates } = await db
     .from("office_templates")
-    .select("id, title, slug, description, category, tags, usage_count, is_public")
-    .eq("workspace_id", workspace.id)
+    .select("id, title, slug, description, category, tags, usage_count, is_public, workspace_id")
+    .or(`workspace_id.eq.${workspace.id},is_public.eq.true`)
     .order("usage_count", { ascending: false })
     .limit(50);
 

@@ -87,7 +87,11 @@ const baseFeatures: FeatureKey[] = [
 
 const planFeatures: Record<string, FeatureKey[]> = {
   // ── New plan tiers ──
-  free: baseFeatures,
+  free: [
+    ...baseFeatures,
+    "office",
+    "studio",
+  ],
 
   starter: [
     ...baseFeatures,
@@ -98,6 +102,10 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "meta_webhooks",
     "helper",
     "office",
+    "graph",
+    "tracks",
+    "studio",
+    "studio_graph",
     "inbox",
   ],
 
@@ -113,6 +121,8 @@ const planFeatures: Record<string, FeatureKey[]> = {
     "office",
     "graph",
     "tracks",
+    "studio",
+    "studio_graph",
     "inbox",
     "automation",
     "member_invites",
@@ -173,7 +183,11 @@ const planFeatures: Record<string, FeatureKey[]> = {
   ],
 
   // ── Legacy plan IDs (resolve to canonical features) ──
-  free_locked: baseFeatures,
+  free_locked: [
+    ...baseFeatures,
+    "office",
+    "studio",
+  ],
   ind_starter: [
     ...baseFeatures,
     "core_os",

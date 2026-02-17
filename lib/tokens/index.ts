@@ -230,6 +230,24 @@ export async function getTokenOverview(
   };
 }
 
+/**
+ * Welcome token grants per plan tier.
+ * Seeded automatically on first wallet creation.
+ */
+const WELCOME_TOKENS: Record<string, number> = {
+  free: 500,
+  starter: 5_000,
+  growth: 25_000,
+  business: 50_000,
+  enterprise: 100_000,
+  // Legacy plans
+  free_locked: 500,
+  ind_starter: 5_000,
+  ind_pro: 25_000,
+  team_starter: 25_000,
+  team_pro: 50_000,
+};
+
 export async function getWallet(workspaceId: string) {
   const db = supabaseAdmin();
   const { data, error } = await db
@@ -241,13 +259,39 @@ export async function getWallet(workspaceId: string) {
   if (error) throw error;
   if (data) return data;
 
+  // Determine plan to seed welcome tokens
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  const planId = sub?.plan_id || "free";
+  const welcomeAmount = WELCOME_TOKENS[planId] ?? 500;
+
   const { data: created, error: createErr } = await db
     .from("token_wallets")
-    .insert({ workspace_id: workspaceId, balance_bigint: 0 })
+    .insert({ workspace_id: workspaceId, balance_bigint: welcomeAmount })
     .select("workspace_id, balance_bigint, updated_at")
     .single();
 
   if (createErr) throw createErr;
+
+  // Record the welcome grant in the ledger (best effort)
+  try {
+    await db.from("token_ledger").insert({
+      workspace_id: workspaceId,
+      tokens: welcomeAmount,
+      delta_bigint: welcomeAmount,
+      entry_type: "grant",
+      status: "completed",
+      reason: "welcome_tokens",
+      note: `Welcome tokens: ${welcomeAmount} tokens (plan: ${planId})`,
+    });
+  } catch {
+    // best effort — don't fail wallet creation if ledger insert fails
+  }
+
   return created;
 }
 

@@ -78,18 +78,18 @@ function buildSections(basePath: string, t: (key: string) => string): NavSection
     {
       label: t("sidebar.sections.office"),
       items: [
-        { id: "office", label: t("sidebar.nav.documents"), icon: FileText, href: `${basePath}/office`, badge: "beta" },
-        { id: "office-templates", label: t("sidebar.nav.templates"), icon: FolderOpen, href: `${basePath}/office/templates`, badge: "beta" },
-        { id: "office-new", label: t("sidebar.nav.newDocument"), icon: Plus, href: `${basePath}/office/new`, badge: "beta" },
+        { id: "office", label: t("sidebar.nav.documents"), icon: FileText, href: `${basePath}/office` },
+        { id: "office-templates", label: t("sidebar.nav.templates"), icon: FolderOpen, href: `${basePath}/office/templates` },
+        { id: "office-new", label: t("sidebar.nav.newDocument"), icon: Plus, href: `${basePath}/office/new` },
       ],
     },
     {
       label: t("sidebar.sections.graph"),
       items: [
-        { id: "graph", label: t("sidebar.nav.charts"), icon: BarChart3, href: `${basePath}/graph`, badge: "beta" },
-        { id: "graph-dashboards", label: t("sidebar.nav.dashboards"), icon: LayoutDashboard, href: `${basePath}/graph/dashboards`, badge: "beta" },
-        { id: "graph-images", label: t("sidebar.nav.aiImages"), icon: ImageIcon, href: `${basePath}/graph/images`, badge: "beta" },
-        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "beta" },
+        { id: "graph", label: t("sidebar.nav.charts"), icon: BarChart3, href: `${basePath}/graph` },
+        { id: "graph-dashboards", label: t("sidebar.nav.dashboards"), icon: LayoutDashboard, href: `${basePath}/graph/dashboards` },
+        { id: "graph-images", label: t("sidebar.nav.aiImages"), icon: ImageIcon, href: `${basePath}/graph/images`, badge: "new" },
+        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "new" },
       ],
     },
     {
@@ -97,7 +97,7 @@ function buildSections(basePath: string, t: (key: string) => string): NavSection
       items: [
         { id: "tracks", label: t("sidebar.nav.workflows"), icon: Workflow, href: `${basePath}/tracks`, badge: "beta" },
         { id: "tracks-runs", label: t("sidebar.nav.runHistory"), icon: HistoryIcon, href: `${basePath}/tracks/runs`, badge: "beta" },
-        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "beta" },
+        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "new" },
       ],
     },
   ];

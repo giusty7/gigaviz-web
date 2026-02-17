@@ -42,12 +42,12 @@ export const POST = withErrorHandler(
       return NextResponse.json({ error: "Feature not available" }, { status: 403 });
     }
 
-    // Fetch template
+    // Fetch template (own workspace OR public templates)
     const { data: template, error: fetchErr } = await db
       .from("office_templates")
       .select("*")
       .eq("id", templateId)
-      .eq("workspace_id", workspaceId)
+      .or(`workspace_id.eq.${workspaceId},is_public.eq.true`)
       .single();
 
     if (fetchErr || !template) {
