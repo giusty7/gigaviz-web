@@ -89,7 +89,7 @@ function buildSections(basePath: string, t: (key: string) => string): NavSection
         { id: "graph", label: t("sidebar.nav.charts"), icon: BarChart3, href: `${basePath}/graph` },
         { id: "graph-dashboards", label: t("sidebar.nav.dashboards"), icon: LayoutDashboard, href: `${basePath}/graph/dashboards` },
         { id: "graph-images", label: t("sidebar.nav.aiImages"), icon: ImageIcon, href: `${basePath}/graph/images`, badge: "new" },
-        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "new" },
+        { id: "graph-videos", label: t("sidebar.nav.aiVideos"), icon: VideoIcon, href: `${basePath}/graph/videos`, badge: "beta" },
       ],
     },
     {
@@ -97,7 +97,7 @@ function buildSections(basePath: string, t: (key: string) => string): NavSection
       items: [
         { id: "tracks", label: t("sidebar.nav.workflows"), icon: Workflow, href: `${basePath}/tracks`, badge: "beta" },
         { id: "tracks-runs", label: t("sidebar.nav.runHistory"), icon: HistoryIcon, href: `${basePath}/tracks/runs`, badge: "beta" },
-        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "new" },
+        { id: "tracks-music", label: t("sidebar.nav.aiMusic"), icon: MusicIcon, href: `${basePath}/tracks/music`, badge: "beta" },
       ],
     },
   ];

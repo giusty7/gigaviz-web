@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { VideoIcon, ArrowLeft, Clock, Tag, Monitor, Timer } from "lucide-react";
+import { VideoIcon, ArrowLeft, Clock, Tag, Monitor, Timer, Info } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { VideoActions } from "@/components/studio/VideoActions";
@@ -103,6 +103,14 @@ export default async function VideoDetailPage({ params }: PageProps) {
           ))}
         </div>
       )}
+
+      {/* Beta Banner */}
+      <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+        <Info className="h-4 w-4 mt-0.5 shrink-0 text-amber-400" />
+        <p className="text-xs text-amber-300/80 leading-relaxed">
+          {t("videos.previewBanner")}
+        </p>
+      </div>
 
       {/* Video Preview / Storyboard */}
       {video.video_url ? (

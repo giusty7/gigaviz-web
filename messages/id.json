@@ -1470,15 +1470,15 @@
         },
         "graph": {
           "name": "Graph",
-          "description": "Buat grafik, dashboard, gambar AI, dan konten video untuk pemasaran dan analitik.",
+          "description": "Buat grafik, dashboard, gambar AI (DALL-E), dan rencanakan storyboard video dengan AI.",
           "statLabel": "Grafik",
-          "features": ["Pembuat grafik", "Desainer dashboard", "Pembuatan gambar AI"]
+          "features": ["Pembuat grafik", "Desainer dashboard", "Pembuatan gambar AI", "Perencana storyboard video (Beta)"]
         },
         "tracks": {
           "name": "Tracks",
-          "description": "Bangun alur kerja otomatis, pemicu, dan pembuatan audio AI untuk kampanye pemasaran.",
+          "description": "Bangun alur kerja otomatis dan rencanakan komposisi musik AI dengan analisis struktur dan mood.",
           "statLabel": "Alur Kerja",
-          "features": ["Otomasi alur kerja", "Riwayat eksekusi", "Musik & audio AI"]
+          "features": ["Otomasi alur kerja", "Riwayat eksekusi", "Perencana komposisi musik AI (Beta)"]
         }
       },
       "integrations": {
@@ -1518,10 +1518,10 @@
         "charts": "Grafik",
         "dashboards": "Dashboard",
         "aiImages": "Gambar AI",
-        "aiVideos": "Video AI",
+        "aiVideos": "Perencana Video",
         "workflows": "Alur Kerja",
         "runHistory": "Riwayat Eksekusi",
-        "aiMusic": "Musik AI"
+        "aiMusic": "Komposer Musik"
       },
       "badges": {
         "new": "Baru",
@@ -1777,82 +1777,84 @@
       }
     },
     "videos": {
-      "title": "AI Video",
-      "description": "Buat video profesional dengan AI — klip pemasaran, explainer, demo produk, dan konten sosial.",
-      "newVideo": "Video Baru",
+      "title": "AI Perencana Video",
+      "description": "Rencanakan storyboard video profesional dengan AI — breakdown scene, naskah narasi, arahan visual, dan saran musik.",
+      "previewBanner": "Beta — AI menghasilkan storyboard, naskah, dan rencana scene. Rendering video sungguhan segera hadir.",
+      "newVideo": "Storyboard Baru",
       "stats": {
-        "videos": "Video",
+        "videos": "Storyboard",
         "totalDuration": "Total Durasi",
-        "generated": "Dihasilkan"
+        "generated": "Direncanakan"
       },
-      "yourVideos": "Video Anda",
-      "emptyTitle": "Belum ada video",
-      "emptyDescription": "Buat video AI pertama Anda untuk memulai.",
-      "lockedTitle": "AI Video terkunci",
-      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat video dan animasi bertenaga AI.",
-      "backLink": "Video",
+      "yourVideos": "Storyboard Anda",
+      "emptyTitle": "Belum ada storyboard",
+      "emptyDescription": "Buat storyboard video AI pertama Anda untuk mulai merencanakan.",
+      "lockedTitle": "AI Perencana Video terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk merencanakan storyboard video bertenaga AI.",
+      "backLink": "Storyboard",
       "new": {
-        "title": "Video AI Baru",
-        "description": "Pilih gaya video dan deskripsikan konten Anda.",
+        "title": "Storyboard Video AI Baru",
+        "description": "Deskripsikan konsep video Anda dan AI akan membuat storyboard detail dengan scene, naskah, dan catatan produksi.",
         "styleLabel": "Gaya Video",
         "titleLabel": "Judul",
         "titlePlaceholder": "mis. Teaser Peluncuran Produk",
         "aiPromptLabel": "Prompt AI",
-        "aiPromptPlaceholder": "Deskripsikan video yang ingin Anda hasilkan dengan AI...",
-        "durationLabel": "Durasi (detik)",
-        "resolutionLabel": "Resolusi",
+        "aiPromptPlaceholder": "Deskripsikan konsep video — AI akan merencanakan scene, menulis naskah, dan menyarankan musik...",
+        "durationLabel": "Target Durasi (detik)",
+        "resolutionLabel": "Target Resolusi",
         "descriptionLabel": "Deskripsi (Opsional)",
-        "descriptionPlaceholder": "Catatan internal tentang video ini...",
-        "createButton": "Buat Video"
+        "descriptionPlaceholder": "Catatan internal tentang storyboard ini...",
+        "createButton": "Buat Storyboard"
       },
       "detail": {
         "aiPromptLabel": "Prompt AI:",
-        "generationPending": "Video akan muncul di sini setelah pembuatan selesai.",
-        "noVideo": "Belum ada video yang dihasilkan",
-        "noVideoHint": "Tambahkan prompt dan hasilkan video AI Anda."
+        "generationPending": "Storyboard akan muncul di sini setelah perencanaan AI selesai.",
+        "noVideo": "Belum ada storyboard yang dihasilkan",
+        "noVideoHint": "Tambahkan prompt dan AI akan membuat storyboard detail."
       },
       "actions": {
-        "editVideo": "Edit Video",
-        "titlePlaceholder": "Judul video..."
+        "editVideo": "Edit Storyboard",
+        "titlePlaceholder": "Judul storyboard..."
       }
     },
     "music": {
-      "title": "AI Musik",
-      "description": "Komposisi musik orisinal, jingle, intro podcast, dan efek suara dengan AI.",
-      "newTrack": "Track Baru",
+      "title": "AI Komposer Musik",
+      "description": "Rencanakan komposisi musik orisinal dengan AI — struktur, instrumen, mood, dan catatan produksi dengan preview waveform.",
+      "previewBanner": "Beta — AI menghasilkan rencana komposisi dan preview waveform. Rendering audio sungguhan segera hadir.",
+      "newTrack": "Komposisi Baru",
       "stats": {
-        "tracks": "Track",
+        "tracks": "Komposisi",
         "totalDuration": "Total Durasi",
-        "generated": "Dihasilkan"
+        "generated": "Dikomposisi"
       },
-      "yourTracks": "Track Anda",
-      "emptyTitle": "Belum ada track",
-      "emptyDescription": "Buat track musik AI pertama Anda untuk memulai.",
-      "lockedTitle": "AI Musik terkunci",
-      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk membuat musik dan audio bertenaga AI.",
-      "backLink": "Musik",
+      "yourTracks": "Komposisi Anda",
+      "emptyTitle": "Belum ada komposisi",
+      "emptyDescription": "Buat komposisi musik AI pertama Anda untuk mulai merencanakan.",
+      "lockedTitle": "AI Komposer Musik terkunci",
+      "lockedDescription": "Upgrade ke paket Growth atau lebih tinggi untuk merencanakan komposisi musik bertenaga AI.",
+      "backLink": "Komposisi",
       "new": {
-        "title": "Track Musik AI Baru",
-        "description": "Pilih genre dan deskripsikan audio yang ingin Anda hasilkan.",
+        "title": "Komposisi AI Baru",
+        "description": "Pilih genre dan deskripsikan musik Anda — AI akan merencanakan struktur, instrumen, mood, dan membuat preview waveform.",
         "genreLabel": "Genre",
         "titleLabel": "Judul",
         "titlePlaceholder": "mis. Jingle Brand untuk Kampanye",
         "aiPromptLabel": "Prompt AI",
-        "aiPromptPlaceholder": "Deskripsikan musik yang ingin Anda buat...",
-        "durationLabel": "Durasi (detik)",
+        "aiPromptPlaceholder": "Deskripsikan musik yang Anda inginkan — AI akan merencanakan struktur, instrumen, dan mood...",
+        "durationLabel": "Target Durasi (detik)",
         "bpmLabel": "BPM",
-        "formatLabel": "Format Output",
-        "createButton": "Buat Track"
+        "formatLabel": "Target Format",
+        "createButton": "Buat Komposisi"
       },
       "detail": {
         "aiPromptLabel": "Prompt AI:",
-        "generationPending": "Audio akan muncul di sini setelah pembuatan selesai.",
-        "noAudio": "Belum ada audio yang dihasilkan",
-        "noAudioHint": "Tambahkan prompt dan hasilkan track musik AI Anda."
+        "generationPending": "Rencana komposisi akan muncul di sini setelah perencanaan AI selesai.",
+        "noAudio": "Belum ada rencana komposisi",
+        "noAudioHint": "Tambahkan prompt dan AI akan merencanakan komposisi musik Anda."
       },
       "actions": {
         "editTrack": "Edit",
-        "titlePlaceholder": "Judul track..."
+        "titlePlaceholder": "Judul komposisi..."
       }
     }
   }

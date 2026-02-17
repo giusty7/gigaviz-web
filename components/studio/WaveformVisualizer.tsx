@@ -113,8 +113,11 @@ export function WaveformVisualizer({
   return (
     <div className={`rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 ${className}`}>
       {title && (
-        <h4 className="mb-3 text-xs font-semibold text-[#f5f5dc]/50">{title}</h4>
+        <h4 className="mb-1 text-xs font-semibold text-[#f5f5dc]/50">{title}</h4>
       )}
+      <p className="mb-3 text-[10px] text-[#f5f5dc]/30 italic">
+        AI-generated composition preview. Real audio rendering coming soon.
+      </p>
 
       {/* Waveform */}
       <div className="mb-4 overflow-hidden rounded-lg bg-[#0a1229]/60 p-3">

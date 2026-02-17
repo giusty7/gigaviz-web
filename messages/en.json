@@ -1470,15 +1470,15 @@
         },
         "graph": {
           "name": "Graph",
-          "description": "Create charts, dashboards, AI images, and video content for marketing and analytics.",
+          "description": "Create charts, dashboards, AI images (DALL-E), and plan video storyboards with AI.",
           "statLabel": "Charts",
-          "features": ["Chart builder", "Dashboard designer", "AI image generation"]
+          "features": ["Chart builder", "Dashboard designer", "AI image generation", "Video storyboard planner (Beta)"]
         },
         "tracks": {
           "name": "Tracks",
-          "description": "Build automated workflows, triggers, and AI audio creation for marketing campaigns.",
+          "description": "Build automated workflows and plan AI music compositions with structure and mood analysis.",
           "statLabel": "Workflows",
-          "features": ["Workflow automation", "Run history", "AI music & audio"]
+          "features": ["Workflow automation", "Run history", "AI music composition planner (Beta)"]
         }
       },
       "integrations": {
@@ -1518,10 +1518,10 @@
         "charts": "Charts",
         "dashboards": "Dashboards",
         "aiImages": "AI Images",
-        "aiVideos": "AI Videos",
+        "aiVideos": "Video Planner",
         "workflows": "Workflows",
         "runHistory": "Run History",
-        "aiMusic": "AI Music"
+        "aiMusic": "Music Composer"
       },
       "badges": {
         "new": "New",
@@ -1777,82 +1777,84 @@
       }
     },
     "videos": {
-      "title": "AI Videos",
-      "description": "Create professional videos with AI — marketing clips, explainers, product demos, and social content.",
-      "newVideo": "New Video",
+      "title": "AI Video Planner",
+      "description": "Plan professional video storyboards with AI — scene breakdowns, narration scripts, visual direction, and music suggestions.",
+      "previewBanner": "Beta — AI generates storyboards, scripts, and scene plans. Real video rendering coming soon.",
+      "newVideo": "New Storyboard",
       "stats": {
-        "videos": "Videos",
+        "videos": "Storyboards",
         "totalDuration": "Total Duration",
-        "generated": "Generated"
+        "generated": "Planned"
       },
-      "yourVideos": "Your Videos",
-      "emptyTitle": "No videos yet",
-      "emptyDescription": "Create your first AI-generated video to get started.",
-      "lockedTitle": "AI Videos is locked",
-      "lockedDescription": "Upgrade to Growth plan or above to generate AI-powered videos and animations.",
-      "backLink": "Videos",
+      "yourVideos": "Your Storyboards",
+      "emptyTitle": "No storyboards yet",
+      "emptyDescription": "Create your first AI video storyboard to start planning.",
+      "lockedTitle": "AI Video Planner is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to plan AI-powered video storyboards.",
+      "backLink": "Storyboards",
       "new": {
-        "title": "New AI Video",
-        "description": "Choose a video style and describe your content.",
+        "title": "New AI Video Storyboard",
+        "description": "Describe your video concept and AI will generate a detailed storyboard with scenes, script, and production notes.",
         "styleLabel": "Video Style",
         "titleLabel": "Title",
         "titlePlaceholder": "e.g. Product Launch Teaser",
         "aiPromptLabel": "AI Prompt",
-        "aiPromptPlaceholder": "Describe the video you want AI to generate...",
-        "durationLabel": "Duration (seconds)",
-        "resolutionLabel": "Resolution",
+        "aiPromptPlaceholder": "Describe the video concept — AI will plan scenes, write a script, and suggest music...",
+        "durationLabel": "Target Duration (seconds)",
+        "resolutionLabel": "Target Resolution",
         "descriptionLabel": "Description (Optional)",
-        "descriptionPlaceholder": "Internal notes about this video...",
-        "createButton": "Create Video"
+        "descriptionPlaceholder": "Internal notes about this storyboard...",
+        "createButton": "Create Storyboard"
       },
       "detail": {
         "aiPromptLabel": "AI Prompt:",
-        "generationPending": "Video will appear here once generation is complete.",
-        "noVideo": "No video generated yet",
-        "noVideoHint": "Add a prompt and generate your AI video."
+        "generationPending": "Storyboard will appear here once AI planning is complete.",
+        "noVideo": "No storyboard generated yet",
+        "noVideoHint": "Add a prompt and AI will generate a detailed storyboard."
       },
       "actions": {
-        "editVideo": "Edit Video",
-        "titlePlaceholder": "Video title..."
+        "editVideo": "Edit Storyboard",
+        "titlePlaceholder": "Storyboard title..."
       }
     },
     "music": {
-      "title": "AI Music",
-      "description": "Compose original music tracks, jingles, podcast intros, and sound effects with AI.",
-      "newTrack": "New Track",
+      "title": "AI Music Composer",
+      "description": "Plan original music compositions with AI — structure, instruments, mood, and production notes with waveform preview.",
+      "previewBanner": "Beta — AI generates composition plans and waveform previews. Real audio rendering coming soon.",
+      "newTrack": "New Composition",
       "stats": {
-        "tracks": "Tracks",
+        "tracks": "Compositions",
         "totalDuration": "Total Duration",
-        "generated": "Generated"
+        "generated": "Composed"
       },
-      "yourTracks": "Your Tracks",
-      "emptyTitle": "No tracks yet",
-      "emptyDescription": "Create your first AI music track to get started.",
-      "lockedTitle": "AI Music is locked",
-      "lockedDescription": "Upgrade to Growth plan or above to compose AI-powered music and audio.",
-      "backLink": "Music",
+      "yourTracks": "Your Compositions",
+      "emptyTitle": "No compositions yet",
+      "emptyDescription": "Create your first AI music composition to start planning.",
+      "lockedTitle": "AI Music Composer is locked",
+      "lockedDescription": "Upgrade to Growth plan or above to plan AI-powered music compositions.",
+      "backLink": "Compositions",
       "new": {
-        "title": "New AI Music Track",
-        "description": "Choose a genre and describe the audio you want to generate.",
+        "title": "New AI Composition",
+        "description": "Choose a genre and describe your music — AI will plan the structure, instruments, mood, and generate a waveform preview.",
         "genreLabel": "Genre",
         "titleLabel": "Title",
         "titlePlaceholder": "e.g. Brand Jingle for Campaign",
         "aiPromptLabel": "AI Prompt",
-        "aiPromptPlaceholder": "Describe the music you want to create...",
-        "durationLabel": "Duration (seconds)",
+        "aiPromptPlaceholder": "Describe the music you want — AI will plan structure, instruments, and mood...",
+        "durationLabel": "Target Duration (seconds)",
         "bpmLabel": "BPM",
-        "formatLabel": "Output Format",
-        "createButton": "Create Track"
+        "formatLabel": "Target Format",
+        "createButton": "Create Composition"
       },
       "detail": {
         "aiPromptLabel": "AI Prompt:",
-        "generationPending": "Audio will appear here once generation is complete.",
-        "noAudio": "No audio generated yet",
-        "noAudioHint": "Add a prompt and generate your AI music track."
+        "generationPending": "Composition plan will appear here once AI planning is complete.",
+        "noAudio": "No composition plan yet",
+        "noAudioHint": "Add a prompt and AI will plan your music composition."
       },
       "actions": {
         "editTrack": "Edit",
-        "titlePlaceholder": "Track title..."
+        "titlePlaceholder": "Composition title..."
       }
     }
   }

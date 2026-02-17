@@ -41,13 +41,18 @@ export function VideoStoryboard({
       <div className="flex items-center gap-3">
         <Film className="h-5 w-5 text-purple-400" />
         <h3 className="text-sm font-semibold text-[#f5f5dc]/70">
-          Storyboard — {storyboard.length} scenes
+          AI Storyboard — {storyboard.length} scenes
         </h3>
         <span className="ml-auto flex items-center gap-1 text-xs text-[#f5f5dc]/40">
           <Clock className="h-3 w-3" />
           {totalDuration}s total
         </span>
       </div>
+
+      {/* Beta Note */}
+      <p className="text-[10px] text-[#f5f5dc]/30 italic">
+        AI-generated scene plan. Use this storyboard to guide real video production.
+      </p>
 
       {/* Timeline Bar */}
       <div className="flex h-2 overflow-hidden rounded-full bg-[#0a1229]/60">

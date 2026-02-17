@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { VideoIcon, Plus, Sparkles, Film, Clock } from "lucide-react";
+import { VideoIcon, Plus, Sparkles, Film, Clock, Info } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
@@ -83,6 +83,14 @@ export default async function GraphVideosPage({ params }: PageProps) {
           <Plus className="h-4 w-4" />
           {t("videos.newVideo")}
         </Link>
+      </div>
+
+      {/* Beta Banner */}
+      <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+        <Info className="h-4 w-4 mt-0.5 shrink-0 text-amber-400" />
+        <p className="text-xs text-amber-300/80 leading-relaxed">
+          {t("videos.previewBanner")}
+        </p>
       </div>
 
       {/* Stats */}
