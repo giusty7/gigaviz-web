@@ -89,6 +89,29 @@ const typeToTokenAction: Record<string, keyof typeof tokenRates> = {
 };
 
 /* ------------------------------------------------------------------ */
+/*  Entity table + ID mapping                                           */
+/* ------------------------------------------------------------------ */
+
+const typeToTable: Record<string, string> = {
+  document: "office_documents",
+  image: "graph_images",
+  chart: "graph_charts",
+  video: "graph_videos",
+  music: "tracks_music",
+  dashboard: "graph_dashboards",
+};
+
+function getEntityId(validated: z.infer<typeof generateSchema>): string {
+  if ("document_id" in validated) return validated.document_id;
+  if ("image_id" in validated) return validated.image_id;
+  if ("chart_id" in validated) return validated.chart_id;
+  if ("video_id" in validated) return validated.video_id;
+  if ("music_id" in validated) return validated.music_id;
+  if ("dashboard_id" in validated) return validated.dashboard_id;
+  throw new Error("Unknown entity type");
+}
+
+/* ------------------------------------------------------------------ */
 /*  Handler                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -125,6 +148,25 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     return NextResponse.json({ error: "Feature not available" }, { status: 403 });
   }
 
+  // Verify entity exists and belongs to workspace BEFORE consuming tokens
+  const table = typeToTable[validated.type];
+  const entityId = getEntityId(validated);
+  const { data: entity, error: entityErr } = await db
+    .from(table)
+    .select("id")
+    .eq("id", entityId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+
+  if (entityErr || !entity) {
+    logger.warn("Generate called for non-existent entity", {
+      type: validated.type,
+      entityId,
+      workspace: workspaceId,
+    });
+    return NextResponse.json({ error: "Entity not found" }, { status: 404 });
+  }
+
   // Deduct tokens
   const tokenAction = typeToTokenAction[validated.type];
   const cost = tokenRates[tokenAction].tokens;
@@ -133,7 +175,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     await consumeTokens(workspaceId, cost, {
       feature_key: feature,
       ref_type: `studio_${validated.type}`,
-      ref_id: "type" in validated ? getRefId(validated) : undefined,
+      ref_id: entityId,
       note: `AI generation: ${validated.type}`,
       created_by: userId,
     });
@@ -359,13 +401,3 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     );
   }
 });
-
-function getRefId(validated: z.infer<typeof generateSchema>): string | undefined {
-  if ("document_id" in validated) return validated.document_id;
-  if ("image_id" in validated) return validated.image_id;
-  if ("chart_id" in validated) return validated.chart_id;
-  if ("video_id" in validated) return validated.video_id;
-  if ("music_id" in validated) return validated.music_id;
-  if ("dashboard_id" in validated) return validated.dashboard_id;
-  return undefined;
-}
