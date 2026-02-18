@@ -137,26 +137,31 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
   };
 
   return (
-    <div className="flex h-[calc(100vh-200px)] gap-4">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-200px)] gap-4">
       {/* Sidebar - Thread List */}
-      <div className="w-1/3 flex flex-col gap-4 bg-[#1a1a1a] border border-[#d4af37]/20 rounded-lg p-4">
+      <div className={cn(
+        "flex flex-col gap-4 bg-card border border-border rounded-lg p-4",
+        "w-full md:w-1/3",
+        selectedThread ? "hidden md:flex" : "flex"
+      )}>
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#f9d976]">{t("unifiedInbox")}</h2>
+            <h2 className="text-xl font-bold text-accent">{t("unifiedInbox")}</h2>
             <Button
               variant="outline"
               size="sm"
               onClick={fetchThreads}
               disabled={loading}
-              className="border-[#d4af37]/30"
+              className="border-accent/30"
+              aria-label={t("refresh")}
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("refresh")}
             </Button>
           </div>
 
           {/* Channel Selector */}
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
             {(["all", "whatsapp", "instagram", "messenger"] as Channel[]).map((channel) => (
               <Button
                 key={channel}
@@ -164,8 +169,8 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                 size="sm"
                 onClick={() => setSelectedChannel(channel)}
                 className={cn(
-                  "flex-1",
-                  selectedChannel === channel && "bg-[#d4af37] text-[#0a0a0a]"
+                  "sm:flex-1",
+                  selectedChannel === channel && "bg-accent text-accent-foreground"
                 )}
               >
                 {channel !== "all" && getChannelIcon(channel)}
@@ -175,7 +180,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
           </div>
 
           {/* Status Filter */}
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
             {(["open", "pending", "resolved", "all"] as ThreadStatus[]).map((status) => (
               <Button
                 key={status}
@@ -183,8 +188,8 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                 size="sm"
                 onClick={() => setSelectedStatus(status)}
                 className={cn(
-                  "flex-1 text-xs",
-                  selectedStatus === status && "bg-[#d4af37]/20 text-[#d4af37]"
+                  "sm:flex-1 text-xs",
+                  selectedStatus === status && "bg-accent/20 text-accent"
                 )}
               >
                 {t(`status${status.charAt(0).toUpperCase()}${status.slice(1)}` as "statusAll" | "statusOpen" | "statusPending" | "statusResolved")}
@@ -194,12 +199,12 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-[#0a0a0a] border-[#d4af37]/30"
+              className="pl-10 bg-background border-accent/30"
             />
           </div>
         </div>
@@ -208,10 +213,10 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
         <div className="flex-1 overflow-y-auto space-y-2">
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="h-6 w-6 animate-spin text-[#d4af37]" />
+              <Loader2 className="h-6 w-6 animate-spin text-accent" />
             </div>
           ) : filteredThreads.length === 0 ? (
-            <div className="text-center py-8 text-[#f5f5dc]/60">
+            <div className="text-center py-8 text-muted-foreground">
               <p>{t("noConversations")}</p>
             </div>
           ) : (
@@ -225,8 +230,8 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                   className={cn(
                     "p-3 rounded-lg border cursor-pointer transition-all",
                     selectedThread?.id === thread.id
-                      ? "bg-[#d4af37]/10 border-[#d4af37]"
-                      : "bg-[#0a0a0a] border-[#d4af37]/20 hover:border-[#d4af37]/40"
+                      ? "bg-accent/10 border-accent"
+                      : "bg-background border-border hover:border-accent/40"
                   )}
                   onClick={() => setSelectedThread(thread)}
                 >
@@ -237,21 +242,21 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium text-[#f5f5dc] truncate">
+                          <p className="font-medium text-foreground truncate">
                             {thread.contact_name}
                           </p>
                           {thread.unread_count > 0 && (
-                            <span className="flex-shrink-0 px-2 py-0.5 bg-[#d4af37] text-[#0a0a0a] text-xs rounded-full">
+                            <span className="flex-shrink-0 px-2 py-0.5 bg-accent text-accent-foreground text-xs rounded-full">
                               {thread.unread_count}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#f5f5dc]/60 truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           {thread.last_message_preview || "No messages yet"}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-[#f5f5dc]/40 flex-shrink-0">
+                    <span className="text-xs text-muted-foreground/60 flex-shrink-0">
                       {formatTime(thread.last_message_at)}
                     </span>
                   </div>
@@ -260,7 +265,7 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                       {thread.tags.slice(0, 3).map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 bg-[#d4af37]/20 text-[#d4af37] text-xs rounded"
+                          className="px-2 py-0.5 bg-accent/20 text-accent text-xs rounded"
                         >
                           {tag}
                         </span>
@@ -275,17 +280,30 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
       </div>
 
       {/* Main Panel - Thread Detail */}
-      <div className="flex-1 bg-[#1a1a1a] border border-[#d4af37]/20 rounded-lg p-6">
+      <div className={cn(
+        "bg-card border border-border rounded-lg p-4 sm:p-6",
+        "w-full md:flex-1",
+        selectedThread ? "flex flex-col" : "hidden md:flex"
+      )}>
         {selectedThread ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-4">
+            {/* Mobile back button */}
+            <button
+              type="button"
+              onClick={() => setSelectedThread(null)}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition md:hidden"
+              aria-label="Back to thread list"
+            >
+              ← {t("refresh")}
+            </button>
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-lg bg-[#0a0a0a]", getChannelColor(selectedThread.channel))}>
+                <div className={cn("p-2 rounded-lg bg-background", getChannelColor(selectedThread.channel))}>
                   {getChannelIcon(selectedThread.channel)}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-[#f5f5dc]">{selectedThread.contact_name}</h3>
-                  <p className="text-sm text-[#f5f5dc]/60">{selectedThread.contact_identifier}</p>
+                  <h3 className="text-lg font-bold text-foreground">{selectedThread.contact_name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedThread.contact_identifier}</p>
                 </div>
               </div>
               <Button
@@ -299,20 +317,20 @@ export function UnifiedInboxClient({ workspaceId, workspaceSlug }: UnifiedInboxC
                     : "messenger/threads";
                   window.location.href = `/${workspaceSlug}/meta-hub/${channelPath}?thread=${selectedThread.id}`;
                 }}
-                className="border-[#d4af37]/30"
+                className="border-accent/30"
               >
                 {t("openInChannel", { channel: selectedThread.channel })}
               </Button>
             </div>
-            <div className="text-center text-[#f5f5dc]/60 py-12">
+            <div className="text-center text-muted-foreground py-12">
               <p>{t("selectThread")}</p>
               <p className="text-sm mt-2">{t("clickOpenHint")}</p>
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-[#f5f5dc]/60">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             <div className="text-center">
-              <MessageSquare className="h-16 w-16 mx-auto mb-4 text-[#d4af37]/40" />
+              <MessageSquare className="h-16 w-16 mx-auto mb-4 text-accent/40" />
               <p className="text-lg">{t("selectConversation")}</p>
             </div>
           </div>

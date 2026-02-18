@@ -6,6 +6,7 @@ import { motion, type Variants } from "framer-motion";
 import { AlertTriangle, ExternalLink, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import {
   RadarHeader,
   MetricsCards,
@@ -89,6 +90,7 @@ export function ImperiumWebhooksClient({
   webhookTestEnvMissing = [],
 }: ImperiumWebhooksClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("metaHubUI.webhooksClient");
   const { toast } = useToast();
 
   // State
@@ -111,10 +113,10 @@ export function ImperiumWebhooksClient({
   const avgLatency: number | null = null;
 
   const isListening = hasToken && Boolean(phoneNumberId);
-  const alertTitle = hasToken ? "Connection Missing" : "Token Missing";
+  const alertTitle = hasToken ? t("tokenWarning") : t("tokenMissing");
   const alertDescription = hasToken
-    ? "Add a WhatsApp phone number connection to start listening for events."
-    : "Configure your WhatsApp connection to receive webhook events.";
+    ? t("tokenWarningDesc")
+    : t("tokenMissingDesc");
 
   // Filter events
   const filteredEvents = useMemo(() => {
@@ -156,14 +158,14 @@ export function ImperiumWebhooksClient({
       setStats(data.stats ?? { total24h: 0, errors24h: 0, lastEventAt: null });
     } catch (err) {
       toast({
-        title: "Failed to refresh",
-        description: err instanceof Error ? err.message : "Error loading events",
+        title: t("refreshFailed"),
+        description: err instanceof Error ? err.message : t("refreshFailed"),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   // Auto-refresh
   useEffect(() => {
@@ -185,7 +187,7 @@ export function ImperiumWebhooksClient({
   const handleTestPing = useCallback(async () => {
     if (webhookTestEnvMissing.length > 0) {
       toast({
-        title: "Missing environment variables",
+        title: t("missingEnvVars"),
         description: `Set one of ${webhookTestEnvMissing.join(", ")} to enable webhook tests.`,
         variant: "destructive",
       });
@@ -193,8 +195,8 @@ export function ImperiumWebhooksClient({
     }
     if (!canTest) {
       toast({
-        title: "Access denied",
-        description: "Admin access is required to run webhook tests.",
+        title: t("accessDenied"),
+        description: t("adminRequired"),
         variant: "destructive",
       });
       return;
@@ -211,19 +213,19 @@ export function ImperiumWebhooksClient({
         throw new Error(data?.message || data?.reason || "Webhook test failed");
       }
       toast({
-        title: "Ping successful",
-        description: "Webhook endpoint verified.",
+        title: t("pingSuccess"),
+        description: t("pingSuccessDesc"),
       });
     } catch (err) {
       toast({
-        title: "Ping failed",
-        description: err instanceof Error ? err.message : "Could not reach webhook endpoint.",
+        title: t("pingFailed"),
+        description: err instanceof Error ? err.message : t("pingFailedDesc"),
         variant: "destructive",
       });
     } finally {
       setTestingPing(false);
     }
-  }, [toast, workspaceId, canTest, webhookTestEnvMissing]);
+  }, [toast, workspaceId, canTest, webhookTestEnvMissing, t]);
 
   // Copy handler
   const handleCopy = useCallback(
@@ -269,15 +271,15 @@ export function ImperiumWebhooksClient({
           <div>
             <div className="mb-2 flex items-center gap-3">
               <span className="rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-xs font-semibold tracking-wider text-[#f9d976]">
-                PILLAR #2
+                {t("badge")}
               </span>
-              <span className="text-xs text-[#f5f5dc]/50">Real-Time Listening Post</span>
+              <span className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-[#f5f5dc]">
-              Webhook Monitor
+              {t("heading")}
             </h1>
             <p className="mt-2 text-sm text-[#f5f5dc]/60">
-              {displayName ?? "WhatsApp"} - Real-time event monitoring and debugging
+              {displayName ?? "WhatsApp"} - {t("description")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -293,7 +295,7 @@ export function ImperiumWebhooksClient({
               ) : (
                 <RefreshCw className="h-4 w-4" />
               )}
-              Refresh
+              {t("refresh")}
             </Button>
           </div>
         </motion.div>
@@ -316,7 +318,7 @@ export function ImperiumWebhooksClient({
                 className="border-[#e11d48]/50 text-[#e11d48] hover:bg-[#e11d48]/20"
               >
                 <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                Open Connections
+                {t("configGuide")}
               </Button>
             </Link>
           </motion.div>
@@ -337,7 +339,7 @@ export function ImperiumWebhooksClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-[#d4af37]">
-              HEALTH &amp; PERFORMANCE
+              {t("healthPerformance")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
           </div>
@@ -361,11 +363,11 @@ export function ImperiumWebhooksClient({
               />
               {webhookTestEnvMissing.length > 0 && (
                 <p className="text-xs text-[#f5f5dc]/50">
-                  Missing env: {webhookTestEnvMissing.join(", ")}
+                  {t("missingEnv", { vars: webhookTestEnvMissing.join(", ") })}
                 </p>
               )}
               {!canTest && (
-                <p className="text-xs text-[#f5f5dc]/50">Admin access required</p>
+                <p className="text-xs text-[#f5f5dc]/50">{t("adminAccess")}</p>
               )}
             </div>
           </div>
@@ -376,7 +378,7 @@ export function ImperiumWebhooksClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-[#d4af37]">
-              LIVE EVENT STREAM
+              {t("liveEventStream")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
           </div>

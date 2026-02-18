@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   ResponsiveContainer,
   BarChart,
@@ -140,6 +141,7 @@ export function ChartRenderer({
   height = 350,
   className = "",
 }: ChartRendererProps) {
+  const t = useTranslations("studioRenderers.chart");
   const { records, datasets, labels } = useMemo(() => {
     if (!dataJson?.labels || !dataJson?.datasets) {
       return { records: [], datasets: [], labels: [] };
@@ -170,7 +172,7 @@ export function ChartRenderer({
         style={{ height }}
       >
         <BarChart3 className="mb-2 h-10 w-10 text-purple-400/20" />
-        <p className="text-xs text-[#f5f5dc]/30">No chart data available</p>
+        <p className="text-xs text-[#f5f5dc]/30">{t("noData")}</p>
       </div>
     );
   }

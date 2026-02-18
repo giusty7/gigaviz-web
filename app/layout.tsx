@@ -6,7 +6,7 @@ import { GAPageView } from "@/components/analytics/ga-pageview";
 import { Toaster } from "@/components/ui/toaster";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -40,6 +40,7 @@ export default async function RootLayout({
 }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const t = await getTranslations("common");
 
   const globalSchema = {
     "@context": SCHEMA_CONTEXT,
@@ -51,6 +52,12 @@ export default async function RootLayout({
       <body
         className={`min-h-screen bg-gigaviz-bg text-gigaviz-cream font-sans ${gvSans.variable} ${gvDisplay.variable}`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-gigaviz-gold focus:px-4 focus:py-2 focus:text-gigaviz-navy focus:font-semibold focus:shadow-lg focus:outline-none"
+        >
+          {t("skipToContent")}
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(globalSchema) }}

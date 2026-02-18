@@ -121,7 +121,7 @@ export function Navbar({ variant = "default" }: NavbarProps) {
           </div>
         </Link>
 
-        <nav className={`hidden items-center gap-6 text-sm md:flex ${navTextClass}`}>
+        <nav aria-label="Main navigation" className={`hidden items-center gap-6 text-sm md:flex ${navTextClass}`}>
           {navItems.slice(0, 1).map((item) => {
             const active = isActive(pathname, item.href);
             return (

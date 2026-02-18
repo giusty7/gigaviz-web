@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { UnifiedInboxClient } from "@/components/meta-hub/UnifiedInboxClient";
 import { getAppContext } from "@/lib/app-context";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { PageHeader } from "@/components/ui/page-header";
 import { getTranslations } from "next-intl/server";
 
 type Props = {
@@ -32,12 +33,10 @@ export default async function InboxPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-[#f9d976]">{t("title")}</h1>
-        <p className="text-[#f5f5dc]/70 mt-2">
-          {t("pageDescription")}
-        </p>
-      </div>
+      <PageHeader
+        title={t("title")}
+        description={t("pageDescription")}
+      />
       <UnifiedInboxClient
         workspaceId={workspace.id}
         workspaceSlug={workspace.slug}

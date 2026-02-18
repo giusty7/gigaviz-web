@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Radio,
@@ -86,6 +87,7 @@ interface RadarHeaderProps {
 
 export function RadarHeader({ isListening, webhookUrl, lastEventAt, onCopy }: RadarHeaderProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("metaHubUI.webhooksComponents");
 
   if (!mounted) {
     return (
@@ -151,7 +153,7 @@ export function RadarHeader({ isListening, webhookUrl, lastEventAt, onCopy }: Ra
           <div>
             <div className="mb-2 flex items-center gap-3">
               <span className="text-sm font-bold tracking-[0.2em] text-[#f5f5dc]/60">
-                SYSTEM STATUS:
+                {t("systemStatus")}
               </span>
               <div className="flex items-center gap-2">
                 <motion.div
@@ -168,7 +170,7 @@ export function RadarHeader({ isListening, webhookUrl, lastEventAt, onCopy }: Ra
                     isListening ? "text-emerald-400" : "text-[#e11d48]"
                   )}
                 >
-                  {isListening ? "LISTENING" : "OFFLINE"}
+                  {isListening ? t("listening") : t("offline")}
                 </span>
               </div>
             </div>
@@ -186,7 +188,7 @@ export function RadarHeader({ isListening, webhookUrl, lastEventAt, onCopy }: Ra
         {/* Webhook URL Terminal Box */}
         <div className="w-full max-w-md">
           <p className="mb-2 text-xs font-semibold tracking-wider text-[#d4af37]">
-            WEBHOOK ENDPOINT
+            {t("webhookEndpoint")}
           </p>
           <div className="flex items-center gap-2 rounded-xl border-2 border-[#d4af37]/40 bg-[#050a18] p-3">
             <Radio className="h-4 w-4 shrink-0 text-[#d4af37]" />
@@ -219,6 +221,7 @@ interface MetricsCardsProps {
 
 export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }: MetricsCardsProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("metaHubUI.webhooksComponents");
 
   // Circular gauge for success rate
   const radius = 45;
@@ -254,10 +257,10 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold tracking-wider text-emerald-400">SUCCESS RATE</p>
+            <p className="text-xs font-semibold tracking-wider text-emerald-400">{t("successRate")}</p>
             <p className="mt-1 text-3xl font-bold text-[#f5f5dc]">{successRateLabel}</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/50">
-              {hasSuccessRate ? "Last 24h" : "No data yet"}
+              {hasSuccessRate ? t("last24h") : "--"}
             </p>
           </div>
           <div className="relative h-20 w-20">
@@ -298,7 +301,7 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
         variants={cardVariants}
         className="relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#050a18] via-[#0a1229] to-[#0d1a2a] p-5"
       >
-        <p className="text-xs font-semibold tracking-wider text-[#d4af37]">AVG LATENCY</p>
+        <p className="text-xs font-semibold tracking-wider text-[#d4af37]">{t("avgLatency")}</p>
         <p className="mt-1 text-3xl font-bold text-[#f5f5dc]">{latencyLabel}</p>
         <div className="mt-3">
           {/* Mini latency chart */}
@@ -340,10 +343,10 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
       >
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-[#d4af37]" />
-          <p className="text-xs font-semibold tracking-wider text-[#d4af37]">EVENTS 24H</p>
+          <p className="text-xs font-semibold tracking-wider text-[#d4af37]">{t("events24h")}</p>
         </div>
         <p className="mt-2 text-4xl font-bold text-[#f9d976]">{total24h}</p>
-        <p className="mt-1 text-xs text-[#f5f5dc]/50">Total received</p>
+        <p className="mt-1 text-xs text-[#f5f5dc]/50">{t("totalReceived")}</p>
       </motion.div>
 
       {/* Errors 24h */}
@@ -364,7 +367,7 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
               errors24h > 0 ? "text-[#e11d48]" : "text-emerald-400"
             )}
           >
-            ERRORS 24H
+            {t("errors24h")}
           </p>
         </div>
         <p
@@ -376,7 +379,7 @@ export function MetricsCards({ successRate, avgLatencyMs, total24h, errors24h }:
           {errors24h}
         </p>
         <p className="mt-1 text-xs text-[#f5f5dc]/50">
-          {errors24h === 0 ? "All systems nominal" : "Requires attention"}
+          {errors24h === 0 ? t("allNominal") : t("requiresAttention")}
         </p>
       </motion.div>
     </motion.div>
@@ -392,17 +395,18 @@ interface FilterPillsProps {
   onFilterChange: (filter: string) => void;
 }
 
-const FILTERS = [
-  { key: "all", label: "All Events" },
-  { key: "messages", label: "Messages" },
-  { key: "statuses", label: "Status Updates" },
-  { key: "errors", label: "Errors" },
-];
+const FILTER_KEYS = [
+  { key: "all", labelKey: "filterAll" },
+  { key: "messages", labelKey: "filterMessages" },
+  { key: "statuses", labelKey: "filterStatus" },
+  { key: "errors", labelKey: "filterErrors" },
+] as const;
 
 export function FilterPills({ activeFilter, onFilterChange }: FilterPillsProps) {
+  const t = useTranslations("metaHubUI.webhooksComponents");
   return (
     <div className="flex flex-wrap gap-2">
-      {FILTERS.map((filter) => (
+      {FILTER_KEYS.map((filter) => (
         <motion.button
           key={filter.key}
           onClick={() => onFilterChange(filter.key)}
@@ -415,7 +419,7 @@ export function FilterPills({ activeFilter, onFilterChange }: FilterPillsProps) 
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          {filter.label}
+          {t(filter.labelKey)}
         </motion.button>
       ))}
     </div>
@@ -433,6 +437,7 @@ interface TestWebhookButtonProps {
 }
 
 export function TestWebhookButton({ onTest, loading, disabled = false }: TestWebhookButtonProps) {
+  const t = useTranslations("metaHubUI.webhooksComponents");
   return (
     <motion.button
       onClick={onTest}
@@ -459,12 +464,12 @@ export function TestWebhookButton({ onTest, loading, disabled = false }: TestWeb
         {loading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Pinging...
+            {t("pinging")}
           </>
         ) : (
           <>
             <Zap className="h-4 w-4" />
-            Test Webhook Ping
+            {t("testWebhookPing")}
           </>
         )}
       </span>
@@ -498,6 +503,7 @@ function getEventIcon(eventType: string | null, hasError: boolean) {
 
 export function EventStream({ events, onEventClick }: EventStreamProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("metaHubUI.webhooksComponents");
 
   if (!mounted) {
     return (
@@ -518,9 +524,9 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
         className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#d4af37]/30 bg-[#050a18]/50 px-8 py-16 text-center"
       >
         <Radio className="mb-4 h-12 w-12 text-[#d4af37]/40" />
-        <p className="text-lg font-semibold text-[#f5f5dc]">No Events Yet</p>
+        <p className="text-lg font-semibold text-[#f5f5dc]">{t("noEventsYet")}</p>
         <p className="mt-2 text-sm text-[#f5f5dc]/50">
-          Waiting for webhook events from Meta Cloud API...
+          {t("waitingForEvents")}
         </p>
       </motion.div>
     );
@@ -570,7 +576,7 @@ export function EventStream({ events, onEventClick }: EventStreamProps) {
                   </span>
                   {event.error_text && (
                     <span className="rounded-full bg-[#e11d48]/20 px-2 py-0.5 text-xs text-[#e11d48]">
-                      ERROR
+                      {t("errorBadge")}
                     </span>
                   )}
                 </div>
@@ -614,6 +620,7 @@ interface PayloadInspectorProps {
 }
 
 export function PayloadInspector({ event, onClose, onCopy }: PayloadInspectorProps) {
+  const t = useTranslations("metaHubUI.webhooksComponents");
   if (!event) return null;
 
   const formattedPayload = JSON.stringify(event.payload_json, null, 2);
@@ -642,7 +649,7 @@ export function PayloadInspector({ event, onClose, onCopy }: PayloadInspectorPro
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#d4af37]/20 px-6 py-4">
               <div>
-                <h3 className="text-lg font-bold text-[#f9d976]">Payload Inspector</h3>
+                <h3 className="text-lg font-bold text-[#f9d976]">{t("payloadInspector")}</h3>
                 <p className="text-sm text-[#f5f5dc]/50">
                   {event.event_type ?? "Event"} • {event.id}
                 </p>
@@ -659,19 +666,19 @@ export function PayloadInspector({ event, onClose, onCopy }: PayloadInspectorPro
             <div className="border-b border-[#d4af37]/20 px-6 py-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs text-[#f5f5dc]/50">Event Type</p>
+                  <p className="text-xs text-[#f5f5dc]/50">{t("eventType")}</p>
                   <p className="mt-1 font-mono text-sm text-[#f9d976]">{event.event_type ?? "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#f5f5dc]/50">Received At</p>
+                  <p className="text-xs text-[#f5f5dc]/50">{t("receivedAt")}</p>
                   <p className="mt-1 text-sm text-[#f5f5dc]">
                     {event.received_at ? new Date(event.received_at).toLocaleString() : "-"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#f5f5dc]/50">Processed At</p>
+                  <p className="text-xs text-[#f5f5dc]/50">{t("processedAt")}</p>
                   <p className="mt-1 text-sm text-[#f5f5dc]">
-                    {event.processed_at ? new Date(event.processed_at).toLocaleString() : "Pending"}
+                    {event.processed_at ? new Date(event.processed_at).toLocaleString() : t("pendingStatus")}
                   </p>
                 </div>
                 <div>
@@ -681,7 +688,7 @@ export function PayloadInspector({ event, onClose, onCopy }: PayloadInspectorPro
               </div>
               {event.error_text && (
                 <div className="mt-4 rounded-lg border border-[#e11d48]/40 bg-[#e11d48]/10 p-3">
-                  <p className="text-xs font-semibold text-[#e11d48]">Error</p>
+                  <p className="text-xs font-semibold text-[#e11d48]">{t("errorBadge")}</p>
                   <p className="mt-1 text-sm text-[#e11d48]/80">{event.error_text}</p>
                 </div>
               )}
@@ -690,13 +697,13 @@ export function PayloadInspector({ event, onClose, onCopy }: PayloadInspectorPro
             {/* Payload Code Block */}
             <div className="flex-1 overflow-auto px-6 py-4">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-semibold tracking-wider text-[#d4af37]">JSON PAYLOAD</p>
+                <p className="text-xs font-semibold tracking-wider text-[#d4af37]">{t("rawPayload")}</p>
                 <button
                   onClick={() => onCopy(formattedPayload)}
                   className="flex items-center gap-1 rounded-lg border border-[#d4af37]/30 px-3 py-1.5 text-xs text-[#f9d976] hover:bg-[#d4af37]/10"
                 >
                   <Copy className="h-3.5 w-3.5" />
-                  Copy
+                  {t("copyPayload")}
                 </button>
               </div>
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18] p-4">
@@ -717,6 +724,7 @@ export function PayloadInspector({ event, onClose, onCopy }: PayloadInspectorPro
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function ImperiumWebhooksFooter() {
+  const t = useTranslations("metaHubUI.webhooksComponents");
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -726,10 +734,9 @@ export function ImperiumWebhooksFooter() {
     >
       <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
         <p>
-          Gigaviz is a Verified Technology Provider for solutions built on the
-          WhatsApp Business Platform (Cloud API).
+          {t("webhookFooter")}
         </p>
-        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
+        <p className="mt-2">{t("webhookCopy", { year: new Date().getFullYear() })}</p>
       </div>
     </motion.div>
   );

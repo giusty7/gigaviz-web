@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { trackDownload } from "@/lib/analytics";
 
 type LogoAsset = {
@@ -16,6 +17,8 @@ type MediaKitLogosProps = {
 };
 
 export default function MediaKitLogos({ items }: MediaKitLogosProps) {
+  const t = useTranslations("marketingUI");
+
   return (
     <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {items.map((logo) => (
@@ -44,7 +47,7 @@ export default function MediaKitLogos({ items }: MediaKitLogosProps) {
               onClick={() => trackDownload(logo.label, "media_kit")}
               className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-accent)] hover:underline"
             >
-              Download
+              {t("mediaKit.download")}
             </a>
           </div>
         </div>

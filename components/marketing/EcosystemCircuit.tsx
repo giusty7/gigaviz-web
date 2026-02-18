@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 type NodePillar = "core" | "connect" | "create" | "commerce";
 
@@ -94,6 +95,7 @@ function getPillarStyles(pillar: NodePillar) {
 }
 
 export function EcosystemCircuit() {
+  const t = useTranslations("marketingUI");
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
   // Calculate pixel position from grid coordinates
@@ -269,7 +271,7 @@ export function EcosystemCircuit() {
                 <div className="mt-1 flex items-center gap-1">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500 shadow-[0_0_6px_2px_rgba(34,197,94,0.6)]" />
                   <span className="text-[5px] font-semibold uppercase tracking-wider text-green-500 sm:text-[6px]">
-                    Online
+                    {t("ecosystem.online")}
                   </span>
                 </div>
               )}

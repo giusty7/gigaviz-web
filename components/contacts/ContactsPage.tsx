@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { fmtTime } from "@/lib/inbox/utils";
+import { useTranslations } from "next-intl";
 
 type Props = { workspaceId: string };
 
@@ -26,6 +27,7 @@ type ContactDbRow = {
 };
 
 export default function ContactsPage({ workspaceId }: Props) {
+  const t = useTranslations("contactsUI");
   const supabase = useMemo(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -85,8 +87,8 @@ export default function ContactsPage({ workspaceId }: Props) {
     <div className="mx-auto max-w-[1100px] px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <div className="text-xl font-semibold">Contacts</div>
-          <div className="text-sm text-slate-400">CRM mini (Supabase)</div>
+          <div className="text-xl font-semibold">{t("title")}</div>
+          <div className="text-sm text-slate-400">{t("subtitle")}</div>
           {errMsg && <div className="mt-2 text-xs text-red-300">Error: {errMsg}</div>}
         </div>
 
@@ -95,13 +97,13 @@ export default function ContactsPage({ workspaceId }: Props) {
             onClick={load}
             className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"
           >
-            Refresh
+            {t("refresh")}
           </button>
           <Link
             className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"
             href="/admin/inbox"
           >
-            ← Inbox
+            ← {t("inbox")}
           </Link>
         </div>
       </div>
@@ -111,7 +113,7 @@ export default function ContactsPage({ workspaceId }: Props) {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search name/number/tag…"
+            placeholder={t("searchPlaceholder")}
             className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-700"
           />
         </div>
@@ -120,10 +122,10 @@ export default function ContactsPage({ workspaceId }: Props) {
           <table className="w-full text-sm">
             <thead className="text-left text-slate-400">
               <tr className="border-b border-slate-800">
-                <th className="p-3">Nama</th>
-                <th className="p-3">Nomor</th>
-                <th className="p-3">Tags</th>
-                <th className="p-3">Last seen</th>
+                <th className="p-3">{t("name")}</th>
+                <th className="p-3">{t("number")}</th>
+                <th className="p-3">{t("tags")}</th>
+                <th className="p-3">{t("lastSeen")}</th>
               </tr>
             </thead>
 
@@ -131,7 +133,7 @@ export default function ContactsPage({ workspaceId }: Props) {
               {loading ? (
                 <tr>
                   <td className="p-6 text-slate-400" colSpan={4}>
-                    Loading…
+                    {t("loading")}
                   </td>
                 </tr>
               ) : (
@@ -145,12 +147,12 @@ export default function ContactsPage({ workspaceId }: Props) {
                       <td className="p-3 text-slate-300">{c.phone}</td>
                       <td className="p-3">
                         <div className="flex flex-wrap gap-1">
-                          {(c.tags ?? []).map((t) => (
+                          {(c.tags ?? []).map((tag) => (
                             <span
-                              key={t}
+                              key={tag}
                               className="text-[11px] px-2 py-1 rounded-full border border-slate-800 text-slate-300"
                             >
-                              #{t}
+                              #{tag}
                             </span>
                           ))}
                         </div>
@@ -164,7 +166,7 @@ export default function ContactsPage({ workspaceId }: Props) {
                   {filtered.length === 0 && (
                     <tr>
                       <td className="p-6 text-slate-400" colSpan={4}>
-                        Dak ado hasil.
+                        {t("noResults")}
                       </td>
                     </tr>
                   )}
@@ -175,7 +177,7 @@ export default function ContactsPage({ workspaceId }: Props) {
         </div>
 
         <div className="p-3 text-xs text-slate-500">
-          Next: custom fields, dedup & merge, blacklist/whitelist.
+          {t("footer")}
         </div>
       </div>
     </div>

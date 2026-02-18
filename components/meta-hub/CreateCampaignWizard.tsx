@@ -1,6 +1,7 @@
 "use client";
 import { logger } from "@/lib/logging";
 
+import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Send, Users, FileText, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Tag } from "lucide-react";
@@ -58,6 +59,7 @@ export function CreateCampaignWizard({
 }: CreateCampaignWizardProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.campaign");
 
   const [currentStep, setCurrentStep] = useState<WizardStep>("template");
   const [loading, setLoading] = useState(false);
@@ -155,16 +157,16 @@ export function CreateCampaignWizard({
     if (currentStep === "template") {
       if (!selectedTemplateId) {
         toast({
-          title: "Template required",
-          description: "Please select a template to continue",
+          title: t("toasts.templateRequired"),
+          description: t("toasts.templateRequiredDesc"),
           variant: "destructive",
         });
         return;
       }
       if (!jobName.trim()) {
         toast({
-          title: "Campaign name required",
-          description: "Please enter a name for this campaign",
+          title: t("toasts.campaignNameRequired"),
+          description: t("toasts.campaignNameRequiredDesc"),
           variant: "destructive",
         });
         return;
@@ -177,8 +179,8 @@ export function CreateCampaignWizard({
       );
       if (invalidParams.length > 0) {
         toast({
-          title: "Missing parameter values",
-          description: "Please provide values for all manual parameters",
+          title: t("toasts.missingParams"),
+          description: t("toasts.missingParamsDesc"),
           variant: "destructive",
         });
         return;
@@ -187,16 +189,16 @@ export function CreateCampaignWizard({
     } else if (currentStep === "audience") {
       if (audienceType === "tags" && selectedTags.length === 0) {
         toast({
-          title: "No tags selected",
-          description: "Please select at least one tag",
+          title: t("toasts.noTagsSelected"),
+          description: t("toasts.noTagsSelectedDesc"),
           variant: "destructive",
         });
         return;
       }
       if (audienceType === "segment" && !selectedSegmentId) {
         toast({
-          title: "No segment selected",
-          description: "Please select a segment",
+          title: t("toasts.noSegmentSelected"),
+          description: t("toasts.noSegmentSelectedDesc"),
           variant: "destructive",
         });
         return;
@@ -265,8 +267,8 @@ export function CreateCampaignWizard({
       }
 
       toast({
-        title: "Campaign created",
-        description: `Job "${jobName}" has been queued for sending`,
+        title: t("toasts.campaignCreated"),
+        description: t("toasts.campaignCreatedDesc", { name: jobName }),
       });
 
       // Navigate to jobs page
@@ -274,7 +276,7 @@ export function CreateCampaignWizard({
       onClose();
     } catch (error) {
       toast({
-        title: "Failed to create campaign",
+        title: t("toasts.failedToCreate"),
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
@@ -296,10 +298,10 @@ export function CreateCampaignWizard({
   };
 
   const steps = [
-    { id: "template", label: "Template", icon: FileText },
-    ...(variableCount > 0 ? [{ id: "params" as WizardStep, label: "Parameters", icon: FileText }] : []),
-    { id: "audience", label: "Audience", icon: Users },
-    { id: "review", label: "Review", icon: CheckCircle2 },
+    { id: "template", label: t("steps.template"), icon: FileText },
+    ...(variableCount > 0 ? [{ id: "params" as WizardStep, label: t("steps.parameters"), icon: FileText }] : []),
+    { id: "audience", label: t("steps.audience"), icon: Users },
+    { id: "review", label: t("steps.review"), icon: CheckCircle2 },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
@@ -310,9 +312,9 @@ export function CreateCampaignWizard({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#d4af37]/20 bg-gradient-to-r from-[#0a1229] to-[#050a18] px-6 py-4">
           <div>
-            <h2 className="text-2xl font-bold text-[#f9d976]">Create Campaign</h2>
+            <h2 className="text-2xl font-bold text-[#f9d976]">{t("title")}</h2>
             <p className="mt-1 text-sm text-[#f5f5dc]/60">
-              Send template messages to your contacts
+              {t("subtitle")}
             </p>
           </div>
           <button
@@ -375,17 +377,17 @@ export function CreateCampaignWizard({
           {currentStep === "template" && (
             <div className="space-y-6">
               <div>
-                <Label className="text-[#f5f5dc]">Campaign Name</Label>
+                <Label className="text-[#f5f5dc]">{t("templateStep.campaignName")}</Label>
                 <Input
                   value={jobName}
                   onChange={(e) => setJobName(e.target.value)}
-                  placeholder="e.g., Holiday Promotion 2026"
+                  placeholder={t("templateStep.campaignNamePlaceholder")}
                   className="mt-2 bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
                 />
               </div>
 
               <div>
-                <Label className="text-[#f5f5dc]">Select Template</Label>
+                <Label className="text-[#f5f5dc]">{t("templateStep.selectTemplate")}</Label>
                 {loading ? (
                   <div className="mt-4 flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-[#d4af37]" />
@@ -419,7 +421,7 @@ export function CreateCampaignWizard({
                         </div>
                         {(template.variable_count ?? 0) > 0 && (
                           <div className="mt-2 text-xs text-[#f9d976]">
-                            {template.variable_count} variable{template.variable_count !== 1 ? "s" : ""}
+                            {template.variable_count} {template.variable_count !== 1 ? t("templateStep.variableCountPlural") : t("templateStep.variableCount")}
                           </div>
                         )}
                       </button>
@@ -434,15 +436,15 @@ export function CreateCampaignWizard({
           {currentStep === "params" && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-[#f5f5dc]">Parameter Mapping</h3>
+                <h3 className="text-lg font-semibold text-[#f5f5dc]">{t("paramsStep.title")}</h3>
                 <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                  Define how to populate template variables for each contact
+                  {t("paramsStep.description")}
                 </p>
               </div>
 
               {selectedTemplate?.body && (
                 <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
-                  <Label className="text-xs text-[#f5f5dc]/60">Template Preview</Label>
+                  <Label className="text-xs text-[#f5f5dc]/60">{t("paramsStep.templatePreview")}</Label>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-[#f5f5dc]">{selectedTemplate.body}</p>
                 </div>
               )}
@@ -451,7 +453,7 @@ export function CreateCampaignWizard({
                 {paramMappings.map((mapping, index) => (
                   <div key={index} className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
                     <Label className="text-[#f5f5dc]">
-                      Parameter {index + 1} Â· <code className="text-[#f9d976]">{mapping.name}</code>
+                      {t("paramsStep.parameterLabel")} {index + 1} · <code className="text-[#f9d976]">{mapping.name}</code>
                     </Label>
                     
                     <div className="mt-3 space-y-3">
@@ -471,9 +473,9 @@ export function CreateCampaignWizard({
                                 : "border-[#f5f5dc]/20 bg-[#f5f5dc]/5 text-[#f5f5dc]/60 hover:border-[#d4af37]/50"
                             )}
                           >
-                            {type === "manual" && "Manual Value"}
-                            {type === "contact_field" && "Contact Field"}
-                            {type === "expression" && "Expression"}
+                            {type === "manual" && t("paramsStep.manualValue")}
+                            {type === "contact_field" && t("paramsStep.contactField")}
+                            {type === "expression" && t("paramsStep.expression")}
                           </button>
                         ))}
                       </div>
@@ -486,7 +488,7 @@ export function CreateCampaignWizard({
                             updated[index] = { ...updated[index], value: e.target.value };
                             setParamMappings(updated);
                           }}
-                          placeholder="Enter value (same for all contacts)"
+                          placeholder={t("paramsStep.manualPlaceholder")}
                           className="bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
                         />
                       )}
@@ -501,12 +503,12 @@ export function CreateCampaignWizard({
                           }}
                           className="w-full rounded-lg border border-[#d4af37]/20 bg-[#050a18] px-3 py-2 text-sm text-[#f5f5dc]"
                         >
-                          <option value="">Select field</option>
-                          <option value="name">Contact Name</option>
-                          <option value="phone">Phone Number</option>
-                          <option value="email">Email</option>
-                          <option value="custom_field_1">Custom Field 1</option>
-                          <option value="custom_field_2">Custom Field 2</option>
+                          <option value="">{t("paramsStep.selectField")}</option>
+                          <option value="name">{t("paramsStep.contactName")}</option>
+                          <option value="phone">{t("paramsStep.phoneNumber")}</option>
+                          <option value="email">{t("paramsStep.email")}</option>
+                          <option value="custom_field_1">{t("paramsStep.customField1")}</option>
+                          <option value="custom_field_2">{t("paramsStep.customField2")}</option>
                         </select>
                       )}
 
@@ -518,7 +520,7 @@ export function CreateCampaignWizard({
                             updated[index] = { ...updated[index], value: e.target.value };
                             setParamMappings(updated);
                           }}
-                          placeholder="e.g., contact.name || 'Customer'"
+                          placeholder={t("paramsStep.expressionPlaceholder")}
                           className="bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
                         />
                       )}
@@ -533,9 +535,9 @@ export function CreateCampaignWizard({
           {currentStep === "audience" && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-[#f5f5dc]">Select Audience</h3>
+                <h3 className="text-lg font-semibold text-[#f5f5dc]">{t("audienceStep.title")}</h3>
                 <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                  Choose who will receive this campaign
+                  {t("audienceStep.description")}
                 </p>
               </div>
 
@@ -552,9 +554,9 @@ export function CreateCampaignWizard({
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-semibold text-[#f5f5dc]">All Contacts</h4>
+                      <h4 className="font-semibold text-[#f5f5dc]">{t("audienceStep.allContacts")}</h4>
                       <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                        Send to all {contacts.length} contacts
+                        {t("audienceStep.sendToAll", { count: contacts.length })}
                       </p>
                     </div>
                     {audienceType === "all" && <CheckCircle2 className="h-5 w-5 text-[#d4af37]" />}
@@ -575,10 +577,10 @@ export function CreateCampaignWizard({
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <Tag className="h-4 w-4 text-[#f9d976]" />
-                        <h4 className="font-semibold text-[#f5f5dc]">By Tags</h4>
+                        <h4 className="font-semibold text-[#f5f5dc]">{t("audienceStep.byTags")}</h4>
                       </div>
                       <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                        Filter contacts by tags
+                        {t("audienceStep.filterByTags")}
                       </p>
                       
                       {audienceType === "tags" && (
@@ -624,9 +626,9 @@ export function CreateCampaignWizard({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-[#f5f5dc]">By Segment</h4>
+                        <h4 className="font-semibold text-[#f5f5dc]">{t("audienceStep.bySegment")}</h4>
                         <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                          Use a saved audience segment
+                          {t("audienceStep.useSavedSegment")}
                         </p>
                         
                         {audienceType === "segment" && (
@@ -654,7 +656,7 @@ export function CreateCampaignWizard({
                                       </div>
                                     )}
                                     <div className="mt-1 text-xs text-[#f9d976]">
-                                      {segment.contact_count ?? 0} contacts
+                                      {segment.contact_count ?? 0} {t("audienceStep.contacts")}
                                     </div>
                                   </div>
                                   {selectedSegmentId === segment.id && (
@@ -678,20 +680,20 @@ export function CreateCampaignWizard({
           {currentStep === "review" && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-[#f5f5dc]">Review Campaign</h3>
+                <h3 className="text-lg font-semibold text-[#f5f5dc]">{t("reviewStep.title")}</h3>
                 <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                  Confirm details before sending
+                  {t("reviewStep.description")}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
-                  <Label className="text-xs text-[#f5f5dc]/60">Campaign Name</Label>
+                  <Label className="text-xs text-[#f5f5dc]/60">{t("reviewStep.campaignName")}</Label>
                   <div className="mt-1 font-semibold text-[#f5f5dc]">{jobName}</div>
                 </div>
 
                 <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
-                  <Label className="text-xs text-[#f5f5dc]/60">Template</Label>
+                  <Label className="text-xs text-[#f5f5dc]/60">{t("reviewStep.template")}</Label>
                   <div className="mt-1 font-semibold text-[#f5f5dc]">{selectedTemplate?.name}</div>
                   {selectedTemplate?.body && (
                     <p className="mt-2 whitespace-pre-wrap text-sm text-[#f5f5dc]/80">
@@ -702,7 +704,7 @@ export function CreateCampaignWizard({
 
                 {paramMappings.length > 0 && (
                   <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
-                    <Label className="text-xs text-[#f5f5dc]/60">Parameters</Label>
+                    <Label className="text-xs text-[#f5f5dc]/60">{t("reviewStep.parameters")}</Label>
                     <div className="mt-2 space-y-2">
                       {paramMappings.map((mapping, index) => (
                         <div key={index} className="flex items-center gap-2 text-sm">
@@ -720,14 +722,14 @@ export function CreateCampaignWizard({
                 )}
 
                 <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/50 p-4">
-                  <Label className="text-xs text-[#f5f5dc]/60">Audience</Label>
+                  <Label className="text-xs text-[#f5f5dc]/60">{t("reviewStep.audience")}</Label>
                   <div className="mt-1 font-semibold text-[#f5f5dc]">
-                    {getAudienceCount()} recipients
+                    {getAudienceCount()} {t("reviewStep.recipients")}
                   </div>
                   <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                    {audienceType === "all" && "All contacts"}
-                    {audienceType === "tags" && `Contacts with tags: ${selectedTags.join(", ")}`}
-                    {audienceType === "segment" && `Segment: ${segments.find((s) => s.id === selectedSegmentId)?.name}`}
+                    {audienceType === "all" && t("reviewStep.allContacts")}
+                    {audienceType === "tags" && `${t("reviewStep.contactsWithTags")} ${selectedTags.join(", ")}`}
+                    {audienceType === "segment" && `${t("reviewStep.segment")} ${segments.find((s) => s.id === selectedSegmentId)?.name}`}
                   </p>
                 </div>
 
@@ -735,10 +737,9 @@ export function CreateCampaignWizard({
                   <div className="flex items-start gap-3">
                     <Send className="h-5 w-5 flex-shrink-0 text-[#f9d976]" />
                     <div className="text-sm text-[#f5f5dc]">
-                      <p className="font-semibold">Ready to send</p>
+                      <p className="font-semibold">{t("reviewStep.readyToSend")}</p>
                       <p className="mt-1 text-[#f5f5dc]/80">
-                        This campaign will be queued and processed automatically. Messages will be sent
-                        with rate limiting to comply with WhatsApp policies.
+                        {t("reviewStep.readyToSendDesc")}
                       </p>
                     </div>
                   </div>
@@ -757,7 +758,7 @@ export function CreateCampaignWizard({
             className="text-[#f5f5dc]/60 hover:text-[#f5f5dc]"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            {t("footer.back")}
           </Button>
 
           {currentStep !== "review" ? (
@@ -766,7 +767,7 @@ export function CreateCampaignWizard({
               disabled={loading}
               className="bg-[#d4af37] text-[#0a1229] hover:bg-[#f9d976]"
             >
-              Next
+              {t("footer.next")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
@@ -778,12 +779,12 @@ export function CreateCampaignWizard({
               {submitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {t("footer.creating")}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Create Campaign
+                  {t("footer.createCampaign")}
                 </>
               )}
             </Button>

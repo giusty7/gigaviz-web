@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, CreditCard, LogOut, ChevronDown } from "lucide-react";
 
@@ -33,6 +34,7 @@ export function RoyalAvatar({
   billingHref,
 }: RoyalAvatarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("appUI.avatar");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -50,8 +52,8 @@ export function RoyalAvatar({
   const displayName = name || email.split("@")[0];
 
   const menuItems = [
-    { href: settingsHref, label: "Settings", icon: Settings },
-    { href: billingHref, label: "Billing", icon: CreditCard },
+    { href: settingsHref, label: t("settings"), icon: Settings },
+    { href: billingHref, label: t("billing"), icon: CreditCard },
   ];
 
   return (
@@ -129,7 +131,7 @@ export function RoyalAvatar({
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#e11d48]/80 transition-colors hover:bg-[#e11d48]/10 hover:text-[#e11d48]"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                {t("logout")}
               </Link>
             </div>
           </motion.div>

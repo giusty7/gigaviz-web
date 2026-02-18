@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -235,6 +236,7 @@ export function KnowledgeAutoSyncClient({
   workspaceSlug,
   initialSources = mockSources,
 }: Props) {
+  const t = useTranslations("helperUI.knowledgeAutoSync");
   const [sources, setSources] = useState<KnowledgeSource[]>(initialSources);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -386,10 +388,10 @@ export function KnowledgeAutoSyncClient({
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent flex items-center gap-2">
               <Database className="h-6 w-6 text-[#d4af37]" />
-              Knowledge Base Auto-Sync
+              {t("title")}
             </h1>
             <p className="text-[#f5f5dc]/60 mt-1">
-              Manage your AI knowledge sources and sync schedules
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -405,7 +407,7 @@ export function KnowledgeAutoSyncClient({
               className="border-[#f5f5dc]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Import
+              {t("addSource")}
             </Button>
             <Button
               variant="outline"
@@ -415,7 +417,7 @@ export function KnowledgeAutoSyncClient({
               className="border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37]/10"
             >
               <RefreshCw className={cn("h-4 w-4 mr-2", syncing.size > 0 && "animate-spin")} />
-              Sync All
+              {t("syncNow")}
             </Button>
             <Button
               size="sm"
@@ -431,12 +433,12 @@ export function KnowledgeAutoSyncClient({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           {[
-            { label: "Total Sources", value: stats.totalSources, icon: Database, gradient: "from-[#d4af37] to-[#f9d976]" },
-            { label: "Active", value: stats.activeSources, icon: CheckCircle, gradient: "from-emerald-500 to-emerald-400" },
-            { label: "Total Chunks", value: stats.totalChunks, icon: Layers, gradient: "from-purple-500 to-purple-400" },
-            { label: "Total Tokens", value: formatTokens(stats.totalTokens), icon: Brain, gradient: "from-cyan-500 to-cyan-400" },
-            { label: "Syncing", value: stats.syncingNow, icon: RefreshCw, gradient: "from-blue-500 to-blue-400", animated: stats.syncingNow > 0 },
-            { label: "Errors", value: stats.errorCount, icon: AlertTriangle, gradient: "from-red-500 to-red-400" },
+            { label: t("totalSources"), value: stats.totalSources, icon: Database, gradient: "from-[#d4af37] to-[#f9d976]" },
+            { label: t("statusActive"), value: stats.activeSources, icon: CheckCircle, gradient: "from-emerald-500 to-emerald-400" },
+            { label: t("nSources"), value: stats.totalChunks, icon: Layers, gradient: "from-purple-500 to-purple-400" },
+            { label: t("totalSources"), value: formatTokens(stats.totalTokens), icon: Brain, gradient: "from-cyan-500 to-cyan-400" },
+            { label: t("statusSyncing"), value: stats.syncingNow, icon: RefreshCw, gradient: "from-blue-500 to-blue-400", animated: stats.syncingNow > 0 },
+            { label: t("statusError"), value: stats.errorCount, icon: AlertTriangle, gradient: "from-red-500 to-red-400" },
           ].map((stat) => (
             <motion.div
               key={stat.label}
@@ -462,15 +464,15 @@ export function KnowledgeAutoSyncClient({
           <TabsList className="bg-[#0a1229]/80 border border-[#d4af37]/20 p-1">
             <TabsTrigger value="sources" className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]">
               <Database className="h-4 w-4 mr-2" />
-              Sources
+              {t("tabSources")}
             </TabsTrigger>
             <TabsTrigger value="schedule" className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]">
               <Calendar className="h-4 w-4 mr-2" />
-              Sync Schedule
+              {t("tabSchedule")}
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]">
               <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
+              {t("tabAnalytics")}
             </TabsTrigger>
           </TabsList>
 
@@ -481,7 +483,7 @@ export function KnowledgeAutoSyncClient({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
                 <Input
-                  placeholder="Search sources..."
+                  placeholder={t("searchSources")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]"
@@ -492,11 +494,11 @@ export function KnowledgeAutoSyncClient({
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="syncing">Syncing</SelectItem>
-                  <SelectItem value="error">Error</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                  <SelectItem value="active">{t("statusActive")}</SelectItem>
+                  <SelectItem value="syncing">{t("statusSyncing")}</SelectItem>
+                  <SelectItem value="error">{t("statusError")}</SelectItem>
+                  <SelectItem value="pending">{t("statusPending")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterType} onValueChange={setFilterType}>
@@ -504,10 +506,10 @@ export function KnowledgeAutoSyncClient({
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="url">URL</SelectItem>
-                  <SelectItem value="file">File</SelectItem>
-                  <SelectItem value="api">API</SelectItem>
+                  <SelectItem value="all">{t("allTypes")}</SelectItem>
+                  <SelectItem value="url">{t("typeURL")}</SelectItem>
+                  <SelectItem value="file">{t("typeFile")}</SelectItem>
+                  <SelectItem value="api">{t("typeAPI")}</SelectItem>
                   <SelectItem value="notion">Notion</SelectItem>
                   <SelectItem value="confluence">Confluence</SelectItem>
                 </SelectContent>
@@ -573,7 +575,7 @@ export function KnowledgeAutoSyncClient({
                           onCheckedChange={() => toggleAutoSync(source.id)}
                           className="data-[state=checked]:bg-[#d4af37]"
                         />
-                        <span className="text-xs text-[#f5f5dc]/40">Auto-sync</span>
+                        <span className="text-xs text-[#f5f5dc]/40">{t("autoSync")}</span>
                       </div>
 
                       {/* Next Sync */}
@@ -599,7 +601,7 @@ export function KnowledgeAutoSyncClient({
                                 <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">Sync Now</TooltipContent>
+                            <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">{t("syncNow")}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                         <TooltipProvider>
@@ -650,14 +652,14 @@ export function KnowledgeAutoSyncClient({
               {filteredSources.length === 0 && (
                 <div className="text-center py-12 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80">
                   <Database className="h-12 w-12 text-[#f5f5dc]/20 mx-auto mb-4" />
-                  <p className="text-[#f5f5dc]/60">No knowledge sources found</p>
+                  <p className="text-[#f5f5dc]/60">{t("noSources")}</p>
                   <Button
                     size="sm"
                     onClick={() => setShowAddModal(true)}
                     className="mt-4 bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18]"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Source
+                    {t("addSource")}
                   </Button>
                 </div>
               )}
@@ -670,7 +672,7 @@ export function KnowledgeAutoSyncClient({
               <div className="p-4 border-b border-[#d4af37]/10 flex items-center justify-between">
                 <h3 className="font-semibold text-[#d4af37] flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Sync Schedule
+                  {t("syncScheduleTitle")}
                 </h3>
                 <Badge variant="outline" className="text-xs border-[#f5f5dc]/20 text-[#f5f5dc]/60">
                   {sources.filter(s => s.autoSync).length} auto-sync enabled
@@ -717,7 +719,7 @@ export function KnowledgeAutoSyncClient({
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
                 <h3 className="font-semibold text-[#d4af37] mb-4 flex items-center gap-2">
                   <Brain className="h-5 w-5" />
-                  Token Distribution
+                  {t("analyticsTitle")}
                 </h3>
                 <div className="space-y-4">
                   {sources.slice(0, 5).map((source) => {
@@ -740,11 +742,11 @@ export function KnowledgeAutoSyncClient({
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-[#d4af37] flex items-center gap-2">
                     <Activity className="h-5 w-5" />
-                    Recent Sync Activity
+                    {t("syncHistory")}
                   </h3>
                   <Button variant="outline" size="sm" className="border-[#f5f5dc]/20 text-[#f5f5dc]/70">
                     <Download className="h-4 w-4 mr-2" />
-                    Export
+                    {t("analyticsDesc")}
                   </Button>
                 </div>
                 <div className="space-y-3">
@@ -776,57 +778,57 @@ export function KnowledgeAutoSyncClient({
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="bg-[#0a1229] border-[#d4af37]/20 text-[#f5f5dc]">
           <DialogHeader>
-            <DialogTitle className="text-[#d4af37]">Add Knowledge Source</DialogTitle>
+            <DialogTitle className="text-[#d4af37]">{t("addSource")}</DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              Connect a new data source for AI to learn from.
+              {t("noSourcesDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Source Name</Label>
+              <Label>{t("sourceNameLabel")}</Label>
               <Input placeholder="e.g., Product Documentation" className="bg-[#050a18] border-[#d4af37]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Source Type</Label>
+              <Label>{t("sourceTypePlaceholder")}</Label>
               <Select>
                 <SelectTrigger className="bg-[#050a18] border-[#d4af37]/20">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t("sourceTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="url">URL / Website</SelectItem>
-                  <SelectItem value="file">File Upload</SelectItem>
-                  <SelectItem value="api">API Endpoint</SelectItem>
+                  <SelectItem value="url">{t("typeURL")}</SelectItem>
+                  <SelectItem value="file">{t("typeFile")}</SelectItem>
+                  <SelectItem value="api">{t("typeAPI")}</SelectItem>
                   <SelectItem value="notion">Notion</SelectItem>
                   <SelectItem value="confluence">Confluence</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>URL / Endpoint</Label>
+              <Label>{t("syncURL")}</Label>
               <Input placeholder="https://..." className="bg-[#050a18] border-[#d4af37]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Sync Interval</Label>
+              <Label>{t("syncSchedule")}</Label>
               <Select>
                 <SelectTrigger className="bg-[#050a18] border-[#d4af37]/20">
-                  <SelectValue placeholder="Select interval" />
+                  <SelectValue placeholder={t("syncSchedule")} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="hourly">Hourly</SelectItem>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="manual">Manual Only</SelectItem>
+                  <SelectItem value="hourly">{t("frequencyHourly")}</SelectItem>
+                  <SelectItem value="daily">{t("frequencyDaily")}</SelectItem>
+                  <SelectItem value="weekly">{t("frequencyWeekly")}</SelectItem>
+                  <SelectItem value="manual">{t("frequencyMonthly")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddModal(false)} className="border-[#f5f5dc]/20">
-              Cancel
+              {t("cancel")}
             </Button>
             <Button className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18]">
               <Plus className="h-4 w-4 mr-2" />
-              Add Source
+              {t("addSource")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -838,7 +840,7 @@ export function KnowledgeAutoSyncClient({
           <DialogHeader>
             <DialogTitle className="text-[#d4af37] flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Source Details
+              {t("viewLogs")}
             </DialogTitle>
           </DialogHeader>
           {selectedSource && (
@@ -928,15 +930,15 @@ export function KnowledgeAutoSyncClient({
                   onClick={() => { syncSource(selectedSource.id); setSelectedSource(null); }}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Sync Now
+                  {t("syncNow")}
                 </Button>
                 <Button variant="outline" className="border-[#f5f5dc]/20">
                   <Edit2 className="h-4 w-4 mr-2" />
-                  Edit
+                  {t("editSource")}
                 </Button>
                 <Button variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {t("deleteSource")}
                 </Button>
               </div>
             </div>

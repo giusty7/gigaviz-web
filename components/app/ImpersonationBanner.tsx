@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, LogOut, Loader2 } from "lucide-react";
 
 type ImpersonationBannerProps = {
@@ -18,10 +19,11 @@ export default function ImpersonationBanner({
   expiresAt,
   impersonationId,
 }: ImpersonationBannerProps) {
+  const t = useTranslations("appUI.impersonation");
   const [ending, setEnding] = useState(false);
 
   const handleEndImpersonation = async () => {
-    if (!confirm("End impersonation session?")) return;
+    if (!confirm(t("confirmEnd"))) return;
 
     setEnding(true);
     try {
@@ -32,13 +34,13 @@ export default function ImpersonationBanner({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to end impersonation");
+        throw new Error(t("failedEnd"));
       }
 
       // Redirect to ops console
       window.location.href = "/ops/customers";
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to end impersonation");
+      alert(err instanceof Error ? err.message : t("failedEnd"));
       setEnding(false);
     }
   };
@@ -52,14 +54,14 @@ export default function ImpersonationBanner({
       <div className="flex items-center gap-3">
         <AlertTriangle className="w-5 h-5" />
         <div className="flex items-center gap-2 flex-wrap">
-          <span>🔒 Impersonating</span>
+          <span>{t("impersonating")}</span>
           <span className="font-bold">{targetEmail}</span>
-          <span>in workspace</span>
+          <span>{t("inWorkspace")}</span>
           <span className="font-bold">/{workspaceSlug}</span>
           <span className="text-yellow-800">•</span>
-          <span>Expires in {minutesLeft}m</span>
+          <span>{t("expiresIn", { minutes: minutesLeft })}</span>
           <span className="text-yellow-800">•</span>
-          <span className="text-xs">Actor: {actorEmail}</span>
+          <span className="text-xs">{t("actor", { email: actorEmail })}</span>
         </div>
       </div>
 
@@ -71,12 +73,12 @@ export default function ImpersonationBanner({
         {ending ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            Ending...
+            {t("ending")}
           </>
         ) : (
           <>
             <LogOut className="w-4 h-4" />
-            End Session
+            {t("endSession")}
           </>
         )}
       </button>

@@ -1,7 +1,7 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useUpgradeModal } from "@/components/billing/upgrade-modal-provider";
-import { copy } from "@/lib/copy";
 
 type PreviewBannerProps = {
   className?: string;
@@ -9,6 +9,7 @@ type PreviewBannerProps = {
 };
 
 export default function PreviewBanner({ className, onUpgradeClick }: PreviewBannerProps) {
+  const t = useTranslations("previewBannerUI");
   const { open } = useUpgradeModal();
 
   const handleUpgrade = () => {
@@ -27,11 +28,11 @@ export default function PreviewBanner({ className, onUpgradeClick }: PreviewBann
         !
       </span>
       <div className="flex-1">
-        <p className="font-semibold">{copy.previewBanner.title}</p>
-        <p className="text-muted-foreground">{copy.previewBanner.text}</p>
+        <p className="font-semibold">{t("title")}</p>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
       <Button size="sm" variant="outline" onClick={handleUpgrade}>
-        {copy.previewBanner.action}
+        {t("upgrade")}
       </Button>
     </div>
   );

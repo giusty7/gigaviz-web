@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { AUTH_DISCLAIMER_LINES } from "@/lib/copy";
 import { AuthTrustBadge } from "./auth-trust-badge";
 import { PillarGrid } from "./pillar-grid";
@@ -51,6 +52,7 @@ export function AuthLayoutClient({
   showTrustBadge = true,
   showPillarGrid = true,
 }: AuthLayoutProps) {
+  const t = useTranslations("authLayoutUI");
   const [disclaimerLine1, disclaimerLine2] = disclaimerLines;
 
   return (
@@ -168,14 +170,14 @@ export function AuthLayoutClient({
                       href="/policies/privacy-policy"
                       className="text-[#f5f5dc]/60 underline transition-colors hover:text-[#d4af37]"
                     >
-                      Privacy Policy
+                      {t("privacyPolicy")}
                     </Link>
                     <span className="text-[#f5f5dc]/30">•</span>
                     <Link
                       href="/policies/terms-of-service"
                       className="text-[#f5f5dc]/60 underline transition-colors hover:text-[#d4af37]"
                     >
-                      Terms of Service
+                      {t("termsOfService")}
                     </Link>
                   </div>
                 </div>

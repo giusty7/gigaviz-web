@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,6 +35,7 @@ export type ContactSalesDialogProps = {
 export default function ContactSalesDialog(props: ContactSalesDialogProps) {
   const { workspaceId, workspaceName, workspaceSlug, userEmail, planOptions, defaultPlanId, children, trigger } = props;
   const { toast } = useToast();
+  const t = useTranslations("appUI.contactSales");
   const paidPlans = useMemo(() => planOptions.filter((plan) => plan.plan_id !== "free_locked"), [planOptions]);
   const currentPlan = useMemo(
     () => planOptions.find((plan) => plan.plan_id === defaultPlanId) ?? null,
@@ -86,12 +88,12 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
   const handleSubmit = useCallback(async () => {
     const seatsNumber = Number(seats);
     if (!Number.isFinite(seatsNumber) || seatsNumber < 1) {
-      toast({ title: "Invalid seats", description: "Seats must be a positive number." });
+      toast({ title: t("invalidSeats"), description: t("invalidSeatsDesc") });
       return;
     }
 
     if (!planId) {
-      toast({ title: "Plan required", description: "Select a plan before submitting." });
+      toast({ title: t("planRequired"), description: t("planRequiredDesc") });
       return;
     }
 
@@ -111,19 +113,19 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
         const error = payload?.reason || payload?.error || "request_failed";
-        toast({ title: "Request failed", description: String(error) });
+        toast({ title: t("requestFailed"), description: String(error) });
         return;
       }
 
       toast({
-        title: "Request sent",
-        description: "Our team will reach out to confirm your upgrade.",
+        title: t("requestSent"),
+        description: t("requestSentDesc"),
       });
       setOpen(false);
     } finally {
       setSubmitting(false);
     }
-  }, [notes, planId, seats, toast, workspaceId]);
+  }, [notes, planId, seats, toast, t, workspaceId]);
 
   // If trigger prop is provided, use uncontrolled dialog with DialogTrigger
   // If children render-prop is provided, use controlled dialog
@@ -135,17 +137,17 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
         <DialogTrigger asChild>{trigger}</DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upgrade via Contact Sales</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              Tell us the plan and seats you need. Use WhatsApp for a faster response or submit the request here.
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="plan-inline">Plan</Label>
+              <Label htmlFor="plan-inline">{t("plan")}</Label>
               {currentPlan ? (
-                <div className="text-xs text-muted-foreground">Current plan: {currentPlan.name}</div>
+                <div className="text-xs text-muted-foreground">{t("currentPlan", { name: currentPlan.name })}</div>
               ) : null}
               <select
                 id="plan-inline"
@@ -163,7 +165,7 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="seats">Seats</Label>
+              <Label htmlFor="seats">{t("seats")}</Label>
               <Input
                 id="seats"
                 type="number"
@@ -175,10 +177,10 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (optional)</Label>
+              <Label htmlFor="notes">{t("notesOptional")}</Label>
               <Textarea
                 id="notes"
-                placeholder="Share requirements, timelines, or compliance needs."
+                placeholder={t("notesPlaceholder")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -192,11 +194,11 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
           <DialogFooter className="gap-2">
             <Button asChild variant="secondary" disabled={!waUrl}>
               <a href={waUrl ?? "#"} target="_blank" rel="noreferrer">
-                Contact via WhatsApp
+                {t("contactWhatsApp")}
               </a>
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Submitting..." : "Submit request"}
+              {submitting ? t("submitting") : t("submitRequest")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -211,17 +213,17 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upgrade via Contact Sales</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              Tell us the plan and seats you need. Use WhatsApp for a faster response or submit the request here.
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="plan">Plan</Label>
+              <Label htmlFor="plan">{t("plan")}</Label>
               {currentPlan ? (
-                <div className="text-xs text-muted-foreground">Current plan: {currentPlan.name}</div>
+                <div className="text-xs text-muted-foreground">{t("currentPlan", { name: currentPlan.name })}</div>
               ) : null}
               <select
                 id="plan"
@@ -239,7 +241,7 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="seats">Seats</Label>
+              <Label htmlFor="seats">{t("seats")}</Label>
               <Input
                 id="seats"
                 type="number"
@@ -251,10 +253,10 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (optional)</Label>
+              <Label htmlFor="notes">{t("notesOptional")}</Label>
               <Textarea
                 id="notes"
-                placeholder="Share requirements, timelines, or compliance needs."
+                placeholder={t("notesPlaceholder")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -268,11 +270,11 @@ export default function ContactSalesDialog(props: ContactSalesDialogProps) {
           <DialogFooter className="gap-2">
             <Button asChild variant="secondary" disabled={!waUrl}>
               <a href={waUrl ?? "#"} target="_blank" rel="noreferrer">
-                Contact via WhatsApp
+                {t("contactWhatsApp")}
               </a>
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Submitting..." : "Submit request"}
+              {submitting ? t("submitting") : t("submitRequest")}
             </Button>
           </DialogFooter>
         </DialogContent>

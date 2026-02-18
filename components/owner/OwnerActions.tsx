@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   addOwnerNoteAction,
   suspendWorkspaceAction,
@@ -34,6 +35,7 @@ export type OwnerFeatureFlag = {
 };
 
 export function WorkspaceNotesPanel({ workspaceId }: { workspaceId: string }) {
+  const t = useTranslations("opsUI");
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
   const [pending, startTransition] = useTransition();
@@ -43,12 +45,12 @@ export function WorkspaceNotesPanel({ workspaceId }: { workspaceId: string }) {
     startTransition(async () => {
       const result = await addOwnerNoteAction(formData);
       if (result.ok) {
-        toast({ title: "Note added", description: "Support note recorded for this workspace." });
+        toast({ title: t("owner.actions.noteAdded"), description: "Support note recorded for this workspace." });
         setNote("");
         setOpen(false);
       } else if (result.error) {
         toast({
-          title: "Could not add note",
+          title: t("owner.actions.noteFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -60,12 +62,12 @@ export function WorkspaceNotesPanel({ workspaceId }: { workspaceId: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="secondary">
-          Add note
+          {t("owner.actions.addNote")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add support note</DialogTitle>
+          <DialogTitle>{t("owner.actions.addNote")}</DialogTitle>
           <DialogDescription>
             Notes are visible to owner/internal ops for this workspace. Keep them concise.
           </DialogDescription>
@@ -91,7 +93,7 @@ export function WorkspaceNotesPanel({ workspaceId }: { workspaceId: string }) {
               </Button>
             </DialogClose>
             <Button type="submit" disabled={pending}>
-              Save note
+              {t("owner.actions.addNote")}
             </Button>
           </DialogFooter>
         </form>
@@ -107,6 +109,7 @@ type FeatureFlagsPanelProps = {
 };
 
 export function FeatureFlagsPanel({ workspaceId, flags, compact }: FeatureFlagsPanelProps) {
+  const t = useTranslations("opsUI");
   const [editOpen, setEditOpen] = useState(false);
   const [toggleOpen, setToggleOpen] = useState(false);
   const [form, setForm] = useState<{ flagKey: string; value: string; lockKey?: boolean }>({
@@ -132,11 +135,11 @@ export function FeatureFlagsPanel({ workspaceId, flags, compact }: FeatureFlagsP
     startToggle(async () => {
       const result = await toggleFeatureFlagAction(formData);
       if (result.ok) {
-        toast({ title: "Flag toggled", description: "Flag state updated." });
+        toast({ title: t("owner.actions.flagSuccess"), description: "Flag state updated." });
         setToggleOpen(false);
       } else if (result.error) {
         toast({
-          title: "Toggle failed",
+          title: t("owner.actions.flagFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -148,11 +151,11 @@ export function FeatureFlagsPanel({ workspaceId, flags, compact }: FeatureFlagsP
     startEdit(async () => {
       const result = await upsertFeatureFlagAction(formData);
       if (result.ok) {
-        toast({ title: "Flag saved", description: "Feature flag updated." });
+        toast({ title: t("owner.actions.flagSuccess"), description: "Feature flag updated." });
         setEditOpen(false);
       } else if (result.error) {
         toast({
-          title: "Could not save flag",
+          title: t("owner.actions.flagFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -305,6 +308,7 @@ export function WorkspaceStatusActions({
 }) {
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [unsuspendOpen, setUnsuspendOpen] = useState(false);
+  const t = useTranslations("opsUI");
   const [suspendPending, startSuspend] = useTransition();
   const [unsuspendPending, startUnsuspend] = useTransition();
   const { toast } = useToast();
@@ -313,11 +317,11 @@ export function WorkspaceStatusActions({
     startSuspend(async () => {
       const result = await suspendWorkspaceAction(formData);
       if (result.ok) {
-        toast({ title: "Workspace suspended" });
+        toast({ title: t("owner.actions.suspendSuccess") });
         setSuspendOpen(false);
       } else if (result.error) {
         toast({
-          title: "Failed to suspend",
+          title: t("owner.actions.suspendFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -329,11 +333,11 @@ export function WorkspaceStatusActions({
     startUnsuspend(async () => {
       const result = await unsuspendWorkspaceAction(formData);
       if (result.ok) {
-        toast({ title: "Workspace unsuspended" });
+        toast({ title: t("owner.actions.unsuspendSuccess") });
         setUnsuspendOpen(false);
       } else if (result.error) {
         toast({
-          title: "Failed to unsuspend",
+          title: t("owner.actions.suspendFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -346,14 +350,14 @@ export function WorkspaceStatusActions({
       <Dialog open={suspendOpen} onOpenChange={setSuspendOpen}>
         <DialogTrigger asChild>
           <Button variant="destructive" size="sm">
-            Suspend workspace
+            {t("owner.actions.suspendWorkspace")}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Suspend workspace</DialogTitle>
+            <DialogTitle>{t("owner.actions.suspendWorkspace")}</DialogTitle>
             <DialogDescription>
-              This marks the workspace as suspended and records a reason in audit logs.
+              {t("owner.actions.suspendConfirm")}
             </DialogDescription>
           </DialogHeader>
           <form action={handleSuspend} className="space-y-3">
@@ -372,7 +376,7 @@ export function WorkspaceStatusActions({
                 </Button>
               </DialogClose>
               <Button type="submit" variant="destructive" disabled={suspendPending}>
-                Confirm suspension
+                {t("owner.actions.suspendWorkspace")}
               </Button>
             </DialogFooter>
           </form>
@@ -382,14 +386,14 @@ export function WorkspaceStatusActions({
       <Dialog open={unsuspendOpen} onOpenChange={setUnsuspendOpen}>
         <DialogTrigger asChild>
           <Button variant="secondary" size="sm" disabled={status !== "suspended"}>
-            Unsuspend
+            {t("owner.actions.unsuspendWorkspace")}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Unsuspend workspace</DialogTitle>
+            <DialogTitle>{t("owner.actions.unsuspendWorkspace")}</DialogTitle>
             <DialogDescription>
-              Return the workspace to active status. Optionally document a note.
+              {t("owner.actions.unsuspendConfirm")}
             </DialogDescription>
           </DialogHeader>
           <form action={handleUnsuspend} className="space-y-3">

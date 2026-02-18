@@ -12,6 +12,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 type UsageData = {
   date: string;
@@ -42,6 +43,7 @@ export function AnalyticsClient({
   messageCount,
   workflowRuns,
 }: AnalyticsClientProps) {
+  const t = useTranslations("helperUI.analyticsPage");
   // Calculate totals
   const totals = useMemo(() => {
     const totalTokensIn = usageData.reduce((sum, d) => sum + (d.tokens_in ?? 0), 0);
@@ -108,9 +110,9 @@ export function AnalyticsClient({
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-[#f5f5dc]">Analytics</h2>
+        <h2 className="text-2xl font-bold text-[#f5f5dc]">{t("title")}</h2>
         <p className="text-[#f5f5dc]/60 mt-1">
-          Track your AI assistant usage over the last 30 days
+          {t("subtitle")}
         </p>
       </div>
 
@@ -120,7 +122,7 @@ export function AnalyticsClient({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#b8860b]" />
-              Total Tokens
+              {t("totalTokens")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -128,7 +130,7 @@ export function AnalyticsClient({
               {totals.totalTokens.toLocaleString()}
             </div>
             <p className="text-xs text-[#f5f5dc]/50 mt-1">
-              {totals.tokensIn.toLocaleString()} in / {totals.tokensOut.toLocaleString()} out
+              {totals.tokensIn.toLocaleString()} {t("tokenIn")} / {totals.tokensOut.toLocaleString()} {t("tokenOut")}
             </p>
           </CardContent>
         </Card>
@@ -137,7 +139,7 @@ export function AnalyticsClient({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60 flex items-center gap-2">
               <Cpu className="w-4 h-4 text-[#b8860b]" />
-              API Requests
+              {t("apiRequests")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -145,7 +147,7 @@ export function AnalyticsClient({
               {totals.requests.toLocaleString()}
             </div>
             <p className="text-xs text-[#f5f5dc]/50 mt-1">
-              Last 30 days
+              {t("apiRequestsDesc")}
             </p>
           </CardContent>
         </Card>
@@ -154,7 +156,7 @@ export function AnalyticsClient({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60 flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-[#b8860b]" />
-              Conversations
+              {t("conversations")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -171,7 +173,7 @@ export function AnalyticsClient({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60 flex items-center gap-2">
               <Zap className="w-4 h-4 text-[#b8860b]" />
-              Workflow Runs
+              {t("workflowPerformance")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -179,7 +181,7 @@ export function AnalyticsClient({
               {workflowStats.total.toLocaleString()}
             </div>
             <p className="text-xs text-[#f5f5dc]/50 mt-1">
-              {workflowStats.successful} successful
+              {t("successCount", { count: workflowStats.successful })}
             </p>
           </CardContent>
         </Card>
@@ -190,10 +192,10 @@ export function AnalyticsClient({
         <CardHeader>
           <CardTitle className="text-[#f5f5dc] flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-[#b8860b]" />
-            Token Usage (14 Days)
+            {t("tokenUsageChart")}
           </CardTitle>
           <CardDescription className="text-[#f5f5dc]/60">
-            Daily token consumption trend
+            {t("tokenUsageDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -226,15 +228,15 @@ export function AnalyticsClient({
         {/* Provider Breakdown */}
         <Card className="bg-[#1a1a2e]/80 border-[#b8860b]/30">
           <CardHeader>
-            <CardTitle className="text-[#f5f5dc]">Usage by Provider</CardTitle>
+            <CardTitle className="text-[#f5f5dc]">{t("usageByProvider")}</CardTitle>
             <CardDescription className="text-[#f5f5dc]/60">
-              Token distribution across AI providers
+              {t("usageByProviderDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {Object.keys(totals.byProvider).length === 0 ? (
               <div className="text-center py-8 text-[#f5f5dc]/50">
-                No usage data yet
+                {t("noUsageData")}
               </div>
             ) : (
               <div className="space-y-3">
@@ -248,7 +250,7 @@ export function AnalyticsClient({
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-[#f5f5dc] capitalize">{provider}</span>
                         <span className="text-[#f5f5dc]/60">
-                          {(stats.tokensIn + stats.tokensOut).toLocaleString()} tokens
+                          {(stats.tokensIn + stats.tokensOut).toLocaleString()} {t("tokensLabel")}
                         </span>
                       </div>
                       <div className="h-2 bg-[#16213e] rounded-full overflow-hidden">
@@ -268,15 +270,15 @@ export function AnalyticsClient({
         {/* Workflow Status */}
         <Card className="bg-[#1a1a2e]/80 border-[#b8860b]/30">
           <CardHeader>
-            <CardTitle className="text-[#f5f5dc]">Workflow Status</CardTitle>
+            <CardTitle className="text-[#f5f5dc]">{t("workflowPerformance")}</CardTitle>
             <CardDescription className="text-[#f5f5dc]/60">
-              Execution results from last 30 days
+              {t("workflowPerfDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {workflowStats.total === 0 ? (
               <div className="text-center py-8 text-[#f5f5dc]/50">
-                No workflow runs yet
+                {t("noWorkflowRuns")}
               </div>
             ) : (
               <div className="space-y-4">
@@ -285,9 +287,9 @@ export function AnalyticsClient({
                     <CheckCircle className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-[#f5f5dc] font-medium">Successful</div>
+                    <div className="text-[#f5f5dc] font-medium">{t("successful")}</div>
                     <div className="text-sm text-[#f5f5dc]/60">
-                      {workflowStats.successful} runs
+                      {t("successCount", { count: workflowStats.successful })}
                     </div>
                   </div>
                   <div className="text-xl font-bold text-green-400">
@@ -302,9 +304,9 @@ export function AnalyticsClient({
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-[#f5f5dc] font-medium">Failed</div>
+                    <div className="text-[#f5f5dc] font-medium">{t("failed")}</div>
                     <div className="text-sm text-[#f5f5dc]/60">
-                      {workflowStats.failed} runs
+                      {t("failedCount", { count: workflowStats.failed })}
                     </div>
                   </div>
                   <div className="text-xl font-bold text-red-400">
@@ -319,9 +321,9 @@ export function AnalyticsClient({
                     <Clock className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-[#f5f5dc] font-medium">Running</div>
+                    <div className="text-[#f5f5dc] font-medium">{t("running")}</div>
                     <div className="text-sm text-[#f5f5dc]/60">
-                      {workflowStats.running} runs
+                      {t("runningCount", { count: workflowStats.running })}
                     </div>
                   </div>
                   <div className="text-xl font-bold text-[#b8860b]">
@@ -339,10 +341,10 @@ export function AnalyticsClient({
         <CardHeader>
           <CardTitle className="text-[#f5f5dc] flex items-center gap-2">
             <Cpu className="w-5 h-5 text-[#b8860b]" />
-            API Requests (14 Days)
+            {t("apiRequestsChart")}
           </CardTitle>
           <CardDescription className="text-[#f5f5dc]/60">
-            Daily request volume
+            {t("apiRequestsChartDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>

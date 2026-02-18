@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { copy } from "@/lib/copy";
 
 type UpgradeModalProps = {
   open: boolean;
@@ -29,20 +28,24 @@ export default function UpgradeModal({
   billingHref = "/billing",
   className,
 }: UpgradeModalProps) {
-  const bullets = useMemo(
-    () => copy.upgradeModal.bullets.slice(0, 4),
-    []
-  );
+  const t = useTranslations("billing");
+
+  const bullets = [
+    t("upgradeModalBullet1"),
+    t("upgradeModalBullet2"),
+    t("upgradeModalBullet3"),
+    t("upgradeModalBullet4"),
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn("max-w-lg bg-card text-foreground", className)}>
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
-            {copy.upgradeModal.title}
+            {t("upgradeModalTitle")}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            {copy.upgradeModal.description}
+            {t("upgradeModalDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -55,15 +58,13 @@ export default function UpgradeModal({
           ))}
         </div>
 
-        {copy.upgradeModal.footerNote ? (
-          <p className="text-xs text-muted-foreground">
-            {copy.upgradeModal.footerNote}
-          </p>
-        ) : null}
+        <p className="text-xs text-muted-foreground">
+          {t("upgradeModalFooter")}
+        </p>
 
         <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button asChild size="sm" className="flex-1">
-            <Link href={billingHref}>{copy.upgradeModal.ctaPrimary}</Link>
+            <Link href={billingHref}>{t("viewPlans")}</Link>
           </Button>
           <Button
             type="button"
@@ -72,7 +73,7 @@ export default function UpgradeModal({
             className="flex-1 border-border"
             onClick={onClose}
           >
-            {copy.upgradeModal.ctaSecondary}
+            {t("notNow")}
           </Button>
         </DialogFooter>
       </DialogContent>

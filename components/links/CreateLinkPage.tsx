@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -10,6 +11,7 @@ interface CreateLinkPageProps {
 }
 
 export function CreateLinkPage({ workspaceSlug }: CreateLinkPageProps) {
+  const t = useTranslations("linksUI");
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -48,13 +50,13 @@ export function CreateLinkPage({ workspaceSlug }: CreateLinkPageProps) {
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        setError(json.error === "slug_taken" ? "This slug is already taken. Try another." : json.error ?? "Failed to create page");
+        setError(json.error === "slug_taken" ? t("slugTaken") : json.error ?? t("failedToCreate"));
         setSaving(false);
         return;
       }
       router.push(`${base}/pages/${json.page.id}`);
     } catch {
-      setError("Network error");
+      setError(t("networkError"));
       setSaving(false);
     }
   };
@@ -70,20 +72,20 @@ export function CreateLinkPage({ workspaceSlug }: CreateLinkPageProps) {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">Create Link Page</h1>
-          <p className="text-[11px] text-[#f5f5dc]/40">Set up your bio page — you can add links after.</p>
+          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">{t("createLinkPage")}</h1>
+          <p className="text-[11px] text-[#f5f5dc]/40">{t("createLinkPageDesc")}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-[11px] font-medium text-[#f5f5dc]/50 mb-1">Page Title</label>
+          <label className="block text-[11px] font-medium text-[#f5f5dc]/50 mb-1">{t("pageTitle")}</label>
           <input
             type="text"
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="My Store"
+            placeholder={t("placeholderTitle")}
             className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-[#f5f5dc]/[0.02] px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-[#d4af37]/40 focus:outline-none focus:ring-1 focus:ring-[#d4af37]/20"
             maxLength={100}
             required
@@ -93,13 +95,13 @@ export function CreateLinkPage({ workspaceSlug }: CreateLinkPageProps) {
         {/* Slug */}
         <div>
           <label className="block text-[11px] font-medium text-[#f5f5dc]/50 mb-1">
-            URL Slug <span className="text-[#f5f5dc]/25">— yoursite.com/l/{slug || "..."}</span>
+            {t("urlSlug")} <span className="text-[#f5f5dc]/25">— yoursite.com/l/{slug || "..."}</span>
           </label>
           <input
             type="text"
             value={slug}
             onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-            placeholder="my-store"
+            placeholder={t("placeholderSlug")}
             className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-[#f5f5dc]/[0.02] px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-[#d4af37]/40 focus:outline-none focus:ring-1 focus:ring-[#d4af37]/20 font-mono"
             maxLength={60}
             required
@@ -108,11 +110,11 @@ export function CreateLinkPage({ workspaceSlug }: CreateLinkPageProps) {
 
         {/* Bio */}
         <div>
-          <label className="block text-[11px] font-medium text-[#f5f5dc]/50 mb-1">Bio (optional)</label>
+          <label className="block text-[11px] font-medium text-[#f5f5dc]/50 mb-1">{t("bioOptional")}</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Short description about you or your business"
+            placeholder={t("placeholderBio")}
             rows={2}
             className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-[#f5f5dc]/[0.02] px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-[#d4af37]/40 focus:outline-none focus:ring-1 focus:ring-[#d4af37]/20 resize-none"
             maxLength={300}
@@ -129,7 +131,7 @@ export function CreateLinkPage({ workspaceSlug }: CreateLinkPageProps) {
           className="w-full rounded-lg bg-[#d4af37] px-4 py-2.5 text-sm font-semibold text-[#050a18] transition hover:bg-[#d4af37]/90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Create Page
+          {t("createPage")}
         </button>
       </form>
     </div>

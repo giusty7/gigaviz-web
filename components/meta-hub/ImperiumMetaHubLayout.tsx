@@ -24,6 +24,7 @@ import {
   Send,
   Inbox,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
 import type { MetaHubAccess, MetaHubSetup } from "@/lib/meta-hub/access";
 
@@ -222,6 +223,7 @@ export function ImperiumMetaHubSidebar({
   access: MetaHubAccess;
   setup: MetaHubSetup;
 }) {
+  const t = useTranslations("metaHubUI.layout");
   const pathname = usePathname();
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const sections = buildNav(flags, basePath, access, setup);
@@ -243,9 +245,9 @@ export function ImperiumMetaHubSidebar({
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4af37]">
-                Meta Hub
+                {t("title")}
               </p>
-              <h1 className="text-base font-semibold text-[#f5f5dc]">Integration Center</h1>
+              <h1 className="text-base font-semibold text-[#f5f5dc]">{t("subtitle")}</h1>
             </div>
           </div>
         </div>
@@ -268,9 +270,9 @@ export function ImperiumMetaHubSidebar({
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4af37]">
-              Meta Hub
+              {t("title")}
             </p>
-            <h1 className="text-base font-semibold text-[#f5f5dc]">Integration Center</h1>
+            <h1 className="text-base font-semibold text-[#f5f5dc]">{t("subtitle")}</h1>
           </div>
         </div>
         {/* Meta Partner Badge */}

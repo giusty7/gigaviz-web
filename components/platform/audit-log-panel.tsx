@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslations } from "next-intl";
 import { AuditLogExport } from "./audit-log-export";
 
 export type AuditEvent = {
@@ -30,6 +31,7 @@ type AuditLogPanelProps = {
 const ITEMS_PER_PAGE = 20;
 
 export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: AuditLogPanelProps) {
+  const t = useTranslations("platformUI.auditLog");
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
     return (
       <div className="flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-3 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading audit log...
+        {t("loadingAuditLog")}
       </div>
     );
   }
@@ -108,8 +110,8 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
   if (events.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-center text-sm">
-        <p className="font-semibold text-foreground">No audit events yet</p>
-        <p className="text-xs text-muted-foreground">Perform actions like role updates or billing requests to generate entries.</p>
+        <p className="font-semibold text-foreground">{t("noAuditEventsYet")}</p>
+        <p className="text-xs text-muted-foreground">{t("noAuditEventsYetDesc")}</p>
       </div>
     );
   }
@@ -120,7 +122,7 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            {events.length} total events
+            {t("totalEvents", { count: events.length })}
           </div>
           <AuditLogExport events={events} workspaceName={workspaceName} />
         </div>
@@ -129,7 +131,7 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by action or actor..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -142,7 +144,7 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All actions</SelectItem>
+                <SelectItem value="all">{t("allActions")}</SelectItem>
                 {uniqueActions.map((action) => (
                   <SelectItem key={action} value={action}>
                     {action}
@@ -167,15 +169,15 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
       {(searchQuery || actionFilter !== "all") && (
         <div className="text-xs text-muted-foreground">
           Showing {filteredEvents.length} of {events.length} events
-          {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
+          {totalPages > 1 && ` (${t("pageOf", { page: currentPage, pages: totalPages })})`}
         </div>
       )}
 
       {/* Events list */}
       {filteredEvents.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-center text-sm">
-          <p className="font-semibold text-foreground">No matching events</p>
-          <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
+          <p className="font-semibold text-foreground">{t("noMatchingEvents")}</p>
+          <p className="text-xs text-muted-foreground">{t("noMatchingEventsDesc")}</p>
         </div>
       ) : (
         <>
@@ -191,7 +193,7 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
                   </span>
                   <div className="space-y-1 text-sm">
                     <p className="font-semibold text-foreground">{evt.action}</p>
-                    <p className="text-xs text-muted-foreground">{evt.actor_email ?? "Unknown actor"}</p>
+                    <p className="text-xs text-muted-foreground">{evt.actor_email ?? t("unknownActor")}</p>
                     {evt.meta ? (
                       <p className="text-[11px] text-muted-foreground/80 font-mono">{JSON.stringify(evt.meta)}</p>
                     ) : null}
@@ -218,10 +220,10 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  {t("previous")}
                 </Button>
                 <div className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
+                  {t("pageOf", { page: currentPage, pages: totalPages })}
                 </div>
                 <Button
                   variant="outline"
@@ -229,7 +231,7 @@ export function AuditLogPanel({ workspaceId, workspaceName = "Workspace" }: Audi
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t("next")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

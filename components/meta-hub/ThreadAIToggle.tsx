@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
@@ -50,6 +51,7 @@ interface Props {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Props) {
+  const t = useTranslations("metaHubUI.threadAI");
   const [state, setState] = useState<ThreadAIState | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
@@ -192,7 +194,7 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
     return (
       <div className="flex items-center gap-2 text-[#f5f5dc]/40">
         <Loader2 className="h-4 w-4 animate-spin" />
-        {!compact && <span className="text-xs">Loading...</span>}
+        {!compact && <span className="text-xs">{t("loading")}</span>}
       </div>
     );
   }
@@ -208,13 +210,12 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
               "text-[#f5f5dc]/40"
             )}>
               <Bot className="h-4 w-4" />
-              {!compact && <span className="text-xs">AI Off</span>}
+              {!compact && <span className="text-xs">{t("aiOff")}</span>}
             </div>
           </TooltipTrigger>
           <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20 max-w-xs">
             <p className="text-sm">
-              AI Auto-Reply dinonaktifkan secara global. Aktifkan di{" "}
-              <span className="text-[#d4af37]">Meta Hub → AI Reply</span>
+              {t("globalDisabledTooltip")}
             </p>
           </TooltipContent>
         </Tooltip>
@@ -255,10 +256,10 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
           </TooltipTrigger>
           <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">
             {state.handedOff 
-              ? "Dialihkan ke agen manusia"
+              ? t("handedOffTooltip")
               : state.aiEnabled 
-                ? "AI aktif - klik untuk nonaktifkan" 
-                : "AI nonaktif - klik untuk aktifkan"}
+                ? t("aiActiveTooltip") 
+                : t("aiInactiveTooltip")}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -284,18 +285,18 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
           {state.handedOff ? (
             <>
               <User className="h-4 w-4" />
-              Agen Manusia
+              {t("humanAgent")}
             </>
           ) : state.aiEnabled ? (
             <>
               <Bot className="h-4 w-4" />
               <Sparkles className="h-3 w-3" />
-              AI Aktif
+              {t("aiActive")}
             </>
           ) : (
             <>
               <Bot className="h-4 w-4 opacity-50" />
-              AI Nonaktif
+              {t("aiInactive")}
             </>
           )}
         </Button>
@@ -312,11 +313,11 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
                 "h-5 w-5",
                 state.aiEnabled && !state.handedOff ? "text-[#d4af37]" : "text-[#f5f5dc]/40"
               )} />
-              <span className="font-medium text-[#f5f5dc]">Mode Respons</span>
+              <span className="font-medium text-[#f5f5dc]">{t("responseMode")}</span>
             </div>
             {state.messageCount > 0 && (
               <Badge variant="outline" className="text-xs border-[#f5f5dc]/20 text-[#f5f5dc]/60">
-                {state.messageCount} balasan AI
+                {t("aiRepliesCount", { count: state.messageCount })}
               </Badge>
             )}
           </div>
@@ -327,9 +328,9 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
               <div className="flex items-start gap-2">
                 <User className="h-4 w-4 text-orange-400 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-orange-400">Dialihkan ke Agen</p>
+                  <p className="text-sm font-medium text-orange-400">{t("handedOffTitle")}</p>
                   <p className="text-xs text-[#f5f5dc]/60 mt-1">
-                    {state.handedOffReason || "Percakapan dihandle oleh tim manusia"}
+                    {state.handedOffReason || t("handedOffDefault")}
                   </p>
                 </div>
               </div>
@@ -345,7 +346,7 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
                 ) : (
                   <RefreshCw className="h-4 w-4 mr-2" />
                 )}
-                Aktifkan Ulang AI
+                {t("reactivateAI")}
               </Button>
             </div>
           ) : (
@@ -359,7 +360,7 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
                     <User className="h-4 w-4 text-[#f5f5dc]/60" />
                   )}
                   <span className="text-sm text-[#f5f5dc]">
-                    {state.aiEnabled ? "AI Merespons" : "Manual"}
+                    {state.aiEnabled ? t("aiResponding") : t("manual")}
                   </span>
                 </div>
                 <Switch
@@ -373,9 +374,9 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
               <div className="text-xs text-[#f5f5dc]/50 flex items-start gap-2">
                 <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
                 {state.aiEnabled ? (
-                  <span>AI akan otomatis merespons pesan masuk di thread ini</span>
+                  <span>{t("aiAutoRespondInfo")}</span>
                 ) : (
-                  <span>Anda akan merespons manual. AI tidak akan mengirim balasan.</span>
+                  <span>{t("manualRespondInfo")}</span>
                 )}
               </div>
 
@@ -389,7 +390,7 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
                   className="w-full border-[#f5f5dc]/20 text-[#f5f5dc]/70 hover:text-[#f5f5dc] hover:bg-[#f5f5dc]/5"
                 >
                   <Hand className="h-4 w-4 mr-2" />
-                  Alihkan ke Saya (Handoff)
+                  {t("handoffButton")}
                 </Button>
               )}
             </>
@@ -406,6 +407,8 @@ export function ThreadAIToggle({ threadId, compact = false, onStateChange }: Pro
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function AIGeneratedBadge({ compact = false }: { compact?: boolean }) {
+  const t = useTranslations("metaHubUI.threadAI");
+
   if (compact) {
     return (
       <TooltipProvider>
@@ -414,7 +417,7 @@ export function AIGeneratedBadge({ compact = false }: { compact?: boolean }) {
             <Sparkles className="h-3 w-3 text-[#d4af37]/60" />
           </TooltipTrigger>
           <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">
-            Dibalas oleh AI
+            {t("aiBadgeTooltip")}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -438,6 +441,7 @@ export function AIGeneratedBadge({ compact = false }: { compact?: boolean }) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function AIStatusBar({ workspaceSlug }: { workspaceSlug: string }) {
+  const t = useTranslations("metaHubUI.threadAI");
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [stats, setStats] = useState<{ todayReplies: number; successRate: number } | null>(null);
 
@@ -481,13 +485,13 @@ export function AIStatusBar({ workspaceSlug }: { workspaceSlug: string }) {
                   <Bot className="h-4 w-4 text-[#d4af37]" />
                   <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-emerald-400 rounded-full animate-pulse" />
                 </div>
-                <span className="text-sm text-[#d4af37] font-medium">AI Auto-Reply Aktif</span>
+                <span className="text-sm text-[#d4af37] font-medium">{t("aiAutoReplyActive")}</span>
               </div>
               {stats && (
                 <div className="flex items-center gap-3 text-xs text-[#f5f5dc]/50">
-                  <span>{stats.todayReplies} balasan hari ini</span>
+                  <span>{t("repliesToday", { count: stats.todayReplies })}</span>
                   <span>•</span>
-                  <span>{stats.successRate}% sukses</span>
+                  <span>{t("successRate", { rate: stats.successRate })}</span>
                 </div>
               )}
             </div>
@@ -495,7 +499,7 @@ export function AIStatusBar({ workspaceSlug }: { workspaceSlug: string }) {
               href={`/${workspaceSlug}/meta-hub/ai-reply`}
               className="text-xs text-[#d4af37] hover:text-[#f9d976] transition-colors"
             >
-              Pengaturan →
+              {t("settings")}
             </a>
           </div>
         </motion.div>

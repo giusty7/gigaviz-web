@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ interface VerificationModalProps {
 }
 
 export function VerificationModal({ children }: VerificationModalProps) {
+  const t = useTranslations("marketingUI");
   const [open, setOpen] = useState(false);
 
   return (
@@ -76,7 +78,7 @@ export function VerificationModal({ children }: VerificationModalProps) {
             onClick={() => setOpen(false)}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-gigaviz-gold transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
           >
-            <span>View all evidence ({EVIDENCE_COUNT})</span>
+              <span>{t("verification.viewProof")} ({EVIDENCE_COUNT})</span>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>

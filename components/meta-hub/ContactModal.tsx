@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ export function ContactModal({
   onSaved,
 }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.contactModal");
   const [loading, setLoading] = useState(false);
 
   const [phone, setPhone] = useState(contact?.normalized_phone || "");
@@ -77,22 +79,22 @@ export function ContactModal({
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: contact ? "Contact updated" : "Contact created",
+          title: t("successTitle"),
+          description: contact ? t("contactUpdated") : t("contactCreated"),
         });
         onSaved();
         onClose();
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to save contact",
+          title: t("errorTitle"),
+          description: data.error || t("errorSaveContact"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to save contact",
+        title: t("errorTitle"),
+        description: t("errorSaveContact"),
         variant: "destructive",
       });
     } finally {
@@ -116,28 +118,28 @@ export function ContactModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {contact ? "Edit Contact" : "Add Contact"}
+            {contact ? t("editContact") : t("addContact")}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone">{t("phoneNumber")}</Label>
             <Input
               id="phone"
-              placeholder="+62 812-3456-7890 or 08123456789"
+              placeholder={t("phonePlaceholder")}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               disabled={!!contact || loading}
               required={!contact}
             />
             <p className="text-xs text-gray-400 mt-1">
-              Enter with country code. Digits-only will be stored.
+              {t("phoneHint")}
             </p>
           </div>
 
           <div>
-            <Label htmlFor="display_name">Display Name (Optional)</Label>
+            <Label htmlFor="display_name">{t("displayName")}</Label>
             <Input
               id="display_name"
               placeholder="John Doe"
@@ -148,7 +150,7 @@ export function ContactModal({
           </div>
 
           <div>
-            <Label htmlFor="opt_in">Opt-in Status</Label>
+            <Label htmlFor="opt_in">{t("optInStatus")}</Label>
             <select
               id="opt_in"
               value={optInStatus}
@@ -156,17 +158,17 @@ export function ContactModal({
               disabled={loading}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="unknown">Unknown</option>
-              <option value="opted_in">Opted In</option>
-              <option value="opted_out">Opted Out</option>
+              <option value="unknown">{t("unknown")}</option>
+              <option value="opted_in">{t("optedIn")}</option>
+              <option value="opted_out">{t("optedOut")}</option>
             </select>
           </div>
 
           <div>
-            <Label>Tags</Label>
+            <Label>{t("tags")}</Label>
             <div className="flex gap-2 mb-2">
               <Input
-                placeholder="Add tag..."
+                placeholder={t("addTagPlaceholder")}
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) => {
@@ -178,7 +180,7 @@ export function ContactModal({
                 disabled={loading}
               />
               <Button type="button" onClick={addTag} disabled={loading}>
-                Add
+                {t("addTag")}
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -204,10 +206,10 @@ export function ContactModal({
               onClick={onClose}
               disabled={loading}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : contact ? "Update" : "Create"}
+              {loading ? t("saving") : contact ? t("update") : t("create")}
             </Button>
           </div>
         </form>

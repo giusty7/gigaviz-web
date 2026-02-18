@@ -6,6 +6,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,7 @@ export function BulkPasteModal({
   onImported,
 }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.bulkPaste");
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
   const [globalTags, setGlobalTags] = useState("");
@@ -100,8 +102,8 @@ export function BulkPasteModal({
 
     if (validContacts.length === 0) {
       toast({
-        title: "Error",
-        description: "No valid contacts to import",
+        title: t("errorTitle"),
+        description: t("noValidContacts"),
         variant: "destructive",
       });
       return;
@@ -131,22 +133,22 @@ export function BulkPasteModal({
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: `Imported ${data.created?.length || 0} contacts`,
+          title: t("successTitle"),
+          description: t("importedCount", { count: data.created?.length || 0 }),
         });
         onImported();
         handleClose();
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to import contacts",
+          title: t("errorTitle"),
+          description: data.error || t("errorImportContacts"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to import contacts",
+        title: t("errorTitle"),
+        description: t("errorImportContacts"),
         variant: "destructive",
       });
     } finally {
@@ -169,9 +171,9 @@ export function BulkPasteModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Bulk Paste Contacts</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Paste contacts, one per line. Supported formats:
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -181,22 +183,22 @@ export function BulkPasteModal({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm space-y-1">
                 <p>
-                  <strong>Format 1:</strong> Phone only →{" "}
+                  <strong>{t("format1Label")}:</strong> {t("format1Desc")}{" "}
                   <code>08123456789</code>
                 </p>
                 <p>
-                  <strong>Format 2:</strong> Phone, Name →{" "}
+                  <strong>{t("format2Label")}:</strong> {t("format2Desc")}{" "}
                   <code>08123456789, John Doe</code>
                 </p>
                 <p>
-                  <strong>Format 3:</strong> Phone, Name, Tags →{" "}
+                  <strong>{t("format3Label")}:</strong> {t("format3Desc")}{" "}
                   <code>08123456789, John Doe, vip;customer</code>
                 </p>
               </AlertDescription>
             </Alert>
 
             <div>
-              <Label htmlFor="paste-text">Paste Contacts</Label>
+              <Label htmlFor="paste-text">{t("pasteContacts")}</Label>
               <Textarea
                 id="paste-text"
                 placeholder="08123456789&#10;08198765432, Jane Smith&#10;08111222333, Bob Lee, vip;loyal"
@@ -209,7 +211,7 @@ export function BulkPasteModal({
 
             <div>
               <Label htmlFor="global-tags">
-                Global Tags (Optional, comma-separated)
+                {t("globalTags")}
               </Label>
               <Input
                 id="global-tags"
@@ -221,13 +223,13 @@ export function BulkPasteModal({
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={parseLines}
                 disabled={!text.trim()}
               >
-                Preview
+                {t("preview")}
               </Button>
             </div>
           </div>
@@ -235,10 +237,10 @@ export function BulkPasteModal({
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <Badge variant="default" className="bg-green-600">
-                {validCount} Valid
+                {t("validCount", { count: validCount })}
               </Badge>
               {invalidCount > 0 && (
-                <Badge variant="outline" className="border-red-500/40 text-red-400">{invalidCount} Invalid</Badge>
+                <Badge variant="outline" className="border-red-500/40 text-red-400">{t("invalidCount", { count: invalidCount })}</Badge>
               )}
             </div>
 
@@ -246,10 +248,10 @@ export function BulkPasteModal({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Tags</TableHead>
+                    <TableHead>{t("status")}</TableHead>
+                    <TableHead>{t("phone")}</TableHead>
+                    <TableHead>{t("nameHeader")}</TableHead>
+                    <TableHead>{t("tagsHeader")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -295,13 +297,13 @@ export function BulkPasteModal({
                 onClick={() => setShowPreview(false)}
                 disabled={loading}
               >
-                Back
+                {t("back")}
               </Button>
               <Button
                 onClick={handleImport}
                 disabled={loading || validCount === 0}
               >
-                {loading ? "Importing..." : `Import ${validCount} Contacts`}
+                {loading ? t("importing") : t("importCount", { count: validCount })}
               </Button>
             </div>
           </div>

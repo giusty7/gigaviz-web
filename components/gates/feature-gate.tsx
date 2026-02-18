@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,8 @@ export function FeatureGate({
   fallback,
   className,
 }: FeatureGateProps) {
+  const t = useTranslations("featureGateUI");
+
   if (allowed) return <>{children}</>;
 
   if (fallback) {
@@ -32,10 +35,10 @@ export function FeatureGate({
     >
       <div className="flex items-center gap-2 text-foreground">
         <Lock className="h-4 w-4" />
-        Feature locked for this workspace.
+        {t("locked")}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Contact support if you believe this should be enabled.
+        {t("contactSupport")}
       </p>
     </div>
   );

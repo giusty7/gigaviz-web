@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Save, Loader2 } from "lucide-react";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 
 export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Props) {
   const router = useRouter();
+  const t = useTranslations("marketplace");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,7 +85,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
       {/* Title */}
       <div>
         <label htmlFor="title" className="mb-2 block text-sm font-medium">
-          Product Title *
+          {t("productTitle")} *
         </label>
         <input
           id="title"
@@ -92,14 +94,14 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-          placeholder="WhatsApp Welcome Message Template Pack"
+          placeholder={t("productTitlePlaceholder")}
         />
       </div>
 
       {/* Description */}
       <div>
         <label htmlFor="description" className="mb-2 block text-sm font-medium">
-          Description *
+          {t("descriptionLabel")} *
         </label>
         <textarea
           id="description"
@@ -108,7 +110,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-          placeholder="Describe your product, what's included, and how it helps customers..."
+          placeholder={t("descriptionPlaceholder")}
         />
       </div>
 
@@ -116,7 +118,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label htmlFor="category" className="mb-2 block text-sm font-medium">
-            Category *
+            {t("category")} *
           </label>
           <select
             id="category"
@@ -125,17 +127,17 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
             onChange={(e) => setFormData({ ...formData, category: e.target.value as "template" | "prompt_pack" | "asset" | "mini_app" | "integration" })}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
           >
-            <option value="template">Template</option>
-            <option value="prompt_pack">Prompt Pack</option>
-            <option value="asset">Asset</option>
-            <option value="mini_app">Mini App</option>
-            <option value="integration">Integration</option>
+            <option value="template">{t("categoryTemplate")}</option>
+            <option value="prompt_pack">{t("categoryPromptPack")}</option>
+            <option value="asset">{t("categoryAsset")}</option>
+            <option value="mini_app">{t("categoryMiniApp")}</option>
+            <option value="integration">{t("categoryIntegration")}</option>
           </select>
         </div>
 
         <div>
           <label htmlFor="subcategory" className="mb-2 block text-sm font-medium">
-            Subcategory
+            {t("subcategory")}
           </label>
           <input
             id="subcategory"
@@ -143,7 +145,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
             value={formData.subcategory}
             onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            placeholder="e.g., whatsapp_template, ai_prompt"
+            placeholder={t("subcategoryPlaceholder")}
           />
         </div>
       </div>
@@ -152,7 +154,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label htmlFor="price" className="mb-2 block text-sm font-medium">
-            Price (USD) *
+            {t("priceUsd")} *
           </label>
           <div className="relative">
             <span className="absolute left-3 top-2 text-sm text-muted-foreground">$</span>
@@ -165,17 +167,17 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
               value={formData.price_usd}
               onChange={(e) => setFormData({ ...formData, price_usd: e.target.value })}
               className="w-full rounded-md border bg-background py-2 pl-8 pr-3 text-sm"
-              placeholder="9.99"
+              placeholder={t("pricePlaceholder")}
             />
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            85% creator earnings, 15% platform fee
+            {t("creatorEarnings")}
           </p>
         </div>
 
         <div>
           <label htmlFor="license" className="mb-2 block text-sm font-medium">
-            License Type *
+            {t("licenseType")} *
           </label>
           <select
             id="license"
@@ -184,9 +186,9 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
             onChange={(e) => setFormData({ ...formData, license_type: e.target.value as "single_use" | "multi_use" | "unlimited" })}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
           >
-            <option value="single_use">Single Use</option>
-            <option value="multi_use">Multi Use (up to 5)</option>
-            <option value="unlimited">Unlimited</option>
+            <option value="single_use">{t("licenseSingleUse")}</option>
+            <option value="multi_use">{t("licenseMultiUse")}</option>
+            <option value="unlimited">{t("licenseUnlimited")}</option>
           </select>
         </div>
       </div>
@@ -194,7 +196,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
       {/* Tags */}
       <div>
         <label htmlFor="tags" className="mb-2 block text-sm font-medium">
-          Tags
+          {t("tags")}
         </label>
         <input
           id="tags"
@@ -202,14 +204,14 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
           value={formData.tags}
           onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-          placeholder="whatsapp, business, templates (comma-separated)"
+          placeholder={t("tagsPlaceholder")}
         />
       </div>
 
       {/* Compatible With */}
       <div>
         <label htmlFor="compatible" className="mb-2 block text-sm font-medium">
-          Compatible With
+          {t("compatibleWith")}
         </label>
         <input
           id="compatible"
@@ -217,15 +219,15 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
           value={formData.compatible_with}
           onChange={(e) => setFormData({ ...formData, compatible_with: e.target.value })}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-          placeholder="studio, helper, meta-hub (comma-separated)"
+          placeholder={t("compatiblePlaceholder")}
         />
       </div>
 
       {/* Info box */}
       <div className="rounded-md bg-muted p-4 text-sm">
-        <p className="font-medium">Review Process</p>
+        <p className="font-medium">{t("reviewProcess")}</p>
         <p className="mt-1 text-muted-foreground">
-          Your submission will be reviewed within 48 hours. You&apos;ll be notified once it&apos;s approved or if changes are needed.
+          {t("reviewProcessDesc")}
         </p>
       </div>
 
@@ -239,12 +241,12 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Submitting...
+              {t("submitting")}
             </>
           ) : (
             <>
               <Save className="h-4 w-4" />
-              Submit for Review
+              {t("submitForReview")}
             </>
           )}
         </button>
@@ -253,7 +255,7 @@ export function MarketplaceSellerForm({ workspaceId, workspaceSlug, userId }: Pr
           onClick={() => router.back()}
           className="h-10 rounded-md border bg-background px-4 text-sm font-medium hover:bg-accent"
         >
-          Cancel
+          {t("cancel")}
         </button>
       </div>
     </form>

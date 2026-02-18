@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Gauge, Receipt, Settings2, Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 export type TokensTabsProps = {
@@ -10,15 +11,16 @@ export type TokensTabsProps = {
 };
 
 const tabs = [
-  { label: "Overview", segment: "", icon: Gauge },
-  { label: "Usage", segment: "/usage", icon: BarChart3 },
-  { label: "Wallet", segment: "/wallet", icon: Wallet },
-  { label: "Ledger", segment: "/ledger", icon: Receipt },
-  { label: "Settings", segment: "/settings", icon: Settings2 },
+  { labelKey: "overview" as const, segment: "", icon: Gauge },
+  { labelKey: "usage" as const, segment: "/usage", icon: BarChart3 },
+  { labelKey: "wallet" as const, segment: "/wallet", icon: Wallet },
+  { labelKey: "ledger" as const, segment: "/ledger", icon: Receipt },
+  { labelKey: "settings" as const, segment: "/settings", icon: Settings2 },
 ];
 
 export function TokensTabs({ baseHref }: TokensTabsProps) {
   const pathname = usePathname();
+  const t = useTranslations("tokensUI.tabs");
 
   return (
     <div className="sticky top-16 z-20 -mx-1 rounded-2xl border border-border/70 bg-gigaviz-surface/80 px-2 py-2 shadow-lg shadow-black/10 backdrop-blur">
@@ -44,7 +46,7 @@ export function TokensTabs({ baseHref }: TokensTabsProps) {
               <span className={cn("flex h-5 w-5 items-center justify-center", active ? "text-foreground" : "text-muted-foreground") }>
                 <Icon size={16} strokeWidth={2} />
               </span>
-              <span>{tab.label}</span>
+              <span>{t(tab.labelKey)}</span>
             </Link>
           );
         })}

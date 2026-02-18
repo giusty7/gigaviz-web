@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -52,6 +53,7 @@ function hasPassword(user: User | null | undefined) {
 }
 
 export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: boolean }) {
+  const t = useTranslations("setPasswordUI");
   const supabase = useMemo(() => supabaseClient(), []);
   const router = useRouter();
   const pathname = usePathname();
@@ -143,22 +145,22 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Set your password</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            You signed in with a social login. Set a password to enable email sign-in.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         {done ? (
           <div className="space-y-4">
             <Alert>
-              <AlertTitle>Password saved</AlertTitle>
+              <AlertTitle>{t("passwordSaved")}</AlertTitle>
               <AlertDescription>
-                Your account now supports email login.
+                {t("passwordSavedDesc")}
               </AlertDescription>
             </Alert>
             <div className="flex justify-end">
-              <Button onClick={() => setOpen(false)}>Continue</Button>
+              <Button onClick={() => setOpen(false)}>{t("continue")}</Button>
             </div>
           </div>
         ) : (
@@ -166,7 +168,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {error ? (
                 <Alert variant="destructive">
-                  <AlertTitle>Set password failed</AlertTitle>
+                  <AlertTitle>{t("setPasswordFailed")}</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               ) : null}
@@ -176,7 +178,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New password</FormLabel>
+                    <FormLabel>{t("newPassword")}</FormLabel>
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
@@ -190,7 +192,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm password</FormLabel>
+                    <FormLabel>{t("confirmPassword")}</FormLabel>
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
@@ -200,7 +202,7 @@ export default function SetPasswordModal({ forceOpen = false }: { forceOpen?: bo
               />
 
               <Button type="submit" className="w-full">
-                {form.formState.isSubmitting ? "Saving..." : "Set password"}
+                {form.formState.isSubmitting ? t("saving") : t("setPassword")}
               </Button>
             </form>
           </Form>

@@ -11,6 +11,7 @@ import {
   ChannelsGrid,
 } from "./ImperiumMetaHubComponents";
 import { Crown, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -103,6 +104,8 @@ export function ImperiumMetaHubOverviewClient({
   recentEvents,
   channels,
 }: ImperiumMetaHubOverviewProps) {
+  const t = useTranslations("metaHubUI.overview");
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -116,16 +119,16 @@ export function ImperiumMetaHubOverviewClient({
           <div className="mb-2 flex items-center gap-3">
             <div className="flex items-center gap-2 rounded-full bg-[#d4af37]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#d4af37]">
               <Sparkles className="h-3 w-3" />
-              Pillar #2
+              {t("pillarBadge")}
             </div>
           </div>
           <h2 className="text-2xl font-bold md:text-3xl">
             <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
-              Meta Integrations
+              {t("title")}
             </span>
           </h2>
           <p className="mt-1 text-sm text-[#f5f5dc]/60">
-            Enterprise-grade integration hub for Meta platforms. WhatsApp is live; other connectors coming soon.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -135,11 +138,11 @@ export function ImperiumMetaHubOverviewClient({
             className="border-[#d4af37]/30 bg-[#d4af37]/10 text-[#d4af37] flex items-center gap-1.5"
           >
             <Crown className="h-3 w-3" />
-            Plan: {planLabel}
+            {t("planLabel", { plan: planLabel })}
           </Badge>
           {!isDevOverride && (
             <button className="rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-4 py-2 text-xs font-semibold text-[#050a18] shadow-lg shadow-[#d4af37]/20 transition-all hover:shadow-[#d4af37]/30 hover:brightness-110">
-              Upgrade
+              {t("upgrade")}
             </button>
           )}
         </div>
@@ -157,9 +160,9 @@ export function ImperiumMetaHubOverviewClient({
               <Sparkles className="h-4 w-4 text-amber-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-amber-400">Preview Mode</p>
+              <p className="text-sm font-semibold text-amber-400">{t("previewMode")}</p>
               <p className="text-xs text-amber-400/70">
-                Upgrade to unlock full Meta Hub capabilities.
+                {t("previewDesc")}
               </p>
             </div>
           </div>
@@ -208,7 +211,7 @@ export function ImperiumMetaHubOverviewClient({
           transition={{ delay: 0.3 }}
           className="rounded-2xl border border-amber-500/20 bg-[#0a1229]/80 p-5 backdrop-blur-3xl"
         >
-          <h3 className="text-sm font-semibold text-amber-400">Needs Attention</h3>
+          <h3 className="text-sm font-semibold text-amber-400">{t("needsAttention")}</h3>
           <div className="mt-3 space-y-2">
             {alerts.map((alert) => (
               <div
@@ -226,7 +229,7 @@ export function ImperiumMetaHubOverviewClient({
                     href={`${basePath}/${alert.actionHref}`}
                     className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-400 hover:bg-amber-500/20"
                   >
-                    {alert.actionLabel ?? "Open"}
+                    {alert.actionLabel ?? t("open")}
                   </a>
                 )}
               </div>

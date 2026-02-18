@@ -57,8 +57,8 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     }
 
     const db = supabaseAdmin();
-    const { data: connections, error } = await db
-      .from('messenger_connections')
+    const { data: pages, error } = await db
+      .from('messenger_pages')
       .select('*')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
@@ -68,13 +68,18 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       throw error;
     }
 
-    // Mask access tokens for security
-    const safeConnections = connections?.map(conn => ({
-      ...conn,
-      access_token: conn.access_token ? '***MASKED***' : null,
+    // Map to connection format and mask access tokens
+    const connections = pages?.map(pg => ({
+      id: pg.id,
+      page_id: pg.page_id,
+      page_name: pg.page_name,
+      page_picture_url: pg.profile_picture_url,
+      is_active: pg.status === 'active',
+      access_token: pg.access_token ? '***MASKED***' : null,
+      created_at: pg.created_at,
     }));
 
-    return withCookies(NextResponse.json({ connections: safeConnections || [] }));
+    return withCookies(NextResponse.json({ connections: connections || [] }));
   } catch (error) {
     logger.error('[Messenger] Error in GET connections:', { error });
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -112,24 +117,23 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
     const db = supabaseAdmin();
 
-    // Check for existing connection with same page_id
+    // Check for existing page with same page_id
     const { data: existing } = await db
-      .from('messenger_connections')
+      .from('messenger_pages')
       .select('id')
       .eq('workspace_id', validated.workspace_id)
       .eq('page_id', validated.page_id)
       .single();
 
     if (existing) {
-      // Update existing connection
+      // Update existing page
       const { data: updated, error } = await db
-        .from('messenger_connections')
+        .from('messenger_pages')
         .update({
           page_name: validated.page_name,
-          page_picture_url: validated.page_picture_url,
+          profile_picture_url: validated.page_picture_url,
           access_token: validated.access_token,
-          permissions: validated.permissions,
-          is_active: true,
+          status: 'active',
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id)
@@ -148,17 +152,16 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       return withCookies(NextResponse.json({ connection: updated, updated: true }));
     }
 
-    // Create new connection
+    // Create new page
     const { data: connection, error } = await db
-      .from('messenger_connections')
+      .from('messenger_pages')
       .insert({
         workspace_id: validated.workspace_id,
         page_id: validated.page_id,
         page_name: validated.page_name,
-        page_picture_url: validated.page_picture_url,
+        profile_picture_url: validated.page_picture_url,
         access_token: validated.access_token,
-        permissions: validated.permissions,
-        is_active: true,
+        status: 'active',
       })
       .select()
       .single();

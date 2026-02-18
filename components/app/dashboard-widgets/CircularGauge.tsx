@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 type CircularGaugeProps = {
@@ -75,8 +76,10 @@ export default function CircularGauge({
   color = "gold",
   trend = [],
   href,
-  ctaLabel = "View details",
+  ctaLabel,
 }: CircularGaugeProps) {
+  const t = useTranslations("dashboardWidgets.circularGauge");
+  const resolvedCtaLabel = ctaLabel ?? t("viewDetails");
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -145,7 +148,7 @@ export default function CircularGauge({
           {unit && <span className="text-[#f5f5dc]/50"> {unit}</span>}
         </p>
         <p className={`mt-1 text-[10px] font-semibold uppercase ${statusColor}`}>
-          {percentage >= 80 ? "Healthy" : percentage >= 50 ? "Moderate" : "Low"}
+          {percentage >= 80 ? t("healthy") : percentage >= 50 ? t("moderate") : t("low")}
         </p>
       </div>
 
@@ -153,7 +156,7 @@ export default function CircularGauge({
       {trend.length > 0 && (
         <div className="mt-3 w-full px-2">
           <Sparkline data={trend} color={color} />
-          <p className="mt-1 text-center text-[9px] text-[#f5f5dc]/40">7-day trend</p>
+          <p className="mt-1 text-center text-[9px] text-[#f5f5dc]/40">{t("trend7Day")}</p>
         </div>
       )}
 
@@ -163,7 +166,7 @@ export default function CircularGauge({
           href={href}
           className="mt-3 inline-flex items-center gap-1 rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/80 px-3 py-1.5 text-[10px] font-semibold text-[#f5f5dc] transition hover:border-[#d4af37]/60 hover:text-[#d4af37]"
         >
-          {ctaLabel} →
+          {resolvedCtaLabel} →
         </a>
       )}
     </div>

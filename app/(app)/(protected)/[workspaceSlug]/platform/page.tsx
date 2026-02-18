@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   ArrowRight,
   Building2,
@@ -121,28 +122,25 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
       <div className="pointer-events-none fixed inset-0 batik-pattern opacity-[0.03]" aria-hidden />
 
       {/* Imperium Page Header */}
-      <div className="relative mb-2">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#d4af37]/20 to-[#f9d976]/10 shadow-lg shadow-[#d4af37]/10">
-            <Building2 className="h-5 w-5 text-[#d4af37]" />
+      <PageHeader
+        title="Imperial Platform"
+        description="Manage workspaces, members, roles, billing, and audit trails from your command center."
+        titleClassName="bg-gradient-to-r from-gigaviz-gold via-gigaviz-gold-bright to-gigaviz-gold bg-clip-text text-transparent"
+        badge={
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent/20 to-gigaviz-gold-bright/10 shadow-lg shadow-accent/10">
+              <Building2 className="h-5 w-5 text-accent" aria-hidden="true" />
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-success">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+              </span>
+              Command Center
+            </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-[#10b981]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#10b981]">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
-            </span>
-            Command Center
-          </div>
-        </div>
-        <h1 className="text-2xl font-bold md:text-3xl">
-          <span className="bg-gradient-to-r from-[#d4af37] via-[#f9d976] to-[#d4af37] bg-clip-text text-transparent">
-            Imperial Platform
-          </span>
-        </h1>
-        <p className="mt-2 text-sm text-[#f5f5dc]/60">
-          Manage workspaces, members, roles, billing, and audit trails from your command center.
-        </p>
-      </div>
+        }
+      />
 
       {/* Get Started wizard */}
       <GetStartedPanel
@@ -158,17 +156,17 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.title} className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl transition-all hover:border-[#d4af37]/40">
+            <div key={card.title} className="relative overflow-hidden rounded-2xl border border-accent/20 bg-gigaviz-surface/80 p-5 backdrop-blur-xl transition-all hover:border-accent/40">
               <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-gold-tr-soft" aria-hidden />
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/50">{card.title}</p>
-                  <span className="rounded-full bg-[#d4af37]/10 p-2 text-[#d4af37]">
-                    <Icon size={16} />
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">{card.title}</p>
+                  <span className="rounded-full bg-accent/10 p-2 text-accent">
+                    <Icon size={16} aria-hidden="true" />
                   </span>
                 </div>
-                <p className="text-xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">{card.value}</p>
-                <p className="mt-1 text-xs text-[#f5f5dc]/50">{card.helper}</p>
+                <p className="text-xl font-bold bg-gradient-to-r from-accent to-gigaviz-gold-bright bg-clip-text text-transparent">{card.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>
                 {/* Add workspace actions to first card */}
                 {card.title === "Active workspace" && (
                   <WorkspaceActions
@@ -186,19 +184,19 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
         })}
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6 backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-2xl border border-accent/20 bg-gigaviz-surface/80 p-6 backdrop-blur-xl">
         <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-overlay-magenta-bl-soft" aria-hidden />
         <div className="relative">
           <div className="flex flex-col gap-3 mb-5 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="h-4 w-4 text-[#e11d48]" />
-                <h2 className="text-lg font-semibold text-[#f5f5dc]">Quick Actions</h2>
+                <Sparkles className="h-4 w-4 text-destructive" aria-hidden="true" />
+                <h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
               </div>
-              <p className="text-sm text-[#f5f5dc]/60">Jump to the controls you need most.</p>
+              <p className="text-sm text-muted-foreground">Jump to the controls you need most.</p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 px-3 py-1.5 text-xs font-semibold text-[#d4af37]">
-              <Sparkles className="h-3 w-3" />
+            <div className="flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent">
+              <Sparkles className="h-3 w-3" aria-hidden="true" />
               Plan: {planLabel}
             </div>
           </div>
@@ -207,13 +205,13 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
               <Link
                 key={action.label}
                 href={action.href}
-                className="group flex items-center justify-between rounded-xl border border-[#d4af37]/10 bg-[#050a18]/50 px-4 py-3 text-sm font-semibold text-[#f5f5dc] transition-all hover:-translate-y-0.5 hover:border-[#d4af37]/40 hover:shadow-lg hover:shadow-[#d4af37]/10 motion-reduce:transform-none"
+                className="group flex items-center justify-between rounded-xl border border-accent/10 bg-background/50 px-4 py-3 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-lg hover:shadow-accent/10 motion-reduce:transform-none"
               >
                 <div className="text-left">
                   <div>{action.label}</div>
-                  <p className="text-xs font-normal text-[#f5f5dc]/50">{action.helper}</p>
+                  <p className="text-xs font-normal text-muted-foreground">{action.helper}</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[#d4af37] transition group-hover:translate-x-1" />
+                <ArrowRight className="h-4 w-4 text-accent transition group-hover:translate-x-1" aria-hidden="true" />
               </Link>
             ))}
           </div>
@@ -222,7 +220,7 @@ export default async function PlatformOverviewPage({ params }: PlatformOverviewP
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Checklist — streams independently via Suspense */}
-        <Suspense fallback={<Skeleton className="h-64 rounded-2xl bg-[#d4af37]/10" />}>
+        <Suspense fallback={<Skeleton className="h-64 rounded-2xl bg-accent/10" />}>
           <PlatformChecklist workspaceId={workspace.id} />
         </Suspense>
 

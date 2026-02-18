@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Play, Clock, AlertCircle } from "lucide-react";
 
 type QueryResult = {
@@ -22,6 +23,7 @@ type QueryHistory = {
 };
 
 export default function SqlRunnerClient() {
+  const t = useTranslations("opsUI");
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<QueryResult | null>(null);
   const [history, setHistory] = useState<QueryHistory[]>([]);
@@ -71,19 +73,19 @@ export default function SqlRunnerClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">SQL Runner</h1>
-        <p className="text-slate-400 mt-1">Execute read-only SQL queries</p>
+        <h1 className="text-2xl font-bold text-white">{t("devTools.sqlRunner.title")}</h1>
+        <p className="text-slate-400 mt-1">{t("devTools.sqlRunner.subtitle")}</p>
       </div>
 
       <div className="rounded-lg border border-yellow-900/50 bg-yellow-950/20 p-4">
         <p className="text-sm text-yellow-400">
-          âš ï¸ <strong>Read-only mode:</strong> Only SELECT queries are allowed. Must include LIMIT clause (max 100).
+          âš ï¸ <strong>{t("devTools.sqlRunner.readOnlyWarning")}</strong>
         </p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-slate-400 mb-2">SQL Query</label>
+          <label className="block text-sm text-slate-400 mb-2">{t("devTools.sqlRunner.title")}</label>
           <textarea
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -101,12 +103,12 @@ export default function SqlRunnerClient() {
           {loading ? (
             <>
               <Clock className="w-4 h-4 animate-spin" />
-              Executing...
+              {t("devTools.sqlRunner.running")}
             </>
           ) : (
             <>
               <Play className="w-4 h-4" />
-              Execute Query
+              {t("devTools.sqlRunner.run")}
             </>
           )}
         </button>
@@ -115,9 +117,9 @@ export default function SqlRunnerClient() {
       {result && (
         <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-white">Results</h3>
+            <h3 className="font-semibold text-white">{t("devTools.sqlRunner.results")}</h3>
             <div className="flex items-center gap-4 text-sm text-slate-400">
-              <span>{result.rowCount} rows</span>
+              <span>{t("devTools.sqlRunner.rowCount", { count: result.rowCount })}</span>
               <span>{result.executionTimeMs}ms</span>
             </div>
           </div>
@@ -143,7 +145,7 @@ export default function SqlRunnerClient() {
       )}
 
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 space-y-4">
-        <h3 className="font-semibold text-white">Query History</h3>
+        <h3 className="font-semibold text-white">{t("devTools.sqlRunner.history")}</h3>
         <div className="space-y-2 max-h-[400px] overflow-y-auto">
           {history.map((item) => (
             <button

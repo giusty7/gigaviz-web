@@ -5,6 +5,7 @@ import { getAppContext } from "@/lib/app-context";
 import { requireEntitlement } from "@/lib/entitlements/server";
 import { FeatureGate } from "@/components/gates/feature-gate";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -48,28 +49,26 @@ export default async function AppsPage({ params }: Props) {
     <FeatureGate allowed={entitlement.allowed}>
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Apps</h1>
-        <p className="mt-2 text-muted-foreground">
-          Discover and request apps to supercharge your workspace
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mb-8 flex gap-3">
-        <Link
-          href={`/${workspaceSlug}/apps/requests`}
-          className="rounded-lg border bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
-        >
-          💡 Request an App
-        </Link>
-        <Link
-          href={`/${workspaceSlug}/apps/roadmap`}
-          className="rounded-lg border bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
-        >
-          🗺️ View Roadmap
-        </Link>
-      </div>
+      <PageHeader
+        title="Apps"
+        description="Discover and request apps to supercharge your workspace"
+        actions={
+          <div className="flex gap-3">
+            <Link
+              href={`/${workspaceSlug}/apps/requests`}
+              className="rounded-lg border bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
+            >
+              💡 Request an App
+            </Link>
+            <Link
+              href={`/${workspaceSlug}/apps/roadmap`}
+              className="rounded-lg border bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
+            >
+              🗺️ View Roadmap
+            </Link>
+          </div>
+        }
+      />
 
       {/* Stable Apps */}
       {stableApps.length > 0 && (

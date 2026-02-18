@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Webhook, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 
 type WebhookLog = {
@@ -24,6 +25,7 @@ type WebhookLog = {
 };
 
 export default function WebhookDebuggerClient() {
+  const t = useTranslations("opsUI");
   const [logs, setLogs] = useState<WebhookLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<WebhookLog | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,21 +67,21 @@ export default function WebhookDebuggerClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Webhook Debugger</h1>
-          <p className="text-slate-400 mt-1">View and replay webhook payloads</p>
+          <h1 className="text-2xl font-bold text-white">{t("devTools.webhookDebugger.title")}</h1>
+          <p className="text-slate-400 mt-1">{t("devTools.webhookDebugger.subtitle")}</p>
         </div>
         <button
           onClick={fetchLogs}
           className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
         >
-          Refresh
+          {t("devTools.webhookDebugger.refresh")}
         </button>
       </div>
 
       <div className="flex gap-4">
         <input
           type="text"
-          placeholder="Filter by type..."
+          placeholder={t("devTools.webhookDebugger.filterType")}
           value={filter.type}
           onChange={(e) => setFilter({ ...filter, type: e.target.value })}
           className="flex-1 px-4 py-2 rounded bg-slate-900 border border-slate-700 text-white"
@@ -135,7 +137,7 @@ export default function WebhookDebuggerClient() {
         <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 max-h-[600px] overflow-y-auto">
           {selectedLog ? (
             <div className="space-y-4">
-              <h3 className="font-semibold text-white">Webhook Details</h3>
+              <h3 className="font-semibold text-white">{t("devTools.webhookDebugger.eventId")}</h3>
               
               <div>
                 <p className="text-xs text-slate-400 mb-1">Type</p>
@@ -178,7 +180,7 @@ export default function WebhookDebuggerClient() {
               )}
             </div>
           ) : (
-            <p className="text-center text-slate-400">Select a webhook log to view details</p>
+            <p className="text-center text-slate-400">{t("devTools.webhookDebugger.noEvents")}</p>
           )}
         </div>
       </div>

@@ -1,14 +1,15 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type Status = "live" | "beta" | "soon" | "locked";
 
-const labelMap: Record<Status, string> = {
-  live: "Live",
-  beta: "Beta",
-  soon: "Soon",
-  locked: "Locked",
+const keyMap: Record<Status, string> = {
+  live: "live",
+  beta: "beta",
+  soon: "soon",
+  locked: "locked",
 };
 
 const styleMap: Record<Status, string> = {
@@ -19,6 +20,7 @@ const styleMap: Record<Status, string> = {
 };
 
 export function MetaHubBadge({ status = "soon" }: { status?: Status }) {
+  const t = useTranslations("metaHubUI.badge");
   return (
     <span
       className={cn(
@@ -26,7 +28,7 @@ export function MetaHubBadge({ status = "soon" }: { status?: Status }) {
         styleMap[status]
       )}
     >
-      {labelMap[status]}
+      {t(keyMap[status])}
     </span>
   );
 }

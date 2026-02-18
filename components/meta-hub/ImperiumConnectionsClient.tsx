@@ -18,6 +18,7 @@ import { WhatsappConnectionForm } from "./WhatsappConnectionForm";
 import { WhatsappEmbeddedSignup } from "./WhatsappEmbeddedSignup";
 import { ObaRequestCard } from "./ObaRequestCard";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HYDRATION-SAFE MOUNT CHECK
@@ -114,6 +115,7 @@ export function ImperiumConnectionsClient({
   monitorMetrics,
 }: ImperiumConnectionsClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("metaHubUI.connections");
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -142,13 +144,13 @@ export function ImperiumConnectionsClient({
 
     if (!skipToast && embedded === "success") {
       toast({
-        title: "Embedded Sign Up completed",
-        description: "WhatsApp Business connection saved.",
+        title: t("signupComplete"),
+        description: t("signupCompleteDesc"),
       });
     } else if (!skipToast && embedded === "error") {
       toast({
-        title: "Embedded Sign Up failed",
-        description: "Retry or use manual connection.",
+        title: t("signupFailed"),
+        description: t("signupError"),
         variant: "destructive",
       });
     }
@@ -159,7 +161,7 @@ export function ImperiumConnectionsClient({
     router.replace(
       `/${workspaceSlug}/meta-hub/connections${suffix ? `?${suffix}` : ""}`
     );
-  }, [router, searchParams, searchParamsString, toast, workspaceSlug]);
+  }, [router, searchParams, searchParamsString, t, toast, workspaceSlug]);
 
   const handleEmbeddedResult = useCallback(
     (result: "success" | "error") => {
@@ -175,13 +177,13 @@ export function ImperiumConnectionsClient({
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: `${label} copied to clipboard` });
+    toast({ title: `${label} copied` });
   };
 
   const handlePingTest = async (): Promise<boolean> => {
     if (webhookTestEnvMissing.length > 0) {
       toast({
-        title: "Missing environment variables",
+        title: t("missingEnvVars"),
         description: `Set one of ${webhookTestEnvMissing.join(", ")} to enable webhook tests.`,
         variant: "destructive",
       });
@@ -189,8 +191,8 @@ export function ImperiumConnectionsClient({
     }
     if (!canTest) {
       toast({
-        title: "Access denied",
-        description: "Admin access is required to run webhook tests.",
+        title: t("accessDenied"),
+        description: t("adminRequired"),
         variant: "destructive",
       });
       return false;
@@ -205,11 +207,11 @@ export function ImperiumConnectionsClient({
       if (!res.ok || data?.ok === false) {
         throw new Error(data?.message || data?.reason || "Webhook test failed");
       }
-      toast({ title: "Webhook ping successful", description: "Endpoint verified." });
+      toast({ title: t("pingSuccess"), description: t("pingSuccessDesc") });
       return true;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Webhook test failed";
-      toast({ title: "Webhook ping failed", description: msg, variant: "destructive" });
+      const msg = err instanceof Error ? err.message : t("pingError");
+      toast({ title: t("pingFailed"), description: msg, variant: "destructive" });
       return false;
     }
   };
@@ -246,15 +248,15 @@ export function ImperiumConnectionsClient({
           <div>
             <div className="mb-2 flex items-center gap-3">
               <span className="rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-xs font-semibold tracking-wider text-[#f9d976]">
-                PILLAR #2
+                {t("badge")}
               </span>
-              <span className="text-xs text-[#f5f5dc]/50">Neural Infrastructure</span>
+              <span className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-[#f5f5dc]">
-              Neural Gateway &amp; Asset Commander
+              {t("heading")}
             </h1>
             <p className="mt-2 text-sm text-[#f5f5dc]/60">
-              God-Level Integration Center for Meta WhatsApp Business API with military-grade precision.
+              {t("description")}
             </p>
           </div>
         </motion.div>
@@ -274,7 +276,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-emerald-300">
-              EMBEDDED SIGN UP
+              {t("embeddedSignUp")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
           </div>
@@ -292,7 +294,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-[#d4af37]">
-              THE GATEWAY
+              {t("theGateway")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
           </div>
@@ -319,7 +321,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-blue-400">
-              META BUSINESS INTELLIGENCE
+              {t("metaBI")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
           </div>
@@ -350,7 +352,7 @@ export function ImperiumConnectionsClient({
             <div className="mb-4 flex items-center gap-2">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
               <span className="text-xs font-semibold tracking-wider text-blue-400">
-                OBA VERIFICATION
+                {t("obaVerification")}
               </span>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
             </div>
@@ -368,7 +370,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-[#d4af37]">
-              TECHNICAL VAULT
+              {t("technicalVault")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
           </div>
@@ -397,7 +399,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-cyan-400">
-              WEBHOOK VAULT
+              {t("webhookVault")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
           </div>
@@ -422,7 +424,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e11d48]/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-[#e11d48]">
-              WEBHOOK STREAM
+              {t("webhookStream")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e11d48]/40 to-transparent" />
           </div>
@@ -438,7 +440,7 @@ export function ImperiumConnectionsClient({
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
             <span className="text-xs font-semibold tracking-wider text-emerald-400">
-              SYSTEM DIAGNOSTICS
+              {t("systemDiagnostics")}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
           </div>

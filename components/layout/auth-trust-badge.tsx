@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Shield } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function AuthTrustBadge() {
+  const t = useTranslations("authLayoutUI");
   return (
     <div className="flex justify-center">
       <Link href="/trust" className="group">
@@ -25,7 +27,7 @@ export function AuthTrustBadge() {
         >
           <Shield className="h-3.5 w-3.5" />
           <span className="font-semibold tracking-wide">
-            Official Technology Provider — WhatsApp Business Platform
+            {t("trustBadge")}
           </span>
         </motion.div>
       </Link>

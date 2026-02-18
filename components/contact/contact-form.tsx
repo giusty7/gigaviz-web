@@ -3,6 +3,7 @@ import { logger } from "@/lib/logging";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   contactSchema,
@@ -13,6 +14,7 @@ import {
 import { track } from "@/lib/analytics";
 
 export function ContactForm() {
+  const t = useTranslations("contactFormUI");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
   );
@@ -57,7 +59,7 @@ export function ContactForm() {
 
       if (!res.ok || !json?.ok) {
         setStatus("error");
-        setServerMessage(json?.message ?? "Failed to send message.");
+        setServerMessage(json?.message ?? t("failedToSend"));
         return;
       }
 
@@ -70,35 +72,35 @@ export function ContactForm() {
       track("contact_submit_success", eventParams);
 
       setStatus("success");
-      setServerMessage(json?.message ?? "Message sent successfully.");
+      setServerMessage(json?.message ?? t("messageSent"));
       reset();
     } catch (error) {
       logger.error(error instanceof Error ? error.message : String(error));
       setStatus("error");
-      setServerMessage("Something went wrong. Please try again later.");
+      setServerMessage(t("somethingWrong"));
     }
   };
 
   return (
     <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6">
       <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-        Contact form
+        {t("title")}
       </h2>
       <p className="mt-2 text-sm text-[color:var(--gv-muted)]">
-        Share a brief context so our team can understand your needs.
+        {t("subtitle")}
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4 text-sm">
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="name">
-            Full name *
+            {t("fullName")}
           </label>
           <input
             id="name"
             type="text"
             {...register("name")}
             className={fieldClass}
-            placeholder="Your name"
+            placeholder={t("placeholderName")}
           />
           {errors.name && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -109,14 +111,14 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="email">
-            Email *
+            {t("email")}
           </label>
           <input
             id="email"
             type="email"
             {...register("email")}
             className={fieldClass}
-            placeholder="email@example.com"
+            placeholder={t("placeholderEmail")}
           />
           {errors.email && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -127,14 +129,14 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="company">
-            Company (optional)
+            {t("company")}
           </label>
           <input
             id="company"
             type="text"
             {...register("company")}
             className={fieldClass}
-            placeholder="Company name"
+            placeholder={t("placeholderCompany")}
           />
           {errors.company && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -145,10 +147,10 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="topic">
-            Topic *
+            {t("topic")}
           </label>
           <select id="topic" {...register("topic")} className={fieldClass}>
-            <option value="">Select a topic</option>
+            <option value="">{t("placeholderTopic")}</option>
             {contactTopics.map((topic) => (
               <option key={topic} value={topic}>
                 {topic}
@@ -164,10 +166,10 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="budgetRange">
-            Budget range (optional)
+            {t("budgetRange")}
           </label>
           <select id="budgetRange" {...register("budgetRange")} className={fieldClass}>
-            <option value="">Select a range</option>
+            <option value="">{t("placeholderBudget")}</option>
             {budgetRanges.map((range) => (
               <option key={range} value={range}>
                 {range}
@@ -183,14 +185,14 @@ export function ContactForm() {
 
         <div className="space-y-1">
           <label className="text-xs text-[color:var(--gv-muted)]" htmlFor="message">
-            Message *
+            {t("message")}
           </label>
           <textarea
             id="message"
             rows={5}
             {...register("message")}
             className={fieldClass}
-            placeholder="Share context, team size, and the outcomes you expect."
+            placeholder={t("placeholderMessage")}
           />
           {errors.message && (
             <p className="text-xs text-[color:var(--gv-accent-2)]">
@@ -215,7 +217,7 @@ export function ContactForm() {
           disabled={status === "loading"}
           className="inline-flex w-full items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)] disabled:opacity-60"
         >
-          {status === "loading" ? "Sending..." : "Send message"}
+          {status === "loading" ? t("sending") : t("sendMessage")}
         </button>
 
         {serverMessage && (

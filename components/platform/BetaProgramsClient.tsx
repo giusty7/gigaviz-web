@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 type BetaProgram = {
@@ -43,6 +44,7 @@ interface BetaProgramsClientProps {
 
 export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
   const { toast } = useToast();
+  const t = useTranslations("platformUI.betaPrograms");
   const [loading, setLoading] = useState(true);
   const [programs, setPrograms] = useState<BetaProgram[]>([]);
   const [applications, setApplications] = useState<BetaApplication[]>([]);
@@ -75,8 +77,8 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
   async function handleApply(moduleSlug: string) {
     if (!applicationReason.trim() || applicationReason.length < 10) {
       toast({
-        title: "Application incomplete",
-        description: "Please provide at least 10 characters explaining why you want to join",
+        title: t("applicationIncomplete"),
+        description: t("applicationIncompleteDesc"),
         variant: "destructive",
       });
       return;
@@ -98,23 +100,23 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
 
       if (res.ok) {
         toast({
-          title: "Application submitted!",
-          description: "We'll review your application and notify you soon.",
+          title: t("applicationSubmitted"),
+          description: t("applicationSubmittedDesc"),
         });
         setApplyingTo(null);
         setApplicationReason("");
         fetchData();
       } else {
         toast({
-          title: "Application failed",
-          description: data.error || "Failed to submit application",
+          title: t("applicationFailed"),
+          description: data.error || t("failedToSubmit"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to submit application",
+        title: t("error"),
+        description: t("failedToSubmit"),
         variant: "destructive",
       });
     } finally {
@@ -129,14 +131,14 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
   function getStatusBadge(status: BetaApplication['status']) {
     switch (status) {
       case 'pending':
-        return { icon: Clock, text: 'Pending Review', color: 'text-yellow-400' };
+        return { icon: Clock, text: t("statusPending"), color: 'text-yellow-400' };
       case 'approved':
       case 'active':
-        return { icon: Check, text: 'Active Beta Tester', color: 'text-green-400' };
+        return { icon: Check, text: t("statusActive"), color: 'text-green-400' };
       case 'rejected':
-        return { icon: XCircle, text: 'Not Accepted', color: 'text-red-400' };
+        return { icon: XCircle, text: t("statusRejected"), color: 'text-red-400' };
       case 'removed':
-        return { icon: XCircle, text: 'Removed', color: 'text-gray-400' };
+        return { icon: XCircle, text: t("statusRemoved"), color: 'text-gray-400' };
     }
   }
 
@@ -151,9 +153,9 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#f9d976]">Beta Testing Programs</h2>
+        <h2 className="text-2xl font-bold text-[#f9d976]">{t("title")}</h2>
         <p className="text-[#f5f5dc]/70 mt-2">
-          Join early access programs and help shape the future of Gigaviz products
+          {t("subtitle")}
         </p>
       </div>
 
@@ -201,7 +203,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
 
               {program.requirements && (
                 <div>
-                  <h4 className="text-sm font-semibold text-[#f5f5dc] mb-2">Requirements</h4>
+                  <h4 className="text-sm font-semibold text-[#f5f5dc] mb-2">{t("requirements")}</h4>
                   <ul className="text-sm text-[#f5f5dc]/60 space-y-1">
                     {JSON.parse(program.requirements).map((req: string, idx: number) => (
                       <li key={idx}>â€¢ {req}</li>
@@ -212,7 +214,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
 
               {program.benefits && (
                 <div>
-                  <h4 className="text-sm font-semibold text-[#f5f5dc] mb-2">Benefits</h4>
+                  <h4 className="text-sm font-semibold text-[#f5f5dc] mb-2">{t("benefits")}</h4>
                   <ul className="text-sm text-[#f5f5dc]/60 space-y-1">
                     {JSON.parse(program.benefits).map((benefit: string, idx: number) => (
                       <li key={idx}>â€¢ {benefit}</li>
@@ -226,14 +228,14 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
                   onClick={() => setApplyingTo(program.module_slug)}
                   className="w-full bg-[#d4af37] text-[#0a0a0a] hover:bg-[#f9d976]"
                 >
-                  Apply to Join
+                  {t("applyToJoin")}
                 </Button>
               )}
 
               {applyingTo === program.module_slug && (
                 <div className="space-y-3">
                   <Textarea
-                    placeholder="Why do you want to join this beta program? (min 10 characters)"
+                    placeholder={t("reasonPlaceholder")}
                     value={applicationReason}
                     onChange={(e) => setApplicationReason(e.target.value)}
                     rows={4}
@@ -250,7 +252,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
                       ) : (
                         <>
                           <Send className="h-4 w-4 mr-2" />
-                          Submit Application
+                          {t("submitApplication")}
                         </>
                       )}
                     </Button>
@@ -262,7 +264,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
                       variant="outline"
                       className="border-[#d4af37]/30"
                     >
-                      Cancel
+                      {t("cancel")}
                     </Button>
                   </div>
                 </div>
@@ -270,7 +272,7 @@ export function BetaProgramsClient({ workspaceId }: BetaProgramsClientProps) {
 
               {application && application.status === 'rejected' && application.rejection_reason && (
                 <div className="text-sm text-red-400 bg-red-500/10 p-3 rounded">
-                  <strong>Rejection reason:</strong> {application.rejection_reason}
+                  <strong>{t("rejectionReason")}</strong> {application.rejection_reason}
                 </div>
               )}
             </motion.div>

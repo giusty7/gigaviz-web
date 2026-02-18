@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 
 type DeleteWorkspaceDialogProps = {
   open: boolean;
@@ -28,13 +29,14 @@ export function DeleteWorkspaceDialog({
   workspaceName,
 }: DeleteWorkspaceDialogProps) {
   const router = useRouter();
+  const t = useTranslations("platformUI.deleteWorkspace");
   const [confirmName, setConfirmName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
 
   const handleDelete = async () => {
     if (confirmName !== workspaceName) {
-      setError("Workspace name does not match");
+      setError(t("nameDoesNotMatch"));
       return;
     }
 
@@ -73,31 +75,31 @@ export function DeleteWorkspaceDialog({
             </div>
             <div>
               <AlertDialogTitle className="text-xl text-[#f5f5dc]">
-                Delete Workspace
+                {t("title")}
               </AlertDialogTitle>
-              <p className="text-sm text-[#f5f5dc]/60">This action cannot be undone</p>
+              <p className="text-sm text-[#f5f5dc]/60">{t("cannotBeUndone")}</p>
             </div>
           </div>
           <AlertDialogDescription className="space-y-4 pt-4">
             <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
               <p className="text-sm text-red-200 mb-2 font-semibold">
-                ⚠️ Warning: Permanent Deletion
+                {t("warningTitle")}
               </p>
               <p className="text-xs text-red-200/80">
-                Deleting this workspace will permanently remove:
+                {t("warningDesc")}
               </p>
               <ul className="mt-2 space-y-1 text-xs text-red-200/80">
-                <li>• All workspace data and settings</li>
-                <li>• All team members and invitations</li>
-                <li>• All audit logs and activity history</li>
-                <li>• All product data (Meta Hub, Helper, etc.)</li>
-                <li>• All subscriptions and billing history</li>
+                <li>• {t("itemData")}</li>
+                <li>• {t("itemMembers")}</li>
+                <li>• {t("itemAuditLogs")}</li>
+                <li>• {t("itemProducts")}</li>
+                <li>• {t("itemBilling")}</li>
               </ul>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="confirmName" className="text-[#f5f5dc]">
-                Type <span className="font-mono font-bold text-red-400">{workspaceName}</span> to confirm
+                {t("typeToConfirm", { name: workspaceName })}
               </Label>
               <Input
                 id="confirmName"
@@ -123,7 +125,7 @@ export function DeleteWorkspaceDialog({
             disabled={isDeleting}
             className="flex-1 rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/80 px-4 py-2.5 text-sm font-semibold text-[#f5f5dc] transition hover:border-[#d4af37]/60 disabled:opacity-50"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleDelete}
@@ -133,12 +135,12 @@ export function DeleteWorkspaceDialog({
             {isDeleting ? (
               <>
                 <span className="inline-block animate-spin mr-2">⚙️</span>
-                Deleting...
+                {t("deleting")}
               </>
             ) : (
               <>
                 <Trash2 className="inline h-4 w-4 mr-2" />
-                Delete Workspace
+                {t("deleteWorkspace")}
               </>
             )}
           </button>

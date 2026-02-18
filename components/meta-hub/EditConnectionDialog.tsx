@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 
 type EditConnectionDialogProps = {
   open: boolean;
@@ -36,6 +37,7 @@ export function EditConnectionDialog({
 }: EditConnectionDialogProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.editConnection");
   const [displayName, setDisplayName] = useState(connection.displayName ?? "");
   const [notes, setNotes] = useState(connection.notes ?? "");
   const [loading, setLoading] = useState(false);
@@ -60,8 +62,8 @@ export function EditConnectionDialog({
       }
 
       toast({
-        title: "Connection updated",
-        description: "Your changes have been saved successfully.",
+        title: t("successTitle"),
+        description: t("successDescription"),
       });
 
       onOpenChange(false);
@@ -69,8 +71,8 @@ export function EditConnectionDialog({
     } catch (err) {
       logger.error("Failed to update connection:", err);
       toast({
-        title: "Update failed",
-        description: err instanceof Error ? err.message : "Please try again.",
+        title: t("errorTitle"),
+        description: err instanceof Error ? err.message : t("errorDescription"),
         variant: "destructive",
       });
     } finally {
@@ -82,32 +84,32 @@ export function EditConnectionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Connection</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Update the display name and notes for this WhatsApp connection.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="displayName">Connection Name</Label>
+            <Label htmlFor="displayName">{t("connectionNameLabel")}</Label>
             <Input
               id="displayName"
-              placeholder="e.g., WA Support, WA Sales"
+              placeholder={t("connectionNamePlaceholder")}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={100}
             />
             <p className="text-sm text-muted-foreground">
-              Used only in your Gigaviz dashboard to identify this connection.
+              {t("connectionNameHelp")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
+            <Label htmlFor="notes">{t("notesLabel")}</Label>
             <Textarea
               id="notes"
-              placeholder="Add any notes about this connection..."
+              placeholder={t("notesPlaceholder")}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={500}
@@ -123,10 +125,10 @@ export function EditConnectionDialog({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button type="button" onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Changes"}
+            {loading ? t("saving") : t("saveChanges")}
           </Button>
         </DialogFooter>
       </DialogContent>

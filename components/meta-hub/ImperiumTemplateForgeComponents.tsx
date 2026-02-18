@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Smartphone,
@@ -177,20 +178,21 @@ interface ForgeHeaderProps {
 }
 
 export function ForgeHeader({ onSync, syncing }: ForgeHeaderProps) {
+  const t = useTranslations("metaHubUI.templateForge.header");
   return (
     <div className="flex items-center justify-between">
       <div>
         <div className="mb-2 flex items-center gap-3">
           <span className="rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-xs font-semibold tracking-wider text-[#f9d976]">
-            PILLAR #2
+            {t("pillarLabel")}
           </span>
-          <span className="text-xs text-[#f5f5dc]/50">Template Forge</span>
+          <span className="text-xs text-[#f5f5dc]/50">{t("title")}</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-[#f5f5dc]">
-          Message Templates
+          {t("subtitle")}
         </h1>
         <p className="mt-2 text-sm text-[#f5f5dc]/60">
-          Create, manage, and sync Meta-approved templates
+          {t("description")}
         </p>
       </div>
       {onSync && (
@@ -203,7 +205,7 @@ export function ForgeHeader({ onSync, syncing }: ForgeHeaderProps) {
           )}
         >
           <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
-          Sync with Meta
+          {t("syncWithMeta")}
           {/* Sonar effect */}
           <span className="absolute inset-0 rounded-xl opacity-0 group-hover:animate-ping group-hover:opacity-30 bg-[#d4af37]" />
         </button>
@@ -272,6 +274,17 @@ interface Step1Props {
 }
 
 export function Step1HeaderCategory({ state, onChange, errors }: Step1Props) {
+  const t = useTranslations("metaHubUI.templateForge.step1");
+  const tCat = useTranslations("metaHubUI.templateForge.categories");
+  const tLang = useTranslations("metaHubUI.templateForge.languages");
+
+  const LANG_KEY_MAP: Record<string, string> = {
+    id: "indonesian", en: "english", en_US: "englishUS", en_GB: "englishUK",
+    zh_CN: "chineseSimplified", zh_TW: "chineseTraditional", ja: "japanese",
+    ko: "korean", ms: "malay", th: "thai", vi: "vietnamese", fil: "filipino",
+    hi: "hindi", ar: "arabic", de: "german", fr: "french", es: "spanish",
+    pt_BR: "portugueseBrazil", it: "italian", nl: "dutch", ru: "russian", tr: "turkish",
+  };
   return (
     <motion.div
       variants={stepVariants}
@@ -282,26 +295,26 @@ export function Step1HeaderCategory({ state, onChange, errors }: Step1Props) {
     >
       {/* Template Name */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-[#f5f5dc]">Template Name</label>
+        <label className="text-sm font-semibold text-[#f5f5dc]">{t("templateName")}</label>
         <input
           type="text"
           value={state.name}
           onChange={(e) => onChange({ name: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })}
-          placeholder="e.g., order_confirmation"
+          placeholder={t("templateNamePlaceholder")}
           className={cn(
             "w-full rounded-xl border bg-[#0a1229]/80 px-4 py-3 text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50",
             errors?.name ? "border-[#e11d48]" : "border-[#d4af37]/20"
           )}
         />
         <p className="text-xs text-[#f5f5dc]/50">
-          Lowercase letters, numbers, and underscores only
+          {t("templateNameHint")}
         </p>
         {errors?.name && <p className="text-xs text-[#e11d48]">{errors.name}</p>}
       </div>
 
       {/* Category Selection */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-[#f5f5dc]">Category</label>
+        <label className="text-sm font-semibold text-[#f5f5dc]">{t("category")}</label>
         <div className="grid gap-3 sm:grid-cols-3">
           {CATEGORY_OPTIONS.map((cat) => (
             <button
@@ -319,9 +332,9 @@ export function Step1HeaderCategory({ state, onChange, errors }: Step1Props) {
                 {cat.value === "MARKETING" && <Sparkles className="h-4 w-4 text-[#e11d48]" />}
                 {cat.value === "UTILITY" && <Zap className="h-4 w-4 text-[#10b981]" />}
                 {cat.value === "AUTHENTICATION" && <Tag className="h-4 w-4 text-[#d4af37]" />}
-                <span className="font-semibold text-[#f5f5dc]">{cat.label}</span>
+                <span className="font-semibold text-[#f5f5dc]">{tCat(cat.value === "MARKETING" ? "marketing" : cat.value === "UTILITY" ? "utility" : "authentication")}</span>
               </div>
-              <p className="text-xs text-[#f5f5dc]/50">{cat.description}</p>
+              <p className="text-xs text-[#f5f5dc]/50">{tCat(cat.value === "MARKETING" ? "marketingDesc" : cat.value === "UTILITY" ? "utilityDesc" : "authenticationDesc")}</p>
               {state.category === cat.value && (
                 <motion.div
                   layoutId="category-check"
@@ -339,17 +352,17 @@ export function Step1HeaderCategory({ state, onChange, errors }: Step1Props) {
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-sm font-semibold text-[#f5f5dc]">
           <Globe className="h-4 w-4 text-[#d4af37]" />
-          Language
+          {t("language")}
         </label>
         <select
           value={state.language}
           onChange={(e) => onChange({ language: e.target.value })}
-          title="Select template language"
+          title={t("language")}
           className="w-full rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-3 text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
         >
           {LANGUAGE_OPTIONS.map((lang) => (
             <option key={lang.code} value={lang.code} className="bg-[#0a1229]">
-              {lang.name} ({lang.code})
+              {LANG_KEY_MAP[lang.code] ? tLang(LANG_KEY_MAP[lang.code] as "indonesian") : lang.name} ({lang.code})
             </option>
           ))}
         </select>
@@ -370,12 +383,13 @@ interface Step2Props {
 }
 
 export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2Props) {
+  const t = useTranslations("metaHubUI.templateForge.step2");
   const headerOptions = [
-    { value: "none", label: "No Header", icon: X },
-    { value: "text", label: "Text", icon: MessageSquare },
-    { value: "image", label: "Image", icon: ImageIcon },
-    { value: "video", label: "Video", icon: FileVideo },
-    { value: "document", label: "Document", icon: FileText },
+    { value: "none", label: t("noHeader"), icon: X },
+    { value: "text", label: t("text"), icon: MessageSquare },
+    { value: "image", label: t("image"), icon: ImageIcon },
+    { value: "video", label: t("video"), icon: FileVideo },
+    { value: "document", label: t("document"), icon: FileText },
   ] as const;
 
   async function handleFileDrop(e: React.DragEvent<HTMLDivElement>) {
@@ -404,7 +418,7 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
       className="space-y-6"
     >
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-[#f5f5dc]">Header Type</label>
+        <label className="text-sm font-semibold text-[#f5f5dc]">{t("headerType")}</label>
         <div className="flex flex-wrap gap-2">
           {headerOptions.map((opt) => (
             <button
@@ -428,12 +442,12 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
       {/* Text Header */}
       {state.headerType === "text" && (
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-[#f5f5dc]">Header Text</label>
+          <label className="text-sm font-semibold text-[#f5f5dc]">{t("headerText")}</label>
           <input
             type="text"
             value={state.headerText}
             onChange={(e) => onChange({ headerText: e.target.value })}
-            placeholder="Enter header text..."
+            placeholder={t("headerTextPlaceholder")}
             maxLength={60}
             className="w-full rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-3 text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
           />
@@ -445,7 +459,7 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
       {(state.headerType === "image" || state.headerType === "video" || state.headerType === "document") && (
         <div className="space-y-3">
           <label className="text-sm font-semibold text-[#f5f5dc]">
-            Upload {state.headerType.charAt(0).toUpperCase() + state.headerType.slice(1)}
+            {t("upload")} {state.headerType === "image" ? t("image") : state.headerType === "video" ? t("video") : t("document")}
           </label>
           <div
             onDragOver={(e) => e.preventDefault()}
@@ -463,7 +477,7 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
                   // eslint-disable-next-line @next/next/no-img-element -- dynamic template media preview
                   <img
                     src={state.headerMediaUrl}
-                    alt="Header preview"
+                    alt={t("headerPreview")}
                     className="max-h-40 rounded-lg object-contain"
                   />
                 )}
@@ -477,13 +491,13 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
                 {state.headerType === "document" && (
                   <div className="flex items-center gap-2 text-[#10b981]">
                     <FileText className="h-8 w-8" />
-                    <span className="text-sm">Document uploaded</span>
+                    <span className="text-sm">{t("documentUploaded")}</span>
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => onChange({ headerMediaUrl: null })}
-                  title="Remove media"
+                  title={t("removeMedia")}
                   className="absolute right-3 top-3 rounded-full bg-[#e11d48]/20 p-1.5 text-[#e11d48] hover:bg-[#e11d48]/30"
                 >
                   <X className="h-4 w-4" />
@@ -496,12 +510,12 @@ export function Step2MediaStudio({ state, onChange, onUpload, uploading }: Step2
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-medium text-[#f5f5dc]">
-                    {uploading ? "Uploading..." : "Drag & drop or click to upload"}
+                    {uploading ? t("uploading") : t("dragDropOrClick")}
                   </p>
                   <p className="text-xs text-[#f5f5dc]/50">
-                    {state.headerType === "image" && "PNG, JPG up to 5MB"}
-                    {state.headerType === "video" && "MP4 up to 16MB"}
-                    {state.headerType === "document" && "PDF up to 100MB"}
+                    {state.headerType === "image" && t("imageSizeLimit")}
+                    {state.headerType === "video" && t("videoSizeLimit")}
+                    {state.headerType === "document" && t("documentSizeLimit")}
                   </p>
                 </div>
                 <input
@@ -536,6 +550,7 @@ interface Step3Props {
 }
 
 export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
+  const t = useTranslations("metaHubUI.templateForge.step3");
   function insertVariable() {
     const varCount = (state.bodyText.match(/{{(\d+)}}/g) ?? []).length;
     const nextVar = `{{${varCount + 1}}}`;
@@ -566,21 +581,21 @@ export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
       {/* Body Text */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-[#f5f5dc]">Body Message</label>
+          <label className="text-sm font-semibold text-[#f5f5dc]">{t("bodyMessage")}</label>
           <button
             type="button"
             onClick={insertVariable}
             className="flex items-center gap-1.5 rounded-lg border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1.5 text-xs font-semibold text-[#f9d976] transition-all hover:bg-[#d4af37]/20"
           >
             <Plus className="h-3 w-3" />
-            Add Variable
+            {t("addVariable")}
           </button>
         </div>
         <div className="relative">
           <textarea
             value={state.bodyText}
             onChange={(e) => onChange({ bodyText: e.target.value })}
-            placeholder="Hello {{1}}, your order {{2}} has been shipped..."
+            placeholder={t("bodyPlaceholder")}
             rows={5}
             maxLength={1024}
             className={cn(
@@ -592,7 +607,7 @@ export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
             <div className="flex items-center gap-4">
               <span className="text-[#f5f5dc]/40">{state.bodyText.length}/1024</span>
               <span className="text-[#d4af37]">
-                Variables: {(state.bodyText.match(/{{(\d+)}}/g) ?? []).length}
+                {t("variables")} {(state.bodyText.match(/{{(\d+)}}/g) ?? []).length}
               </span>
             </div>
             {errors?.bodyText && <p className="text-[#e11d48]">{errors.bodyText}</p>}
@@ -601,7 +616,7 @@ export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
         {/* Preview with highlighted variables */}
         {state.bodyText && (
           <div className="rounded-xl border border-[#d4af37]/10 bg-[#0a1229]/50 p-3">
-            <p className="mb-1 text-xs font-semibold text-[#d4af37]/60">PREVIEW</p>
+            <p className="mb-1 text-xs font-semibold text-[#d4af37]/60">{t("preview")}</p>
             <p className="whitespace-pre-wrap text-sm text-[#f5f5dc]/80">
               {highlightVariables(state.bodyText)}
             </p>
@@ -611,12 +626,12 @@ export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
 
       {/* Footer Text */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-[#f5f5dc]">Footer (Optional)</label>
+        <label className="text-sm font-semibold text-[#f5f5dc]">{t("footer")}</label>
         <input
           type="text"
           value={state.footerText}
           onChange={(e) => onChange({ footerText: e.target.value })}
-          placeholder="e.g., Gigaviz • Reply STOP to unsubscribe"
+          placeholder={t("footerPlaceholder")}
           maxLength={60}
           className="w-full rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-3 text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
         />
@@ -628,7 +643,7 @@ export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Info className="h-4 w-4 text-[#d4af37]" />
-            <label className="text-sm font-semibold text-[#f5f5dc]">Variable Examples (Required)</label>
+            <label className="text-sm font-semibold text-[#f5f5dc]">{t("variableExamples")}</label>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {state.bodyExamples.map((example, idx) => (
@@ -642,7 +657,7 @@ export function Step3ContentLab({ state, onChange, errors }: Step3Props) {
                     newExamples[idx] = e.target.value;
                     onChange({ bodyExamples: newExamples });
                   }}
-                  placeholder={`Example for variable ${idx + 1}`}
+                  placeholder={`${t("variableExamplePlaceholder")} ${idx + 1}`}
                   className="w-full rounded-lg border border-[#d4af37]/20 bg-[#0a1229]/60 px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
                 />
               </div>
@@ -668,13 +683,14 @@ function makeButtonId() {
 }
 
 export function Step4Buttons({ state, onChange }: Step4Props) {
+  const t = useTranslations("metaHubUI.templateForge.step4");
   const canAddMore = state.buttons.length < 3;
 
   function addButton(type: TemplateButton["type"]) {
     const newButton: TemplateButton = {
       id: makeButtonId(),
       type,
-      text: type === "QUICK_REPLY" ? "Reply" : type === "URL" ? "Learn More" : "Call Us",
+      text: type === "QUICK_REPLY" ? t("quickReply") : type === "URL" ? t("urlButton") : t("phoneButton"),
       url: type === "URL" ? "https://" : undefined,
       phone_number: type === "PHONE_NUMBER" ? "" : undefined,
     };
@@ -701,7 +717,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
     >
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-[#f5f5dc]">Buttons (Optional)</label>
+          <label className="text-sm font-semibold text-[#f5f5dc]">{t("buttonsLabel")}</label>
           <span className="text-xs text-[#f5f5dc]/50">{state.buttons.length}/3</span>
         </div>
 
@@ -714,7 +730,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
               className="flex items-center gap-2 rounded-xl border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2.5 text-sm font-medium text-[#f9d976] transition-all hover:bg-[#d4af37]/20"
             >
               <MessageSquare className="h-4 w-4" />
-              Quick Reply
+              {t("quickReply")}
             </button>
             <button
               type="button"
@@ -722,7 +738,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
               className="flex items-center gap-2 rounded-xl border border-[#10b981]/30 bg-[#10b981]/10 px-4 py-2.5 text-sm font-medium text-[#10b981] transition-all hover:bg-[#10b981]/20"
             >
               <LinkIcon className="h-4 w-4" />
-              URL Button
+              {t("urlButton")}
             </button>
             <button
               type="button"
@@ -730,7 +746,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
               className="flex items-center gap-2 rounded-xl border border-[#e11d48]/30 bg-[#e11d48]/10 px-4 py-2.5 text-sm font-medium text-[#e11d48] transition-all hover:bg-[#e11d48]/20"
             >
               <Phone className="h-4 w-4" />
-              Phone Button
+              {t("phoneButton")}
             </button>
           </div>
         )}
@@ -765,7 +781,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
                   <button
                     type="button"
                     onClick={() => removeButton(btn.id)}
-                    title="Remove button"
+                    title={t("removeButton")}
                     className="rounded-full p-1 text-[#f5f5dc]/40 hover:bg-[#e11d48]/20 hover:text-[#e11d48]"
                   >
                     <X className="h-4 w-4" />
@@ -776,7 +792,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
                     type="text"
                     value={btn.text}
                     onChange={(e) => updateButton(btn.id, { text: e.target.value })}
-                    placeholder="Button text"
+                    placeholder={t("buttonTextPlaceholder")}
                     maxLength={25}
                     className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
                   />
@@ -785,7 +801,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
                       type="url"
                       value={btn.url ?? ""}
                       onChange={(e) => updateButton(btn.id, { url: e.target.value })}
-                      placeholder="https://example.com"
+                      placeholder={t("urlPlaceholder")}
                       className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
                     />
                   )}
@@ -794,7 +810,7 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
                       type="tel"
                       value={btn.phone_number ?? ""}
                       onChange={(e) => updateButton(btn.id, { phone_number: e.target.value })}
-                      placeholder="+628123456789"
+                      placeholder={t("phonePlaceholder")}
                       className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
                     />
                   )}
@@ -807,8 +823,8 @@ export function Step4Buttons({ state, onChange }: Step4Props) {
         {state.buttons.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#f5f5dc]/10 py-10 text-center">
             <MessageSquare className="mb-2 h-8 w-8 text-[#f5f5dc]/20" />
-            <p className="text-sm text-[#f5f5dc]/40">No buttons added yet</p>
-            <p className="text-xs text-[#f5f5dc]/30">Add up to 3 interactive buttons</p>
+            <p className="text-sm text-[#f5f5dc]/40">{t("noButtonsAdded")}</p>
+            <p className="text-xs text-[#f5f5dc]/30">{t("addUpTo3")}</p>
           </div>
         )}
       </div>
@@ -827,6 +843,7 @@ interface MiragePreviewProps {
 }
 
 export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePreviewProps) {
+  const t = useTranslations("metaHubUI.templateForge.preview");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   if (!mounted) {
@@ -849,7 +866,7 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
           )}
         >
           <Smartphone className="h-3.5 w-3.5" />
-          iPhone
+          {t("iphone")}
         </button>
         <button
           onClick={onToggleDevice}
@@ -861,7 +878,7 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
           )}
         >
           <Monitor className="h-3.5 w-3.5" />
-          Android
+          {t("android")}
         </button>
       </div>
 
@@ -893,8 +910,8 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
           <div className="flex h-12 items-center gap-3 border-b border-[#1a2940] bg-[#0f1c32] px-4">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#d4af37] to-[#b8962e]" />
             <div>
-              <p className="text-xs font-semibold text-white">Gigaviz</p>
-              <p className="text-[10px] text-white/50">Business Account</p>
+              <p className="text-xs font-semibold text-white">{t("gigaviz")}</p>
+              <p className="text-[10px] text-white/50">{t("businessAccount")}</p>
             </div>
           </div>
 
@@ -927,7 +944,7 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
 
               {/* Body */}
               <p className="whitespace-pre-wrap text-xs text-[#f5f5dc]">
-                {state.bodyText || "Your message will appear here..."}
+                {state.bodyText || t("messagePreview")}
               </p>
 
               {/* Footer */}
@@ -962,7 +979,7 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
           {/* Input Bar */}
           <div className="flex h-14 items-center gap-2 border-t border-[#1a2940] bg-[#0f1c32] px-3">
             <div className="flex-1 rounded-full bg-[#1a2940] px-4 py-2 text-[10px] text-[#f5f5dc]/30">
-              Type a message...
+              {t("typeAMessage")}
             </div>
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d4af37]">
               <ChevronRight className="h-4 w-4 text-[#050a18]" />
@@ -977,7 +994,7 @@ export function MiragePreview({ state, deviceType, onToggleDevice }: MiragePrevi
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
         </span>
-        <span className="text-xs text-[#10b981]">Live Preview</span>
+        <span className="text-xs text-[#10b981]">{t("livePreview")}</span>
       </div>
     </div>
   );
@@ -995,6 +1012,7 @@ interface TemplateGridProps {
 }
 
 export function TemplateGrid({ templates, selectedId, onSelect, syncing }: TemplateGridProps) {
+  const t = useTranslations("metaHubUI.templateForge.grid");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   if (!mounted) {
@@ -1011,8 +1029,8 @@ export function TemplateGrid({ templates, selectedId, onSelect, syncing }: Templ
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#f5f5dc]/10 py-16 text-center">
         <FileText className="mb-4 h-12 w-12 text-[#f5f5dc]/20" />
-        <p className="text-lg font-semibold text-[#f5f5dc]/60">No templates yet</p>
-        <p className="text-sm text-[#f5f5dc]/40">Create your first template to get started</p>
+        <p className="text-lg font-semibold text-[#f5f5dc]/60">{t("noTemplates")}</p>
+        <p className="text-sm text-[#f5f5dc]/40">{t("createFirst")}</p>
       </div>
     );
   }
@@ -1051,7 +1069,7 @@ export function TemplateGrid({ templates, selectedId, onSelect, syncing }: Templ
                 isPending && "bg-[#d4af37]/80 text-[#050a18]"
               )}
             >
-              {status || "DRAFT"}
+              {status || t("statusDraft")}
             </div>
 
             {/* Template Info */}
@@ -1066,7 +1084,7 @@ export function TemplateGrid({ templates, selectedId, onSelect, syncing }: Templ
             </div>
 
             {/* Body Preview */}
-            <p className="line-clamp-2 text-xs text-[#f5f5dc]/50">{tpl.body ?? "No content"}</p>
+            <p className="line-clamp-2 text-xs text-[#f5f5dc]/50">{tpl.body ?? t("noContent")}</p>
 
             {/* Quality Score */}
             {tpl.quality_score && (
@@ -1079,7 +1097,7 @@ export function TemplateGrid({ templates, selectedId, onSelect, syncing }: Templ
                     tpl.quality_score.toLowerCase() === "red" && "bg-[#e11d48]"
                   )}
                 />
-                <span className="text-[10px] text-[#f5f5dc]/40">Quality: {tpl.quality_score}</span>
+                <span className="text-[10px] text-[#f5f5dc]/40">{t("quality")} {tpl.quality_score}</span>
               </div>
             )}
           </motion.button>
@@ -1106,14 +1124,14 @@ export function TemplateGrid({ templates, selectedId, onSelect, syncing }: Templ
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function ImperiumForgeFooter() {
+  const t = useTranslations("metaHubUI.templateForge.footer");
   return (
     <footer className="mt-12 border-t border-[#d4af37]/10 py-6 text-center">
       <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
         <p>
-          Gigaviz is a Verified Technology Provider for solutions built on the
-          WhatsApp Business Platform (Cloud API).
+          {t("verifiedProvider")}
         </p>
-        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
+        <p className="mt-2">{t("metaTrademarks")}</p>
       </div>
     </footer>
   );

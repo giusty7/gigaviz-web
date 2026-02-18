@@ -12,6 +12,7 @@ import { getAppContext } from "@/lib/app-context";
 import { getUnifiedDashboard } from "@/lib/dashboard/overview";
 import { isPlatformAdminById } from "@/lib/platform-admin/server";
 import { ensureWorkspaceCookie } from "@/lib/workspaces";
+import { PageHeader } from "@/components/ui/page-header";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -47,22 +48,18 @@ export default async function AppHomePage({ params }: DashboardPageProps) {
 
       <div className="relative space-y-6 pb-10">
         {/* Compact Hero */}
-        <section className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-[#f5f5dc] tracking-tight sm:text-2xl">
-              {t("welcomeBack", { workspace: workspace.name })}
-            </h1>
-            <p className="mt-0.5 text-xs text-[#f5f5dc]/40 max-w-lg">
-              {t("subtitle")}
-            </p>
-          </div>
-          <Link
-            href={`/${workspace.slug}/settings`}
-            className="inline-flex items-center self-start rounded-lg border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/50 transition hover:bg-[#f5f5dc]/[0.04] hover:text-[#f5f5dc]/70 sm:self-auto"
-          >
-            {t("workspaceSettings")}
-          </Link>
-        </section>
+        <PageHeader
+          title={t("welcomeBack", { workspace: workspace.name })}
+          description={t("subtitle")}
+          actions={
+            <Link
+              href={`/${workspace.slug}/settings`}
+              className="inline-flex items-center rounded-lg border border-border bg-foreground/[0.02] px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:bg-foreground/[0.04] hover:text-foreground/70"
+            >
+              {t("workspaceSettings")}
+            </Link>
+          }
+        />
 
         {/* Unified Product Grid */}
         <UnifiedProductGrid products={dashboard.products} />

@@ -63,6 +63,17 @@ function useBreadcrumbs(workspaceName: string) {
   return [workspaceName, ...crumbs];
 }
 
+/* ─────────── Shared style constants ─────────── */
+const BRAND_GRADIENT = "bg-gradient-to-r from-gigaviz-gold to-gigaviz-gold-bright bg-clip-text text-transparent";
+const NAV_ACTIVE = "bg-gigaviz-accentSoft text-foreground";
+const NAV_INACTIVE = "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground/80";
+const NAV_ICON_ACTIVE = "text-accent";
+const SIDEBAR_BORDER = "border-border";
+const SIDEBAR_BG = "bg-background";
+const BTN_GHOST = "text-foreground/40 transition hover:bg-foreground/[0.06] hover:text-foreground/70";
+const SECTION_MUTED = "text-foreground/25";
+const CARD_SUBTLE = "border-foreground/[0.06] bg-foreground/[0.02]";
+
 /* ═══════════════════════════════════════ Main Component */
 export default function AppShell({
   userEmail,
@@ -77,6 +88,7 @@ export default function AppShell({
   const [hydrated, setHydrated] = useState(false);
 
   const t = useTranslations("app.sidebar");
+  const tApp = useTranslations("appUI.sidebar");
   const pathname = usePathname();
 
   useEffect(() => {
@@ -109,12 +121,12 @@ export default function AppShell({
   const navItems: NavItem[] = [
     { href: `/${slug}/dashboard`, label: t("dashboard"), icon: LayoutDashboard, section: "main" },
     { href: `/${slug}/inbox`, label: t("inbox"), icon: MessageSquare, section: "main" },
-    { href: `/${slug}/meta-hub`, label: "Meta Hub", icon: Send, section: "products" },
-    { href: `/${slug}/helper`, label: "Helper AI", icon: Bot, section: "products" },
-    { href: `/${slug}/links`, label: "Links", icon: Link2, section: "products" },
-    { href: `/${slug}/modules/studio`, label: "Studio", icon: Palette, section: "products" },
-    { href: `/${slug}/marketplace`, label: "Marketplace", icon: Store, section: "products" },
-    { href: `/${slug}/apps`, label: "Apps", icon: AppWindow, section: "products" },
+    { href: `/${slug}/meta-hub`, label: tApp("metaHub"), icon: Send, section: "products" },
+    { href: `/${slug}/helper`, label: tApp("helperAI"), icon: Bot, section: "products" },
+    { href: `/${slug}/links`, label: tApp("links"), icon: Link2, section: "products" },
+    { href: `/${slug}/modules/studio`, label: tApp("studio"), icon: Palette, section: "products" },
+    { href: `/${slug}/marketplace`, label: tApp("marketplace"), icon: Store, section: "products" },
+    { href: `/${slug}/apps`, label: tApp("apps"), icon: AppWindow, section: "products" },
     { href: `/${slug}/tokens`, label: t("tokens"), icon: Coins, section: "manage" },
     { href: `/${slug}/platform`, label: t("workspace"), icon: Users, section: "manage" },
     { href: billingHref, label: t("subscription"), icon: CreditCard, section: "manage" },
@@ -126,37 +138,37 @@ export default function AppShell({
   const manageItems = navItems.filter((n) => n.section === "manage");
   const breadcrumbs = useBreadcrumbs(currentWorkspace?.name ?? "Workspace");
 
-  /* ── Active check ── */
-  const checkActive = (href: string, label: string) => {
+  /* ── Active check (href-based for i18n safety) ── */
+  const checkActive = (href: string) => {
     if (!pathname) return false;
-    if (label === t("inbox")) return pathname.includes("/inbox");
-    if (label === "Meta Hub") return pathname.includes("/meta-hub");
-    if (label === "Helper AI") return pathname.includes("/helper");
-    if (label === "Links") return pathname.includes("/links");
-    if (label === "Studio") return pathname.includes("/modules/studio") || pathname.includes("/modules/office") || pathname.includes("/modules/graph") || pathname.includes("/modules/tracks");
+    if (href.endsWith("/inbox")) return pathname.includes("/inbox");
+    if (href.endsWith("/meta-hub")) return pathname.includes("/meta-hub");
+    if (href.endsWith("/helper")) return pathname.includes("/helper");
+    if (href.endsWith("/links")) return pathname.includes("/links");
+    if (href.endsWith("/modules/studio")) return pathname.includes("/modules/studio") || pathname.includes("/modules/office") || pathname.includes("/modules/graph") || pathname.includes("/modules/tracks");
     return pathname.startsWith(href);
   };
 
   /* ── Shared nav link (desktop collapsed / expanded) ── */
   const DesktopNavLink = ({ item }: { item: NavItem }) => {
-    const active = checkActive(item.href, item.label);
+    const active = checkActive(item.href);
     return (
       <Link
         href={item.href}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "group relative flex items-center rounded-xl transition-all duration-150",
           isCollapsed ? "h-10 w-10 justify-center" : "gap-3 px-3 py-2",
-          active
-            ? "bg-[#d4af37]/10 text-[#f5f5dc]"
-            : "text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/[0.04] hover:text-[#f5f5dc]/80"
+          active ? NAV_ACTIVE : NAV_INACTIVE
         )}
         title={isCollapsed ? item.label : undefined}
       >
         {!isCollapsed && active && (
-          <span className="absolute inset-y-1 left-0 w-[3px] rounded-full bg-[#d4af37]" />
+          <span className="absolute inset-y-1 left-0 w-[3px] rounded-full bg-accent" />
         )}
         <item.icon
-          className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4", active ? "text-[#d4af37]" : "")}
+          className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4", active ? NAV_ICON_ACTIVE : "")}
+          aria-hidden="true"
         />
         {!isCollapsed && (
           <span className="truncate text-[13px] font-medium">{item.label}</span>
@@ -168,27 +180,26 @@ export default function AppShell({
   /* ── Section divider ── */
   const SectionLabel = ({ label }: { label: string }) =>
     isCollapsed ? (
-      <div className="my-2 h-px w-6 bg-[#f5f5dc]/10 mx-auto" />
+      <div className="my-2 h-px w-6 bg-foreground/10 mx-auto" role="separator" />
     ) : (
-      <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">
+      <p className={cn("mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em]", SECTION_MUTED)}>
         {label}
       </p>
     );
 
   /* ── Mobile nav link ── */
   const MobileNavLink = ({ item }: { item: NavItem }) => {
-    const active = checkActive(item.href, item.label);
+    const active = checkActive(item.href);
     return (
       <Link
         href={item.href}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition",
-          active
-            ? "bg-[#d4af37]/10 text-[#f5f5dc]"
-            : "text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/[0.04] hover:text-[#f5f5dc]/80"
+          active ? NAV_ACTIVE : NAV_INACTIVE
         )}
       >
-        <item.icon className={cn("h-4 w-4", active ? "text-[#d4af37]" : "")} />
+        <item.icon className={cn("h-4 w-4", active ? NAV_ICON_ACTIVE : "")} aria-hidden="true" />
         {item.label}
       </Link>
     );
@@ -197,48 +208,51 @@ export default function AppShell({
   /* ═════════════ Render ═════════════ */
   return (
     <UpgradeModalProvider billingHref={billingHref}>
-      <div className="gv-app min-h-screen bg-[#050a18] text-[#f5f5dc] antialiased">
+      <div className="gv-app min-h-screen bg-background text-foreground antialiased">
         {/* Mobile overlay */}
         {mobileOpen && (
           <button
             type="button"
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileOpen(false)}
-            aria-label="Close menu"
+            aria-label={t("collapseMenu")}
           />
         )}
 
         {/* Mobile sidebar drawer */}
         <aside
+          role="navigation"
+          aria-label={t("products")}
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-[280px] overflow-y-auto border-r border-[#d4af37]/10 bg-[#050a18] px-4 py-5 transition-transform duration-200 ease-out lg:hidden",
+            "fixed inset-y-0 left-0 z-50 w-[280px] overflow-y-auto border-r border-accent/10 px-4 py-5 transition-transform duration-200 ease-out lg:hidden",
+            SIDEBAR_BG,
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           <div className="mb-4 flex items-center justify-between">
-            <span className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-lg font-bold text-transparent">
+            <span className={cn("text-lg font-bold", BRAND_GRADIENT)}>
               Gigaviz
             </span>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/[0.06]"
-              aria-label="Close menu"
+              className={cn("flex h-8 w-8 items-center justify-center rounded-lg", BTN_GHOST)}
+              aria-label={t("collapseMenu")}
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-          <nav className="flex flex-col gap-0.5">
+          <nav aria-label="Main navigation" className="flex flex-col gap-0.5">
             {mainItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
-            <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">{t("products")}</p>
+            <p className={cn("mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em]", SECTION_MUTED)}>{t("products")}</p>
             {productItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
-            <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#f5f5dc]/25">{t("manage")}</p>
+            <p className={cn("mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-[0.15em]", SECTION_MUTED)}>{t("manage")}</p>
             {manageItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
           </nav>
           {/* Mobile user info */}
-          <div className="mt-6 rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-3 py-2.5">
-            <p className="truncate text-[13px] font-medium text-[#f5f5dc]/80">{userEmail.split("@")[0]}</p>
-            <p className="truncate text-[11px] text-[#f5f5dc]/30">{userEmail}</p>
+          <div className={cn("mt-6 rounded-xl border px-3 py-2.5", CARD_SUBTLE)}>
+            <p className="truncate text-[13px] font-medium text-foreground/80">{userEmail.split("@")[0]}</p>
+            <p className="truncate text-[11px] text-foreground/30">{userEmail}</p>
           </div>
         </aside>
 
@@ -251,15 +265,18 @@ export default function AppShell({
         >
           {/* Desktop sidebar */}
           <aside
+            role="navigation"
+            aria-label="Sidebar navigation"
             className={cn(
-              "hidden flex-col border-r border-[#f5f5dc]/[0.06] bg-[#050a18] py-5 transition-[width,padding] duration-200 lg:flex",
+              "hidden flex-col border-r py-5 transition-[width,padding] duration-200 lg:flex",
+              SIDEBAR_BORDER, SIDEBAR_BG,
               isCollapsed ? "w-16 px-2" : "w-[260px] px-4"
             )}
           >
             {/* Brand */}
             <div className={cn("flex w-full items-center mb-2", isCollapsed ? "justify-center" : "justify-between")}>
-              <Link href="/" className="flex items-center gap-2">
-                <span className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-lg font-bold tracking-tight text-transparent">
+              <Link href="/" className="flex items-center gap-2" aria-label="Gigaviz home">
+                <span className={cn("text-lg font-bold tracking-tight", BRAND_GRADIENT)}>
                   {isCollapsed ? "G" : "Gigaviz"}
                 </span>
               </Link>
@@ -268,9 +285,9 @@ export default function AppShell({
                   type="button"
                   onClick={toggleSidebar}
                   aria-label={t("collapseMenu")}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[#f5f5dc]/40 transition hover:bg-[#f5f5dc]/[0.06] hover:text-[#f5f5dc]/70"
+                  className={cn("flex h-7 w-7 items-center justify-center rounded-lg", BTN_GHOST)}
                 >
-                  <PanelLeftClose className="h-4 w-4" />
+                  <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -279,14 +296,14 @@ export default function AppShell({
                 type="button"
                 onClick={toggleSidebar}
                 aria-label={t("expandMenu")}
-                className="mb-2 mt-1 flex h-8 w-8 items-center justify-center rounded-lg text-[#f5f5dc]/40 transition hover:bg-[#f5f5dc]/[0.06] hover:text-[#f5f5dc]/70 mx-auto"
+                className={cn("mb-2 mt-1 flex h-8 w-8 items-center justify-center rounded-lg mx-auto", BTN_GHOST)}
               >
-                <PanelRightOpen className="h-4 w-4" />
+                <PanelRightOpen className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
 
             {/* Navigation */}
-            <nav className={cn("mt-1 flex flex-col gap-0.5", isCollapsed && "w-full items-center")}>
+            <nav aria-label="Main navigation" className={cn("mt-1 flex flex-col gap-0.5", isCollapsed && "w-full items-center")}>
               {mainItems.map((item) => <DesktopNavLink key={item.href} item={item} />)}
               <SectionLabel label={t("products")} />
               {productItems.map((item) => <DesktopNavLink key={item.href} item={item} />)}
@@ -299,36 +316,36 @@ export default function AppShell({
 
             {/* Staff badge */}
             {isAdmin && !isCollapsed && (
-              <div className="mb-3 rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-[11px] font-medium text-purple-300">
+              <div className="mb-3 rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-[11px] font-medium text-purple-300" role="status">
                 🛡️ {t("staffMode")}
               </div>
             )}
 
             {/* Status */}
             {!isCollapsed ? (
-              <div className="mb-3 flex items-center gap-2 rounded-lg border border-[#10b981]/15 bg-[#10b981]/5 px-3 py-1.5">
+              <div className="mb-3 flex items-center gap-2 rounded-lg border border-success/15 bg-success/5 px-3 py-1.5" role="status" aria-label={t("operational")}>
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
                 </span>
-                <span className="text-[11px] font-medium text-[#10b981]/80">{t("operational")}</span>
+                <span className="text-[11px] font-medium text-success/80">{t("operational")}</span>
               </div>
             ) : (
-              <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-[#10b981]/15 bg-[#10b981]/5 mx-auto">
+              <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-success/15 bg-success/5 mx-auto" role="status" aria-label={t("operational")}>
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
                 </span>
               </div>
             )}
 
             {/* User card */}
             {!isCollapsed && (
-              <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-3 py-2.5">
-                <p className="truncate text-[13px] font-medium text-[#f5f5dc]/80">
+              <div className={cn("rounded-xl border px-3 py-2.5", CARD_SUBTLE)}>
+                <p className="truncate text-[13px] font-medium text-foreground/80">
                   {userEmail.split("@")[0]}
                 </p>
-                <p className="truncate text-[11px] text-[#f5f5dc]/30">{userEmail}</p>
+                <p className="truncate text-[11px] text-foreground/30">{userEmail}</p>
               </div>
             )}
           </aside>
@@ -336,34 +353,38 @@ export default function AppShell({
           {/* Main content area */}
           <div className="flex min-h-screen flex-col">
             {/* Header */}
-            <header className="sticky top-0 z-20 border-b border-[#f5f5dc]/[0.06] bg-[#050a18]/95 backdrop-blur-xl">
+            <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
               <div className="flex h-14 items-center gap-3 px-4 lg:px-6">
                 {/* Mobile hamburger */}
                 <button
                   type="button"
                   onClick={() => setMobileOpen(true)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/[0.06] lg:hidden"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-foreground/[0.06] lg:hidden"
                   aria-label="Open menu"
+                  aria-expanded={mobileOpen}
+                  aria-controls="mobile-sidebar"
                 >
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 {/* Mobile brand */}
-                <span className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-base font-bold text-transparent lg:hidden">
+                <span className={cn("text-base font-bold lg:hidden", BRAND_GRADIENT)}>
                   Gigaviz
                 </span>
 
                 {/* Desktop breadcrumbs */}
-                <div className="hidden items-center gap-1 text-sm lg:flex">
-                  {breadcrumbs.map((crumb, i) => (
-                    <span key={`${crumb}-${i}`} className="flex items-center gap-1">
-                      {i > 0 && <ChevronRight className="h-3 w-3 text-[#f5f5dc]/20" />}
-                      <span className={i === 0 ? "font-medium text-[#d4af37]" : "text-[#f5f5dc]/50"}>
-                        {crumb}
-                      </span>
-                    </span>
-                  ))}
-                </div>
+                <nav aria-label="Breadcrumb" className="hidden items-center gap-1 text-sm lg:flex">
+                  <ol className="flex items-center gap-1">
+                    {breadcrumbs.map((crumb, i) => (
+                      <li key={`${crumb}-${i}`} className="flex items-center gap-1">
+                        {i > 0 && <ChevronRight className="h-3 w-3 text-foreground/20" aria-hidden="true" />}
+                        <span className={i === 0 ? "font-medium text-accent" : "text-muted-foreground"}>
+                          {crumb}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
 
                 {/* Spacer */}
                 <div className="flex-1" />
@@ -393,7 +414,7 @@ export default function AppShell({
             </header>
 
             {/* Page content */}
-            <main className="flex-1 px-4 py-6 lg:px-6 lg:py-8">{children}</main>
+            <main id="main-content" className="flex-1 px-4 py-6 lg:px-6 lg:py-8">{children}</main>
           </div>
         </div>
       </div>

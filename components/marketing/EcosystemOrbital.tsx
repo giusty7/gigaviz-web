@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 type NodePillar = "core" | "connect" | "create" | "commerce";
 
@@ -104,6 +105,7 @@ function getNodePosition(orbit: number, angle: number) {
 }
 
 export function EcosystemOrbital() {
+  const t = useTranslations("marketingUI");
   const [activeNode, setActiveNode] = useState<string | null>(null);
   const [activeOrbit, setActiveOrbit] = useState<number | null>(null);
 
@@ -271,7 +273,7 @@ export function EcosystemOrbital() {
                 <div className="mt-1.5 flex items-center gap-1">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-green-500 shadow-[0_0_8px_2px_rgba(34,197,94,0.6)]" />
                   <span className="text-[6px] font-semibold uppercase tracking-wider text-green-500 sm:text-[7px]">
-                    Online
+                    {t("ecosystem.online")}
                   </span>
                 </div>
               )}
@@ -281,13 +283,13 @@ export function EcosystemOrbital() {
 
         {/* Orbit Labels (subtle, outside rings) */}
         <div className="pointer-events-none absolute left-[8%] top-[30%] -rotate-12 text-[7px] font-medium uppercase tracking-widest text-gigaviz-magenta/40 sm:text-[8px]">
-          Create
+          {t("ecosystem.create")}
         </div>
         <div className="pointer-events-none absolute right-[5%] top-[25%] rotate-6 text-[7px] font-medium uppercase tracking-widest text-gigaviz-gold/40 sm:text-[8px]">
-          Connect
+          {t("ecosystem.connect")}
         </div>
         <div className="pointer-events-none absolute bottom-[15%] left-[12%] -rotate-3 text-[7px] font-medium uppercase tracking-widest text-gigaviz-cream/30 sm:text-[8px]">
-          Commerce
+          {t("ecosystem.commerce")}
         </div>
 
       </div>

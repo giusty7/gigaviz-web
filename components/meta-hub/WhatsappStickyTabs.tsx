@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { label: "Templates", slug: "" },
-  { label: "Inbox", slug: "/inbox" },
-  { label: "Contacts", slug: "/contacts" },
-  { label: "Outbox", slug: "/outbox" },
-  { label: "Jobs", slug: "/jobs" },
-  { label: "Webhooks", slug: "/webhooks" },
+  { labelKey: "templates" as const, slug: "" },
+  { labelKey: "inbox" as const, slug: "/inbox" },
+  { labelKey: "contacts" as const, slug: "/contacts" },
+  { labelKey: "outbox" as const, slug: "/outbox" },
+  { labelKey: "jobs" as const, slug: "/jobs" },
+  { labelKey: "webhooks" as const, slug: "/webhooks" },
 ];
 
 export function WhatsappStickyTabs({ basePath }: { basePath: string }) {
   const pathname = usePathname();
+  const t = useTranslations("metaHubUI.stickyTabs");
 
   return (
     <div className="rounded-xl border border-border bg-card/80 px-2 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -33,7 +35,7 @@ export function WhatsappStickyTabs({ basePath }: { basePath: string }) {
                   : "text-muted-foreground hover:bg-gigaviz-surface/60"
               )}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </Link>
           );
         })}

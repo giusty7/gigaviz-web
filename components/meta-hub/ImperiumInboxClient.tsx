@@ -1,5 +1,6 @@
 ﻿"use client";
 import { logger } from "@/lib/logging";
+import { useTranslations } from "next-intl";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { motion, type Variants } from "framer-motion";
@@ -110,7 +111,7 @@ type SentimentResult = {
 };
 
 function fallbackSentiment(text?: string | null): SentimentResult {
-  if (!text) return { score: 50, label: "Neutral", source: "client_fallback" };
+  if (!text) return { score: 50, label: "neutral", source: "client_fallback" };
   const normalized = text.toLowerCase();
   const positiveWords = ["thank", "great", "good", "love", "appreciate", "yes", "helpful", "nice", "well done"];
   const negativeWords = ["bad", "angry", "upset", "frustrated", "hate", "no", "problem", "issue", "terrible", "worst"];
@@ -125,9 +126,9 @@ function fallbackSentiment(text?: string | null): SentimentResult {
   score = Math.max(5, Math.min(95, score));
 
   let label: string;
-  if (score >= 70) label = "Calm";
-  else if (score >= 45) label = "Neutral";
-  else label = "Alert";
+  if (score >= 70) label = "calm";
+  else if (score >= 45) label = "neutral";
+  else label = "alert";
 
   return { score, label, source: "client_fallback" };
 }
@@ -170,6 +171,7 @@ export function ImperiumInboxClient({
 }: ImperiumInboxClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.inboxClient");
 
   // User preferences
   const [soundEnabled, setSoundEnabled] = useState(false);
@@ -257,7 +259,7 @@ export function ImperiumInboxClient({
     loading: true,
     canSend: allowWrite,
     reasonCode: allowWrite ? null : "PLAN_LOCKED",
-    reason: allowWrite ? null : "Messaging is disabled for the current plan.",
+    reason: allowWrite ? null : t("capability.messagingDisabledForPlan"),
   });
 
   // Telemetry
@@ -267,7 +269,7 @@ export function ImperiumInboxClient({
   const latestMessageTsRef = useRef<number>(0);
 
   // Sentiment
-  const [customerSentiment, setCustomerSentiment] = useState<SentimentResult>(() => ({ score: 50, label: "Neutral", source: "init" }));
+  const [customerSentiment, setCustomerSentiment] = useState<SentimentResult>(() => ({ score: 50, label: "neutral", source: "init" }));
   const [, setSentimentLoading] = useState(false);
   const sentimentCacheRef = useRef<string | null>(null);
   const fetchTelemetry = useCallback(async () => {
@@ -418,18 +420,18 @@ export function ImperiumInboxClient({
       if (res.ok && data.view) {
         setSavedViews((prev) => [...prev, data.view]);
         setActiveViewId(data.view.id);
-        toast({ title: "View saved", description: `"${name}" saved successfully` });
+        toast({ title: t("toasts.viewSaved"), description: `"${name}" ${t("toasts.viewSavedDesc")}` });
       } else {
         throw new Error(data.error || "Failed to save view");
       }
     } catch (err) {
       toast({
-        title: "Failed to save view",
-        description: err instanceof Error ? err.message : "Error",
+        title: t("toasts.failedToSaveView"),
+        description: err instanceof Error ? err.message : t("toasts.genericError"),
         variant: "destructive",
       });
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const handleDeleteView = useCallback(async (viewId: string) => {
     if (!workspaceId) return;
@@ -442,18 +444,18 @@ export function ImperiumInboxClient({
       if (res.ok) {
         setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
         if (activeViewId === viewId) setActiveViewId(null);
-        toast({ title: "View deleted" });
+        toast({ title: t("toasts.viewDeleted") });
       } else {
         throw new Error("Failed to delete view");
       }
     } catch (err) {
       toast({
-        title: "Failed to delete view",
-        description: err instanceof Error ? err.message : "Error",
+        title: t("toasts.failedToDeleteView"),
+        description: err instanceof Error ? err.message : t("toasts.genericError"),
         variant: "destructive",
       });
     }
-  }, [workspaceId, activeViewId, toast]);
+  }, [workspaceId, activeViewId, toast, t]);
 
   const handleApplyView = useCallback((view: SavedView) => {
     setFilter((prev) => ({
@@ -492,7 +494,7 @@ export function ImperiumInboxClient({
       });
 
       if (res.ok) {
-        toast({ title: "Bulk action completed", description: `Updated ${threadIds.length} thread(s)` });
+        toast({ title: t("toasts.bulkActionCompleted"), description: t("toasts.bulkActionDesc", { count: threadIds.length }) });
         setSelectedThreadIds(new Set());
         // Refresh threads
         window.location.reload();
@@ -501,12 +503,12 @@ export function ImperiumInboxClient({
       }
     } catch (err) {
       toast({
-        title: "Bulk action failed",
-        description: err instanceof Error ? err.message : "Error",
+        title: t("toasts.bulkActionFailed"),
+        description: err instanceof Error ? err.message : t("toasts.genericError"),
         variant: "destructive",
       });
     }
-  }, [workspaceId, selectedThreadIds, toast]);
+  }, [workspaceId, selectedThreadIds, toast, t]);
 
   const handleToggleBulkSelection = useCallback((threadId: string) => {
     setSelectedThreadIds((prev) => {
@@ -553,14 +555,14 @@ export function ImperiumInboxClient({
     } catch (err) {
       setConnectionStatus("error");
       toast({
-        title: "Failed to load conversations",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("toasts.failedToLoadConversations"),
+        description: err instanceof Error ? err.message : t("toasts.unknownError"),
         variant: "destructive",
       });
     } finally {
       setThreadsLoading(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   // Fetch messages for selected thread
   const fetchMessages = useCallback(async (threadId: string) => {
@@ -604,18 +606,18 @@ export function ImperiumInboxClient({
         setSessionInfo({ state: "unknown", active: null });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
+      const message = err instanceof Error ? err.message : t("toasts.unknownError");
       setMessagesError(message);
       setSessionInfo({ state: "unknown", active: null });
       toast({
-        title: "Failed to load messages",
+        title: t("toasts.failedToLoadMessages"),
         description: message,
         variant: "destructive",
       });
     } finally {
       setMessagesLoading(false);
     }
-  }, [toast, workspaceId, fetchTelemetry]);
+  }, [toast, workspaceId, fetchTelemetry, t]);
 
   const refreshMessages = useCallback(
     async (threadId: string | null) => {
@@ -729,7 +731,7 @@ export function ImperiumInboxClient({
   useEffect(() => {
     const text = latestCustomerMessage?.text?.trim();
     if (!text) {
-      setCustomerSentiment({ score: 50, label: "Neutral", source: "empty" });
+      setCustomerSentiment({ score: 50, label: "neutral", source: "empty" });
       sentimentCacheRef.current = null;
       return;
     }
@@ -776,13 +778,13 @@ export function ImperiumInboxClient({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const baseError = (data?.error as string | undefined) ?? "Capability check failed";
+        const baseError = (data?.error as string | undefined) ?? t("toasts.capabilityCheckFailed");
         throw new Error(baseError);
       }
 
       const canSend = data?.canSendText !== false;
       const reasonCode = (data?.reasonCode as CapabilityReasonCode | null | undefined) ?? (canSend ? null : "CAPABILITY_API_ERROR");
-      const reason = (data?.reason as string | null | undefined) ?? (canSend ? null : "Messaging is currently blocked.");
+      const reason = (data?.reason as string | null | undefined) ?? (canSend ? null : t("toasts.messagingBlocked"));
 
       setCapability({
         loading: false,
@@ -791,20 +793,20 @@ export function ImperiumInboxClient({
         reason,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Capability check failed";
+      const message = err instanceof Error ? err.message : t("toasts.capabilityCheckFailed");
       setCapability({
         loading: false,
         canSend: false,
         reasonCode: "CAPABILITY_API_ERROR",
-        reason: "Unable to verify messaging capability.",
+        reason: t("toasts.unableToVerify"),
       });
       toast({
-        title: "Messaging unavailable",
+        title: t("toasts.messagingUnavailable"),
         description: message,
         variant: "destructive",
       });
     }
-  }, [toast, workspaceSlug]);
+  }, [toast, workspaceSlug, t]);
 
   useEffect(() => {
     void refreshCapabilities();
@@ -826,13 +828,13 @@ export function ImperiumInboxClient({
       return { message: null, ctaHref: null, ctaLabel: null } as const;
     }
 
-    const message = capability.reason ?? "Messaging is currently blocked.";
+    const message = capability.reason ?? t("toasts.messagingBlocked");
 
     if (capability.reasonCode === "PLAN_LOCKED") {
       return {
         message,
         ctaHref: `/${workspaceSlug}/billing`,
-        ctaLabel: "Open Billing",
+        ctaLabel: t("capability.openBilling"),
       } as const;
     }
 
@@ -840,7 +842,7 @@ export function ImperiumInboxClient({
       return {
         message,
         ctaHref: `/${workspaceSlug}/meta-hub/connections`,
-        ctaLabel: "Fix in Connections",
+        ctaLabel: t("capability.fixInConnections"),
       } as const;
     }
 
@@ -848,12 +850,12 @@ export function ImperiumInboxClient({
       return {
         message,
         ctaHref: `/${workspaceSlug}/meta-hub/connections`,
-        ctaLabel: "Open Connections",
+        ctaLabel: t("capability.openConnections"),
       } as const;
     }
 
     return { message, ctaHref: null, ctaLabel: null } as const;
-  }, [capability.reason, capability.reasonCode, workspaceSlug]);
+  }, [capability.reason, capability.reasonCode, workspaceSlug, t]);
 
   const handleComposerChange = useCallback(
     (value: string) => {
@@ -861,8 +863,8 @@ export function ImperiumInboxClient({
       if (hasPlaceholder) {
         if (!templatePlaceholderWarned.current) {
           toast({
-            title: "Use template parameters",
-            description: "Fill placeholders via Send Template. Free-text cannot include {{1}} style tokens.",
+            title: t("toasts.usePlaceholders"),
+            description: t("toasts.usePlaceholdersDesc"),
             variant: "destructive",
           });
           templatePlaceholderWarned.current = true;
@@ -872,7 +874,7 @@ export function ImperiumInboxClient({
       }
       setComposerValue(value);
     },
-    [toast]
+    [toast, t]
   );
 
   // Handle add note
@@ -901,7 +903,7 @@ export function ImperiumInboxClient({
               {
                 id: data.noteId ?? `temp-${Date.now()}`,
                 author_id: userId,
-                author_name: "You",
+                author_name: t("authorYou"),
                 body,
                 created_at: new Date().toISOString(),
               },
@@ -909,16 +911,16 @@ export function ImperiumInboxClient({
             ],
           });
         }
-        toast({ title: "Note added", description: "Team note saved successfully." });
+        toast({ title: t("toasts.noteAdded"), description: t("toasts.noteAddedDesc") });
       } catch (err) {
         toast({
-          title: "Failed to add note",
-          description: err instanceof Error ? err.message : "Unknown error",
+          title: t("toasts.failedToAddNote"),
+          description: err instanceof Error ? err.message : t("toasts.unknownError"),
           variant: "destructive",
         });
       }
     },
-    [selectedThread, workspaceId, userId, contactDetails, toast]
+    [selectedThread, workspaceId, userId, contactDetails, toast, t]
   );
 
   // Handle thread selection
@@ -1024,8 +1026,8 @@ export function ImperiumInboxClient({
     if (!composerValue.trim() || !selectedThread) return;
     if (!allowWrite) {
       toast({
-        title: "Messaging disabled",
-        description: "Upgrade plan or enable demo override to send WhatsApp messages.",
+        title: t("toasts.messagingDisabled"),
+        description: t("toasts.messagingDisabledDesc"),
         variant: "destructive",
       });
       return;
@@ -1033,8 +1035,8 @@ export function ImperiumInboxClient({
 
     if (optOutDetected) {
       toast({
-        title: "Respect opt-out",
-        description: "Recipient asked to stop. Do not send additional messages.",
+        title: t("toasts.respectOptOut"),
+        description: t("toasts.respectOptOutDesc"),
         variant: "destructive",
       });
       return;
@@ -1042,8 +1044,8 @@ export function ImperiumInboxClient({
 
     if (sessionState === "expired") {
       toast({
-        title: "Session window expired",
-        description: "WhatsApp requires an approved template outside the 24h window.",
+        title: t("toasts.sessionExpired"),
+        description: t("toasts.sessionExpiredDesc"),
         variant: "destructive",
       });
       return;
@@ -1103,22 +1105,22 @@ export function ImperiumInboxClient({
         prev.map((m) => (m.id === tempMessage.id ? { ...m, status: "failed" } : m))
       );
       toast({
-        title: "Send failed",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("toasts.sendFailed"),
+        description: err instanceof Error ? err.message : t("toasts.unknownError"),
         variant: "destructive",
       });
     } finally {
       setSending(false);
     }
-  }, [composerValue, selectedThread, allowWrite, optOutDetected, sessionState, workspaceSlug, toast, fetchTelemetry]);
+  }, [composerValue, selectedThread, allowWrite, optOutDetected, sessionState, workspaceSlug, toast, fetchTelemetry, t]);
 
   const handleSendTemplate = useCallback(
     async (template: ApprovedTemplate, variables: string[] = []) => {
       if (!selectedThread) return;
       if (!allowWrite) {
         toast({
-          title: "Messaging disabled",
-          description: "Upgrade plan or enable demo override to send WhatsApp messages.",
+          title: t("toasts.messagingDisabled"),
+          description: t("toasts.messagingDisabledDesc"),
           variant: "destructive",
         });
         return;
@@ -1126,8 +1128,8 @@ export function ImperiumInboxClient({
 
       if (optOutDetected) {
         toast({
-          title: "Respect opt-out",
-          description: "Recipient asked to stop. Do not send additional messages.",
+          title: t("toasts.respectOptOut"),
+          description: t("toasts.respectOptOutDesc"),
           variant: "destructive",
         });
         return;
@@ -1139,8 +1141,8 @@ export function ImperiumInboxClient({
       const missing = hasPlaceholders && cleanedVars.slice(0, expectedCount).some((v) => !v);
       if (missing) {
         toast({
-          title: "Fill all template variables",
-          description: "Please provide values for each placeholder before sending.",
+          title: t("toasts.fillAllVariables"),
+          description: t("toasts.fillAllVariablesDesc"),
           variant: "destructive",
         });
         return;
@@ -1167,18 +1169,18 @@ export function ImperiumInboxClient({
         setTemplateModalOpen(false);
         setActiveTemplate(null);
         setTemplateVariables([]);
-        toast({ title: "Template sent" });
+        toast({ title: t("toasts.templateSent") });
       } catch (err) {
         toast({
-          title: "Send template failed",
-          description: err instanceof Error ? err.message : "Unknown error",
+          title: t("toasts.sendTemplateFailed"),
+          description: err instanceof Error ? err.message : t("toasts.unknownError"),
           variant: "destructive",
         });
       } finally {
         setSending(false);
       }
     },
-    [allowWrite, fetchMessages, optOutDetected, selectedThread, toast, workspaceSlug]
+    [allowWrite, fetchMessages, optOutDetected, selectedThread, toast, workspaceSlug, t]
   );
 
   useEffect(() => {
@@ -1207,17 +1209,17 @@ export function ImperiumInboxClient({
       }
       setThreads((prev) => prev.map((t) => (t.id === selectedThread.id ? { ...t, status: "escalated" } : t)));
       setSelectedThread((prev) => (prev ? { ...prev, status: "escalated" } : prev));
-      toast({ title: "Escalated", description: "Thread marked for human follow-up." });
+      toast({ title: t("toasts.escalated"), description: t("toasts.escalatedDesc") });
     } catch (err) {
       toast({
-        title: "Escalation failed",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("toasts.escalationFailed"),
+        description: err instanceof Error ? err.message : t("toasts.unknownError"),
         variant: "destructive",
       });
     } finally {
       setEscalating(false);
     }
-  }, [selectedThread, toast, workspaceId]);
+  }, [selectedThread, toast, workspaceId, t]);
 
   const handleTemplatePicked = useCallback((template: ApprovedTemplate) => {
     const count = getPlaceholderCount(template.body);
@@ -1245,8 +1247,8 @@ export function ImperiumInboxClient({
     const normalized = templateVariables.slice(0, Math.max(count, templateVariables.length)).map((v) => v.trim());
     if (count > 0 && normalized.some((v) => !v)) {
       toast({
-        title: "Fill all template variables",
-        description: "Provide values for each placeholder before sending.",
+        title: t("toasts.fillAllVariables"),
+        description: t("toasts.fillAllVariablesDesc"),
         variant: "destructive",
       });
       return;
@@ -1254,7 +1256,7 @@ export function ImperiumInboxClient({
     await handleSendTemplate(activeTemplate, normalized);
     setActiveTemplate(null);
     setTemplateVariables([]);
-  }, [activeTemplate, handleSendTemplate, templateVariables, toast]);
+  }, [activeTemplate, handleSendTemplate, templateVariables, toast, t]);
 
   // Handle filter change
   const handleFilterChange = useCallback((updates: Partial<FilterState>) => {
@@ -1373,7 +1375,7 @@ export function ImperiumInboxClient({
               href={`/${workspaceSlug}/meta-hub/messaging/whatsapp/inbox`}
               className="flex items-center gap-2 text-sm text-[#f5f5dc]/60 hover:text-[#d4af37] transition-colors"
             >
-              Ã¢â€ Â Back to Overview
+              ← {t("overview.backToOverview")}
             </a>
           </div>
         )}
@@ -1396,7 +1398,7 @@ export function ImperiumInboxClient({
           <div className="border-b border-[#d4af37]/10 bg-[#0a1229]/50 px-6 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <span className="text-sm text-[#f5f5dc]/60">Lite view Ã‚Â· 5 threads</span>
+                <span className="text-sm text-[#f5f5dc]/60">{t("overview.liteView")}</span>
                 <label className="flex items-center gap-2 text-sm text-[#f5f5dc]/70 cursor-pointer hover:text-[#d4af37] transition-colors">
                   <input
                     type="checkbox"
@@ -1406,7 +1408,7 @@ export function ImperiumInboxClient({
                     }}
                     defaultChecked={typeof window !== "undefined" && localStorage.getItem("gigaviz.metaHub.whatsapp.fullInboxDefault") === "true"}
                   />
-                  Always open full workspace
+                  {t("overview.alwaysOpenFull")}
                 </label>
               </div>
               <a
@@ -1419,7 +1421,7 @@ export function ImperiumInboxClient({
                 }}
                 className="flex items-center gap-2 rounded-md border border-[#d4af37]/40 bg-[#d4af37]/10 px-4 py-1.5 text-sm font-medium text-[#f9d976] transition-all hover:border-[#d4af37] hover:bg-[#d4af37]/20 hover:shadow-[0_0_12px_rgba(212,175,55,0.3)]"
               >
-                Open Full Inbox
+                {t("overview.openFullInbox")}
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>

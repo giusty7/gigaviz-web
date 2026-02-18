@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { opsTheme } from "@/lib/ops/theme";
+import { useTranslations } from "next-intl";
 
 type OpsShellProps = {
   children: ReactNode;
@@ -58,6 +59,7 @@ const NAV_ITEMS = opsTheme.nav.items.map((item) => ({
 const GROUPS = opsTheme.nav.groups;
 
 export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
+  const t = useTranslations("opsUI");
   const pathname = usePathname();
   const { colors, opacity, watermark, header } = opsTheme;
 
@@ -107,11 +109,11 @@ export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 flex-shrink-0" style={{ color: colors.primary }} />
               <h1 className="text-xl font-semibold leading-tight" style={{ color: colors.text }}>
-                {header.title}
+                {t("shell.title")}
               </h1>
             </div>
             <p className="text-sm" style={{ color: `rgba(245,245,220,${opacity.text.muted})` }}>
-              {header.description}
+              {t("shell.subtitle")}
             </p>
           </div>
           <div 
@@ -184,6 +186,7 @@ export function OpsShell({ children, actorEmail, actorRole }: OpsShellProps) {
         </nav>
 
         <main 
+          id="main-content"
           className="mb-10 space-y-6 rounded-2xl border p-3 sm:p-4 md:p-6 backdrop-blur-lg"
           style={{
             borderColor: `rgba(212,175,55,${opacity.primary.borderLight})`,

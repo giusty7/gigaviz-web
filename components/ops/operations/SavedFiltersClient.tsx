@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Filter, Plus, Star, Trash2, RefreshCw, Share2 } from "lucide-react";
 
 interface SavedFilter {
@@ -23,6 +24,7 @@ const PAGES = [
 ];
 
 export default function SavedFiltersClient() {
+  const t = useTranslations("opsUI");
   const [filters, setFilters] = useState<SavedFilter[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPage, setSelectedPage] = useState("workspaces");
@@ -121,8 +123,8 @@ export default function SavedFiltersClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Saved Filters</h1>
-          <p className="text-zinc-400">Reusable filter presets for ops console pages</p>
+          <h1 className="text-2xl font-bold text-white">{t("operations.savedFilters.title")}</h1>
+          <p className="text-zinc-400">{t("operations.savedFilters.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -137,7 +139,7 @@ export default function SavedFiltersClient() {
             className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
           >
             <Plus className="h-4 w-4" />
-            New Filter
+            {t("operations.savedFilters.addFilter")}
           </button>
         </div>
       </div>
@@ -164,11 +166,11 @@ export default function SavedFiltersClient() {
         <div className="rounded-xl border border-green-900/50 bg-green-950/20 p-6">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
             <Filter className="h-5 w-5 text-green-400" />
-            New Saved Filter
+            {t("operations.savedFilters.createFilter")}
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Filter Name</label>
+              <label className="mb-2 block text-sm text-zinc-400">{t("operations.savedFilters.filterName")}</label>
               <input
                 type="text"
                 value={filterName}
@@ -196,7 +198,7 @@ export default function SavedFiltersClient() {
                 onChange={(e) => setIsShared(e.target.checked)}
                 className="rounded border-zinc-600 bg-zinc-800"
               />
-              Share with team
+              {t("operations.savedFilters.shared")}
             </label>
           </div>
           <div className="mt-4 flex justify-end gap-3">
@@ -211,7 +213,7 @@ export default function SavedFiltersClient() {
               disabled={!filterName}
               className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
             >
-              Save Filter
+              {t("operations.savedFilters.createFilter")}
             </button>
           </div>
         </div>
@@ -253,7 +255,7 @@ export default function SavedFiltersClient() {
                   {filter.is_shared && (
                     <span className="flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-400">
                       <Share2 className="h-3 w-3" />
-                      Shared
+                      {t("operations.savedFilters.shared")}
                     </span>
                   )}
                 </div>

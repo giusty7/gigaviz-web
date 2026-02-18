@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpenIcon,
@@ -116,6 +117,7 @@ const SOURCE_TYPE_META: Record<SourceType, { label: string; icon: React.ReactNod
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
+  const t = useTranslations("helperUI.knowledgeBase");
   const { toast } = useToast();
   const [sources, setSources] = useState<KnowledgeSource[]>(initialSources);
   const [loading, setLoading] = useState(false);
@@ -252,9 +254,9 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
             <BookOpenIcon className="h-6 w-6 text-[#d4af37]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#f5f5dc]">Knowledge Base</h1>
+            <h1 className="text-2xl font-bold text-[#f5f5dc]">{t("title")}</h1>
             <p className="text-sm text-[#f5f5dc]/60">
-              Teach your AI assistant about your business
+              {t("subtitle")}
             </p>
           </div>
         </div>
@@ -276,7 +278,7 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
             className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] hover:opacity-90"
           >
             <UploadIcon className="mr-2 h-4 w-4" />
-            Add Knowledge
+            {t("addSource")}
           </Button>
         </div>
       </div>
@@ -284,19 +286,19 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-4">
-          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">Total Sources</p>
+          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">{t("totalSources")}</p>
           <p className="mt-1 text-2xl font-bold text-[#d4af37]">{totalSources}</p>
         </div>
         <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-4">
-          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">Indexed</p>
+          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">{t("activeSourcesCount")}</p>
           <p className="mt-1 text-2xl font-bold text-emerald-400">{indexedSources}</p>
         </div>
         <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-4">
-          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">Articles</p>
+          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">{t("chunks")}</p>
           <p className="mt-1 text-2xl font-bold text-blue-400">{sourceTypeGroups.kb_article || 0}</p>
         </div>
         <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-4">
-          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">Documents</p>
+          <p className="text-xs uppercase tracking-wider text-[#f5f5dc]/40">{t("documentsCount")}</p>
           <p className="mt-1 text-2xl font-bold text-purple-400">{sourceTypeGroups.uploaded_document || 0}</p>
         </div>
       </div>
@@ -305,14 +307,14 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
       <div className="rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6">
         <h2 className="mb-4 text-lg font-semibold text-[#f5f5dc] flex items-center gap-2">
           <SearchIcon className="h-5 w-5 text-[#d4af37]" />
-          Test Knowledge Search
+          {t("searchSources")}
         </h2>
         <div className="flex gap-3">
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Ask a question to test if AI can find the answer..."
+            placeholder={t("searchSources")}
             className="flex-1 border-[#d4af37]/30 bg-[#050a18] text-[#f5f5dc]"
           />
           <Button
@@ -361,21 +363,21 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
 
       {/* Sources List */}
       <div className="flex-1 rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-[#f5f5dc]">Knowledge Sources</h2>
+        <h2 className="mb-4 text-lg font-semibold text-[#f5f5dc]">{t("title")}</h2>
         
         {sources.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <BookOpenIcon className="h-12 w-12 text-[#f5f5dc]/20 mb-4" />
-            <p className="text-[#f5f5dc]/60">No knowledge sources yet</p>
+            <p className="text-[#f5f5dc]/60">{t("noSources")}</p>
             <p className="text-sm text-[#f5f5dc]/40 mt-1">
-              Add articles, FAQs, or product info to make your AI smarter
+              {t("noSourcesDesc")}
             </p>
             <Button
               onClick={() => setShowAddModal(true)}
               className="mt-4 bg-[#d4af37] text-[#050a18]"
             >
               <UploadIcon className="mr-2 h-4 w-4" />
-              Add First Source
+              {t("addSource")}
             </Button>
           </div>
         ) : (
@@ -426,14 +428,14 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="border-[#d4af37]/20 bg-[#0a1229]">
           <DialogHeader>
-            <DialogTitle className="text-[#f5f5dc]">Add Knowledge Source</DialogTitle>
+            <DialogTitle className="text-[#f5f5dc]">{t("addSource")}</DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              Add information that your AI assistant should know about.
+              {t("subtitle")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-[#f5f5dc]/60">Source Type</label>
+              <label className="text-sm text-[#f5f5dc]/60">{t("sourceText")}</label>
               <Select value={addType} onValueChange={(v) => setAddType(v as SourceType)}>
                 <SelectTrigger className="mt-1 border-[#d4af37]/30 bg-[#050a18] text-[#f5f5dc]">
                   <SelectValue />
@@ -446,7 +448,7 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
               </Select>
             </div>
             <div>
-              <label className="text-sm text-[#f5f5dc]/60">Title</label>
+              <label className="text-sm text-[#f5f5dc]/60">{t("sourceURL")}</label>
               <Input
                 value={addTitle}
                 onChange={(e) => setAddTitle(e.target.value)}
@@ -455,7 +457,7 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
               />
             </div>
             <div>
-              <label className="text-sm text-[#f5f5dc]/60">Content</label>
+              <label className="text-sm text-[#f5f5dc]/60">{t("sourceFile")}</label>
               <Textarea
                 value={addContent}
                 onChange={(e) => setAddContent(e.target.value)}
@@ -467,7 +469,7 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddModal(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleAddSource}
@@ -475,7 +477,7 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
               className="bg-[#d4af37] text-[#050a18] hover:bg-[#f9d976]"
             >
               {adding ? <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Add to Knowledge Base
+              {t("addSource")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -485,14 +487,14 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
       <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <DialogContent className="border-[#d4af37]/20 bg-[#0a1229]">
           <DialogHeader>
-            <DialogTitle className="text-[#f5f5dc]">Delete Source?</DialogTitle>
+            <DialogTitle className="text-[#f5f5dc]">{t("confirmDeleteTitle")}</DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              This will permanently remove this source from your knowledge base. The AI will no longer be able to use this information.
+              {t("confirmDeleteDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleDelete}
@@ -500,7 +502,7 @@ export function KnowledgeBaseClient({ workspaceId, initialSources }: Props) {
               className="bg-red-600 hover:bg-red-700"
             >
               {deleting ? <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Delete
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import { ProductKPICard } from "./ProductKPICard";
 import type { ProductWidget } from "@/lib/dashboard/overview";
@@ -10,6 +11,7 @@ type UnifiedProductGridProps = {
 };
 
 export function UnifiedProductGrid({ products }: UnifiedProductGridProps) {
+  const t = useTranslations("dashboardWidgetsUI");
   const [showExtended, setShowExtended] = useState(true);
 
   const p0Products = products.filter((p) => p.priority === 0);
@@ -37,7 +39,7 @@ export function UnifiedProductGrid({ products }: UnifiedProductGridProps) {
             onClick={() => setShowExtended(!showExtended)}
             className="mb-3 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.15em] text-[#f5f5dc]/30 transition hover:text-[#f5f5dc]/50"
           >
-            More products ({extendedProducts.length})
+            {t("moreProducts", { count: extendedProducts.length })}
             <ChevronDown className={`h-3 w-3 transition-transform ${showExtended ? "rotate-180" : ""}`} />
           </button>
           {showExtended && (

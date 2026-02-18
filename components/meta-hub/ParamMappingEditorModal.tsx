@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -34,6 +35,7 @@ type ParamDefInput = {
 
 export function ParamMappingEditorModal({ template, existingDefs, onClose, onSaved }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.paramMapping");
   const [saving, setSaving] = useState(false);
   const [mappings, setMappings] = useState<ParamDefInput[]>([]);
 
@@ -71,12 +73,12 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
         throw new Error(data?.reason || data?.error || "Save failed");
       }
 
-      toast({ title: "✅ Parameter mappings saved!" });
+      toast({ title: t("toastSaved") });
       onSaved?.();
       onClose();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      toast({ title: "Save failed", description: message, variant: "destructive" });
+      toast({ title: t("toastSaveFailed"), description: message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -97,15 +99,15 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Parameter Mapping: {template.name}</DialogTitle>
+          <DialogTitle>{t("title", { name: template.name })}</DialogTitle>
           <DialogDescription>
-            Define how parameters {"{1}"}, {"{2}"}, ... are populated for batch sends
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {mappings.length === 0 && (
-            <p className="text-sm text-muted-foreground">This template has no parameters.</p>
+            <p className="text-sm text-muted-foreground">{t("noParams")}</p>
           )}
 
           {mappings.map((mapping) => (
@@ -120,7 +122,7 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
               <CardContent className="space-y-3">
                 {/* Source Type */}
                 <div>
-                  <Label className="text-xs">Source Type</Label>
+                  <Label className="text-xs">{t("sourceTypeLabel")}</Label>
                   <select
                     value={mapping.sourceType}
                     onChange={(e) =>
@@ -130,16 +132,16 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
                     }
                     className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   >
-                    <option value="manual">Manual (Global Value)</option>
-                    <option value="contact_field">Contact Field</option>
-                    <option value="expression">Expression</option>
+                    <option value="manual">{t("sourceManual")}</option>
+                    <option value="contact_field">{t("sourceContactField")}</option>
+                    <option value="expression">{t("sourceExpression")}</option>
                   </select>
                 </div>
 
                 {/* Source Value */}
                 {mapping.sourceType === "contact_field" && (
                   <div>
-                    <Label className="text-xs">Field Name</Label>
+                    <Label className="text-xs">{t("fieldNameLabel")}</Label>
                     <Input
                       value={mapping.sourceValue}
                       onChange={(e) =>
@@ -156,7 +158,7 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
 
                 {mapping.sourceType === "expression" && (
                   <div>
-                    <Label className="text-xs">Expression Template</Label>
+                    <Label className="text-xs">{t("expressionLabel")}</Label>
                     <Textarea
                       value={mapping.sourceValue}
                       onChange={(e) =>
@@ -182,7 +184,7 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
 
                 {/* Default Value */}
                 <div>
-                  <Label className="text-xs">Default Value (Optional)</Label>
+                  <Label className="text-xs">{t("defaultValueLabel")}</Label>
                   <Input
                     value={mapping.defaultValue}
                     onChange={(e) =>
@@ -199,18 +201,18 @@ export function ParamMappingEditorModal({ template, existingDefs, onClose, onSav
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                {t("saving")}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Save Mappings
+                {t("saveMappings")}
               </>
             )}
           </Button>

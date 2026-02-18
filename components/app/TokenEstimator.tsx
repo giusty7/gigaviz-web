@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type EstimatorMode = "messages_per_day" | "tokens_per_month";
 
@@ -8,6 +9,7 @@ const TOKENS_PER_MESSAGE = 350;
 const COST_PER_1K_TOKENS = 0.004;
 
 export default function TokenEstimator() {
+  const t = useTranslations("appUI.tokenEstimator");
   const [mode, setMode] = useState<EstimatorMode>("messages_per_day");
   const [inputValue, setInputValue] = useState("");
 
@@ -35,13 +37,13 @@ export default function TokenEstimator() {
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <h2 className="text-lg font-semibold">Token Estimator</h2>
+      <h2 className="text-lg font-semibold">{t("title")}</h2>
       <p className="text-sm text-white/60 mt-1">
-        Simple estimate for monthly token needs.
+        {t("description")}
       </p>
       <div className="mt-4 grid gap-4 md:grid-cols-[2fr_1fr]">
         <div className="flex flex-col gap-2">
-          <label className="text-xs text-white/50">Input mode</label>
+          <label className="text-xs text-white/50">{t("inputMode")}</label>
           <div className="flex flex-col gap-2 sm:flex-row">
             <select
               value={mode}
@@ -51,8 +53,8 @@ export default function TokenEstimator() {
               title="Select input mode"
               className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
             >
-              <option value="messages_per_day">Messages / day</option>
-              <option value="tokens_per_month">Tokens / month</option>
+              <option value="messages_per_day">{t("messagesPerDay")}</option>
+              <option value="tokens_per_month">{t("tokensPerMonth")}</option>
             </select>
             <input
               type="number"
@@ -64,13 +66,13 @@ export default function TokenEstimator() {
             />
           </div>
           <p className="text-xs text-white/50">
-            Estimated output, not final numbers. Rates can change.
+            {t("estimatedNote")}
           </p>
         </div>
         <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-          <p className="text-xs text-white/50">Estimated tokens / month</p>
+          <p className="text-xs text-white/50">{t("estimatedTokens")}</p>
           <p className="text-lg font-semibold">{tokensPerMonth.toLocaleString()}</p>
-          <p className="text-xs text-white/50 mt-3">Estimated cost (placeholder)</p>
+          <p className="text-xs text-white/50 mt-3">{t("estimatedCost")}</p>
           <p className="text-base font-semibold">{formattedCost}</p>
         </div>
       </div>

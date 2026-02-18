@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "@/components/ui/use-toast";
 
 export type ModuleStatus = "available" | "locked" | "coming_soon" | "setup_required";
@@ -31,6 +32,7 @@ type ModuleGridProps = {
 
 export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: ModuleGridProps) {
   const router = useRouter();
+  const t = useTranslations("moduleGridUI");
 
   const handleUnavailable = useCallback(
     (status: ModuleStatus, module: ModuleItem) => {
@@ -46,33 +48,33 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
 
       if (status === "coming_soon") {
         toast({
-          title: "Coming soon",
-          description: "This module is being prepared. Track updates from the roadmap.",
+          title: t("toastComingSoonTitle"),
+          description: t("toastComingSoonDesc"),
         });
         return;
       }
 
       if (status === "locked") {
         toast({
-          title: "Locked",
-          description: "Upgrade or request access to unlock this module.",
+          title: t("toastLockedTitle"),
+          description: t("toastLockedDesc"),
         });
         return;
       }
 
       toast({
-        title: "Setup required",
-        description: "Complete the configuration before opening this module.",
+        title: t("toastSetupTitle"),
+        description: t("toastSetupDesc"),
       });
     },
-    [onSetup, onUnlock]
+    [onSetup, onUnlock, t]
   );
 
   const statusLabel: Record<ModuleStatus, string> = {
-    available: "AVAILABLE",
-    locked: "LOCKED",
-    coming_soon: "COMING SOON",
-    setup_required: "SETUP REQUIRED",
+    available: t("statusAvailable"),
+    locked: t("statusLocked"),
+    coming_soon: t("statusComingSoon"),
+    setup_required: t("statusSetupRequired"),
   };
 
   const statusClass: Record<ModuleStatus, string> = {
@@ -121,7 +123,7 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
                 onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold/70"
               >
-                Open
+                {t("open")}
               </Link>
             ) : module.status === "coming_soon" ? (
               <div className="inline-flex items-center gap-2">
@@ -131,7 +133,7 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
                     onClick={(e) => e.stopPropagation()}
                     className="inline-flex items-center rounded-xl bg-gigaviz-gold px-3 py-2 text-xs font-semibold text-gigaviz-bg shadow hover:bg-gigaviz-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold/70"
                   >
-                    {module.previewLabel ?? "Preview"}
+                    {module.previewLabel ?? t("preview")}
                   </Link>
                 ) : (
                   <button
@@ -139,7 +141,7 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
                     aria-disabled
                     className="inline-flex cursor-not-allowed items-center rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-slate-900"
                   >
-                    {module.comingSoonLabel ?? "Coming soon"}
+                    {module.comingSoonLabel ?? t("comingSoon")}
                   </button>
                 )}
                 <button
@@ -150,7 +152,7 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
                   }}
                   className="text-xs font-semibold text-gigaviz-gold hover:underline"
                 >
-                  {module.notifyLabel ?? "Notify me"}
+                  {module.notifyLabel ?? t("notifyMe")}
                 </button>
               </div>
             ) : (
@@ -159,7 +161,7 @@ export default function ModuleGrid({ modules, onUnlock, onSetup, onNotify }: Mod
                 onClick={() => handleUnavailable(module.status, module)}
                 className="inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-xs font-semibold text-foreground hover:border-gigaviz-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold/70"
               >
-                {module.status === "setup_required" ? "Complete setup" : "Unlock features"}
+                {module.status === "setup_required" ? t("completeSetup") : t("unlockFeatures")}
               </button>
             )}
           </div>

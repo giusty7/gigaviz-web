@@ -11,8 +11,8 @@ import { logger } from '@/lib/logging';
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 const createConnectionSchema = z.object({
-  instagram_user_id: z.string().min(1),
-  instagram_username: z.string().min(1),
+  instagram_business_account_id: z.string().min(1),
+  username: z.string().min(1),
   profile_picture_url: z.string().url().optional().nullable(),
   access_token: z.string().min(1),
   page_id: z.string().optional().nullable(),
@@ -26,8 +26,8 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
   try {
     const db = supabaseAdmin();
-    const { data: connections, error } = await db
-      .from('instagram_connections')
+    const { data: accounts, error } = await db
+      .from('instagram_accounts')
       .select('*')
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
@@ -37,13 +37,18 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       throw error;
     }
 
-    // Mask access tokens for security
-    const safeConnections = connections?.map(conn => ({
-      ...conn,
-      access_token: conn.access_token ? '***MASKED***' : null,
+    // Map to connection format and mask access tokens
+    const connections = accounts?.map(acct => ({
+      id: acct.id,
+      instagram_user_id: acct.instagram_business_account_id,
+      instagram_username: acct.username,
+      profile_picture_url: acct.profile_picture_url,
+      is_active: acct.status === 'active',
+      access_token: acct.access_token ? '***MASKED***' : null,
+      created_at: acct.created_at,
     }));
 
-    return withCookies(NextResponse.json({ connections: safeConnections || [] }));
+    return withCookies(NextResponse.json({ connections: connections || [] }));
   } catch (error) {
     logger.error('[Instagram] Error in GET connections:', { error });
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -65,25 +70,23 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
     const db = supabaseAdmin();
 
-    // Check for existing connection with same instagram_user_id
+    // Check for existing account with same instagram_business_account_id
     const { data: existing } = await db
-      .from('instagram_connections')
+      .from('instagram_accounts')
       .select('id')
       .eq('workspace_id', workspaceId)
-      .eq('instagram_user_id', validated.instagram_user_id)
+      .eq('instagram_business_account_id', validated.instagram_business_account_id)
       .single();
 
     if (existing) {
-      // Update existing connection
+      // Update existing account
       const { data: updated, error } = await db
-        .from('instagram_connections')
+        .from('instagram_accounts')
         .update({
-          instagram_username: validated.instagram_username,
+          username: validated.username,
           profile_picture_url: validated.profile_picture_url,
           access_token: validated.access_token,
-          page_id: validated.page_id,
-          permissions: validated.permissions,
-          is_active: true,
+          status: 'active',
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id)
@@ -96,24 +99,22 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         workspaceId,
         actorUserId: user.id,
         action: 'instagram_connection_updated',
-        meta: { connectionId: existing.id, username: validated.instagram_username },
+        meta: { connectionId: existing.id, username: validated.username },
       });
 
       return withCookies(NextResponse.json({ connection: updated, updated: true }));
     }
 
-    // Create new connection
+    // Create new account
     const { data: connection, error } = await db
-      .from('instagram_connections')
+      .from('instagram_accounts')
       .insert({
         workspace_id: workspaceId,
-        instagram_user_id: validated.instagram_user_id,
-        instagram_username: validated.instagram_username,
+        instagram_business_account_id: validated.instagram_business_account_id,
+        username: validated.username,
         profile_picture_url: validated.profile_picture_url,
         access_token: validated.access_token,
-        page_id: validated.page_id,
-        permissions: validated.permissions,
-        is_active: true,
+        status: 'active',
       })
       .select()
       .single();
@@ -124,12 +125,12 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       workspaceId,
       actorUserId: user.id,
       action: 'instagram_connection_created',
-      meta: { connectionId: connection.id, username: validated.instagram_username },
+      meta: { connectionId: connection.id, username: validated.username },
     });
 
     logger.info('[Instagram] Connection created:', {
       workspaceId,
-      username: validated.instagram_username,
+      username: validated.username,
     });
 
     return withCookies(NextResponse.json({ connection, created: true }));

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import {
   ActivitySquare,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
 ];
 
 export function OwnerShell({ children, actorEmail, actorRole }: OwnerShellProps) {
+  const t = useTranslations("opsUI");
   const pathname = usePathname();
 
   return (
@@ -39,10 +41,10 @@ export function OwnerShell({ children, actorEmail, actorRole }: OwnerShellProps)
             </p>
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-foreground" />
-              <h1 className="text-xl font-semibold leading-tight">Ops Console</h1>
+              <h1 className="text-xl font-semibold leading-tight">{t("owner.shell.title")}</h1>
             </div>
             <p className="text-sm text-muted-foreground">
-              Oversight for workspaces, flags, and operational health.
+              {t("owner.shell.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-muted/70 px-4 py-3 text-xs text-muted-foreground">
@@ -79,7 +81,7 @@ export function OwnerShell({ children, actorEmail, actorRole }: OwnerShellProps)
           })}
         </nav>
 
-        <main className="mb-10 space-y-6">{children}</main>
+        <main id="main-content" className="mb-10 space-y-6">{children}</main>
       </div>
     </div>
   );

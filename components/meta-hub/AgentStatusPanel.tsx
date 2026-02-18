@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
@@ -57,22 +58,22 @@ const statusConfig = {
   online: {
     color: "bg-emerald-500",
     pulse: true,
-    label: "Online",
+    labelKey: "statusOnline" as const,
   },
   away: {
     color: "bg-yellow-500",
     pulse: false,
-    label: "Away",
+    labelKey: "statusAway" as const,
   },
   busy: {
     color: "bg-red-500",
     pulse: false,
-    label: "Busy",
+    labelKey: "statusBusy" as const,
   },
   offline: {
     color: "bg-gray-500",
     pulse: false,
-    label: "Offline",
+    labelKey: "statusOffline" as const,
   },
 };
 
@@ -86,6 +87,7 @@ export function AgentStatusPanel({
   onAgentClick,
   compact = false,
 }: AgentStatusPanelProps) {
+  const t = useTranslations("metaHubUI.agentStatus");
   const [agents, setAgents] = useState<AgentStatus[]>([]);
   const [summary, setSummary] = useState({ online: 0, away: 0, busy: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -219,7 +221,7 @@ export function AgentStatusPanel({
                 )}
               >
                 <span className={cn("h-2 w-2 rounded-full", statusConfig[status].color)} />
-                {statusConfig[status].label}
+                {t(statusConfig[status].labelKey)}
               </button>
             ))}
           </div>
@@ -305,7 +307,7 @@ export function AgentStatusPanel({
 
               {agents.length === 0 && (
                 <div className="py-4 text-center text-xs text-[#f5f5dc]/40">
-                  No team members online
+                  {t("noActivity")}
                 </div>
               )}
             </div>

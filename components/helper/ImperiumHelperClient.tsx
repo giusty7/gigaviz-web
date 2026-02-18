@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 import { parseSSEStream } from "./use-sse-stream";
 import type { HelperConversation, HelperMessage, HelperMode, HelperProvider, MessageStatus } from "./types";
 import { relativeTime } from "./types";
@@ -171,7 +171,7 @@ function ImperiumConversationList({
   onDelete,
   isCreating = false,
 }: ConversationListProps) {
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.imperiumHelper");
   const [query, setQuery] = useState("");
   const [renameDialog, setRenameDialog] = useState<{ id: string; title: string } | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
@@ -186,7 +186,7 @@ function ImperiumConversationList({
       <div className="flex-none space-y-3 p-4 border-b border-[#d4af37]/20">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-            {copy.conversations}
+            {t("conversations")}
           </h2>
           <Button
             size="sm"
@@ -199,13 +199,13 @@ function ImperiumConversationList({
             ) : (
               <PlusIcon className="h-4 w-4" />
             )}
-            {copy.new}
+            {t("new")}
           </Button>
         </div>
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#f5f5dc]/40" />
           <Input
-            placeholder={copy.searchPlaceholder}
+            placeholder={t("searchPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9 border-[#d4af37]/20 bg-[#050a18]/60 text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-[#d4af37]/50"
@@ -225,7 +225,7 @@ function ImperiumConversationList({
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <MessageSquareIcon className="h-8 w-8 text-[#d4af37]/30 mb-3" />
               <p className="text-sm text-[#f5f5dc]/50">
-                {conversations.length === 0 ? copy.noConversations : "No matches found"}
+                {conversations.length === 0 ? t("noConversations") : t("noMatchesFound")}
               </p>
             </div>
           ) : (
@@ -247,7 +247,7 @@ function ImperiumConversationList({
                   </p>
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className="text-xs text-[#f5f5dc]/40">
-                      {copy.updated} {relativeTime(c.updatedAt)}
+                      {t("updated")} {relativeTime(c.updatedAt)}
                     </span>
                   </div>
                 </div>
@@ -271,7 +271,7 @@ function ImperiumConversationList({
                       className="text-[#f5f5dc] hover:bg-[#d4af37]/10"
                     >
                       <PencilIcon className="h-4 w-4 mr-2 text-[#d4af37]" />
-                      Rename
+                      {t("rename")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={(e) => {
@@ -281,7 +281,7 @@ function ImperiumConversationList({
                       className="text-[#e11d48] hover:bg-[#e11d48]/10"
                     >
                       <TrashIcon className="h-4 w-4 mr-2" />
-                      Delete
+                      {t("delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -295,7 +295,7 @@ function ImperiumConversationList({
       <Dialog open={!!renameDialog} onOpenChange={() => setRenameDialog(null)}>
         <DialogContent className="border-[#d4af37]/20 bg-[#0a1229]">
           <DialogHeader>
-            <DialogTitle className="text-[#f5f5dc]">Rename Conversation</DialogTitle>
+            <DialogTitle className="text-[#f5f5dc]">{t("renameConversation")}</DialogTitle>
           </DialogHeader>
           <Input
             value={renameDialog?.title ?? ""}
@@ -304,7 +304,7 @@ function ImperiumConversationList({
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenameDialog(null)} className="border-[#f5f5dc]/20 text-[#f5f5dc]">
-              Cancel
+              {t("cancel")}
             </Button>
             <Button 
               onClick={() => {
@@ -315,7 +315,7 @@ function ImperiumConversationList({
               }}
               className="bg-[#d4af37] text-[#050a18] hover:bg-[#f9d976]"
             >
-              Save
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -325,14 +325,14 @@ function ImperiumConversationList({
       <Dialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <DialogContent className="border-[#e11d48]/20 bg-[#0a1229]">
           <DialogHeader>
-            <DialogTitle className="text-[#f5f5dc]">Delete Conversation?</DialogTitle>
+            <DialogTitle className="text-[#f5f5dc]">{t("deleteConfirmTitle")}</DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              This action cannot be undone.
+              {t("deleteConfirmDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog(null)} className="border-[#f5f5dc]/20 text-[#f5f5dc]">
-              Cancel
+              {t("cancel")}
             </Button>
             <Button 
               onClick={() => {
@@ -343,7 +343,7 @@ function ImperiumConversationList({
               }}
               className="bg-[#e11d48] text-white hover:bg-[#e11d48]/80"
             >
-              Delete
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -370,7 +370,14 @@ const promptIcons = [
 ];
 
 function ImperiumChatEmptyState({ onPromptSelect, onCreateConversation, hasConversations }: ChatEmptyStateProps) {
-  const copy = COPY_EN.helper.emptyState;
+  const t = useTranslations("helperUI.imperiumHelper");
+
+  const suggestedPrompts = [
+    { label: t("suggestedPrompt1Label"), prompt: t("suggestedPrompt1") },
+    { label: t("suggestedPrompt2Label"), prompt: t("suggestedPrompt2") },
+    { label: t("suggestedPrompt3Label"), prompt: t("suggestedPrompt3") },
+    { label: t("suggestedPrompt4Label"), prompt: t("suggestedPrompt4") },
+  ];
 
   return (
     <motion.div 
@@ -384,16 +391,16 @@ function ImperiumChatEmptyState({ onPromptSelect, onCreateConversation, hasConve
           <SparklesIcon className="h-10 w-10 text-[#d4af37]" />
         </div>
         <h3 className="text-xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent mb-2">
-          {copy.title}
+          {t("emptyStateTitle")}
         </h3>
-        <p className="text-sm text-[#f5f5dc]/60 max-w-sm">{copy.description}</p>
+        <p className="text-sm text-[#f5f5dc]/60 max-w-sm">{t("emptyStateDescription")}</p>
       </motion.div>
 
       {/* Suggested prompts */}
       <motion.div variants={containerVariants} className="grid gap-3 w-full max-w-md">
-        {copy.suggestedPrompts.map((item, idx) => (
+        {suggestedPrompts.map((item, idx) => (
           <motion.button
-            key={item.label}
+            key={idx}
             variants={itemVariants}
             onClick={() => {
               if (!hasConversations) {
@@ -415,7 +422,7 @@ function ImperiumChatEmptyState({ onPromptSelect, onCreateConversation, hasConve
 
       {!hasConversations && (
         <motion.p variants={itemVariants} className="text-xs text-[#f5f5dc]/40 mt-6">
-          {COPY_EN.helper.createFirst}
+          {t("createFirst")}
         </motion.p>
       )}
     </motion.div>
@@ -434,6 +441,7 @@ interface MessageListProps {
 }
 
 function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: MessageListProps) {
+  const t = useTranslations("helperUI.imperiumHelper");
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUp = useRef(false);
@@ -545,7 +553,7 @@ function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: Mess
             className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37] text-[#050a18] shadow-lg shadow-[#d4af37]/30 hover:bg-[#f9d976] transition-colors"
           >
             <ArrowDownIcon className="h-4 w-4" />
-            <span className="text-sm font-medium">New messages</span>
+            <span className="text-sm font-medium">{t("newMessages")}</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -560,7 +568,7 @@ function ImperiumMessageList({ messages, isProcessing, isLoading, onStop }: Mess
             className="gap-2 border-[#e11d48]/40 bg-[#e11d48]/10 text-[#e11d48] hover:bg-[#e11d48]/20"
           >
             <StopCircleIcon className="h-4 w-4" />
-            Stop
+            {t("stop")}
           </Button>
         </div>
       )}
@@ -595,6 +603,8 @@ function ImperiumComposer({
   disabled,
   sending,
 }: ComposerProps) {
+  const t = useTranslations("helperUI.imperiumHelper");
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -612,9 +622,9 @@ function ImperiumComposer({
           title="Select mode"
           className="h-8 rounded-lg border border-[#d4af37]/20 bg-[#050a18] px-3 text-xs text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30"
         >
-          <option value="chat">💬 Chat</option>
-          <option value="code">💻 Code</option>
-          <option value="research">🔍 Research</option>
+          <option value="chat">{t("modeChat")}</option>
+          <option value="code">{t("modeCode")}</option>
+          <option value="research">{t("modeResearch")}</option>
         </select>
 
         <select
@@ -623,10 +633,10 @@ function ImperiumComposer({
           title="Select AI provider"
           className="h-8 rounded-lg border border-[#d4af37]/20 bg-[#050a18] px-3 text-xs text-[#f5f5dc] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30"
         >
-          <option value="auto">✨ Auto</option>
-          <option value="openai">OpenAI</option>
-          <option value="anthropic">Anthropic</option>
-          <option value="google">Google</option>
+          <option value="auto">{t("providerAuto")}</option>
+          <option value="openai">{t("providerOpenAILabel")}</option>
+          <option value="anthropic">{t("providerAnthropicLabel")}</option>
+          <option value="google">{t("providerGeminiLabel")}</option>
         </select>
       </div>
 
@@ -636,7 +646,7 @@ function ImperiumComposer({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask anything..."
+          placeholder={t("askAnything")}
           disabled={disabled}
           rows={1}
           className="flex-1 resize-none rounded-xl border border-[#d4af37]/20 bg-[#050a18] px-4 py-3 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-[#d4af37]/50 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/20 disabled:opacity-50"
@@ -682,6 +692,7 @@ function ImperiumWorkspaceControls({
   allowAutomation,
   onAutomationChange,
 }: WorkspaceControlsProps) {
+  const t = useTranslations("helperUI.imperiumHelper");
   const usagePercent = monthlyCap > 0 ? Math.min((monthlySpent / monthlyCap) * 100, 100) : 0;
 
   return (
@@ -692,7 +703,7 @@ function ImperiumWorkspaceControls({
           <Crown className="h-5 w-5 text-[#d4af37]" />
         </div>
         <div>
-          <p className="text-xs text-[#f5f5dc]/50">Workspace</p>
+          <p className="text-xs text-[#f5f5dc]/50">{t("workspace")}</p>
           <p className="font-semibold text-[#f5f5dc]">{workspaceName}</p>
         </div>
       </div>
@@ -701,13 +712,13 @@ function ImperiumWorkspaceControls({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Gauge className="h-4 w-4 text-[#d4af37]" />
-          <span className="text-xs font-semibold text-[#d4af37]">TOKEN USAGE</span>
+          <span className="text-xs font-semibold text-[#d4af37]">{t("tokenUsage")}</span>
         </div>
 
         {/* Monthly Progress */}
         <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-4 space-y-3">
           <div className="flex justify-between text-xs">
-            <span className="text-[#f5f5dc]/60">Monthly</span>
+            <span className="text-[#f5f5dc]/60">{t("monthly")}</span>
             <span className="text-[#f5f5dc]">
               {monthlySpent.toLocaleString()} / {monthlyCap.toLocaleString()}
             </span>
@@ -730,7 +741,7 @@ function ImperiumWorkspaceControls({
           {isOverBudget && (
             <div className="flex items-center gap-2 text-xs text-[#e11d48]">
               <AlertTriangle className="h-3 w-3" />
-              Budget exceeded
+              {t("budgetExceeded")}
             </div>
           )}
         </div>
@@ -738,8 +749,8 @@ function ImperiumWorkspaceControls({
         {/* Daily Stats */}
         <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/40 p-4">
           <div className="flex justify-between text-xs">
-            <span className="text-[#f5f5dc]/60">Today</span>
-            <span className="text-[#f5f5dc]">{dailySpent.toLocaleString()} tokens</span>
+            <span className="text-[#f5f5dc]/60">{t("todayLabel")}</span>
+            <span className="text-[#f5f5dc]">{dailySpent.toLocaleString()} {t("tokens")}</span>
           </div>
         </div>
       </div>
@@ -748,14 +759,14 @@ function ImperiumWorkspaceControls({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Settings className="h-4 w-4 text-[#d4af37]" />
-          <span className="text-xs font-semibold text-[#d4af37]">SETTINGS</span>
+          <span className="text-xs font-semibold text-[#d4af37]">{t("settings")}</span>
         </div>
 
         <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[#f5f5dc]">Automation</p>
-              <p className="text-xs text-[#f5f5dc]/50">Allow automated actions</p>
+              <p className="text-sm font-medium text-[#f5f5dc]">{t("automation")}</p>
+              <p className="text-xs text-[#f5f5dc]/50">{t("automationDesc")}</p>
             </div>
             <Switch
               checked={allowAutomation}
@@ -770,7 +781,7 @@ function ImperiumWorkspaceControls({
       <div className="mt-auto pt-4 border-t border-[#d4af37]/10">
         <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/30">
           <Shield className="h-3 w-3" />
-          <span>Powered by Gigaviz Imperium</span>
+          <span>{t("poweredBy")}</span>
         </div>
       </div>
     </div>
@@ -784,7 +795,7 @@ function ImperiumWorkspaceControls({
 function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceName, initialConversations }: Props) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const { toast } = useToast();
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.imperiumHelper");
 
   // State
   const [conversations, setConversations] = useState<HelperConversation[]>(
@@ -849,11 +860,11 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
         setMessages((data.messages ?? []).map(toLocalMessage));
       }
     } catch {
-      toast({ title: "Failed to load messages", variant: "destructive" });
+      toast({ title: t("failedLoadMessages"), variant: "destructive" });
     } finally {
       setLoadingMessages(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -880,15 +891,15 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
         setSelectedId(data.conversation.id);
         setMessages([]);
       } else {
-        throw new Error(data?.error || "Failed to create conversation");
+        throw new Error(data?.error || t("failedCreateConversation"));
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create conversation";
+      const message = err instanceof Error ? err.message : t("failedCreateConversation");
       toast({ title: message, variant: "destructive" });
     } finally {
       setCreating(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const handleSelectConversation = useCallback((id: string) => {
     setSelectedId(id);
@@ -906,9 +917,9 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
         body: JSON.stringify({ title: newTitle }),
       });
     } catch {
-      toast({ title: "Failed to rename conversation", variant: "destructive" });
+      toast({ title: t("failedRename"), variant: "destructive" });
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     setConversations((prev) => prev.filter((c) => c.id !== id));
@@ -920,14 +931,14 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
         method: "DELETE",
       });
     } catch {
-      toast({ title: "Failed to delete conversation", variant: "destructive" });
+      toast({ title: t("failedDelete"), variant: "destructive" });
     }
-  }, [selectedId, conversations, workspaceId, toast]);
+  }, [selectedId, conversations, workspaceId, toast, t]);
 
   const handleSend = useCallback(async () => {
     if (!selectedId || !composer.trim()) return;
     if (isOverBudget) {
-      toast({ title: "Monthly token budget exceeded", variant: "destructive" });
+      toast({ title: t("budgetExceededToast"), variant: "destructive" });
       return;
     }
 
@@ -1025,7 +1036,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
           case "error": {
             const error = event.data as { code?: string; message?: string; provider?: string | null };
             toast({
-              title: error.message ?? "Streaming failed",
+              title: error.message ?? t("sendFailed"),
               variant: "destructive",
             });
             const providerFromError = (error.provider ?? undefined) as HelperMessage["provider"];
@@ -1036,7 +1047,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
                       ...m,
                       status: "error",
                       provider: providerFromError ?? m.provider ?? (provider === "auto" ? undefined : provider),
-                      content: accumulatedContent || error.message || "Error occurred",
+                      content: accumulatedContent || error.message || t("sendFailed"),
                     }
                   : m
               )
@@ -1053,11 +1064,11 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
           )
         );
       } else {
-        const message = err instanceof Error ? err.message : "Send failed";
+        const message = err instanceof Error ? err.message : t("sendFailed");
         toast({ title: message, variant: "destructive" });
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === tempAssistantId ? { ...m, status: "error", content: "Failed to send" } : m
+            m.id === tempAssistantId ? { ...m, status: "error", content: t("failedToSend") } : m
           )
         );
       }
@@ -1065,7 +1076,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
       setSending(false);
       abortControllerRef.current = null;
     }
-  }, [selectedId, composer, workspaceId, mode, provider, toast, isOverBudget, fetchUsage]);
+  }, [selectedId, composer, workspaceId, mode, provider, toast, isOverBudget, fetchUsage, t]);
 
   const handleStopStreaming = useCallback(() => {
     if (abortControllerRef.current) {
@@ -1151,7 +1162,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
           </SheetTrigger>
           <SheetContent side="left" className="w-80 p-0 bg-[#0a1229] border-[#d4af37]/20">
             <div className="flex items-center justify-between p-4 border-b border-[#d4af37]/20">
-              <span className="font-semibold text-[#d4af37]">{copy.conversations}</span>
+              <span className="font-semibold text-[#d4af37]">{t("conversations")}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon" className="text-[#f5f5dc]">
                   <XIcon className="h-5 w-5" />
@@ -1165,7 +1176,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
         <div className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-[#d4af37]" />
           <span className="font-semibold text-sm bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-            {copy.title}
+            {t("title")}
           </span>
         </div>
 
@@ -1177,7 +1188,7 @@ function ImperiumHelperClientComponent({ workspaceId, workspaceSlug, workspaceNa
           </SheetTrigger>
           <SheetContent side="right" className="w-80 p-0 bg-[#0a1229] border-[#d4af37]/20">
             <div className="flex items-center justify-between p-4 border-b border-[#d4af37]/20">
-              <span className="font-semibold text-[#d4af37]">{copy.workspaceControls}</span>
+              <span className="font-semibold text-[#d4af37]">{t("workspaceControls")}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon" className="text-[#f5f5dc]">
                   <XIcon className="h-5 w-5" />

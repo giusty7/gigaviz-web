@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import FeatureInterestDialog from "@/components/app/FeatureInterestDialog";
 import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 
@@ -22,9 +23,11 @@ export function DisabledModuleState({
   moduleSlug,
   moduleName,
   badgeStatus = "soon",
-  ctaLabel = "Notify me",
+  ctaLabel,
   ctaHref = "/contact",
 }: Props) {
+  const t = useTranslations("metaHubUI.disabledModule");
+  const resolvedCtaLabel = ctaLabel ?? t("notifyMe");
   const showNotify = Boolean(workspaceId && moduleSlug);
 
   return (
@@ -40,7 +43,7 @@ export function DisabledModuleState({
               onClick={() => openDialog(moduleSlug!, moduleName ?? title)}
               className="mt-2 inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
             >
-              {ctaLabel}
+              {resolvedCtaLabel}
             </button>
           )}
         </FeatureInterestDialog>
@@ -49,7 +52,7 @@ export function DisabledModuleState({
           href={ctaHref}
           className="mt-2 inline-flex items-center rounded-xl border border-border bg-gigaviz-surface px-4 py-2 text-sm font-semibold text-foreground hover:border-gigaviz-gold"
         >
-          {ctaLabel}
+          {resolvedCtaLabel}
         </Link>
       )}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft, QrCode, Download, ExternalLink, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ interface LinksQRCodesProps {
 }
 
 export function LinksQRCodes({ workspaceSlug, pages }: LinksQRCodesProps) {
+  const t = useTranslations("linksUI");
   const base = `/${workspaceSlug}/links`;
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const [selected, setSelected] = useState<string | null>(pages[0]?.slug ?? null);
@@ -51,27 +53,27 @@ export function LinksQRCodes({ workspaceSlug, pages }: LinksQRCodesProps) {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">QR Codes</h1>
-          <p className="text-[11px] text-[#f5f5dc]/40">Generate QR codes for your bio pages — print for menus, events, business cards</p>
+          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">{t("qrCodesTitle")}</h1>
+          <p className="text-[11px] text-[#f5f5dc]/40">{t("qrCodesDesc")}</p>
         </div>
       </div>
 
       {pages.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[#f5f5dc]/[0.08] bg-[#f5f5dc]/[0.01] px-6 py-10 text-center">
           <QrCode className="mx-auto h-8 w-8 text-[#f5f5dc]/20" />
-          <p className="mt-3 text-sm text-[#f5f5dc]/50">Create a link page first to generate QR codes.</p>
+          <p className="mt-3 text-sm text-[#f5f5dc]/50">{t("createPageFirst")}</p>
           <Link
             href={`${base}/pages/new`}
             className="mt-3 inline-block text-xs text-[#d4af37] hover:underline"
           >
-            Create Page →
+            {t("createPageArrow")}
           </Link>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[1fr,360px]">
           {/* Left: page selector */}
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30">Select Page</p>
+            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30">{t("selectPage")}</p>
             {pages.map((p) => (
               <button
                 key={p.slug}
@@ -128,7 +130,7 @@ export function LinksQRCodes({ workspaceSlug, pages }: LinksQRCodesProps) {
                   className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#d4af37] px-3 py-2 text-[11px] font-semibold text-[#050a18] transition hover:bg-[#d4af37]/90"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  Download PNG
+                  {t("downloadPng")}
                 </button>
                 {selectedPage?.published && (
                   <a
@@ -138,14 +140,14 @@ export function LinksQRCodes({ workspaceSlug, pages }: LinksQRCodesProps) {
                     className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#f5f5dc]/[0.08] px-3 py-2 text-[11px] font-medium text-[#f5f5dc]/50 transition hover:bg-[#f5f5dc]/[0.04]"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    Open
+                    {t("openPage")}
                   </a>
                 )}
               </div>
 
               {!selectedPage?.published && (
                 <p className="text-[10px] text-amber-400/60 bg-amber-400/5 rounded-lg px-3 py-1.5 text-center w-full">
-                  This page is not published yet. Publish it to make the QR code work.
+                  {t("unpublishedWarning")}
                 </p>
               )}
             </div>

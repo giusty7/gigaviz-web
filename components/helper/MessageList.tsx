@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { type HelperMessage, relativeTime } from "./types";
 
@@ -23,7 +23,7 @@ type MessageBubbleProps = {
 };
 
 function MessageBubble({ message, onStop }: MessageBubbleProps) {
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.messageList");
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
   const isStreaming = message.status === "streaming";
@@ -153,7 +153,7 @@ function MessageBubble({ message, onStop }: MessageBubbleProps) {
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
-                {message.content || (isError ? "Assistant unavailable right now." : "")}
+                {message.content || (isError ? t("assistantUnavailable") : "")}
               </ReactMarkdown>
             </div>
           )}
@@ -166,7 +166,7 @@ function MessageBubble({ message, onStop }: MessageBubbleProps) {
           {isStreaming && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gigaviz-border/30">
               <Loader2Icon className="h-3 w-3 animate-spin text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{copy.processing}</span>
+              <span className="text-xs text-muted-foreground">{t("processing")}</span>
               {onStop && (
                 <Button
                   variant="ghost"
@@ -175,7 +175,7 @@ function MessageBubble({ message, onStop }: MessageBubbleProps) {
                   onClick={onStop}
                 >
                   <SquareIcon className="h-3 w-3 mr-1" />
-                  Stop
+                  {t("stop")}
                 </Button>
               )}
             </div>
@@ -183,10 +183,10 @@ function MessageBubble({ message, onStop }: MessageBubbleProps) {
 
           {/* Status badges */}
           {isCancelled && (
-            <p className="text-xs text-muted-foreground mt-2 italic">Cancelled</p>
+            <p className="text-xs text-muted-foreground mt-2 italic">{t("cancelled")}</p>
           )}
           {isError && !message.content && (
-            <p className="text-xs text-destructive">Failed to generate response</p>
+            <p className="text-xs text-destructive">{t("failedToGenerate")}</p>
           )}
 
           {/* Copy button for assistant (not streaming) */}
@@ -205,11 +205,11 @@ function MessageBubble({ message, onStop }: MessageBubbleProps) {
                     ) : (
                       <CopyIcon className="h-3.5 w-3.5" />
                     )}
-                    <span className="sr-only">{copy.copied}</span>
+                    <span className="sr-only">{t("copied")}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top">
-                  {copied ? copy.copied : "Copy"}
+                  {copied ? t("copied") : t("copy")}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -247,7 +247,7 @@ type Props = {
 };
 
 function MessageListComponent({ messages, isLoading = false, isProcessing = false, onStop }: Props) {
-  const helperCopy = COPY_EN.helper;
+  const t = useTranslations("helperUI.messageList");
   const scrollRef = useRef<HTMLDivElement>(null);
   const isUserScrolledUp = useRef(false);
 
@@ -305,7 +305,7 @@ function MessageListComponent({ messages, isLoading = false, isProcessing = fals
             <div className="bg-gigaviz-surface/80 border border-gigaviz-border/60 rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
-                {helperCopy.processing}
+                {t("processing")}
               </div>
             </div>          </div>
         )}

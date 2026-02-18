@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Pillar = {
   id: string;
@@ -55,12 +56,13 @@ const itemVariants = {
 };
 
 export function PillarGrid() {
+  const t = useTranslations("authLayoutUI");
   const [hoveredPillar, setHoveredPillar] = useState<string | null>(null);
 
   return (
     <div className="mt-8 space-y-4">
       <p className="text-center text-xs font-medium uppercase tracking-widest text-[#f5f5dc]/50">
-        The 7-Product Ecosystem
+        {t("ecosystemTitle")}
       </p>
       <motion.div
         className="grid grid-cols-3 gap-3 sm:grid-cols-6"
@@ -110,7 +112,7 @@ export function PillarGrid() {
                     : "bg-[#e11d48] text-white"
                 }`}
               >
-                {pillar.active ? pillar.name : `${pillar.name} — Coming Soon`}
+                {pillar.active ? pillar.name : t("pillarComingSoon", { name: pillar.name })}
               </div>
             </motion.div>
           );

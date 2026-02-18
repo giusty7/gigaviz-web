@@ -7,6 +7,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Search,
   Plus,
@@ -43,6 +44,7 @@ interface Props {
 
 export function ContactsListClient({ workspaceId }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.contactsList");
 
   const [contacts, setContacts] = useState<WaContact[]>([]);
   const [total, setTotal] = useState(0);
@@ -84,21 +86,21 @@ export function ContactsListClient({ workspaceId }: Props) {
         setTotal(data.total);
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to load contacts",
+          title: t("errorTitle"),
+          description: data.error || t("errorLoadContacts"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to load contacts",
+        title: t("errorTitle"),
+        description: t("errorLoadContacts"),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, page, search, selectedTag, selectedSegment, optInFilter, toast]);
+  }, [workspaceId, page, search, selectedTag, selectedSegment, optInFilter, t, toast]);
 
   const loadTags = useCallback(async () => {
     try {
@@ -168,29 +170,29 @@ export function ContactsListClient({ workspaceId }: Props) {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: `Contact marked as ${newStatus.replace("_", " ")}`,
+          title: t("successTitle"),
+          description: t("contactUpdated", { status: newStatus.replace("_", " ") }),
         });
         loadContacts();
       } else {
         const data = await response.json();
         toast({
-          title: "Error",
-          description: data.error || "Failed to update contact",
+          title: t("errorTitle"),
+          description: data.error || t("errorUpdateContact"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to update contact",
+        title: t("errorTitle"),
+        description: t("errorUpdateContact"),
         variant: "destructive",
       });
     }
   };
 
   const handleDelete = async (contactId: string) => {
-    if (!confirm("Are you sure you want to delete this contact?")) return;
+    if (!confirm(t("confirmDelete"))) return;
 
     try {
       const response = await fetch(
@@ -200,22 +202,22 @@ export function ContactsListClient({ workspaceId }: Props) {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Contact deleted",
+          title: t("successTitle"),
+          description: t("contactDeleted"),
         });
         loadContacts();
       } else {
         const data = await response.json();
         toast({
-          title: "Error",
-          description: data.error || "Failed to delete contact",
+          title: t("errorTitle"),
+          description: data.error || t("errorDeleteContact"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to delete contact",
+        title: t("errorTitle"),
+        description: t("errorDeleteContact"),
         variant: "destructive",
       });
     }
@@ -226,17 +228,17 @@ export function ContactsListClient({ workspaceId }: Props) {
       case "opted_in":
         return (
           <Badge variant="default" className="bg-green-600">
-            Opted In
+            {t("optedIn")}
           </Badge>
         );
       case "opted_out":
         return (
           <Badge variant="secondary" className="bg-red-600 text-white">
-            Opted Out
+            {t("optedOut")}
           </Badge>
         );
       default:
-        return <Badge variant="secondary">Unknown</Badge>;
+        return <Badge variant="secondary">{t("unknown")}</Badge>;
     }
   };
 
@@ -245,9 +247,9 @@ export function ContactsListClient({ workspaceId }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Contacts</h2>
+          <h2 className="text-2xl font-bold text-white">{t("title")}</h2>
           <p className="text-sm text-gray-400">
-            {total} contact{total !== 1 ? "s" : ""}
+            {t("contactCount", { count: total })}
           </p>
         </div>
         <div className="flex gap-2">
@@ -257,7 +259,7 @@ export function ContactsListClient({ workspaceId }: Props) {
             onClick={() => setShowBulkPasteModal(true)}
           >
             <FileText className="w-4 h-4 mr-2" />
-            Bulk Paste
+            {t("bulkPaste")}
           </Button>
           <Button
             variant="outline"
@@ -265,14 +267,14 @@ export function ContactsListClient({ workspaceId }: Props) {
             onClick={() => setShowImportCSVModal(true)}
           >
             <Upload className="w-4 h-4 mr-2" />
-            Import CSV
+            {t("importCsv")}
           </Button>
           <Button
             size="sm"
             onClick={() => setShowAddModal(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Contact
+            {t("addContact")}
           </Button>
         </div>
       </div>
@@ -282,7 +284,7 @@ export function ContactsListClient({ workspaceId }: Props) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
-            placeholder="Search name or phone..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -297,7 +299,7 @@ export function ContactsListClient({ workspaceId }: Props) {
           onChange={(e) => setSelectedTag(e.target.value)}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="">All tags</option>
+          <option value="">{t("allTags")}</option>
           {tags.map((tag) => (
             <option key={tag} value={tag}>
               {tag}
@@ -310,7 +312,7 @@ export function ContactsListClient({ workspaceId }: Props) {
           onChange={(e) => setSelectedSegment(e.target.value)}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="">All segments</option>
+          <option value="">{t("allSegments")}</option>
           {segments.map((segment) => (
             <option key={segment.id} value={segment.id}>
               {segment.name}
@@ -323,10 +325,10 @@ export function ContactsListClient({ workspaceId }: Props) {
           onChange={(e) => setOptInFilter(e.target.value as OptInStatus | "")}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="">All statuses</option>
-          <option value="opted_in">Opted In</option>
-          <option value="opted_out">Opted Out</option>
-          <option value="unknown">Unknown</option>
+          <option value="">{t("allStatuses")}</option>
+          <option value="opted_in">{t("optedIn")}</option>
+          <option value="opted_out">{t("optedOut")}</option>
+          <option value="unknown">{t("unknown")}</option>
         </select>
       </div>
 
@@ -335,25 +337,25 @@ export function ContactsListClient({ workspaceId }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Tags</TableHead>
-              <TableHead>Opt-in Status</TableHead>
-              <TableHead>Last Seen</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("name")}</TableHead>
+              <TableHead>{t("phone")}</TableHead>
+              <TableHead>{t("tags")}</TableHead>
+              <TableHead>{t("optInStatus")}</TableHead>
+              <TableHead>{t("lastSeen")}</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-gray-400">
-                  Loading...
+                  {t("loading")}
                 </TableCell>
               </TableRow>
             ) : contacts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-gray-400">
-                  No contacts found
+                  {t("noContacts")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -411,8 +413,8 @@ export function ContactsListClient({ workspaceId }: Props) {
                         onClick={() => handleOptInToggle(contact)}
                         title={
                           contact.opt_in_status === "opted_in"
-                            ? "Mark as opted out"
-                            : "Mark as opted in"
+                            ? t("markOptedOut")
+                            : t("markOptedIn")
                         }
                       >
                         {contact.opt_in_status === "opted_in" ? (
@@ -450,7 +452,7 @@ export function ContactsListClient({ workspaceId }: Props) {
       {total > 50 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-400">
-            Page {page} of {Math.ceil(total / 50)}
+            {t("pageOf", { page, total: Math.ceil(total / 50) })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -459,7 +461,7 @@ export function ContactsListClient({ workspaceId }: Props) {
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
             >
-              Previous
+              {t("previous")}
             </Button>
             <Button
               variant="outline"
@@ -467,7 +469,7 @@ export function ContactsListClient({ workspaceId }: Props) {
               disabled={page >= Math.ceil(total / 50)}
               onClick={() => setPage(page + 1)}
             >
-              Next
+              {t("next")}
             </Button>
           </div>
         </div>

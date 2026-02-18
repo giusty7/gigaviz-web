@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type Props = {
   workspaceId: string;
@@ -10,6 +11,7 @@ type Props = {
 
 export function RequestForm({ workspaceId, userId }: Props) {
   const router = useRouter();
+  const t = useTranslations("appUI.requestForm");
   const [appName, setAppName] = useState("");
   const [description, setDescription] = useState("");
   const [useCase, setUseCase] = useState("");
@@ -20,7 +22,7 @@ export function RequestForm({ workspaceId, userId }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!appName.trim() || !description.trim()) {
-      setError("App name and description are required");
+      setError(t("validationError"));
       return;
     }
 
@@ -73,14 +75,14 @@ export function RequestForm({ workspaceId, userId }: Props) {
 
       <div>
         <label htmlFor="appName" className="mb-1 block text-sm font-medium">
-          App Name *
+          {t("appName")}
         </label>
         <input
           id="appName"
           type="text"
           value={appName}
           onChange={(e) => setAppName(e.target.value)}
-          placeholder="e.g., WhatsApp Scheduler"
+          placeholder={t("appNamePlaceholder")}
           className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           required
         />
@@ -88,13 +90,13 @@ export function RequestForm({ workspaceId, userId }: Props) {
 
       <div>
         <label htmlFor="description" className="mb-1 block text-sm font-medium">
-          Description *
+          {t("descriptionLabel")}
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe what this app should do"
+          placeholder={t("descriptionPlaceholder")}
           rows={3}
           className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           required
@@ -103,13 +105,13 @@ export function RequestForm({ workspaceId, userId }: Props) {
 
       <div>
         <label htmlFor="useCase" className="mb-1 block text-sm font-medium">
-          Use Case (Optional)
+          {t("useCase")}
         </label>
         <textarea
           id="useCase"
           value={useCase}
           onChange={(e) => setUseCase(e.target.value)}
-          placeholder="How would you use this app?"
+          placeholder={t("useCasePlaceholder")}
           rows={2}
           className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
         />
@@ -117,7 +119,7 @@ export function RequestForm({ workspaceId, userId }: Props) {
 
       <div>
         <label htmlFor="priority" className="mb-1 block text-sm font-medium">
-          Priority
+          {t("priority")}
         </label>
         <select
           id="priority"
@@ -125,10 +127,10 @@ export function RequestForm({ workspaceId, userId }: Props) {
           onChange={(e) => setPriority(e.target.value)}
           className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
         >
-          <option value="low">Low - Nice to have</option>
-          <option value="medium">Medium - Would be useful</option>
-          <option value="high">High - Really need this</option>
-          <option value="critical">Critical - Blocking my workflow</option>
+          <option value="low">{t("priorityLow")}</option>
+          <option value="medium">{t("priorityMedium")}</option>
+          <option value="high">{t("priorityHigh")}</option>
+          <option value="critical">{t("priorityCritical")}</option>
         </select>
       </div>
 
@@ -137,7 +139,7 @@ export function RequestForm({ workspaceId, userId }: Props) {
         disabled={submitting}
         className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
       >
-        {submitting ? "Submitting..." : "Submit Request"}
+        {submitting ? t("submitting") : t("submitRequest")}
       </button>
     </form>
   );

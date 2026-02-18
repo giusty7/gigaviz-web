@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ShieldCheck, ShieldAlert, Search, Activity, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ function watermarkStyle() {
 }
 
 export default function GodConsoleClient({ workspaces, query, actorEmail }: Props) {
+  const t = useTranslations("opsUI");
   const [selected, setSelected] = useState<GodWorkspaceCard | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -80,16 +82,16 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
       <div className="relative space-y-6">
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#d4af37]">God Console</p>
-            <h1 className="text-3xl font-semibold text-foreground">Platform Command Center</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#d4af37]">{t("godConsole.title")}</p>
+            <h1 className="text-3xl font-semibold text-foreground">{t("godConsole.subtitle")}</h1>
             <p className="text-sm text-muted-foreground">
-              Sovereign view across all workspaces. Manual overrides and rewards with full audit.
+              {t("godConsole.description")}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-[#d4af37]/60 bg-[#d4af37]/10 text-[#f5f5dc]">
               <ShieldCheck className="mr-1 h-4 w-4" />
-              Admin Access Only
+              {t("godConsole.adminOnly")}
             </Badge>
             {actorEmail ? (
               <Badge variant="secondary" className="bg-[#050a18]/70 text-[#f5f5dc]">
@@ -114,20 +116,20 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
               type="submit"
               className="w-full md:w-auto rounded-xl border border-[#d4af37]/50 bg-[#d4af37]/90 text-[#050a18] shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:shadow-[0_0_30px_rgba(212,175,55,0.55)]"
             >
-              Scan Universe
+              {t("godConsole.scanUniverse")}
             </Button>
           </form>
         </section>
 
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">Results: {sorted.length}</p>
+            <p className="text-sm text-muted-foreground">{t("godConsole.results")} {sorted.length}</p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-1 text-emerald-200">
-                <ShieldCheck className="h-3 w-3" /> Healthy
+                <ShieldCheck className="h-3 w-3" /> {t("godConsole.healthy")}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-[#d946ef]/40 bg-[#d946ef]/10 px-2 py-1 text-[#f0abfc]">
-                <ShieldAlert className="h-3 w-3" /> Risk
+                <ShieldAlert className="h-3 w-3" /> {t("godConsole.risk")}
               </span>
             </div>
           </div>
@@ -170,7 +172,7 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
                   <div className="relative mt-4 grid grid-cols-2 gap-3 text-sm text-[#f5f5dc]">
                     <div className="rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/70 p-3">
                       <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/70">
-                        <Coins className="h-4 w-4 text-[#d4af37]" /> Wallet
+                        <Coins className="h-4 w-4 text-[#d4af37]" /> {t("godConsole.wallet")}
                       </div>
                       <p className="mt-1 text-lg font-semibold">
                         {ws.wallet_balance.toLocaleString()} tokens
@@ -178,11 +180,11 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
                     </div>
                     <div className="rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/70 p-3">
                       <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/70">
-                        <Activity className="h-4 w-4 text-[#d946ef]" /> Usage
+                        <Activity className="h-4 w-4 text-[#d946ef]" /> {t("godConsole.usage")}
                       </div>
                       <p className="mt-1 text-lg font-semibold">{capLabel}</p>
                       {ws.hard_cap ? (
-                        <p className="text-[11px] text-[#f5f5dc]/60">Hard cap enforced</p>
+                        <p className="text-[11px] text-[#f5f5dc]/60">{t("godConsole.hardCapEnforced")}</p>
                       ) : null}
                     </div>
                   </div>
@@ -198,7 +200,7 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
                     ))}
                     {ws.entitlements.length > 4 ? (
                       <span className="text-[11px] text-[#f5f5dc]/60">
-                        +{ws.entitlements.length - 4} more
+                        {t("godConsole.moreWorkspaces", { count: ws.entitlements.length - 4 })}
                       </span>
                     ) : null}
                   </div>
@@ -209,7 +211,7 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
 
           {sorted.length === 0 ? (
             <div className="rounded-2xl border border-[#d4af37]/30 bg-[#050a18]/70 p-6 text-sm text-muted-foreground">
-              No workspaces found. Try a different query.
+              {t("godConsole.noWorkspacesFound")}
             </div>
           ) : null}
         </section>

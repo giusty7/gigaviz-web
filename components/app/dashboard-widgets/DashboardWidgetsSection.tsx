@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ModuleRegistryItem } from "@/lib/modules/registry";
 import { EcosystemHealthWidget } from "./EcosystemHealthWidget";
 import { PerformanceMetricsWidget } from "./PerformanceMetricsWidget";
@@ -18,9 +19,10 @@ export function DashboardWidgetsSection({
   workspaceId,
   modules,
 }: DashboardWidgetsSectionProps) {
+  const t = useTranslations("dashboardWidgetsUI");
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-[#f5f5dc]">Imperium Overview</h2>
+      <h2 className="text-lg font-semibold text-[#f5f5dc]">{t("imperiumOverview")}</h2>
       
       {/* Responsive Bento Grid */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

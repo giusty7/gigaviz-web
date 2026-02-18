@@ -65,13 +65,24 @@ export function InstagramInboxClient() {
   useEffect(() => {
     if (!workspace) return;
     loadThreads();
+
+    // Poll for new threads every 15 seconds
+    const interval = setInterval(() => {
+      loadThreads();
+    }, 15_000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace, statusFilter]);
 
-  // Load messages when thread selected
+  // Load messages when thread selected + poll every 10s
   useEffect(() => {
     if (!selectedThread) return;
     loadMessages(selectedThread.id);
+
+    const interval = setInterval(() => {
+      loadMessages(selectedThread.id);
+    }, 10_000);
+    return () => clearInterval(interval);
   }, [selectedThread]);
 
   async function loadThreads() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ type Props = {
 
 export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, phoneNumberId, displayName }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.metaAssets");
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [wabas, setWabas] = useState<Waba[]>([]);
   const [phones, setPhones] = useState<Phone[]>([]);
@@ -134,29 +136,29 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
       try {
         const res = await fetch(`/api/meta/assets/businesses?workspaceId=${workspaceId}`);
         const data = await res.json().catch(() => null);
-        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || "Failed to load businesses");
+        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || t("errorLoadBusinesses"));
         const list = (data.data || []) as Business[];
         setBusinesses(list);
         if (list.length === 1 && list[0]?.id) {
           setBusinessId(list[0].id);
         }
-        if (!opts?.silent) toast({ title: "Businesses loaded" });
+        if (!opts?.silent) toast({ title: t("businessesLoaded") });
       } catch (err) {
         if (!opts?.silent) {
-          toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+          toast({ title: t("errorTitle"), description: err instanceof Error ? err.message : t("unknown"), variant: "destructive" });
         }
       } finally {
         setLoading(null);
       }
     },
-    [toast, workspaceId]
+    [t, toast, workspaceId]
   );
 
   const fetchWabas = useCallback(
     async (opts?: { silent?: boolean; businessOverride?: string }) => {
       const targetBusinessId = opts?.businessOverride ?? businessId;
       if (!targetBusinessId) {
-        if (!opts?.silent) toast({ title: "Select a business", variant: "destructive" });
+        if (!opts?.silent) toast({ title: t("selectBusiness"), variant: "destructive" });
         return;
       }
       setLoading("wabas");
@@ -165,7 +167,7 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
           `/api/meta/assets/wabas?workspaceId=${workspaceId}&businessId=${targetBusinessId}`
         );
         const data = await res.json().catch(() => null);
-        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || "Failed to load WABA");
+        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || t("errorLoadWaba"));
         const list = (data.data || []) as Waba[];
         setWabas((prev) => {
           // Merge with bootstrap data to avoid losing WABA details
@@ -178,23 +180,23 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
         if (list.length === 1 && list[0]?.id) {
           setWabaId(list[0].id);
         }
-        if (!opts?.silent) toast({ title: "WABAs loaded" });
+        if (!opts?.silent) toast({ title: t("wabasLoaded") });
       } catch (err) {
         if (!opts?.silent) {
-          toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+          toast({ title: t("errorTitle"), description: err instanceof Error ? err.message : t("unknown"), variant: "destructive" });
         }
       } finally {
         setLoading(null);
       }
     },
-    [businessId, toast, workspaceId]
+    [businessId, t, toast, workspaceId]
   );
 
   const fetchPhones = useCallback(
     async (opts?: { silent?: boolean; wabaOverride?: string }) => {
       const targetWabaId = opts?.wabaOverride ?? wabaId;
       if (!targetWabaId) {
-        if (!opts?.silent) toast({ title: "Select a WABA", variant: "destructive" });
+        if (!opts?.silent) toast({ title: t("selectWaba"), variant: "destructive" });
         return;
       }
       setLoading("phones");
@@ -203,18 +205,18 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
           `/api/meta/assets/phone-numbers?workspaceId=${workspaceId}&wabaId=${targetWabaId}`
         );
         const data = await res.json().catch(() => null);
-        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || "Failed to load phone numbers");
+        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || t("errorLoadPhones"));
         setPhones((data.data || []) as Phone[]);
-        if (!opts?.silent) toast({ title: "Phones loaded" });
+        if (!opts?.silent) toast({ title: t("phonesLoaded") });
       } catch (err) {
         if (!opts?.silent) {
-          toast({ title: "Error", description: err instanceof Error ? err.message : "Unknown", variant: "destructive" });
+          toast({ title: t("errorTitle"), description: err instanceof Error ? err.message : t("unknown"), variant: "destructive" });
         }
       } finally {
         setLoading(null);
       }
     },
-    [toast, wabaId, workspaceId]
+    [t, toast, wabaId, workspaceId]
   );
 
   // When user changes business dropdown, fetch WABAs for that business
@@ -238,44 +240,44 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
         <Card className="border border-emerald-500/30 bg-emerald-500/5">
           <CardContent className="flex items-center gap-3 py-4">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
-            <p className="text-sm text-emerald-300">Loading business assets from Meta Graph API...</p>
+            <p className="text-sm text-emerald-300">{t("loadingAssets")}</p>
           </CardContent>
         </Card>
       )}
 
       <Card className="border border-[#d4af37]/30 bg-[#0a1229]/70">
         <CardHeader>
-          <CardTitle>Business Assets (server-side Graph)</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription className="text-[#f5f5dc]/60">
-            Uses business_management to list businesses, WABAs, and phone numbers.
+            {t("description")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="sm:flex-1">
-              <Label>Business</Label>
+              <Label>{t("business")}</Label>
               <select
                 value={businessId}
                 onChange={(e) => setBusinessId(e.target.value)}
                 disabled={!canEdit || loading === "businesses" || isBootstrapping}
                 className="mt-1 w-full rounded-md border border-[#d4af37]/30 bg-[#050a18] p-2 text-[#f5f5dc] disabled:opacity-60"
               >
-                <option value="">Choose business</option>
+                <option value="">{t("chooseBusiness")}</option>
                 {businesses.map((b) => (
                   <option key={b.id} value={b.id ?? ""}>
                     {b.name || b.id}
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-xs text-[#f5f5dc]/60">Auto-selects when only one business exists.</p>
+              <p className="mt-1 text-xs text-[#f5f5dc]/60">{t("autoSelectHint")}</p>
             </div>
             <Button onClick={() => fetchBusinesses()} disabled={!canEdit || loading === "businesses" || isBootstrapping}>
-              {loading === "businesses" ? "Loading..." : "Refresh"}
+              {loading === "businesses" ? t("loading") : t("refresh")}
             </Button>
           </div>
 
           <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/60 p-3">
-            <p className="text-xs text-[#f5f5dc]/70">Known phone</p>
+            <p className="text-xs text-[#f5f5dc]/70">{t("knownPhone")}</p>
             <p className="text-sm font-semibold font-mono">{displayName || phoneNumberId || "-"}</p>
           </div>
 
@@ -283,27 +285,27 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="sm:flex-1">
-              <Label>WABA</Label>
+              <Label>{t("waba")}</Label>
               <select
                 value={wabaId}
                 onChange={(e) => setWabaId(e.target.value)}
                 disabled={!canEdit || loading === "wabas" || isBootstrapping}
                 className="mt-1 w-full rounded-md border border-[#d4af37]/30 bg-[#050a18] p-2 text-[#f5f5dc] disabled:opacity-60"
               >
-                <option value="">Choose WABA</option>
+                <option value="">{t("chooseWaba")}</option>
                 {wabas.map((w) => (
                   <option key={w.id} value={w.id ?? ""}>
                     {w.name || w.id}
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-xs text-[#f5f5dc]/60">Loaded from owned_whatsapp_business_accounts.</p>
+              <p className="mt-1 text-xs text-[#f5f5dc]/60">{t("wabaHint")}</p>
             </div>
             <Button onClick={() => fetchWabas()} disabled={!canEdit || loading === "wabas" || isBootstrapping}>
-              {loading === "wabas" ? "Loading..." : "Refresh WABAs"}
+              {loading === "wabas" ? t("loading") : t("refreshWabas")}
             </Button>
             <Button onClick={() => fetchPhones()} disabled={!canEdit || loading === "phones" || isBootstrapping}>
-              {loading === "phones" ? "Loading..." : "Refresh Phones"}
+              {loading === "phones" ? t("loading") : t("refreshPhones")}
             </Button>
           </div>
         </CardContent>
@@ -311,22 +313,22 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
 
       <Card className="border border-[#d4af37]/30 bg-[#0a1229]/70">
         <CardHeader>
-          <CardTitle>Businesses</CardTitle>
-          <CardDescription className="text-[#f5f5dc]/60">Results from /me/businesses</CardDescription>
+          <CardTitle>{t("businesses")}</CardTitle>
+          <CardDescription className="text-[#f5f5dc]/60">{t("businessesDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[#f5f5dc]/70">ID</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Name</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("idHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("nameHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {businesses.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="text-center text-[#f5f5dc]/50">
-                    {isBootstrapping ? "Loading..." : "No businesses loaded."}
+                    {isBootstrapping ? t("loading") : t("noBusinesses")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -344,22 +346,22 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
 
       <Card className="border border-[#d4af37]/30 bg-[#0a1229]/70">
         <CardHeader>
-          <CardTitle>WABAs</CardTitle>
-          <CardDescription className="text-[#f5f5dc]/60">From business owned_whatsapp_business_accounts</CardDescription>
+          <CardTitle>{t("wabas")}</CardTitle>
+          <CardDescription className="text-[#f5f5dc]/60">{t("wabasDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[#f5f5dc]/70">ID</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Name</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("idHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("nameHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {wabas.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={2} className="text-center text-[#f5f5dc]/50">
-                    {isBootstrapping ? "Loading..." : "No WABAs loaded."}
+                    {isBootstrapping ? t("loading") : t("noWabas")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -377,24 +379,24 @@ export function MetaAssetsClient({ workspaceId, canEdit, wabaId: initialWabaId, 
 
       <Card className="border border-[#d4af37]/30 bg-[#0a1229]/70">
         <CardHeader>
-          <CardTitle>Phone Numbers</CardTitle>
-          <CardDescription className="text-[#f5f5dc]/60">From WABA phone_numbers</CardDescription>
+          <CardTitle>{t("phoneNumbers")}</CardTitle>
+          <CardDescription className="text-[#f5f5dc]/60">{t("phoneNumbersDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[#f5f5dc]/70">ID</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Number</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Verified Name</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Status</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("idHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("numberHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("verifiedNameHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("statusHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {phones.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-[#f5f5dc]/50">
-                    {isBootstrapping ? "Loading..." : "No phone numbers loaded."}
+                    {isBootstrapping ? t("loading") : t("noPhones")}
                   </TableCell>
                 </TableRow>
               ) : (

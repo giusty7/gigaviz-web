@@ -145,7 +145,7 @@ export async function sendMessengerTextMessage(params: {
     // Send message via Graph API
     const result = await sendMessengerMessage({
       threadId: thread.id,
-      recipientId: thread.recipient_psid,
+      recipientId: thread.participant_id,
       message: { text },
       accessToken: pageData.access_token as string,
     });
@@ -159,12 +159,12 @@ export async function sendMessengerTextMessage(params: {
       .from('messenger_messages')
       .insert({
         thread_id: threadId,
-        messenger_page_id: pageData.id,
+        page_id: pageData.id as string,
         workspace_id: workspaceId,
         message_id: result.messageId,
         direction: 'outbound',
         message_type: 'text',
-        text_body: text,
+        text_content: text,
         status: 'sent',
         sent_at: new Date().toISOString(),
       });
@@ -223,7 +223,7 @@ export async function sendMessengerImageMessage(params: {
     // Send image via Graph API
     const result = await sendMessengerMessage({
       threadId: thread.id,
-      recipientId: thread.recipient_psid,
+      recipientId: thread.participant_id,
       message: {
         attachment: {
           type: 'image',
@@ -245,7 +245,7 @@ export async function sendMessengerImageMessage(params: {
       .from('messenger_messages')
       .insert({
         thread_id: threadId,
-        messenger_page_id: page.id,
+        page_id: page.id,
         workspace_id: workspaceId,
         message_id: result.messageId,
         direction: 'outbound',

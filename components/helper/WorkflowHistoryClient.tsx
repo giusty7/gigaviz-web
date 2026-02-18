@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -248,6 +249,7 @@ export function WorkflowHistoryClient({
 }: Props) {
   // Hydration-safe check for client-side rendering
   const isMounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("helperUI.workflowHistory");
 
   const [runs, setRuns] = useState<WorkflowRun[]>(initialRuns);
   const [searchQuery, setSearchQuery] = useState("");
@@ -376,10 +378,10 @@ export function WorkflowHistoryClient({
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent flex items-center gap-2">
               <Activity className="h-6 w-6 text-[#d4af37]" />
-              Workflow Execution History
+              {t("title")}
             </h1>
             <p className="text-[#f5f5dc]/60 mt-1">
-              Monitor and debug your automation runs
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -387,7 +389,7 @@ export function WorkflowHistoryClient({
             <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/60">
               {loading && <Loader2 className="h-3 w-3 animate-spin text-[#d4af37]" />}
               <Clock className="h-3 w-3" />
-              <span>Updated: {isMounted && lastRefresh ? lastRefresh.toLocaleTimeString() : "--:--:--"}</span>
+              <span>{t("refreshRuns")}: {isMounted && lastRefresh ? lastRefresh.toLocaleTimeString() : "--:--:--"}</span>
             </div>
             <Button
               variant="outline"
@@ -395,7 +397,7 @@ export function WorkflowHistoryClient({
               className="border-[#f5f5dc]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
+              {t("totalRuns")}
             </Button>
             <Button
               variant="outline"
@@ -404,7 +406,7 @@ export function WorkflowHistoryClient({
               className="border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37]/10"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              {t("refreshRuns")}
             </Button>
             <Button
               variant="outline"
@@ -412,7 +414,7 @@ export function WorkflowHistoryClient({
               className="border-[#f5f5dc]/20 text-[#f5f5dc] hover:bg-[#f5f5dc]/10"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export Logs
+              {t("exportRuns")}
             </Button>
           </div>
         </div>
@@ -420,12 +422,12 @@ export function WorkflowHistoryClient({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           {[
-            { label: "Total Runs", value: stats.totalRuns, icon: Boxes, gradient: "from-[#d4af37] to-[#f9d976]" },
-            { label: "Success Rate", value: `${stats.successRate}%`, icon: CheckCircle, gradient: "from-emerald-500 to-emerald-400" },
-            { label: "Avg Duration", value: formatDuration(stats.avgDuration), icon: Timer, gradient: "from-cyan-500 to-cyan-400" },
-            { label: "Running Now", value: stats.runningNow, icon: RefreshCw, gradient: "from-blue-500 to-blue-400", animated: stats.runningNow > 0 },
-            { label: "Today", value: stats.todayRuns, icon: Calendar, gradient: "from-purple-500 to-purple-400" },
-            { label: "Failed Today", value: stats.failedToday, icon: AlertTriangle, gradient: "from-red-500 to-red-400" },
+            { label: t("totalRuns"), value: stats.totalRuns, icon: Boxes, gradient: "from-[#d4af37] to-[#f9d976]" },
+            { label: t("successfulRuns"), value: `${stats.successRate}%`, icon: CheckCircle, gradient: "from-emerald-500 to-emerald-400" },
+            { label: t("averageDuration"), value: formatDuration(stats.avgDuration), icon: Timer, gradient: "from-cyan-500 to-cyan-400" },
+            { label: t("statusRunning"), value: stats.runningNow, icon: RefreshCw, gradient: "from-blue-500 to-blue-400", animated: stats.runningNow > 0 },
+            { label: t("filterByWorkflow"), value: stats.todayRuns, icon: Calendar, gradient: "from-purple-500 to-purple-400" },
+            { label: t("failedRuns"), value: stats.failedToday, icon: AlertTriangle, gradient: "from-red-500 to-red-400" },
           ].map((stat) => (
             <motion.div
               key={stat.label}
@@ -452,7 +454,7 @@ export function WorkflowHistoryClient({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
               <Input
-                placeholder="Search workflows..."
+                placeholder={t("searchRuns")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]"
@@ -464,30 +466,30 @@ export function WorkflowHistoryClient({
               className="border-[#d4af37]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
             >
               <Filter className="h-4 w-4 mr-2" />
-              Advanced
+              {t("filterByStatus")}
             </Button>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("status")} />
               </SelectTrigger>
               <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="running">Running</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                <SelectItem value="running">{t("statusRunning")}</SelectItem>
+                <SelectItem value="completed">{t("statusSuccess")}</SelectItem>
+                <SelectItem value="failed">{t("statusFailed")}</SelectItem>
+                <SelectItem value="cancelled">{t("statusCancelled")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterTrigger} onValueChange={setFilterTrigger}>
               <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
-                <SelectValue placeholder="Trigger" />
+                <SelectValue placeholder={t("trigger")} />
               </SelectTrigger>
               <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                <SelectItem value="all">All Triggers</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="schedule">Scheduled</SelectItem>
-                <SelectItem value="webhook">Webhook</SelectItem>
-                <SelectItem value="event">Event</SelectItem>
+                <SelectItem value="all">{t("allWorkflows")}</SelectItem>
+                <SelectItem value="manual">{t("trigger")}: Manual</SelectItem>
+                <SelectItem value="schedule">{t("trigger")}: Schedule</SelectItem>
+                <SelectItem value="webhook">{t("trigger")}: Webhook</SelectItem>
+                <SelectItem value="event">{t("trigger")}: Event</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -539,7 +541,7 @@ export function WorkflowHistoryClient({
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">
-                                Triggered by {run.triggeredBy}
+                                {t("trigger")}: {run.triggeredBy}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -557,7 +559,7 @@ export function WorkflowHistoryClient({
                           )}
                           <span className="flex items-center gap-1">
                             <Boxes className="h-3 w-3" />
-                            {completedSteps}/{run.steps.length} steps
+                            {completedSteps}/{run.steps.length} {t("steps")}
                           </span>
                         </div>
                       </div>
@@ -585,7 +587,7 @@ export function WorkflowHistoryClient({
                                   <RotateCcw className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">Retry Run</TooltipContent>
+                              <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">{t("retryRun")}</TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         )}
@@ -602,7 +604,7 @@ export function WorkflowHistoryClient({
                                   <StopCircle className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">Cancel Run</TooltipContent>
+                              <TooltipContent className="bg-[#0a1229] border-[#d4af37]/20">{t("cancelRun")}</TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         )}
@@ -638,7 +640,7 @@ export function WorkflowHistoryClient({
                         className="border-t border-[#d4af37]/10"
                       >
                         <div className="p-4 space-y-3">
-                          <h5 className="text-sm font-medium text-[#d4af37] mb-3">Execution Steps</h5>
+                          <h5 className="text-sm font-medium text-[#d4af37] mb-3">{t("steps")}</h5>
                           {run.steps.map((step, idx) => {
                             const StepStatusIcon = getStatusIcon(step.status);
                             const StepTypeIcon = getStepIcon(step.type);
@@ -671,7 +673,7 @@ export function WorkflowHistoryClient({
                                   </div>
                                   {step.duration && (
                                     <p className="text-xs text-[#f5f5dc]/40 mt-1">
-                                      Duration: {formatDuration(step.duration)}
+                                      {t("duration")}: {formatDuration(step.duration)}
                                     </p>
                                   )}
                                   {step.error && (
@@ -703,8 +705,8 @@ export function WorkflowHistoryClient({
           {filteredRuns.length === 0 && (
             <div className="text-center py-12 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80">
               <Activity className="h-12 w-12 text-[#f5f5dc]/20 mx-auto mb-4" />
-              <p className="text-[#f5f5dc]/60">No workflow runs found</p>
-              <p className="text-sm text-[#f5f5dc]/40 mt-1">Runs will appear here when your workflows execute</p>
+              <p className="text-[#f5f5dc]/60">{t("noRuns")}</p>
+              <p className="text-sm text-[#f5f5dc]/40 mt-1">{t("noRunsDesc")}</p>
             </div>
           )}
         </div>
@@ -716,7 +718,7 @@ export function WorkflowHistoryClient({
           <DialogHeader>
             <DialogTitle className="text-[#d4af37] flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Run Details
+              {t("runDetails")}
             </DialogTitle>
           </DialogHeader>
           {viewingRun && (
@@ -724,28 +726,28 @@ export function WorkflowHistoryClient({
               {/* Run Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 rounded-lg bg-[#050a18]/50">
-                  <p className="text-xs text-[#f5f5dc]/60">Workflow</p>
+                  <p className="text-xs text-[#f5f5dc]/60">{t("workflowName")}</p>
                   <p className="font-medium text-[#f5f5dc] flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-[#d4af37]" />
                     {viewingRun.workflowName}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-[#050a18]/50">
-                  <p className="text-xs text-[#f5f5dc]/60">Status</p>
+                  <p className="text-xs text-[#f5f5dc]/60">{t("status")}</p>
                   <Badge className={cn("text-xs border mt-1", getStatusColor(viewingRun.status))}>
                     {viewingRun.status}
                   </Badge>
                 </div>
                 <div className="p-3 rounded-lg bg-[#050a18]/50">
-                  <p className="text-xs text-[#f5f5dc]/60">Started</p>
+                  <p className="text-xs text-[#f5f5dc]/60">{t("startedAt")}</p>
                   <p className="font-medium text-[#f5f5dc]">
                     {isMounted ? new Date(viewingRun.startedAt).toLocaleString() : "--"}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-[#050a18]/50">
-                  <p className="text-xs text-[#f5f5dc]/60">Duration</p>
+                  <p className="text-xs text-[#f5f5dc]/60">{t("duration")}</p>
                   <p className="font-medium text-[#f5f5dc]">
-                    {viewingRun.duration ? formatDuration(viewingRun.duration) : "In progress..."}
+                    {viewingRun.duration ? formatDuration(viewingRun.duration) : t("statusRunning")}
                   </p>
                 </div>
               </div>
@@ -758,16 +760,16 @@ export function WorkflowHistoryClient({
                     onClick={() => { retryRun(viewingRun.id); setViewingRun(null); }}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    Retry Run
+                    {t("retryRun")}
                   </Button>
                 )}
                 <Button variant="outline" className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Log
+                  {t("close")}
                 </Button>
                 <Button variant="outline" className="flex-1 border-[#f5f5dc]/20">
                   <MoreHorizontal className="h-4 w-4 mr-2" />
-                  More
+                  {t("viewDetails")}
                 </Button>
               </div>
             </div>

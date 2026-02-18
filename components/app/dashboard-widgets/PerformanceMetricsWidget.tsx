@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { TrendingUp, Activity } from "lucide-react";
 
@@ -76,6 +77,7 @@ function Sparkline({ data, className }: { data: number[]; className?: string }) 
 }
 
 export function PerformanceMetricsWidget() {
+  const t = useTranslations("dashboardWidgetsUI");
   const hasMetrics = metrics.length > 0;
 
   return (
@@ -94,9 +96,9 @@ export function PerformanceMetricsWidget() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-[#d4af37]" />
-            <h3 className="text-sm font-semibold text-[#f5f5dc]">Performance Metrics</h3>
+            <h3 className="text-sm font-semibold text-[#f5f5dc]">{t("performanceMetrics")}</h3>
           </div>
-          <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">Last 30 days</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">{t("last30days")}</span>
         </div>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -125,17 +127,17 @@ export function PerformanceMetricsWidget() {
               </motion.div>
             ))
           ) : (
-            <div className="text-xs text-[#f5f5dc]/60">No data yet.</div>
+            <div className="text-xs text-[#f5f5dc]/60">{t("noDataYet")}</div>
           )}
         </div>
 
         <div className="mt-6">
-          <p className="mb-2 text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">Activity Trend</p>
+          <p className="mb-2 text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">{t("activityTrend")}</p>
           {hasMetrics ? (
             <Sparkline data={[0, 0, 0]} className="h-12 w-full" />
           ) : (
             <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/40 px-3 py-2 text-xs text-[#f5f5dc]/60">
-              No data yet.
+              {t("noDataYet")}
             </div>
           )}
         </div>

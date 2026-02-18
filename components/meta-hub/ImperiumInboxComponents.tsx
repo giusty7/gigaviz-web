@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useSyncExternalStore, useState, useRef, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Search,
@@ -253,13 +254,14 @@ interface InboxHeaderProps {
 }
 
 export function InboxHeader({ unreadCount, connectionStatus = "connected", soundEnabled = false, onToggleSound }: InboxHeaderProps) {
+  const t = useTranslations("metaHubUI.inbox.header");
   const statusConfig = {
     connected: {
       icon: Wifi,
       color: "text-[#10b981]",
       bgColor: "bg-[#10b981]/10",
       borderColor: "border-[#10b981]/40",
-      label: "Connected",
+      label: t("connected"),
       pulse: false,
     },
     connecting: {
@@ -267,7 +269,7 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected", sound
       color: "text-[#f59e0b]",
       bgColor: "bg-[#f59e0b]/10",
       borderColor: "border-[#f59e0b]/40",
-      label: "Connecting...",
+      label: t("connecting"),
       pulse: true,
     },
     disconnected: {
@@ -275,7 +277,7 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected", sound
       color: "text-[#6b7280]",
       bgColor: "bg-[#6b7280]/10",
       borderColor: "border-[#6b7280]/40",
-      label: "Offline",
+      label: t("offline"),
       pulse: false,
     },
     error: {
@@ -283,7 +285,7 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected", sound
       color: "text-[#e11d48]",
       bgColor: "bg-[#e11d48]/10",
       borderColor: "border-[#e11d48]/40",
-      label: "Connection Error",
+      label: t("connectionError"),
       pulse: true,
     },
   };
@@ -296,12 +298,12 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected", sound
       <div>
         <div className="mb-1 flex items-center gap-3">
           <span className="rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-0.5 text-xs font-semibold tracking-wider text-[#f9d976]">
-            PILLAR #2
+            {t("pillarLabel")}
           </span>
-          <span className="text-xs text-[#f5f5dc]/50">Imperial Inbox</span>
+          <span className="text-xs text-[#f5f5dc]/50">{t("imperialInbox")}</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-[#f5f5dc]">
-          Gigaviz Messages
+          {t("gigavizMessages")}
         </h1>
       </div>
 
@@ -318,7 +320,7 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected", sound
             title="Toggle interface blip sound when switching chats"
           >
             <Volume2 className={cn("h-4 w-4", soundEnabled ? "text-[#10b981]" : "text-[#f5f5dc]/60")} />
-            <span>{soundEnabled ? "Sound On" : "Sound Off"}</span>
+            <span>{soundEnabled ? t("soundOn") : t("soundOff")}</span>
           </button>
         )}
 
@@ -346,7 +348,7 @@ export function InboxHeader({ unreadCount, connectionStatus = "connected", sound
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#e11d48] opacity-75" />
               <span className="relative inline-flex h-3 w-3 rounded-full bg-[#e11d48]" />
             </div>
-            <span className="text-sm font-semibold text-[#e11d48]">{unreadCount} unread</span>
+            <span className="text-sm font-semibold text-[#e11d48]">{unreadCount} {t("unread")}</span>
           </div>
         )}
       </div>
@@ -403,6 +405,7 @@ export function ContactList({
   selectedThreadIds = new Set(),
   onBulkAction,
 }: ContactListProps) {
+  const t = useTranslations("metaHubUI.inbox.contactList");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const [showSaveViewDialog, setShowSaveViewDialog] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
@@ -413,11 +416,11 @@ export function ContactList({
 
   // Preset views
   const presetViews: SavedView[] = [
-    { id: "preset-open", name: "Open", filters: { status: "open" } },
-    { id: "preset-unassigned", name: "Unassigned", filters: { assigned: "unassigned" } },
-    { id: "preset-my-threads", name: "My Threads", filters: { assigned: currentUserId || "" } },
-    { id: "preset-urgent", name: "Urgent", filters: { showVipOnly: true, quickTab: "unread" } },
-    { id: "preset-needs-reply", name: "Needs Reply", filters: { quickTab: "unread", status: "open" } },
+    { id: "preset-open", name: t("presetOpen"), filters: { status: "open" } },
+    { id: "preset-unassigned", name: t("presetUnassigned"), filters: { assigned: "unassigned" } },
+    { id: "preset-my-threads", name: t("presetMyThreads"), filters: { assigned: currentUserId || "" } },
+    { id: "preset-urgent", name: t("presetUrgent"), filters: { showVipOnly: true, quickTab: "unread" } },
+    { id: "preset-needs-reply", name: t("presetNeedsReply"), filters: { quickTab: "unread", status: "open" } },
   ];
 
   // Count for quick tabs
@@ -465,7 +468,7 @@ export function ContactList({
             )}
           >
             <Inbox className="h-3.5 w-3.5" />
-            All
+            {t("tabAll")}
           </button>
           <button
             onClick={() => onFilterChange({ quickTab: "unread" })}
@@ -477,7 +480,7 @@ export function ContactList({
             )}
           >
             <Bell className="h-3.5 w-3.5" />
-            Unread
+            {t("tabUnread")}
             {unreadCount > 0 && (
               <span className="rounded-full bg-[#e11d48] px-1.5 text-[10px] font-bold text-white">
                 {unreadCount}
@@ -494,7 +497,7 @@ export function ContactList({
             )}
           >
             <UserCheck className="h-3.5 w-3.5" />
-            Mine
+            {t("tabMine")}
             {assignedCount > 0 && (
               <span className="rounded-full bg-[#10b981] px-1.5 text-[10px] font-bold text-white">
                 {assignedCount}
@@ -509,8 +512,8 @@ export function ContactList({
         {/* Filter Stats & Actions Bar */}
         <div className="flex items-center justify-between text-xs text-[#f5f5dc]/60">
           <span>
-            Showing <span className="font-semibold text-[#f9d976]">{quickTabFiltered.length}</span> of{" "}
-            <span className="font-semibold">{threads.length}</span> threads
+            {t("showing")} <span className="font-semibold text-[#f9d976]">{quickTabFiltered.length}</span> {t("of")}{" "}
+            <span className="font-semibold">{threads.length}</span> {t("threads")}
           </span>
           {(filter.status !== "all" || filter.search || filter.showVipOnly || (filter.tags && filter.tags.length > 0)) && (
             <button
@@ -518,7 +521,7 @@ export function ContactList({
               className="flex items-center gap-1 text-[#e11d48] hover:underline"
             >
               <X className="h-3 w-3" />
-              Clear all
+              {t("clearAll")}
             </button>
           )}
         </div>
@@ -531,7 +534,7 @@ export function ContactList({
               type="text"
               value={filter.search}
               onChange={(e) => onFilterChange({ search: e.target.value })}
-              placeholder="Search contacts..."
+              placeholder={t("searchPlaceholder")}
               className="w-full rounded-xl border border-[#d4af37]/20 bg-[#050a18] py-2.5 pl-10 pr-4 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50"
             />
           </div>
@@ -541,12 +544,12 @@ export function ContactList({
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-1.5 rounded-xl border border-[#d4af37]/20 bg-[#050a18] px-3 py-2.5 text-sm font-medium text-[#f9d976] transition-all hover:bg-[#d4af37]/10 hover:border-[#d4af37]/40">
                 <Bookmark className="h-4 w-4" />
-                <span className="hidden sm:inline">Views</span>
+                <span className="hidden sm:inline">{t("views")}</span>
                 <ChevronDown className="h-3 w-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#0a1229] border-[#d4af37]/20">
-              <DropdownMenuLabel className="text-[#f5f5dc]/50 text-xs">Preset Views</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-[#f5f5dc]/50 text-xs">{t("presetViews")}</DropdownMenuLabel>
               {presetViews.map((view) => (
                 <DropdownMenuItem
                   key={view.id}
@@ -563,7 +566,7 @@ export function ContactList({
               {savedViews.length > 0 && (
                 <>
                   <DropdownMenuSeparator className="bg-[#d4af37]/10" />
-                  <DropdownMenuLabel className="text-[#f5f5dc]/50 text-xs">My Views</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-[#f5f5dc]/50 text-xs">{t("myViews")}</DropdownMenuLabel>
                   {savedViews.map((view) => (
                     <DropdownMenuItem
                       key={view.id}
@@ -597,7 +600,7 @@ export function ContactList({
                 className="cursor-pointer text-[#10b981] font-medium"
               >
                 <Plus className="mr-2 h-3.5 w-3.5" />
-                Save current view
+                {t("saveCurrentView")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -607,15 +610,15 @@ export function ContactList({
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-1.5 rounded-xl border border-[#d4af37]/20 bg-[#050a18] px-3 py-2.5 text-sm font-medium text-[#f9d976] transition-all hover:bg-[#d4af37]/10">
                 <ArrowUpDown className="h-4 w-4" />
-                <span className="hidden sm:inline">Sort</span>
+                <span className="hidden sm:inline">{t("sort")}</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-[#0a1229] border-[#d4af37]/20">
               {[
-                { value: "newest", label: "Newest First" },
-                { value: "oldest", label: "Oldest First" },
-                { value: "recent_reply", label: "Recent Reply" },
-                { value: "unread_first", label: "Unread First" },
+                { value: "newest", label: t("newestFirst") },
+                { value: "oldest", label: t("oldestFirst") },
+                { value: "recent_reply", label: t("recentReply") },
+                { value: "unread_first", label: t("unreadFirst") },
               ].map((option) => (
                 <DropdownMenuItem
                   key={option.value}
@@ -659,7 +662,7 @@ export function ContactList({
             )}
           >
             <Crown className="h-3 w-3" />
-            VIP
+            {t("vipFilter")}
           </button>
 
           {/* Tags Dropdown */}
@@ -668,7 +671,7 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all bg-[#f5f5dc]/5 text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/10">
                   <Tag className="h-3 w-3" />
-                  Tags
+                  {t("tags")}
                   {filter.tags && filter.tags.length > 0 && (
                     <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
                       {filter.tags.length}
@@ -704,7 +707,7 @@ export function ContactList({
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all bg-[#f5f5dc]/5 text-[#f5f5dc]/50 hover:bg-[#f5f5dc]/10">
                   <Users className="h-3 w-3" />
-                  Assigned
+                  {t("assigned")}
                   <ChevronDown className="h-3 w-3" />
                 </button>
               </DropdownMenuTrigger>
@@ -716,7 +719,7 @@ export function ContactList({
                     filter.assigned === "all" && "bg-[#d4af37]/20 text-[#f9d976]"
                   )}
                 >
-                  All
+                  {t("assignedAll")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onFilterChange({ assigned: "unassigned" })}
@@ -725,7 +728,7 @@ export function ContactList({
                     filter.assigned === "unassigned" && "bg-[#d4af37]/20 text-[#f9d976]"
                   )}
                 >
-                  Unassigned
+                  {t("unassigned")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-[#d4af37]/10" />
                 {workspaceMembers.map((member) => (
@@ -738,7 +741,7 @@ export function ContactList({
                     )}
                   >
                     {member.full_name || member.email}
-                    {member.user_id === currentUserId && <span className="ml-2 text-[#10b981]">(You)</span>}
+                    {member.user_id === currentUserId && <span className="ml-2 text-[#10b981]">({t("you")})</span>}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -750,7 +753,7 @@ export function ContactList({
         {bulkMode && selectedThreadIds.size > 0 && (
           <div className="flex items-center justify-between rounded-lg border border-[#10b981]/30 bg-[#10b981]/10 p-2">
             <span className="text-xs font-medium text-[#10b981]">
-              {selectedThreadIds.size} thread{selectedThreadIds.size > 1 ? "s" : ""} selected
+              {selectedThreadIds.size} {t("selected")}
             </span>
             <div className="flex gap-1">
               <Button
@@ -759,7 +762,7 @@ export function ContactList({
                 onClick={() => onBulkAction?.("status", "open")}
                 className="h-7 px-2 text-xs text-[#f5f5dc]"
               >
-                Open
+                {t("bulkOpen")}
               </Button>
               <Button
                 size="sm"
@@ -767,7 +770,7 @@ export function ContactList({
                 onClick={() => onBulkAction?.("status", "closed")}
                 className="h-7 px-2 text-xs text-[#f5f5dc]"
               >
-                Close
+                {t("bulkClose")}
               </Button>
               <Button
                 size="sm"
@@ -775,7 +778,7 @@ export function ContactList({
                 onClick={() => onBulkAction?.("assign", currentUserId)}
                 className="h-7 px-2 text-xs text-[#f5f5dc]"
               >
-                Assign to me
+                {t("bulkAssignToMe")}
               </Button>
             </div>
           </div>
@@ -786,11 +789,11 @@ export function ContactList({
       {showSaveViewDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSaveViewDialog(false)}>
           <div className="w-full max-w-md rounded-xl border border-[#d4af37]/20 bg-[#0a1229] p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-4 text-lg font-semibold text-[#f9d976]">Save Current View</h3>
+            <h3 className="mb-4 text-lg font-semibold text-[#f9d976]">{t("saveViewTitle")}</h3>
             <Input
               value={newViewName}
               onChange={(e) => setNewViewName(e.target.value)}
-              placeholder="Enter view name..."
+              placeholder={t("viewNamePlaceholder")}
               className="mb-4 bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newViewName.trim()) {
@@ -809,7 +812,7 @@ export function ContactList({
                 }}
                 className="text-[#f5f5dc]/50"
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={() => {
@@ -822,7 +825,7 @@ export function ContactList({
                 disabled={!newViewName.trim()}
                 className="bg-[#d4af37] text-[#0a1229] hover:bg-[#f9d976]"
               >
-                Save View
+                {t("saveView")}
               </Button>
             </div>
           </div>
@@ -838,11 +841,11 @@ export function ContactList({
         ) : quickTabFiltered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <MessageSquare className="mb-3 h-10 w-10 text-[#f5f5dc]/20" />
-            <p className="text-sm text-[#f5f5dc]/40">No conversations found</p>
+            <p className="text-sm text-[#f5f5dc]/40">{t("noConversations")}</p>
             <p className="mt-1 text-xs text-[#f5f5dc]/30">
-              {filter.quickTab === "unread" && "All caught up!"}
-              {filter.quickTab === "assigned" && "No conversations assigned to you"}
-              {filter.quickTab === "all" && "Start a new conversation"}
+              {filter.quickTab === "unread" && t("allCaughtUp")}
+              {filter.quickTab === "assigned" && t("noAssigned")}
+              {filter.quickTab === "all" && t("startConversation")}
             </p>
           </div>
         ) : (
@@ -875,9 +878,10 @@ interface ContactCardProps {
 }
 
 function ContactCard({ thread, isSelected, onClick, slaHours = 24, nowMs = 0 }: ContactCardProps) {
+  const t = useTranslations("metaHubUI.inbox.contactCard");
   const hasUnread = (thread.unread_count ?? 0) > 0;
   const isVip = thread.contact?.is_vip ?? false;
-  const fullId = thread.contact?.display_name ?? thread.external_thread_id ?? "Unknown";
+  const fullId = thread.contact?.display_name ?? thread.external_thread_id ?? t("unknown");
   const lastMessageAt = thread.last_message_at ? new Date(thread.last_message_at) : null;
   const hoursSinceLast =
     lastMessageAt && !Number.isNaN(lastMessageAt.getTime())
@@ -940,7 +944,7 @@ function ContactCard({ thread, isSelected, onClick, slaHours = 24, nowMs = 0 }: 
             </span>
           )}
         </div>
-        <p className="mt-0.5 truncate text-xs text-[#f5f5dc]/50">{thread.last_message_preview ?? "No messages"}</p>
+        <p className="mt-0.5 truncate text-xs text-[#f5f5dc]/50">{thread.last_message_preview ?? t("noMessages")}</p>
         {/* Labels */}
         {thread.contact?.labels && thread.contact.labels.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
@@ -1037,6 +1041,7 @@ export function ChatTerminal({
   animationsEnabled = true,
   onToggleAnimations,
 }: ChatTerminalProps) {
+  const t = useTranslations("metaHubUI.inbox.chat");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -1087,11 +1092,11 @@ export function ChatTerminal({
   const sendGate = sendDisabledReason
     ? sendDisabledReason
     : !allowSend
-      ? "Workspace is read-only for messaging."
+      ? t("workspaceReadOnly")
       : optOutDetected
-        ? "Recipient requested opt-out; sending is blocked."
+        ? t("recipientOptOut")
         : isExpired
-          ? "24h session window expired. Send an approved template to continue."
+          ? t("sessionExpiredSendTemplate")
           : null;
   const sendBlocked = Boolean(sendGate);
   const isTyping = composerValue.trim().length > 0;
@@ -1120,11 +1125,11 @@ export function ChatTerminal({
             <div className="text-left">
               <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#f5f5dc]/50">
                 <span className="inline-flex h-2 w-2 animate-ping rounded-full bg-[#22d3ee]" />
-                System Pulse
+                {t("systemPulse")}
               </p>
-              <h3 className="mt-2 text-2xl font-bold text-[#f5f5dc]">Operational Telemetry</h3>
+              <h3 className="mt-2 text-2xl font-bold text-[#f5f5dc]">{t("operationalTelemetry")}</h3>
               <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                No thread selected. Monitoring live ingress, response health, and AI automation.
+                {t("noThreadSelected")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -1138,12 +1143,12 @@ export function ChatTerminal({
                       : "border-[#f5f5dc]/20 bg-[#0b1d33]/40 text-[#f5f5dc]/60 hover:border-[#f5f5dc]/40"
                   )}
                 >
-                  {animationsEnabled ? "Animations On" : "Animations Off"}
+                  {animationsEnabled ? t("animationsOn") : t("animationsOff")}
                 </button>
               )}
               <div className="rounded-2xl border border-[#22d3ee]/40 bg-[#0b1d33]/80 px-4 py-2 text-left shadow-[0_0_18px_rgba(34,211,238,0.25)]">
-                <p className="text-[11px] uppercase tracking-wide text-[#22d3ee]">Live Link</p>
-                <p className="font-mono text-lg text-[#f5f5dc]">WHATSAPP-PIPE</p>
+                <p className="text-[11px] uppercase tracking-wide text-[#22d3ee]">{t("liveLink")}</p>
+                <p className="font-mono text-lg text-[#f5f5dc]">{t("whatsappPipe")}</p>
               </div>
             </div>
           </div>
@@ -1151,27 +1156,27 @@ export function ChatTerminal({
           <div className="grid gap-4 md:grid-cols-3">
             <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#0d2344] to-[#050a18] p-4 text-left shadow-[0_0_22px_rgba(212,175,55,0.15)]">
               <div className="absolute right-4 top-4 h-10 w-10 rounded-full bg-[#d4af37]/20 blur-2xl" />
-              <p className="text-xs uppercase tracking-wide text-[#f9d976]">Incoming Today</p>
+              <p className="text-xs uppercase tracking-wide text-[#f9d976]">{t("incomingToday")}</p>
               <p className="mt-2 text-3xl font-bold text-[#f5f5dc]">
                 {telemetryLoading ? "…" : pulseMetrics.incoming}
               </p>
-              <p className="text-[11px] text-[#f5f5dc]/50">Messages ingested</p>
+              <p className="text-[11px] text-[#f5f5dc]/50">{t("messagesIngested")}</p>
             </div>
             <div className="relative overflow-hidden rounded-2xl border border-[#22d3ee]/30 bg-gradient-to-br from-[#0b2a3f] to-[#050a18] p-4 text-left shadow-[0_0_22px_rgba(34,211,238,0.15)]">
               <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-[#22d3ee]/10 blur-2xl" />
-              <p className="text-xs uppercase tracking-wide text-[#22d3ee]">Average Response</p>
+              <p className="text-xs uppercase tracking-wide text-[#22d3ee]">{t("averageResponse")}</p>
               <p className="mt-2 text-3xl font-bold text-[#f5f5dc]">
                 {telemetryLoading ? "…" : pulseMetrics.responseMs !== null ? `${pulseMetrics.responseMs} ms` : "—"}
               </p>
-              <p className="text-[11px] text-[#f5f5dc]/50">Median operator latency</p>
+              <p className="text-[11px] text-[#f5f5dc]/50">{t("medianOperatorLatency")}</p>
             </div>
             <div className="relative overflow-hidden rounded-2xl border border-[#10b981]/30 bg-gradient-to-br from-[#0c2f27] to-[#050a18] p-4 text-left shadow-[0_0_22px_rgba(16,185,129,0.15)]">
               <div className="absolute right-4 top-4 h-12 w-12 rounded-full bg-[#10b981]/15 blur-2xl" />
-              <p className="text-xs uppercase tracking-wide text-[#10b981]">AI Automation</p>
+              <p className="text-xs uppercase tracking-wide text-[#10b981]">{t("aiAutomation")}</p>
               <p className="mt-2 text-3xl font-bold text-[#f5f5dc]">
                 {telemetryLoading ? "…" : `${pulseMetrics.automation}%`}
               </p>
-              <p className="text-[11px] text-[#f5f5dc]/50">Flows autonomously resolved</p>
+              <p className="text-[11px] text-[#f5f5dc]/50">{t("flowsResolved")}</p>
             </div>
           </div>
 
@@ -1182,13 +1187,13 @@ export function ChatTerminal({
                   <Activity className="h-4 w-4 text-[#d4af37]" />
                 </div>
                 <div className="text-left">
-                  <p className="text-xs uppercase tracking-wide text-[#f5f5dc]/50">Throughput Flow</p>
-                  <p className="text-sm text-[#f5f5dc]/80">Linear telemetry · refreshed live</p>
+                  <p className="text-xs uppercase tracking-wide text-[#f5f5dc]/50">{t("throughputFlow")}</p>
+                  <p className="text-sm text-[#f5f5dc]/80">{t("linearTelemetry")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-[11px] text-[#f5f5dc]/50">
                 <span className="flex h-2 w-2 rounded-full bg-[#10b981] shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                {telemetryLoading ? "Syncing..." : "Live feed"}
+                {telemetryLoading ? t("syncing") : t("liveFeed")}
                 {telemetry?.generatedAt && (
                   <span className="text-[10px] text-[#f5f5dc]/40">
                     Updated {formatTime(telemetry.generatedAt)}
@@ -1247,7 +1252,7 @@ export function ChatTerminal({
           </div>
           <div>
             <p className="font-semibold text-[#f5f5dc]">{thread.contact?.display_name ?? thread.external_thread_id}</p>
-            <p className="text-xs text-[#f5f5dc]/40">{thread.contact?.phone ?? "No phone"}</p>
+            <p className="text-xs text-[#f5f5dc]/40">{thread.contact?.phone ?? t("noPhone")}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1263,10 +1268,10 @@ export function ChatTerminal({
               )}
             >
               {sessionInfo.state === "active"
-                ? "Session Active"
+                ? t("sessionActive")
                 : sessionInfo.state === "expired"
-                  ? "Session Expired"
-                  : "Session Unknown"}
+                  ? t("sessionExpired")
+                  : t("sessionUnknown")}
             </span>
           )}
           {threadStatus && (
@@ -1292,14 +1297,14 @@ export function ChatTerminal({
               ) : (
                 <>
                   <AlertCircle className="h-3.5 w-3.5" />
-                  Escalate
+                  {t("escalate")}
                 </>
               )}
             </button>
           )}
           {viewingAgents && viewingAgents.length > 0 && (
             <div className="flex items-center gap-1">
-              <span className="mr-1 text-xs text-[#f5f5dc]/40">Viewing:</span>
+              <span className="mr-1 text-xs text-[#f5f5dc]/40">{t("viewingLabel")}</span>
               <div className="flex -space-x-2">
                 {viewingAgents.slice(0, 3).map((agent) => (
                   <div
@@ -1330,8 +1335,8 @@ export function ChatTerminal({
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <MessageSquare className="mb-3 h-10 w-10 text-[#f5f5dc]/20" />
-            <p className="text-sm text-[#f5f5dc]/40">No messages yet</p>
-            <p className="mt-2 text-xs text-[#f5f5dc]/30">Start the conversation!</p>
+            <p className="text-sm text-[#f5f5dc]/40">{t("noMessagesYet")}</p>
+            <p className="mt-2 text-xs text-[#f5f5dc]/30">{t("startConversation")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -1354,11 +1359,11 @@ export function ChatTerminal({
             )}
           >
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide">Session Window</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide">{t("sessionWindow")}</p>
               <p className="text-[11px] opacity-80">
                 {sessionInfo?.active
                   ? `${sessionInfo.remainingMinutes ?? 0}m left • last inbound ${sessionInfo.lastInboundAt ? formatTime(sessionInfo.lastInboundAt) : "unknown"}`
-                  : "Expired • send an approved template"}
+                  : t("sessionExpiredTemplate")}
               </p>
             </div>
             <Clock className="h-4 w-4 flex-shrink-0" />
@@ -1372,11 +1377,11 @@ export function ChatTerminal({
             )}
           >
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide">Opt-Out Guard</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide">{t("optOutGuard")}</p>
               <p className="text-[11px] opacity-80">
                 {optOutDetected
-                  ? "Customer asked to stop. Do not message."
-                  : "No opt-out detected. Keep responses compliant."}
+                  ? t("optOutDetected")
+                  : t("noOptOutDetected")}
               </p>
             </div>
             <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -1393,7 +1398,7 @@ export function ChatTerminal({
             >
               <div className="mb-2 flex items-center gap-2 px-2 text-xs text-[#f5f5dc]/50">
                 <Hash className="h-3 w-3" />
-                Quick Responses (type / to filter)
+                {t("quickResponsesHint")}
               </div>
               {filteredCanned.length > 0 ? (
                 filteredCanned.map((r) => (
@@ -1407,7 +1412,7 @@ export function ChatTerminal({
                   </button>
                 ))
               ) : (
-                <p className="px-2 py-4 text-center text-xs text-[#f5f5dc]/30">No matching responses</p>
+                <p className="px-2 py-4 text-center text-xs text-[#f5f5dc]/30">{t("noMatchingResponses")}</p>
               )}
             </motion.div>
           )}
@@ -1421,7 +1426,7 @@ export function ChatTerminal({
                 href={sendDisabledCtaHref}
                 className="rounded-lg border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-[11px] font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20"
               >
-                {sendDisabledCtaLabel ?? "Fix in Connections"}
+                {sendDisabledCtaLabel ?? t("fixInConnections")}
               </Link>
             )}
             {isExpired && onOpenTemplates && (
@@ -1429,7 +1434,7 @@ export function ChatTerminal({
                 onClick={onOpenTemplates}
                 className="rounded-lg border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-[11px] font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20"
               >
-                Send Template
+                {t("sendTemplate")}
               </button>
             )}
           </div>
@@ -1442,7 +1447,7 @@ export function ChatTerminal({
               className="flex items-center gap-1.5 rounded-lg border border-[#d4af37]/30 bg-[#d4af37]/10 px-3 py-1.5 text-xs font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20"
             >
               <FileText className="h-3.5 w-3.5" />
-              Templates
+              {t("templates")}
             </button>
           )}
           {(onOpenHelper || onGenerateAIDraft) && (
@@ -1454,19 +1459,19 @@ export function ChatTerminal({
               {aiDraftLoading ? (
                 <>
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border border-[#e11d48] border-t-transparent" />
-                  Generating...
+                  {t("generating")}
                 </>
               ) : (
                 <>
                   <Wand2 className="h-3.5 w-3.5" />
-                  AI Draft
+                  {t("aiDraft")}
                 </>
               )}
             </button>
           )}
           <div className="flex-1" />
           <span className="text-[10px] text-[#f5f5dc]/30">
-            Type <kbd className="rounded bg-[#f5f5dc]/10 px-1">/</kbd> for quick responses
+            {t("typeSlashHint")}
           </span>
         </div>
 
@@ -1479,7 +1484,7 @@ export function ChatTerminal({
           {aiAssistMode && (
             <div className="absolute -top-4 right-16 flex items-center gap-2 rounded-full border border-[#22d3ee]/40 bg-[#0a1229]/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#22d3ee] shadow-[0_0_12px_rgba(34,211,238,0.2)]">
               <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#22d3ee]" />
-              AI Suggestion Mode
+              {t("aiSuggestionMode")}
             </div>
           )}
           <div className="flex gap-1">
@@ -1506,10 +1511,10 @@ export function ChatTerminal({
               disabled={composerDisabled}
               placeholder={
                 optOutDetected
-                  ? "Opt-out detected. Do not message this contact."
+                  ? t("optOutPlaceholder")
                   : isExpired
-                    ? "Session expired. Send a template to resume."
-                    : "Type a message, use / for canned responses"
+                    ? t("sessionExpiredPlaceholder")
+                    : t("composerPlaceholder")
               }
               rows={1}
               className={cn(
@@ -1564,6 +1569,7 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({ message, onReply, onStar, onForward }: MessageBubbleProps) {
+  const t = useTranslations("metaHubUI.inbox.messageBubble");
   const isOutbound = ["out", "outbound", "outgoing"].includes(message.direction);
   const text = message.text_body ?? (message.content_json as { text?: string })?.text ?? "";
   // Derive status: if null but outbound with sent_at, treat as 'sent'
@@ -1583,47 +1589,47 @@ function MessageBubble({ message, onReply, onStar, onForward }: MessageBubblePro
       case "pending":
       case "queued":
         return {
-          label: derivedStatus === "queued" ? "Queued" : "Sending",
+          label: derivedStatus === "queued" ? t("queued") : t("sending"),
           icon: <Clock className="h-3 w-3 animate-pulse text-[#9ca3af]" />,
-          tooltip: updatedAtLabel ? `${derivedStatus === "queued" ? "Queued" : "Sending"} · ${updatedAtLabel}` : "Queued for delivery",
+          tooltip: updatedAtLabel ? `${derivedStatus === "queued" ? t("queued") : t("sending")} · ${updatedAtLabel}` : t("queuedDesc"),
         } as const;
       case "sent":
         return {
-          label: "Sent",
+          label: t("sent"),
           icon: <Check className="h-3 w-3 text-[#9ca3af]" />,
-          tooltip: updatedAtLabel ? `Sent · ${updatedAtLabel}` : "Sent to WhatsApp",
+          tooltip: updatedAtLabel ? `${t("sent")} · ${updatedAtLabel}` : t("sentDesc"),
         } as const;
       case "delivered":
         return {
-          label: "Delivered",
+          label: t("delivered"),
           icon: <CheckCheck className="h-3 w-3 text-[#e5e7eb]" />,
-          tooltip: updatedAtLabel ? `Delivered · ${updatedAtLabel}` : "Delivered to device",
+          tooltip: updatedAtLabel ? `${t("delivered")} · ${updatedAtLabel}` : t("deliveredDesc"),
         } as const;
       case "read":
       case "seen":
         return {
-          label: "Read",
+          label: t("read"),
           icon: <CheckCheck className="h-3 w-3 text-[#38bdf8]" />,
-          tooltip: updatedAtLabel ? `Read · ${updatedAtLabel}` : "Read by recipient",
+          tooltip: updatedAtLabel ? `${t("read")} · ${updatedAtLabel}` : t("readDesc"),
         } as const;
       case "failed":
       case "undelivered":
       case "error":
         return {
-          label: "Failed",
+          label: t("failed"),
           icon: <AlertCircle className="h-3 w-3 text-[#e11d48]" />,
           tooltip: errorReason
-            ? `Failed: ${errorReason}`
+            ? `${t("failed")}: ${errorReason}`
             : updatedAtLabel
-              ? `Failed · ${updatedAtLabel}`
-              : "Delivery failed",
+              ? `${t("failed")} · ${updatedAtLabel}`
+              : t("failedDesc"),
         } as const;
       default:
         // If still no status, show pending clock for outbound
         return {
-          label: derivedStatus ? derivedStatus : "Pending",
+          label: derivedStatus ? derivedStatus : t("pending"),
           icon: derivedStatus ? <Check className="h-3 w-3 text-[#9ca3af]" /> : <Clock className="h-3 w-3 text-[#9ca3af]" />,
-          tooltip: updatedAtLabel ? `Status: ${derivedStatus ?? "pending"} · ${updatedAtLabel}` : "Awaiting delivery status",
+          tooltip: updatedAtLabel ? `Status: ${derivedStatus ?? t("pending")} · ${updatedAtLabel}` : t("pendingDesc"),
         } as const;
     }
   })();
@@ -1791,6 +1797,7 @@ export function CRMSidebar({
   sentimentText,
   nowMs = 0,
 }: CRMSidebarProps) {
+  const t = useTranslations("metaHubUI.inbox.crm");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteValue, setNoteValue] = useState("");
@@ -1799,31 +1806,31 @@ export function CRMSidebar({
   const profileAura = useMemo(() => {
     if (!contact) {
       return {
-        label: "New Lead",
+        label: t("newLead"),
         ring: "bg-gradient-to-br from-[#0f172a] via-[#0a1229] to-[#050a18] shadow-[0_0_22px_rgba(34,211,238,0.05)]",
         chip: "border-[#22d3ee]/40 bg-[#22d3ee]/10 text-[#22d3ee]",
       };
     }
     if (contact.is_vip) {
       return {
-        label: "VIP",
+        label: t("vip"),
         ring: "bg-gradient-to-br from-[#f9d976] via-[#d4af37] to-[#a5720d] shadow-[0_0_22px_rgba(212,175,55,0.45)]",
         chip: "border-[#d4af37]/50 bg-[#d4af37]/15 text-[#d4af37]",
       };
     }
     if (contact.labels?.some((l) => l.toLowerCase().includes("verified"))) {
       return {
-        label: "Verified",
+        label: t("verified"),
         ring: "bg-gradient-to-br from-[#22d3ee] via-[#0ea5e9] to-[#0b4f7f] shadow-[0_0_22px_rgba(34,211,238,0.35)]",
         chip: "border-[#22d3ee]/50 bg-[#22d3ee]/15 text-[#22d3ee]",
       };
     }
     return {
-      label: "New Lead",
+      label: t("newLead"),
       ring: "bg-gradient-to-br from-[#4ade80] via-[#22d3ee] to-[#0ea5e9] shadow-[0_0_22px_rgba(74,222,128,0.25)]",
       chip: "border-[#4ade80]/40 bg-[#4ade80]/10 text-[#4ade80]",
     };
-  }, [contact]);
+  }, [contact, t]);
   const moodScore = useMemo(() => {
     if (typeof sentimentScore === "number") return Math.max(5, Math.min(95, Math.round(sentimentScore)));
     if (!contact) return 48;
@@ -1839,37 +1846,37 @@ export function CRMSidebar({
   }, [contact, sentimentScore, nowMs]);
   const moodLabel =
     sentimentLabel ??
-    (moodScore >= 70 ? "Calm" : moodScore >= 45 ? "Neutral" : "Alert");
+    (moodScore >= 70 ? t("moodCalm") : moodScore >= 45 ? t("moodNeutral") : t("moodAlert"));
   const lastInteraction = contact?.activity_timeline?.[0];
   const quickStats = useMemo(
     () => [
       {
-        label: "Contact ID",
+        label: t("contactId"),
         value: contact?.id ? contact.id : "n/a",
         accent: "#d4af37",
         monospace: true,
       },
       {
-        label: "Last Interaction",
+        label: t("lastInteraction"),
         value:
           lastInteraction?.description ??
           (contact?.last_seen_at && !Number.isNaN(new Date(contact.last_seen_at).getTime())
             ? formatTime(contact.last_seen_at)
-            : "No recent touch"),
+            : t("noRecentTouch")),
         accent: "#22d3ee",
       },
       {
-        label: "Status",
+        label: t("status"),
         value: profileAura.label,
         accent: "#4ade80",
       },
       {
-        label: "Mood",
+        label: t("mood"),
         value: `${moodScore}% ${moodLabel}`,
         accent: moodScore >= 70 ? "#22c55e" : moodScore >= 45 ? "#eab308" : "#ef4444",
       },
     ],
-    [contact, lastInteraction, profileAura.label, moodLabel, moodScore]
+    [contact, lastInteraction, profileAura.label, moodLabel, moodScore, t]
   );
 
   const handleSubmitNote = async () => {
@@ -1898,7 +1905,7 @@ export function CRMSidebar({
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[#d4af37]/10 p-4">
-            <h3 className="text-sm font-semibold text-[#d4af37]">SOVEREIGN CRM</h3>
+            <h3 className="text-sm font-semibold text-[#d4af37]">{t("title")}</h3>
             <button
               onClick={onClose}
               title="Close sidebar"
@@ -1919,7 +1926,7 @@ export function CRMSidebar({
                   : "text-[#f5f5dc]/50 hover:text-[#f5f5dc]/70"
               )}
             >
-              Details
+              {t("detailsTab")}
             </button>
             <button
               onClick={() => setActiveTab("media")}
@@ -1931,7 +1938,7 @@ export function CRMSidebar({
               )}
             >
               <ImageIcon className="h-3.5 w-3.5" />
-              Media
+              {t("mediaTab")}
               {mediaItems.length > 0 && (
                 <span className="rounded-full bg-[#d4af37]/20 px-1.5 text-[10px]">{mediaItems.length}</span>
               )}
@@ -1967,7 +1974,7 @@ export function CRMSidebar({
                         {profileAura.label}
                       </div>
                     </div>
-                    <h4 className="text-lg font-bold text-[#f5f5dc]">{contact.display_name ?? "Unknown"}</h4>
+                    <h4 className="text-lg font-bold text-[#f5f5dc]">{contact.display_name ?? t("unknownContact")}</h4>
                     {contact.phone && (
                       <TooltipProvider delayDuration={150}>
                         <Tooltip>
@@ -2001,7 +2008,7 @@ export function CRMSidebar({
                         )}
                       >
                         <Crown className="h-3 w-3" />
-                        {contact.is_vip ? "VIP Status" : "Mark as VIP"}
+                        {contact.is_vip ? t("vipStatus") : t("markAsVip")}
                       </button>
                     )}
 
@@ -2009,22 +2016,22 @@ export function CRMSidebar({
                     <div className="mt-4 flex flex-wrap justify-center gap-2">
                       {contact.is_vip && (
                         <span className="animate-pulse rounded-full border-2 border-[#d4af37] bg-[#d4af37]/10 px-3 py-1 text-[10px] font-bold tracking-wider text-[#d4af37] shadow-[0_0_8px_rgba(212,175,55,0.3)]">
-                          VIP LEAD
+                          {t("vipLead")}
                         </span>
                       )}
                       {contact.labels?.includes("founder") && (
                         <span className="animate-pulse rounded-full border-2 border-[#e11d48] bg-[#e11d48]/10 px-3 py-1 text-[10px] font-bold tracking-wider text-[#e11d48] shadow-[0_0_8px_rgba(225,29,72,0.3)]">
-                          FOUNDER
+                          {t("founder")}
                         </span>
                       )}
                       {contact.labels?.includes("enterprise") && (
                         <span className="rounded-full border-2 border-[#10b981] bg-[#10b981]/10 px-3 py-1 text-[10px] font-bold tracking-wider text-[#10b981]">
-                          ENTERPRISE
+                          {t("enterprise")}
                         </span>
                       )}
                       {contact.labels?.includes("priority") && (
                         <span className="rounded-full border-2 border-[#f9d976] bg-[#f9d976]/10 px-3 py-1 text-[10px] font-bold tracking-wider text-[#f9d976]">
-                          PRIORITY
+                          {t("priority")}
                         </span>
                       )}
                     </div>
@@ -2038,8 +2045,8 @@ export function CRMSidebar({
                           <Activity className="h-4 w-4 text-[#10b981]" />
                         </div>
                         <div className="space-y-1.5">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-[#10b981] leading-tight">Customer Mood Scan</p>
-                          <p className="text-[11px] text-[#f5f5dc]/60 leading-snug">AI-toned sentiment trajectory</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[#10b981] leading-tight">{t("customerMoodScan")}</p>
+                          <p className="text-[11px] text-[#f5f5dc]/60 leading-snug">{t("aiTonedSentiment")}</p>
                           <p className="text-[11px] text-[#f5f5dc]/70 leading-snug">{moodLabel}</p>
                         </div>
                       </div>
@@ -2055,9 +2062,9 @@ export function CRMSidebar({
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.15),transparent_35%)] opacity-40" />
                     </div>
                     <div className="flex justify-between px-0.5 text-[10px] uppercase tracking-wide text-[#f5f5dc]/40">
-                      <span>Calm</span>
-                      <span>Neutral</span>
-                      <span>Alert</span>
+                      <span>{t("moodCalm")}</span>
+                      <span>{t("moodNeutral")}</span>
+                      <span>{t("moodAlert")}</span>
                     </div>
                     {sentimentText && (
                       <p className="line-clamp-2 pt-1 text-center text-[11px] italic text-[#f5f5dc]/60">
@@ -2069,8 +2076,8 @@ export function CRMSidebar({
                   {/* Quick Stats */}
                   <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3">
                     {quickStats.map((stat) => {
-                      const isLastInteraction = stat.label.toLowerCase() === "last interaction";
-                      const isContactId = stat.label.toLowerCase() === "contact id";
+                      const isLastInteraction = stat.label === t("lastInteraction");
+                      const isContactId = stat.label === t("contactId");
                       return (
                         <div
                         key={stat.label}
@@ -2120,13 +2127,13 @@ export function CRMSidebar({
                     {contact.created_at && (
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-[#d4af37]" />
-                        <span className="text-[#f5f5dc]/70">Joined {formatDate(contact.created_at)}</span>
+                        <span className="text-[#f5f5dc]/70">{t("joined")} {formatDate(contact.created_at)}</span>
                       </div>
                     )}
                     {contact.last_seen_at && (
                       <div className="flex items-center gap-2 text-sm">
                         <Clock className="h-4 w-4 text-[#d4af37]" />
-                        <span className="text-[#f5f5dc]/70">Last seen {formatTime(contact.last_seen_at)}</span>
+                        <span className="text-[#f5f5dc]/70">{t("lastSeen")} {formatTime(contact.last_seen_at)}</span>
                       </div>
                     )}
                   </div>
@@ -2136,10 +2143,10 @@ export function CRMSidebar({
                     <div className="mb-2 flex items-center justify-between">
                       <h5 className="flex items-center gap-1.5 text-xs font-semibold text-[#d4af37]">
                         <Tag className="h-3.5 w-3.5" />
-                        LABELS
+                        {t("labels")}
                       </h5>
                       {onUpdateLabels && (
-                        <button title="Add label" className="text-[#f5f5dc]/40 hover:text-[#f5f5dc]">
+                        <button title={t("addLabel")} className="text-[#f5f5dc]/40 hover:text-[#f5f5dc]">
                           <Plus className="h-3.5 w-3.5" />
                         </button>
                       )}
@@ -2165,7 +2172,7 @@ export function CRMSidebar({
                     <div className="mb-2 flex items-center justify-between">
                       <h5 className="flex items-center gap-1.5 text-xs font-semibold text-[#d4af37]">
                         <Edit3 className="h-3.5 w-3.5" />
-                        TEAM NOTES
+                        {t("teamNotes")}
                       </h5>
                       {onAddNote && (
                         <button
@@ -2195,7 +2202,7 @@ export function CRMSidebar({
                             <textarea
                               value={noteValue}
                               onChange={(e) => setNoteValue(e.target.value)}
-                              placeholder="Add a note for your team..."
+                              placeholder={t("addNote")}
                               rows={3}
                               className="w-full resize-none bg-transparent text-xs text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none"
                             />
@@ -2207,7 +2214,7 @@ export function CRMSidebar({
                                 }}
                                 className="rounded-lg px-3 py-1.5 text-xs text-[#f5f5dc]/50 hover:text-[#f5f5dc]"
                               >
-                                Cancel
+                                {t("cancelNote")}
                               </button>
                               <button
                                 onClick={handleSubmitNote}
@@ -2224,7 +2231,7 @@ export function CRMSidebar({
                                 ) : (
                                   <>
                                     <Plus className="h-3 w-3" />
-                                    Save
+                                    {t("saveNote")}
                                   </>
                                 )}
                               </button>
@@ -2248,7 +2255,7 @@ export function CRMSidebar({
                           </div>
                         ))
                       ) : (
-                        <p className="text-xs text-[#f5f5dc]/30">No notes yet</p>
+                        <p className="text-xs text-[#f5f5dc]/30">{t("noNotesYet")}</p>
                       )}
                     </div>
                   </div>
@@ -2257,7 +2264,7 @@ export function CRMSidebar({
                   <div>
                     <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#d4af37]">
                       <Activity className="h-3.5 w-3.5" />
-                      ACTIVITY
+                      {t("activity")}
                     </h5>
                     <div className="relative space-y-3 pl-4">
                       <div className="absolute bottom-0 left-1.5 top-0 w-0.5 bg-[#d4af37]/20" />
@@ -2270,7 +2277,7 @@ export function CRMSidebar({
                           </div>
                         ))
                       ) : (
-                        <p className="text-xs text-[#f5f5dc]/30">No activity recorded</p>
+                        <p className="text-xs text-[#f5f5dc]/30">{t("noActivity")}</p>
                       )}
                     </div>
                   </div>
@@ -2331,9 +2338,9 @@ export function CRMSidebar({
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <ImageIcon className="mb-3 h-10 w-10 text-[#f5f5dc]/20" />
-                      <p className="text-sm text-[#f5f5dc]/40">No media shared</p>
+                      <p className="text-sm text-[#f5f5dc]/40">{t("noMediaShared")}</p>
                       <p className="mt-1 text-xs text-[#f5f5dc]/30">
-                        Images, videos, and documents will appear here
+                        {t("mediaDescription")}
                       </p>
                     </div>
                   )}
@@ -2343,7 +2350,7 @@ export function CRMSidebar({
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center text-center">
               <User className="mb-3 h-10 w-10 text-[#f5f5dc]/20" />
-              <p className="text-sm text-[#f5f5dc]/40">Select a contact</p>
+              <p className="text-sm text-[#f5f5dc]/40">{t("selectAContact")}</p>
             </div>
           )}
         </motion.div>
@@ -2360,18 +2367,19 @@ interface DemoChecklistPanelProps {
 }
 
 export function DemoChecklistPanel({ sessionInfo, optOutDetected, allowSend, threadStatus }: DemoChecklistPanelProps) {
+  const t = useTranslations("metaHubUI.inbox.demoChecklist");
   const items = [
-    { label: "24h session active", ok: sessionInfo?.state === "active" },
-    { label: "No opt-out detected", ok: !optOutDetected },
-    { label: "Workspace can send", ok: allowSend },
-    { label: "Thread not escalated", ok: threadStatus !== "escalated" },
+    { label: t("sessionActive24h"), ok: sessionInfo?.state === "active" },
+    { label: t("noOptOutDetected"), ok: !optOutDetected },
+    { label: t("workspaceCanSend"), ok: allowSend },
+    { label: t("threadNotEscalated"), ok: threadStatus !== "escalated" },
   ];
 
   return (
     <div className="fixed bottom-4 right-4 z-40 w-72 rounded-2xl border border-[#d4af37]/20 bg-[#050a18]/95 p-4 shadow-2xl backdrop-blur">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#f5f5dc]">Demo Checklist</p>
-        <span className="text-[10px] uppercase tracking-wide text-[#f5f5dc]/40">Compliance</span>
+        <p className="text-sm font-semibold text-[#f5f5dc]">{t("title")}</p>
+        <span className="text-[10px] uppercase tracking-wide text-[#f5f5dc]/40">{t("compliance")}</span>
       </div>
       <div className="space-y-2">
         {items.map((item, idx) => (
@@ -2415,6 +2423,7 @@ export function TemplateVariableModal({
   sending,
   preview,
 }: TemplateVariableModalProps) {
+  const t = useTranslations("metaHubUI.inbox.templateModal");
   if (!isOpen || !template) return null;
 
   return (
@@ -2428,7 +2437,7 @@ export function TemplateVariableModal({
       >
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-[#f5f5dc]/50">Template</p>
+            <p className="text-[11px] uppercase tracking-wide text-[#f5f5dc]/50">{t("templateLabel")}</p>
             <h3 className="text-lg font-bold text-[#f5f5dc]">{template.name}</h3>
           </div>
           <button title="Close" onClick={onClose} className="rounded-lg p-1 text-[#f5f5dc]/40 hover:text-[#f5f5dc]">
@@ -2438,18 +2447,18 @@ export function TemplateVariableModal({
 
         <div className="space-y-3">
           {variables.length === 0 ? (
-            <p className="text-sm text-[#f5f5dc]/60">No variables required for this template.</p>
+            <p className="text-sm text-[#f5f5dc]/60">{t("noVariablesRequired")}</p>
           ) : (
             variables.map((value, idx) => (
               <div key={idx} className="space-y-1">
                 <label className="text-[11px] font-semibold uppercase tracking-wide text-[#f5f5dc]/50">
-                  Variable {idx + 1}
+                  {t("variableLabel")} {idx + 1}
                 </label>
                 <input
                   value={value}
                   onChange={(e) => onChange(idx, e.target.value)}
                   className="w-full rounded-lg border border-[#d4af37]/30 bg-[#050a18]/60 px-3 py-2 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:border-[#d4af37]/60 focus:outline-none"
-                  placeholder="Enter value"
+                  placeholder={t("enterValue")}
                 />
               </div>
             ))
@@ -2458,7 +2467,7 @@ export function TemplateVariableModal({
 
         {preview && (
           <div className="mt-4 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-3">
-            <p className="mb-2 text-[11px] uppercase tracking-wide text-[#f5f5dc]/50">Preview</p>
+            <p className="mb-2 text-[11px] uppercase tracking-wide text-[#f5f5dc]/50">{t("preview")}</p>
             <p className="whitespace-pre-wrap text-sm text-[#f5f5dc]/80">{preview}</p>
           </div>
         )}
@@ -2468,7 +2477,7 @@ export function TemplateVariableModal({
             onClick={onClose}
             className="rounded-lg px-3 py-2 text-xs font-semibold text-[#f5f5dc]/60 hover:text-[#f5f5dc]"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={onSend}
@@ -2485,7 +2494,7 @@ export function TemplateVariableModal({
             ) : (
               <Send className="h-4 w-4" />
             )}
-            Send Template
+            {t("sendTemplate")}
           </button>
         </div>
       </motion.div>
@@ -2505,6 +2514,7 @@ interface TemplateShortcutModalProps {
 }
 
 export function TemplateShortcutModal({ isOpen, onClose, templates, onSelect }: TemplateShortcutModalProps) {
+  const t = useTranslations("metaHubUI.inbox.templateShortcut");
   if (!isOpen) return null;
 
   return (
@@ -2517,7 +2527,7 @@ export function TemplateShortcutModal({ isOpen, onClose, templates, onSelect }: 
         className="relative z-10 w-full max-w-lg rounded-2xl border border-[#d4af37]/30 bg-gradient-to-br from-[#0a1229] to-[#050a18] p-6 shadow-2xl"
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-[#f5f5dc]">Quick Templates</h3>
+          <h3 className="text-lg font-bold text-[#f5f5dc]">{t("quickTemplates")}</h3>
           <button title="Close" onClick={onClose} className="rounded-lg p-1 text-[#f5f5dc]/40 hover:text-[#f5f5dc]">
             <X className="h-5 w-5" />
           </button>
@@ -2530,7 +2540,7 @@ export function TemplateShortcutModal({ isOpen, onClose, templates, onSelect }: 
               className="flex flex-col items-start rounded-xl border border-[#d4af37]/20 bg-[#050a18]/50 p-3 text-left transition-all hover:border-[#d4af37]/50 hover:bg-[#d4af37]/10"
             >
               <p className="font-mono text-sm font-semibold text-[#f5f5dc]">{tpl.name}</p>
-              <p className="mt-1 line-clamp-2 text-xs text-[#f5f5dc]/50">{tpl.body ?? "No preview"}</p>
+              <p className="mt-1 line-clamp-2 text-xs text-[#f5f5dc]/50">{tpl.body ?? t("noPreview")}</p>
             </button>
           ))}
         </div>
@@ -2544,14 +2554,12 @@ export function TemplateShortcutModal({ isOpen, onClose, templates, onSelect }: 
    ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
 
 export function ImperiumInboxFooter() {
+  const t = useTranslations("metaHubUI.connections.footer");
   return (
     <footer className="border-t border-[#d4af37]/10 bg-[#050a18] py-4 text-center">
       <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
-        <p>
-          Gigaviz is a Verified Technology Provider for solutions built on the
-          WhatsApp Business Platform (Cloud API).
-        </p>
-        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
+        <p>{t("verifiedProvider")}</p>
+        <p className="mt-2">{t("metaTrademarks")}</p>
       </div>
     </footer>
   );

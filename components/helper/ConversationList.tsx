@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { type HelperConversation, relativeTime } from "./types";
 
@@ -50,7 +50,7 @@ function ConversationListComponent({
   onDelete,
   isCreating = false,
 }: Props) {
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.imperiumHelper");
   const [query, setQuery] = useState("");
   const [renameDialog, setRenameDialog] = useState<{ id: string; title: string } | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
@@ -78,7 +78,7 @@ function ConversationListComponent({
       {/* Header */}
       <div className="flex-none space-y-3 p-4 border-b border-gigaviz-border/60">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-semibold">{copy.conversations}</h2>
+          <h2 className="text-base font-semibold">{t("conversations")}</h2>
           <Button
             size="sm"
             onClick={onNew}
@@ -90,13 +90,13 @@ function ConversationListComponent({
             ) : (
               <PlusIcon className="h-4 w-4" />
             )}
-            {copy.new}
+            {t("new")}
           </Button>
         </div>
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder={copy.searchPlaceholder}
+            placeholder={t("searchPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-9 bg-gigaviz-surface/50"
@@ -111,7 +111,7 @@ function ConversationListComponent({
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <MessageSquareIcon className="h-8 w-8 text-muted-foreground/50 mb-3" />
               <p className="text-sm text-muted-foreground">
-                {conversations.length === 0 ? copy.noConversations : "No matches found"}
+                {conversations.length === 0 ? t("noConversations") : t("noMatchesFound")}
               </p>
               {conversations.length === 0 && (
                 <Button
@@ -121,7 +121,7 @@ function ConversationListComponent({
                   disabled={isCreating}
                   className="mt-2"
                 >
-                  {copy.createFirst}
+                  {t("createFirst")}
                 </Button>
               )}
             </div>
@@ -146,7 +146,7 @@ function ConversationListComponent({
                   </p>
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className="text-xs text-muted-foreground">
-                      {copy.updated} {relativeTime(c.updatedAt)}
+                      {t("updated")} {relativeTime(c.updatedAt)}
                     </span>
                     {c.lastSnippet && (
                       <span className="text-xs text-muted-foreground/60 truncate max-w-[100px]">
@@ -175,7 +175,7 @@ function ConversationListComponent({
                       }}
                     >
                       <PencilIcon className="h-4 w-4 mr-2" />
-                      {copy.rename}
+                      {t("rename")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={(e) => {
@@ -185,7 +185,7 @@ function ConversationListComponent({
                       className="text-rose-400"
                     >
                       <TrashIcon className="h-4 w-4 mr-2" />
-                      {copy.delete}
+                      {t("delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -199,7 +199,7 @@ function ConversationListComponent({
       <Dialog open={!!renameDialog} onOpenChange={() => setRenameDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{copy.rename}</DialogTitle>
+            <DialogTitle>{t("rename")}</DialogTitle>
           </DialogHeader>
           <Input
             value={renameDialog?.title ?? ""}
@@ -211,9 +211,9 @@ function ConversationListComponent({
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenameDialog(null)}>
-              {copy.cancel}
+              {t("cancel")}
             </Button>
-            <Button onClick={handleRename}>{copy.confirm}</Button>
+            <Button onClick={handleRename}>{t("confirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -222,15 +222,15 @@ function ConversationListComponent({
       <Dialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{copy.deleteConfirmTitle}</DialogTitle>
-            <DialogDescription>{copy.deleteConfirmDesc}</DialogDescription>
+            <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
+            <DialogDescription>{t("deleteConfirmDesc")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog(null)}>
-              {copy.cancel}
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
-              {copy.delete}
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

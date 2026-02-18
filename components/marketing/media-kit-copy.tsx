@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type MediaKitCopyProps = {
   title: string;
@@ -8,6 +9,7 @@ type MediaKitCopyProps = {
 };
 
 export default function MediaKitCopyBlock({ title, text }: MediaKitCopyProps) {
+  const t = useTranslations("marketingUI");
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,7 +64,7 @@ export default function MediaKitCopyBlock({ title, text }: MediaKitCopyProps) {
           onClick={handleCopy}
           className="inline-flex items-center rounded-2xl border border-[color:var(--gv-border)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
         >
-          {copied ? "Copied" : "Copy"}
+          {copied ? t("mediaKit.copied") : t("mediaKit.copy")}
         </button>
       </div>
       <p className="mt-3 text-sm text-[color:var(--gv-muted)] leading-relaxed whitespace-pre-line">

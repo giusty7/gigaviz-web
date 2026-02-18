@@ -106,14 +106,18 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
       name: t("channelInstagram"),
       status: instagramStatus,
       desc: t("channelInstagramDesc"),
-      stats: [t("statusComingSoon"), t("statusNotifyMe")],
+      stats: instagramStatus === "beta"
+        ? [t("statusReadyToConnect"), t("statusDirectMessages")]
+        : [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/messaging/instagram`,
     },
     {
       name: t("channelMessenger"),
       status: messengerStatus,
       desc: t("channelMessengerDesc"),
-      stats: [t("statusComingSoon"), t("statusNotifyMe")],
+      stats: messengerStatus === "beta"
+        ? [t("statusReadyToConnect"), t("statusPageMessaging")]
+        : [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/messaging/messenger`,
     },
     {
@@ -127,7 +131,9 @@ export default async function MetaHubOverviewPage({ params }: PageProps) {
       name: t("channelInsights"),
       status: insightsStatus,
       desc: t("channelInsightsDesc"),
-      stats: [t("statusComingSoon"), t("statusNotifyMe")],
+      stats: insightsStatus === "beta"
+        ? [t("statusAvailable"), t("statusAnalytics")]
+        : [t("statusComingSoon"), t("statusNotifyMe")],
       href: `${basePath}/insights`,
     },
   ];

@@ -5,7 +5,7 @@ export type WebhookStatus = 'active' | 'inactive' | 'not_configured' | 'error';
 export type WhatsAppConnectorStatus = 'connected' | 'partial' | 'none';
 export type WhatsAppConnectorHealth = 'ok' | 'needs_attention';
 export type MetaPortfolioStatus = 'linked' | 'none';
-export type FutureConnectorStatus = 'soon';
+export type FutureConnectorStatus = 'soon' | 'available' | 'connected' | 'none';
 
 export type ConnectorStatuses = {
   whatsapp: WhatsAppConnectorStatus;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +26,7 @@ type Props = {
 
 export function SendTestTemplateModal({ template, connectionId, onClose }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.sendTestTemplate");
   const [toPhone, setToPhone] = useState("");
 
   const variableCount = useMemo(() => {
@@ -58,14 +60,14 @@ export function SendTestTemplateModal({ template, connectionId, onClose }: Props
     const sanitizedPhone = rawPhone.replace(/\D+/g, "");
 
     if (!sanitizedPhone) {
-      toast({ title: "Phone number required", variant: "destructive" });
+      toast({ title: t("toastPhoneRequired"), variant: "destructive" });
       return;
     }
 
     const validation = params.slice(0, variableCount);
     const missingParams = validation.some((p) => !p.trim() && variableCount > 0);
     if (missingParams) {
-      toast({ title: "All parameters are required", variant: "destructive" });
+      toast({ title: t("toastParamsRequired"), variant: "destructive" });
       return;
     }
 
@@ -90,11 +92,11 @@ export function SendTestTemplateModal({ template, connectionId, onClose }: Props
         throw new Error(data?.reason || data?.error || "Send failed");
       }
 
-      toast({ title: "✅ Test message sent!", description: `Sent to ${sanitizedPhone}` });
+      toast({ title: t("toastSuccess"), description: `Sent to ${sanitizedPhone}` });
       onClose();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      toast({ title: "Send failed", description: message, variant: "destructive" });
+      toast({ title: t("toastSendFailed"), description: message, variant: "destructive" });
     } finally {
       setSending(false);
     }
@@ -104,21 +106,21 @@ export function SendTestTemplateModal({ template, connectionId, onClose }: Props
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Send Test: {template.name}</DialogTitle>
+          <DialogTitle>{t("title", { name: template.name })}</DialogTitle>
           <DialogDescription>
-            Language: {template.language} • Status: {template.status}
+            {t("description", { language: template.language, status: template.status })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* To Phone */}
           <div>
-            <Label htmlFor="toPhone">Recipient Phone Number</Label>
+            <Label htmlFor="toPhone">{t("recipientPhone")}</Label>
             <Input
               id="toPhone"
               value={toPhone}
               onChange={(e) => setToPhone(e.target.value)}
-              placeholder="e.g., +628123456789"
+              placeholder={t("recipientPlaceholder")}
               className="mt-1"
             />
             <p className="mt-1 text-xs text-muted-foreground">
@@ -130,7 +132,7 @@ export function SendTestTemplateModal({ template, connectionId, onClose }: Props
           {variableCount > 0 && (
             <div className="space-y-3">
               <Label className="text-sm font-semibold">
-                Template Parameters ({variableCount})
+                {t("templateParams", { count: variableCount })}
               </Label>
               <div className="grid gap-3 sm:grid-cols-2">
                 {Array.from({ length: variableCount }, (_, idx) => (
@@ -157,7 +159,7 @@ export function SendTestTemplateModal({ template, connectionId, onClose }: Props
 
           {/* Preview */}
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <Label className="text-xs font-semibold text-muted-foreground">Live Preview</Label>
+            <Label className="text-xs font-semibold text-muted-foreground">{t("livePreview")}</Label>
             <div className="mt-2 whitespace-pre-wrap text-sm">
               {template.header && (
                 <div className="mb-2 font-semibold">{renderTemplateBody(template.header, params)}</div>
@@ -174,18 +176,18 @@ export function SendTestTemplateModal({ template, connectionId, onClose }: Props
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={sending}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSend} disabled={sending}>
             {sending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                {t("sending")}
               </>
             ) : (
               <>
                 <Send className="mr-2 h-4 w-4" />
-                Send Test
+                {t("sendTest")}
               </>
             )}
           </Button>

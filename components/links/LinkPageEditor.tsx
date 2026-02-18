@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -69,6 +70,7 @@ const LINK_TYPE_META: Record<string, { icon: typeof Link2; label: string; color:
 };
 
 export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initialItems }: LinkPageEditorProps) {
+  const t = useTranslations("linksUI");
   const base = `/${workspaceSlug}/links`;
   const apiBase = `/api/links/pages/${initialPage.id}?workspace_id=${workspaceSlug}`;
   const publicBase = typeof window !== "undefined" ? window.location.origin : "";
@@ -224,7 +226,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
             )}
           >
             {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
-            {page.published ? "Published" : "Publish"}
+            {page.published ? t("published") : t("publish")}
           </button>
         </div>
       </div>
@@ -238,7 +240,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
             onClick={() => setEditSettings(!editSettings)}
             className="flex w-full items-center justify-between rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] px-4 py-2.5 text-[11px] font-medium text-[#f5f5dc]/50 transition hover:bg-[#f5f5dc]/[0.04]"
           >
-            <span>Page Settings</span>
+            <span>{t("pageSettings")}</span>
             {editSettings ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </button>
 
@@ -265,7 +267,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
           {/* Add link */}
           {addType ? (
             <div className="rounded-xl border border-[#d4af37]/20 bg-[#d4af37]/[0.03] p-3">
-              <p className="text-[11px] font-medium text-[#f5f5dc]/60 mb-2">Choose link type:</p>
+              <p className="text-[11px] font-medium text-[#f5f5dc]/60 mb-2">{t("chooseType")}</p>
               <div className="grid grid-cols-5 gap-2">
                 {Object.entries(LINK_TYPE_META).map(([type, meta]) => (
                   <button
@@ -283,7 +285,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
                 onClick={() => setAddType(null)}
                 className="mt-2 text-[10px] text-[#f5f5dc]/30 hover:text-[#f5f5dc]/50 transition"
               >
-                Cancel
+                {t("cancel")}
               </button>
             </div>
           ) : (
@@ -292,7 +294,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
               className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#f5f5dc]/[0.08] bg-[#f5f5dc]/[0.01] px-4 py-3 text-[11px] font-medium text-[#f5f5dc]/40 transition hover:bg-[#f5f5dc]/[0.03] hover:text-[#f5f5dc]/60 hover:border-[#d4af37]/20"
             >
               <Plus className="h-3.5 w-3.5" />
-              Add Link
+              {t("addLink")}
             </button>
           )}
         </div>
@@ -300,7 +302,7 @@ export function LinkPageEditor({ workspaceSlug, page: initialPage, items: initia
         {/* Right: live preview */}
         <div className="hidden lg:block">
           <div className="sticky top-4">
-            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">Preview</p>
+            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">{t("previewLabel")}</p>
             <MiniPreview page={page} items={items} />
           </div>
         </div>
@@ -319,6 +321,7 @@ function PageSettingsForm({
   onSave: (patch: Partial<PageData>) => void;
   saving: boolean;
 }) {
+  const t = useTranslations("linksUI");
   const [title, setTitle] = useState(page.title);
   const [bio, setBio] = useState(page.bio ?? "");
   const [seoTitle, setSeoTitle] = useState(page.seo_title ?? "");
@@ -345,9 +348,9 @@ function PageSettingsForm({
   ];
 
   const tabs = [
-    { key: "general" as const, label: "General" },
-    { key: "appearance" as const, label: "Appearance" },
-    { key: "seo" as const, label: "SEO" },
+    { key: "general" as const, label: "tabGeneral" as const },
+    { key: "appearance" as const, label: "tabAppearance" as const },
+    { key: "seo" as const, label: "tabSeo" as const },
   ];
 
   const saveGeneral = () => onSave({ title, bio: bio || null });
@@ -358,18 +361,18 @@ function PageSettingsForm({
     <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-[#f5f5dc]/[0.06]">
-        {tabs.map((t) => (
+        {tabs.map((tabItem) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tabItem.key}
+            onClick={() => setTab(tabItem.key)}
             className={cn(
               "flex-1 py-2 text-[10px] font-semibold uppercase tracking-wider transition",
-              tab === t.key
+              tab === tabItem.key
                 ? "text-[#d4af37] border-b-2 border-[#d4af37] bg-[#d4af37]/[0.04]"
                 : "text-[#f5f5dc]/30 hover:text-[#f5f5dc]/50"
             )}
           >
-            {t.label}
+            {t(tabItem.label)}
           </button>
         ))}
       </div>
@@ -379,7 +382,7 @@ function PageSettingsForm({
         {tab === "general" && (
           <>
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">Title</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">{t("title")}</label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -387,7 +390,7 @@ function PageSettingsForm({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">Bio</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">{t("bio")}</label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -402,7 +405,7 @@ function PageSettingsForm({
               className="inline-flex items-center gap-1.5 rounded-lg bg-[#f5f5dc]/[0.06] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/60 transition hover:bg-[#f5f5dc]/[0.10]"
             >
               <Save className="h-3 w-3" />
-              Save
+              {t("save")}
             </button>
           </>
         )}
@@ -412,7 +415,7 @@ function PageSettingsForm({
           <>
             {/* Theme presets */}
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-2">Presets</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-2">{t("presets")}</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {PRESETS.map((preset) => (
                   <button
@@ -444,14 +447,14 @@ function PageSettingsForm({
 
             {/* Color pickers */}
             <div className="grid grid-cols-3 gap-2">
-              <ColorField label="Background" value={bg} onChange={setBg} />
-              <ColorField label="Text" value={textColor} onChange={setTextColor} />
-              <ColorField label="Accent" value={accent} onChange={setAccent} />
+              <ColorField label={t("background")} value={bg} onChange={setBg} />
+              <ColorField label={t("text")} value={textColor} onChange={setTextColor} />
+              <ColorField label={t("accent")} value={accent} onChange={setAccent} />
             </div>
 
             {/* Button style */}
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1.5">Button Style</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1.5">{t("buttonStyle")}</label>
               <div className="flex gap-1.5">
                 {(["filled", "outline", "soft"] as const).map((s) => (
                   <button
@@ -475,7 +478,7 @@ function PageSettingsForm({
 
             {/* Border radius */}
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1.5">Corner Radius</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1.5">{t("cornerRadius")}</label>
               <div className="flex gap-1.5">
                 {(["none", "sm", "md", "lg", "full"] as const).map((r) => (
                   <button
@@ -505,7 +508,7 @@ function PageSettingsForm({
               className="inline-flex items-center gap-1.5 rounded-lg bg-[#d4af37]/10 px-3 py-1.5 text-[11px] font-medium text-[#d4af37] transition hover:bg-[#d4af37]/20"
             >
               <Save className="h-3 w-3" />
-              Apply Theme
+              {t("applyTheme")}
             </button>
           </>
         )}
@@ -514,7 +517,7 @@ function PageSettingsForm({
         {tab === "seo" && (
           <>
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">SEO Title</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">{t("seoTitle")}</label>
               <input
                 value={seoTitle}
                 onChange={(e) => setSeoTitle(e.target.value)}
@@ -522,16 +525,16 @@ function PageSettingsForm({
                 placeholder={page.title}
                 maxLength={120}
               />
-              <p className="text-[9px] text-[#f5f5dc]/20 mt-0.5">Shown in search results & social previews</p>
+              <p className="text-[9px] text-[#f5f5dc]/20 mt-0.5">{t("seoTitleHint")}</p>
             </div>
             <div>
-              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">SEO Description</label>
+              <label className="block text-[10px] font-medium text-[#f5f5dc]/40 mb-1">{t("seoDescription")}</label>
               <textarea
                 value={seoDesc}
                 onChange={(e) => setSeoDesc(e.target.value)}
                 rows={2}
                 className="w-full rounded-lg border border-[#f5f5dc]/[0.08] bg-transparent px-3 py-1.5 text-sm text-[#f5f5dc] focus:border-[#d4af37]/40 focus:outline-none resize-none"
-                placeholder={page.bio ?? "A short description of your page"}
+                placeholder={page.bio ?? t("seoDescPlaceholder")}
                 maxLength={300}
               />
             </div>
@@ -541,7 +544,7 @@ function PageSettingsForm({
               className="inline-flex items-center gap-1.5 rounded-lg bg-[#f5f5dc]/[0.06] px-3 py-1.5 text-[11px] font-medium text-[#f5f5dc]/60 transition hover:bg-[#f5f5dc]/[0.10]"
             >
               <Save className="h-3 w-3" />
-              Save SEO
+              {t("saveSeo")}
             </button>
           </>
         )}
@@ -584,6 +587,7 @@ function SortableItemRow({
   onUpdate: (id: string, patch: Partial<LinkItem>) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useTranslations("linksUI");
   const {
     attributes,
     listeners,
@@ -702,8 +706,8 @@ function SortableItemRow({
                 />
               )}
               <div className="flex gap-2">
-                <button onClick={save} className="text-[10px] text-[#d4af37] hover:underline">Save</button>
-                <button onClick={() => setEditing(false)} className="text-[10px] text-[#f5f5dc]/30 hover:underline">Cancel</button>
+                <button onClick={save} className="text-[10px] text-[#d4af37] hover:underline">{t("save")}</button>
+                <button onClick={() => setEditing(false)} className="text-[10px] text-[#f5f5dc]/30 hover:underline">{t("cancel")}</button>
               </div>
             </div>
           ) : (
@@ -741,6 +745,7 @@ function SortableItemRow({
 
 /* ── Mini phone preview ── */
 function MiniPreview({ page, items }: { page: PageData; items: LinkItem[] }) {
+  const t = useTranslations("linksUI");
   const visibleItems = items.filter((i) => i.visible);
   const theme = page.theme ?? {};
   const bg = theme.bg ?? "#0f172a";
@@ -789,12 +794,12 @@ function MiniPreview({ page, items }: { page: PageData; items: LinkItem[] }) {
         })}
 
         {visibleItems.length === 0 && (
-          <p className="text-[10px] text-center opacity-30 py-4" style={{ color: text }}>No links yet</p>
+          <p className="text-[10px] text-center opacity-30 py-4" style={{ color: text }}>{t("noLinksYet")}</p>
         )}
 
         {/* Powered by */}
         <p className="text-[8px] text-center opacity-20 pt-2" style={{ color: text }}>
-          Powered by Gigaviz Links
+          {t("poweredBy")}
         </p>
       </div>
     </div>

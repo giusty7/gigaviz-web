@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Props = {
   phone: string;
@@ -14,6 +15,7 @@ function waNormalize(phone: string) {
 }
 
 export function LeadActions({ phone, summary }: Props) {
+  const t = useTranslations("adminUI.leadActions");
   const [msg, setMsg] = useState<string | null>(null);
 
   const wa = waNormalize(phone);
@@ -22,10 +24,10 @@ export function LeadActions({ phone, summary }: Props) {
   async function copy(text: string) {
     try {
       await navigator.clipboard.writeText(text);
-      setMsg("Copied!");
+      setMsg(t("copied"));
       setTimeout(() => setMsg(null), 900);
     } catch {
-      setMsg("Copy failed");
+      setMsg(t("copyFailed"));
       setTimeout(() => setMsg(null), 900);
     }
   }
@@ -38,7 +40,7 @@ export function LeadActions({ phone, summary }: Props) {
         target="_blank"
         rel="noreferrer"
       >
-        Chat
+        {t("chat")}
       </a>
 
       <div className="flex flex-wrap justify-end gap-2">
@@ -46,19 +48,19 @@ export function LeadActions({ phone, summary }: Props) {
           onClick={() => copy(wa)}
           className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] text-white/80 hover:bg-white/10"
         >
-          Copy WA
+          {t("copyWA")}
         </button>
         <button
           onClick={() => copy(waLink)}
           className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] text-white/80 hover:bg-white/10"
         >
-          Copy Link
+          {t("copyLink")}
         </button>
         <button
           onClick={() => copy(summary)}
           className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] text-white/80 hover:bg-white/10"
         >
-          Copy Summary
+          {t("copySummary")}
         </button>
       </div>
 

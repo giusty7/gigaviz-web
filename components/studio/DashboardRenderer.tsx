@@ -1,6 +1,7 @@
 "use client";
 
 import { ChartRenderer } from "@/components/studio/ChartRenderer";
+import { useTranslations } from "next-intl";
 import { TrendingUp, TrendingDown, FileText, Table2 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -83,7 +84,7 @@ function TextWidget({ widget }: { widget: Widget }) {
 /*  Table Widget                                                        */
 /* ------------------------------------------------------------------ */
 
-function TableWidget({ widget }: { widget: Widget }) {
+function TableWidget({ widget, labelText }: { widget: Widget; labelText: string }) {
   const data = widget.data;
   if (!data?.labels || !data?.datasets?.[0]) {
     return (
@@ -102,7 +103,7 @@ function TableWidget({ widget }: { widget: Widget }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-[#f5f5dc]/10">
-            <th className="pb-2 text-left font-medium text-[#f5f5dc]/40">Label</th>
+            <th className="pb-2 text-left font-medium text-[#f5f5dc]/40">{labelText}</th>
             {data.datasets.map((ds) => (
               <th key={ds.label} className="pb-2 text-right font-medium text-[#f5f5dc]/40">
                 {ds.label}
@@ -131,11 +132,11 @@ function TableWidget({ widget }: { widget: Widget }) {
 /*  Chart Widget                                                        */
 /* ------------------------------------------------------------------ */
 
-function ChartWidget({ widget }: { widget: Widget }) {
+function ChartWidget({ widget, noDataText }: { widget: Widget; noDataText: string }) {
   if (!widget.data?.labels || !widget.data?.datasets) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-purple-500/20 bg-[#0a1229]/30 p-4">
-        <p className="text-xs text-[#f5f5dc]/30">{widget.title} — No data</p>
+        <p className="text-xs text-[#f5f5dc]/30">{widget.title} — {noDataText}</p>
       </div>
     );
   }
@@ -155,10 +156,12 @@ function ChartWidget({ widget }: { widget: Widget }) {
 /* ------------------------------------------------------------------ */
 
 export function DashboardRenderer({ widgets, className = "" }: DashboardRendererProps) {
+  const t = useTranslations("studioRenderers.dashboard");
+
   if (!widgets || widgets.length === 0) {
     return (
       <div className="flex items-center justify-center rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12">
-        <p className="text-sm text-[#f5f5dc]/30">No widgets to display</p>
+        <p className="text-sm text-[#f5f5dc]/30">{t("noWidgets")}</p>
       </div>
     );
   }
@@ -178,9 +181,9 @@ export function DashboardRenderer({ widgets, className = "" }: DashboardRenderer
         return (
           <div key={i} className={`${colSpan} ${rowSpan} min-h-[140px]`}>
             {widget.type === "stat" && <StatWidget widget={widget} />}
-            {widget.type === "chart" && <ChartWidget widget={widget} />}
+            {widget.type === "chart" && <ChartWidget widget={widget} noDataText={t("noData")} />}
             {widget.type === "text" && <TextWidget widget={widget} />}
-            {widget.type === "table" && <TableWidget widget={widget} />}
+            {widget.type === "table" && <TableWidget widget={widget} labelText={t("label")} />}
           </div>
         );
       })}

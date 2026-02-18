@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 type LedgerEntry = {
@@ -44,6 +45,7 @@ type Props = {
 };
 
 export function TokensLedgerViewer({ workspaceId }: Props) {
+  const t = useTranslations("tokensUI.ledger");
   const { toast } = useToast();
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,14 +75,14 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
       setTotalPages(Math.ceil((data.total || 0) / pageSize));
     } catch (err) {
       toast({
-        title: "Failed to load ledger",
-        description: err instanceof Error ? err.message : "Try again later",
+        title: t("unableToLoadLedger"),
+        description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, page, pageSize, typeFilter, statusFilter, toast]);
+  }, [workspaceId, page, pageSize, typeFilter, statusFilter, toast, t]);
 
   useEffect(() => {
     void fetchLedger();
@@ -115,10 +117,10 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-[#d4af37]" />
-          Token Ledger
+          {t("title")}
         </CardTitle>
         <CardDescription>
-          Complete audit trail of all token transactions - topups, spends, and adjustments.
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -127,7 +129,7 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by reason, note, or ref..."
+              placeholder={t("searchPlaceholder") ?? "Search by reason, note, or ref..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -140,7 +142,7 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="all">{t("typeAll")}</SelectItem>
                 {uniqueTypes.map((type) => (
                   <SelectItem key={type} value={type!}>
                     {type}
@@ -153,7 +155,7 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All status</SelectItem>
+                <SelectItem value="all">{t("statusAll")}</SelectItem>
                 {uniqueStatuses.map((status) => (
                   <SelectItem key={status} value={status!}>
                     {status}
@@ -168,7 +170,7 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
         <div className="space-y-2">
           {filteredEntries.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-              No ledger entries found
+              {t("noEntriesYet")}
             </div>
           ) : (
             filteredEntries.map((entry) => {
@@ -282,7 +284,7 @@ export function TokensLedgerViewer({ workspaceId }: Props) {
         {/* Stats */}
         <div className="flex flex-wrap gap-3 pt-2 border-t border-border/60">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>{filteredEntries.length} entries displayed</span>
+            <span>{t("entries", { count: filteredEntries.length })}</span>
           </div>
           {(searchQuery || typeFilter !== "all" || statusFilter !== "all") && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">

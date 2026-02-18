@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Sparkles, Lightbulb, TrendingUp, AlertTriangle } from "lucide-react";
@@ -37,6 +38,7 @@ type AIAssistantFeedWidgetProps = {
 };
 
 export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProps) {
+  const t = useTranslations("dashboardWidgets.aiAssistant");
   const { data } = useQuery<HelperUsageResponse>({
     queryKey: ["helper-usage", workspaceId],
     queryFn: async () => {
@@ -60,8 +62,8 @@ export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProp
       items.push({
         id: "today-usage",
         type: "insight",
-        message: `Helper used ${todayTotal.toLocaleString()} tokens today.`,
-        timestamp: "Today",
+        message: t("todayUsage", { count: todayTotal.toLocaleString() }),
+        timestamp: t("today"),
       });
     }
 
@@ -71,9 +73,9 @@ export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProp
         type: "suggestion",
         message:
           monthlyCap > 0
-            ? `Monthly usage: ${monthlyTotal.toLocaleString()} of ${monthlyCap.toLocaleString()} tokens.`
-            : `Monthly usage: ${monthlyTotal.toLocaleString()} tokens (cap not set).`,
-        timestamp: "This month",
+            ? t("monthlyUsageCapped", { used: monthlyTotal.toLocaleString(), cap: monthlyCap.toLocaleString() })
+            : t("monthlyUsageNoCap", { count: monthlyTotal.toLocaleString() }),
+        timestamp: t("thisMonth"),
       });
     }
 
@@ -82,14 +84,14 @@ export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProp
         id: "budget-warning",
         type: "warning",
         message: isOverBudget
-          ? "Helper usage exceeded the monthly cap."
-          : "Helper usage is nearing the monthly cap.",
-        timestamp: "This month",
+          ? t("budgetExceeded")
+          : t("budgetNearing"),
+        timestamp: t("thisMonth"),
       });
     }
 
     return items;
-  }, [data?.monthly?.cap, data?.monthly?.isOverBudget, data?.monthly?.total, data?.today?.total]);
+  }, [data?.monthly?.cap, data?.monthly?.isOverBudget, data?.monthly?.total, data?.today?.total, t]);
 
   const hasInsights = insights.length > 0;
 
@@ -109,7 +111,7 @@ export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProp
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#e11d48]" />
-            <h3 className="text-sm font-semibold text-[#f5f5dc]">Helper Insights</h3>
+            <h3 className="text-sm font-semibold text-[#f5f5dc]">{t("helperInsights")}</h3>
           </div>
           <motion.span
             className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-medium ${
@@ -125,7 +127,7 @@ export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProp
                 hasInsights ? "bg-[#e11d48]" : "bg-[#f5f5dc]/50"
               }`}
             />
-            {hasInsights ? "AI Active" : "No data yet"}
+            {hasInsights ? t("aiActive") : t("noDataYet")}
           </motion.span>
         </div>
 
@@ -156,7 +158,7 @@ export function AIAssistantFeedWidget({ workspaceId }: AIAssistantFeedWidgetProp
             })
           ) : (
             <div className="rounded-xl border border-[#f5f5dc]/5 bg-[#050a18]/40 p-3 text-xs text-[#f5f5dc]/60">
-              No helper insights yet.
+              {t("noInsightsYet")}
             </div>
           )}
         </div>

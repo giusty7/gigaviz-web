@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   BadgeCheck,
   Loader2,
@@ -39,6 +40,7 @@ export function ObaRequestCard({
   canEdit,
 }: ObaRequestCardProps) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.obaRequest");
   const [status, setStatus] = useState<ObaStatus>({ type: "unknown" });
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -164,8 +166,8 @@ export function ObaRequestCard({
     const normalizedWebsiteUrl = normalizeUrl(websiteUrl);
     if (!normalizedWebsiteUrl) {
       toast({
-        title: "Business Website required",
-        description: "Please fill a valid website URL before submitting.",
+        title: t("toastWebsiteRequired"),
+        description: t("toastWebsiteRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -203,7 +205,7 @@ export function ObaRequestCard({
       if (!res.ok) {
         const desc = data?.message || `Error ${res.status}`;
         toast({
-          title: "OBA Request Failed",
+          title: t("toastRequestFailed"),
           description: desc,
           variant: "destructive",
         });
@@ -215,17 +217,16 @@ export function ObaRequestCard({
       }
 
       toast({
-        title: "✅ OBA Request Submitted!",
-        description:
-          "Your blue tick request has been sent to Meta. Review may take several business days.",
+        title: t("toastSubmitted"),
+        description: t("toastSubmittedDesc"),
       });
       setShowForm(false);
       setStatus({ type: "pending" });
     } catch (err) {
       toast({
-        title: "Request Error",
+        title: t("toastRequestError"),
         description:
-          err instanceof Error ? err.message : "Something went wrong",
+          err instanceof Error ? err.message : t("toastSomethingWrong"),
         variant: "destructive",
       });
     } finally {
@@ -244,40 +245,40 @@ export function ObaRequestCard({
       case "unknown":
         return (
           <span className="text-xs text-[#f5f5dc]/40">
-            Click &quot;Check Status&quot; to see current OBA status
+            {t("statusUnknown")}
           </span>
         );
       case "checking":
         return (
           <span className="flex items-center gap-1.5 text-xs text-cyan-300">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Checking...
+            {t("statusChecking")}
           </span>
         );
       case "not_requested":
         return (
           <span className="rounded-full border border-[#f5f5dc]/20 bg-[#f5f5dc]/5 px-2 py-0.5 text-xs text-[#f5f5dc]/60">
-            Not Requested
+            {t("statusNotRequested")}
           </span>
         );
       case "pending":
         return (
           <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs text-amber-300">
-            ⏳ Pending Review
+            {t("statusPending")}
           </span>
         );
       case "approved":
         return (
           <span className="flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-300">
             <BadgeCheck className="h-3 w-3" />
-            Verified {status.name ? `(${status.name})` : ""}
+            {status.name ? t("statusApprovedWithName", { name: status.name }) : t("statusApproved")}
           </span>
         );
       case "rejected":
         return (
           <div>
             <span className="rounded-full border border-red-400/30 bg-red-400/10 px-2 py-0.5 text-xs text-red-300">
-              ❌ Rejected
+              {t("statusRejected")}
             </span>
             {status.reasons && status.reasons.length > 0 && (
               <p className="mt-1 text-xs text-red-300/70">
@@ -306,10 +307,10 @@ export function ObaRequestCard({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-[#f5f5dc]">
-              Official Business Account
+              {t("title")}
             </h3>
             <p className="text-xs text-[#f5f5dc]/50">
-              Request blue tick verification from Meta
+              {t("subtitle")}
             </p>
           </div>
         </div>
@@ -328,7 +329,7 @@ export function ObaRequestCard({
           ) : (
             <BadgeCheck className="h-3 w-3" />
           )}
-          Check Status
+          {t("checkStatus")}
         </button>
 
         {canEdit && !isApproved && (
@@ -337,7 +338,7 @@ export function ObaRequestCard({
             className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-400/20"
           >
             <Send className="h-3 w-3" />
-            {showForm ? "Cancel" : isPending ? "View Form" : "Request Blue Tick"}
+            {showForm ? t("cancel") : isPending ? t("viewForm") : t("requestBlueTick")}
           </button>
         )}
       </div>
@@ -346,8 +347,7 @@ export function ObaRequestCard({
       {isPending && (
         <div className="mt-3 rounded-lg border border-amber-400/20 bg-amber-400/5 p-3">
           <p className="text-xs text-amber-300">
-            ⏳ Your OBA request is being reviewed by Meta. This may take several
-            business days. You&apos;ll receive a notification when a decision is made.
+            {t("pendingBanner")}
           </p>
         </div>
       )}
@@ -356,15 +356,14 @@ export function ObaRequestCard({
       {showForm && (
         <div className="mt-4 space-y-3 rounded-xl border border-blue-400/10 bg-[#0a1229]/60 p-4">
           <p className="text-xs text-[#f5f5dc]/50">
-            Fill in your business details for the OBA review. All fields are
-            optional but providing more info increases approval chances.
+            {t("formDescription")}
           </p>
 
           {/* Business Name */}
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#f5f5dc]/70">
               <Building2 className="h-3 w-3" />
-              Business / Brand Name
+              {t("businessName")}
             </label>
             <input
               type="text"
@@ -379,7 +378,7 @@ export function ObaRequestCard({
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#f5f5dc]/70">
               <Globe className="h-3 w-3" />
-              Business Website
+              {t("businessWebsite")}
             </label>
             <input
               type="url"
@@ -395,7 +394,7 @@ export function ObaRequestCard({
             <div>
               <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#f5f5dc]/70">
                 <Globe className="h-3 w-3" />
-                Country
+                {t("country")}
               </label>
               <input
                 type="text"
@@ -408,7 +407,7 @@ export function ObaRequestCard({
             <div>
               <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#f5f5dc]/70">
                 <Languages className="h-3 w-3" />
-                Language
+                {t("language")}
               </label>
               <input
                 type="text"
@@ -424,7 +423,7 @@ export function ObaRequestCard({
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#f5f5dc]/70">
               <FileText className="h-3 w-3" />
-              Additional Supporting Information
+              {t("supportingInfo")}
             </label>
             <textarea
               value={supportingInfo}
@@ -439,7 +438,7 @@ export function ObaRequestCard({
           <div>
             <label className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#f5f5dc]/70">
               <Link2 className="h-3 w-3" />
-              Supporting Links (one URL per line, max 10)
+              {t("supportingLinks")}
             </label>
             <textarea
               value={supportingLinks}
@@ -465,15 +464,13 @@ export function ObaRequestCard({
                 <Send className="h-4 w-4" />
               )}
               {isPending
-                ? "Review In Progress"
+                ? t("reviewInProgress")
                 : isApproved
-                  ? "Already Approved"
-                  : "Submit OBA Request"}
+                  ? t("alreadyApproved")
+                  : t("submitObaRequest")}
             </button>
             <p className="text-[10px] text-[#f5f5dc]/40">
-              Note: <code>success: true</code> means the request was
-              submitted, not yet approved. Review may take several business
-              days.
+              {t("submitNote")}
             </p>
           </div>
         </div>

@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   Ticket,
   Filter,
@@ -27,6 +28,7 @@ type TicketStats = {
 };
 
 export default function TicketsClient({ adminUserId }: TicketsClientProps) {
+  const t = useTranslations("opsUI");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Total Tickets</p>
+                <p className="text-sm text-slate-400">{t("tickets.title")}</p>
                 <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
               </div>
               <Ticket className="w-8 h-8 text-purple-400" />
@@ -90,7 +92,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Open</p>
+                <p className="text-sm text-slate-400">{t("tickets.statsOpen")}</p>
                 <p className="text-2xl font-bold text-blue-400 mt-1">
                   {stats.byStatus.open || 0}
                 </p>
@@ -102,7 +104,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">In Progress</p>
+                <p className="text-sm text-slate-400">{t("tickets.statsPending")}</p>
                 <p className="text-2xl font-bold text-yellow-400 mt-1">
                   {stats.byStatus.in_progress || 0}
                 </p>
@@ -114,7 +116,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Resolved</p>
+                <p className="text-sm text-slate-400">{t("tickets.statsResolved")}</p>
                 <p className="text-2xl font-bold text-green-400 mt-1">
                   {stats.byStatus.resolved || 0}
                 </p>
@@ -162,7 +164,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
             className="ml-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            New Ticket
+            {t("tickets.createNew")}
           </button>
         </div>
       </div>
@@ -175,7 +177,7 @@ export default function TicketsClient({ adminUserId }: TicketsClientProps) {
       ) : tickets.length === 0 ? (
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-12 text-center">
           <Ticket className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No tickets found</p>
+          <p className="text-slate-400">{t("tickets.noTickets")}</p>
         </div>
       ) : (
         <div className="space-y-3">

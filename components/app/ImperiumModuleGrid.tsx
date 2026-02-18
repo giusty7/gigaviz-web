@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion, type Variants } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 
@@ -114,10 +115,10 @@ function LiveStatusDot() {
    FUTURE PILLAR BADGE
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function FuturePillarBadge() {
+function FuturePillarBadge({ label }: { label: string }) {
   return (
     <span className="absolute right-3 top-3 rounded-full bg-[#d4af37]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#d4af37]">
-      Future Pillar
+      {label}
     </span>
   );
 }
@@ -166,6 +167,7 @@ export default function ImperiumModuleGrid({
   onNotify 
 }: ImperiumModuleGridProps) {
   const router = useRouter();
+  const t = useTranslations("moduleGridUI");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const handleUnavailable = useCallback(
@@ -182,26 +184,26 @@ export default function ImperiumModuleGrid({
 
       if (status === "coming_soon") {
         toast({
-          title: "Coming soon",
-          description: "This module is being prepared. Track updates from the roadmap.",
+          title: t("toastComingSoonTitle"),
+          description: t("toastComingSoonDesc"),
         });
         return;
       }
 
       if (status === "locked") {
         toast({
-          title: "Locked",
-          description: "Upgrade or request access to unlock this module.",
+          title: t("toastLockedTitle"),
+          description: t("toastLockedDesc"),
         });
         return;
       }
 
       toast({
-        title: "Setup required",
-        description: "Complete the configuration before opening this module.",
+        title: t("toastSetupTitle"),
+        description: t("toastSetupDesc"),
       });
     },
-    [onSetup, onUnlock]
+    [onSetup, onUnlock, t]
   );
 
   const isActivePillar = (status: ModuleStatus) => 
@@ -278,7 +280,7 @@ export default function ImperiumModuleGrid({
 
             {/* Status Indicators */}
             {isActive && module.status === "available" && <LiveStatusDot />}
-            {isFuture && <FuturePillarBadge />}
+            {isFuture && <FuturePillarBadge label={t("futurePillar")} />}
 
             {/* Card Content */}
             <div className="relative z-10">
@@ -314,7 +316,7 @@ export default function ImperiumModuleGrid({
                     onClick={(e) => e.stopPropagation()}
                     className="inline-flex items-center rounded-xl bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-4 py-2 text-xs font-semibold text-[#050a18] shadow-lg shadow-[#d4af37]/20 transition-all hover:shadow-[#d4af37]/30 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/70"
                   >
-                    Open Module
+                    {t("openModule")}
                   </Link>
                 ) : module.status === "coming_soon" ? (
                   <div className="inline-flex items-center gap-3">
@@ -324,11 +326,11 @@ export default function ImperiumModuleGrid({
                         onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center rounded-xl border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 text-xs font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/70"
                       >
-                        {module.previewLabel ?? "Preview"}
+                        {module.previewLabel ?? t("preview")}
                       </Link>
                     ) : (
                       <span className="inline-flex items-center rounded-xl border border-[#f5f5dc]/10 bg-[#f5f5dc]/5 px-4 py-2 text-xs font-medium text-[#f5f5dc]/40">
-                        {module.comingSoonLabel ?? "Coming soon"}
+                        {module.comingSoonLabel ?? t("comingSoon")}
                       </span>
                     )}
                     <button
@@ -339,7 +341,7 @@ export default function ImperiumModuleGrid({
                       }}
                       className="text-xs font-semibold text-[#e11d48] hover:text-[#d4af37] hover:underline transition-colors"
                     >
-                      {module.notifyLabel ?? "Notify me"}
+                      {module.notifyLabel ?? t("notifyMe")}
                     </button>
                   </div>
                 ) : (
@@ -348,7 +350,7 @@ export default function ImperiumModuleGrid({
                     onClick={() => handleUnavailable(module.status, module)}
                     className="inline-flex items-center rounded-xl border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 text-xs font-semibold text-[#d4af37] transition-all hover:bg-[#d4af37]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/70"
                   >
-                    {module.status === "setup_required" ? "Complete setup" : "Unlock features"}
+                    {module.status === "setup_required" ? t("completeSetup") : t("unlockFeatures")}
                   </button>
                 )}
               </div>

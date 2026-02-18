@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { supabaseClient } from "@/lib/supabase/client";
 
 type WorkspaceItem = {
@@ -21,6 +22,7 @@ export default function WorkspaceSwitcher({
   currentWorkspaceId,
 }: WorkspaceSwitcherProps) {
   const router = useRouter();
+  const t = useTranslations("appUI.workspaceSwitcher");
   const supabase = useMemo(() => supabaseClient(), []);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function WorkspaceSwitcher({
 
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}));
-      setError(payload?.error || "Failed to switch workspace.");
+      setError(payload?.error || t("failedSwitch"));
       return;
     }
 
@@ -66,7 +68,7 @@ export default function WorkspaceSwitcher({
         <select
           className="rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
           value={currentWorkspaceId}
-          title="Switch workspace"
+          title={t("switchWorkspace")}
           onChange={(e) => onChange(e.target.value)}
           disabled={isPending || isLoggingOut}
         >
@@ -82,7 +84,7 @@ export default function WorkspaceSwitcher({
           disabled={isLoggingOut}
           className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20 disabled:opacity-60"
         >
-          {isLoggingOut ? "Signing out..." : "Sign out"}
+          {isLoggingOut ? t("signingOut") : t("signOut")}
         </button>
       </div>
       {error && <span className="text-xs text-red-300">{error}</span>}

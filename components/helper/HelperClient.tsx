@@ -5,7 +5,6 @@ import { MenuIcon, XIcon, PanelRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
-import { COPY_EN } from "@/lib/copy/en";
 import { useTranslations } from "next-intl";
 import { ConversationList } from "./ConversationList";
 import { MessageList } from "./MessageList";
@@ -75,8 +74,7 @@ function toLocalMessage(m: ApiMessage): HelperMessage {
 
 function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, initialConversations }: Props) {
   const { toast } = useToast();
-  const copy = COPY_EN.helper;
-  const t = useTranslations("helper");
+  const t = useTranslations("helperUI.imperiumHelper");
 
   // State
   const [conversations, setConversations] = useState<HelperConversation[]>(
@@ -442,7 +440,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
           </SheetTrigger>
           <SheetContent side="left" className="w-80 p-0">
             <div className="flex items-center justify-between p-4 border-b border-gigaviz-border">
-              <span className="font-semibold">{copy.conversations}</span>
+              <span className="font-semibold">{t("conversations")}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon">
                   <XIcon className="h-5 w-5" />
@@ -453,7 +451,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
           </SheetContent>
         </Sheet>
 
-        <span className="font-medium text-sm">{copy.title}</span>
+        <span className="font-medium text-sm">{t("title")}</span>
 
         <Sheet open={rightOpen} onOpenChange={setRightOpen}>
           <SheetTrigger asChild>
@@ -464,7 +462,7 @@ function HelperClientComponent({ workspaceId, workspaceSlug, workspaceName, init
           </SheetTrigger>
           <SheetContent side="right" className="w-80 p-0">
             <div className="flex items-center justify-between p-4 border-b border-gigaviz-border">
-              <span className="font-semibold">{copy.workspaceControls}</span>
+              <span className="font-semibold">{t("workspaceControls")}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon">
                   <XIcon className="h-5 w-5" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Fuel, MessageSquare, Bot, Cloud } from "lucide-react";
@@ -84,6 +85,7 @@ type ResourceFuelWidgetProps = {
 };
 
 export function ResourceFuelWidget({ workspaceId }: ResourceFuelWidgetProps) {
+  const t = useTranslations("dashboardWidgetsUI");
   const { data, isLoading } = useQuery<TokenOverviewResponse>({
     queryKey: ["token-overview", workspaceId],
     queryFn: async () => {
@@ -106,31 +108,31 @@ export function ResourceFuelWidget({ workspaceId }: ResourceFuelWidgetProps) {
 
     return [
       {
-        name: "WA Quota",
+        name: t("waQuota"),
         icon: <MessageSquare className="h-4 w-4" />,
         used: null,
         total: null,
-        unit: "msgs",
+        unit: t("unitMsgs"),
         gradient: { start: "#d4af37", end: "#f9d976" },
       },
       {
-        name: "AI Tokens",
+        name: t("aiTokens"),
         icon: <Bot className="h-4 w-4" />,
         used,
         total: cap,
-        unit: "tokens",
+        unit: t("unitTokens"),
         gradient: { start: "#e11d48", end: "#f43f5e" },
       },
       {
-        name: "Cloud Storage",
+        name: t("cloudStorage"),
         icon: <Cloud className="h-4 w-4" />,
         used: null,
         total: null,
-        unit: "GB",
+        unit: t("unitGB"),
         gradient: { start: "#d4af37", end: "#e11d48" },
       },
     ];
-  }, [data?.overview?.cap, data?.overview?.used]);
+  }, [data?.overview?.cap, data?.overview?.used, t]);
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-xl">
@@ -143,7 +145,7 @@ export function ResourceFuelWidget({ workspaceId }: ResourceFuelWidgetProps) {
       <div className="relative">
         <div className="flex items-center gap-2">
           <Fuel className="h-4 w-4 text-[#d4af37]" />
-          <h3 className="text-sm font-semibold text-[#f5f5dc]">Resource Fuel</h3>
+          <h3 className="text-sm font-semibold text-[#f5f5dc]">{t("resourceFuel")}</h3>
         </div>
 
         <div className="mt-5 flex items-center justify-around gap-2">
@@ -153,8 +155,8 @@ export function ResourceFuelWidget({ workspaceId }: ResourceFuelWidgetProps) {
                 ? Math.round((resource.used / resource.total) * 100)
                 : 0;
             const usageLabel =
-              isLoading && resource.name === "AI Tokens"
-                ? "Loading..."
+              isLoading && resource.name === t("aiTokens")
+                ? t("loadingDot")
                 : resource.used === null
                   ? "No data yet"
                   : resource.total === null || resource.total === 0

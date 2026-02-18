@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { LightbulbIcon, MessageCircleIcon, PenLineIcon, FileTextIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 
 type Props = {
   onPromptSelect: (prompt: string) => void;
@@ -23,7 +23,14 @@ function ChatEmptyStateComponent({
   onCreateConversation,
   hasConversations,
 }: Props) {
-  const copy = COPY_EN.helper.emptyState;
+  const t = useTranslations("helperUI.imperiumHelper");
+
+  const suggestedPrompts = [
+    { label: t("suggestedPrompt1Label"), prompt: t("suggestedPrompt1") },
+    { label: t("suggestedPrompt2Label"), prompt: t("suggestedPrompt2") },
+    { label: t("suggestedPrompt3Label"), prompt: t("suggestedPrompt3") },
+    { label: t("suggestedPrompt4Label"), prompt: t("suggestedPrompt4") },
+  ];
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
@@ -31,13 +38,13 @@ function ChatEmptyStateComponent({
         <div className="h-16 w-16 rounded-2xl bg-gigaviz-gold/10 border border-gigaviz-gold/30 flex items-center justify-center mx-auto mb-4">
           <MessageCircleIcon className="h-8 w-8 text-gigaviz-gold" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">{copy.title}</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">{copy.description}</p>
+        <h3 className="text-lg font-semibold mb-2">{t("emptyStateTitle")}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t("emptyStateDescription")}</p>
       </div>
 
       {/* Suggested prompts */}
       <div className="grid gap-3 w-full max-w-md">
-        {copy.suggestedPrompts.map((item, idx) => (
+        {suggestedPrompts.map((item, idx) => (
           <Button
             key={item.label}
             variant="outline"
@@ -59,7 +66,7 @@ function ChatEmptyStateComponent({
 
       {!hasConversations && (
         <p className="text-xs text-muted-foreground mt-6">
-          {COPY_EN.helper.createFirst}
+          {t("createFirst")}
         </p>
       )}
     </div>

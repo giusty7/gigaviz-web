@@ -1,5 +1,6 @@
 "use client";
 import { logger } from "@/lib/logging";
+import { useTranslations } from "next-intl";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -60,6 +61,7 @@ interface AutomationRulesManagerProps {
 export function AutomationRulesManager({
   workspaceId,
 }: Omit<AutomationRulesManagerProps, 'workspaceSlug'>) {
+  const t = useTranslations("metaHubUI.automation");
   const { toast } = useToast();
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,8 +133,8 @@ export function AutomationRulesManager({
   async function handleSubmit() {
     if (!name.trim()) {
       toast({
-        title: "Name required",
-        description: "Please enter a name for this rule",
+        title: t("toasts.ruleFailed"),
+        description: t("editor.nameLabel"),
         variant: "destructive",
       });
       return;
@@ -140,8 +142,8 @@ export function AutomationRulesManager({
 
     if (actions.length === 0) {
       toast({
-        title: "Actions required",
-        description: "Please add at least one action",
+        title: t("toasts.ruleFailed"),
+        description: t("editor.actionLabel"),
         variant: "destructive",
       });
       return;
@@ -177,15 +179,15 @@ export function AutomationRulesManager({
       }
 
       toast({
-        title: editingRule ? "Rule updated" : "Rule created",
-        description: `"${name}" has been saved`,
+        title: editingRule ? t("toasts.ruleUpdated") : t("toasts.ruleCreated"),
+        description: editingRule ? t("toasts.ruleUpdatedDesc") : t("toasts.ruleCreatedDesc"),
       });
 
       closeEditor();
       fetchRules();
     } catch (error) {
       toast({
-        title: "Failed to save rule",
+        title: t("toasts.ruleFailed"),
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
@@ -207,21 +209,21 @@ export function AutomationRulesManager({
       }
 
       toast({
-        title: currentEnabled ? "Rule disabled" : "Rule enabled",
+        title: currentEnabled ? t("ruleCard.inactive") : t("ruleCard.active"),
       });
 
       fetchRules();
     } catch (error) {
       toast({
-        title: "Failed to toggle rule",
+        title: t("toasts.ruleFailed"),
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
   }
 
-  async function handleDelete(ruleId: string, ruleName: string) {
-    if (!confirm(`Delete rule "${ruleName}"?`)) return;
+  async function handleDelete(ruleId: string) {
+    if (!confirm(t("ruleCard.deleteConfirm"))) return;
 
     try {
       const res = await fetch(`/api/meta/whatsapp/automation/rules/${ruleId}`, {
@@ -235,14 +237,14 @@ export function AutomationRulesManager({
       }
 
       toast({
-        title: "Rule deleted",
-        description: `"${ruleName}" has been removed`,
+        title: t("toasts.ruleDeleted"),
+        description: t("toasts.ruleDeletedDesc"),
       });
 
       fetchRules();
     } catch (error) {
       toast({
-        title: "Failed to delete rule",
+        title: t("toasts.ruleFailed"),
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
@@ -291,9 +293,9 @@ export function AutomationRulesManager({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#f9d976]">Automation Rules</h2>
+          <h2 className="text-2xl font-bold text-[#f9d976]">{t("emptyState.title")}</h2>
           <p className="mt-1 text-sm text-[#f5f5dc]/60">
-            Create workflows that automatically respond to inbox events
+            {t("emptyState.description")}
           </p>
         </div>
         <Button
@@ -301,7 +303,7 @@ export function AutomationRulesManager({
           className="gap-2 bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:from-[#f9d976] hover:to-[#d4af37]"
         >
           <Plus className="h-4 w-4" />
-          Create Rule
+          {t("emptyState.createRule")}
         </Button>
       </div>
 
@@ -310,9 +312,9 @@ export function AutomationRulesManager({
         {rules.length === 0 ? (
           <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-12 text-center">
             <Zap className="mx-auto h-12 w-12 text-[#f5f5dc]/30" />
-            <p className="mt-4 text-sm text-[#f5f5dc]/60">No automation rules yet</p>
+            <p className="mt-4 text-sm text-[#f5f5dc]/60">{t("emptyState.title")}</p>
             <p className="mt-2 text-xs text-[#f5f5dc]/40">
-              Create your first rule to automate inbox workflows
+              {t("emptyState.description")}
             </p>
           </div>
         ) : (
@@ -391,7 +393,7 @@ export function AutomationRulesManager({
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(rule.id, rule.name)}
+                    onClick={() => handleDelete(rule.id)}
                     className="rounded-lg p-2 text-[#f5f5dc]/60 transition-colors hover:bg-[#e11d48]/10 hover:text-[#e11d48]"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -409,7 +411,7 @@ export function AutomationRulesManager({
           <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-[#d4af37]/30 bg-gradient-to-b from-[#0a1229] to-[#050a18] shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#d4af37]/20 px-6 py-4">
               <h3 className="text-xl font-bold text-[#f9d976]">
-                {editingRule ? "Edit Rule" : "Create Rule"}
+                {editingRule ? t("editor.editTitle") : t("editor.createTitle")}
               </h3>
               <button
                 onClick={closeEditor}
@@ -423,21 +425,21 @@ export function AutomationRulesManager({
               {/* Basic Info */}
               <div className="space-y-4">
                 <div>
-                  <Label className="text-[#f5f5dc]">Rule Name</Label>
+                  <Label className="text-[#f5f5dc]">{t("editor.nameLabel")}</Label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g., Auto-tag urgent messages"
+                    placeholder={t("editor.namePlaceholder")}
                     className="mt-2 bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-[#f5f5dc]">Description (optional)</Label>
+                  <Label className="text-[#f5f5dc]">{t("editor.triggerLabel")}</Label>
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe what this rule does..."
+                    placeholder={t("editor.triggerPlaceholder")}
                     className="mt-2 bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
                     rows={2}
                   />
@@ -445,7 +447,7 @@ export function AutomationRulesManager({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-[#f5f5dc]">Trigger Event</Label>
+                    <Label className="text-[#f5f5dc]">{t("editor.triggerLabel")}</Label>
                     <select
                       value={triggerType}
                       onChange={(e) => setTriggerType(e.target.value as TriggerType)}
@@ -459,7 +461,7 @@ export function AutomationRulesManager({
                   </div>
 
                   <div>
-                    <Label className="text-[#f5f5dc]">Priority (0-100)</Label>
+                    <Label className="text-[#f5f5dc]">{t("editor.conditionsLabel")}</Label>
                     <Input
                       type="number"
                       min="0"
@@ -480,7 +482,7 @@ export function AutomationRulesManager({
                     className="h-4 w-4 rounded border-[#d4af37]/20 bg-[#050a18] text-[#d4af37]"
                   />
                   <Label htmlFor="enabled" className="text-[#f5f5dc]">
-                    Enable this rule
+                    {t("ruleCard.active")}
                   </Label>
                 </div>
               </div>
@@ -488,19 +490,19 @@ export function AutomationRulesManager({
               {/* Actions */}
               <div>
                 <div className="mb-3 flex items-center justify-between">
-                  <Label className="text-[#f5f5dc]">Actions (required)</Label>
+                  <Label className="text-[#f5f5dc]">{t("editor.actionLabel")}</Label>
                   <button
                     onClick={addAction}
                     className="rounded-lg border border-[#d4af37]/20 px-3 py-1 text-xs font-medium text-[#f9d976] hover:bg-[#d4af37]/10"
                   >
                     <Plus className="inline h-3 w-3 mr-1" />
-                    Add Action
+                    {t("editor.addCondition")}
                   </button>
                 </div>
 
                 {actions.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-[#f5f5dc]/20 p-8 text-center text-sm text-[#f5f5dc]/40">
-                    No actions yet. Click &quot;Add Action&quot; to start.
+                    {t("editor.actionPlaceholder")}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -591,7 +593,7 @@ export function AutomationRulesManager({
                 variant="ghost"
                 className="text-[#f5f5dc]/60"
               >
-                Cancel
+                {t("editor.cancel")}
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -601,12 +603,12 @@ export function AutomationRulesManager({
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
+                    {t("editor.save")}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    {editingRule ? "Update Rule" : "Create Rule"}
+                    {editingRule ? t("editor.save") : t("editor.save")}
                   </>
                 )}
               </Button>

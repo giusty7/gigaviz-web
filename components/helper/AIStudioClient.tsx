@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles as SparklesIcon,
@@ -80,6 +81,7 @@ const TEMPLATE_CATEGORIES = [
 ];
 
 export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, initialTemplates }: AIStudioClientProps) {
+  const t = useTranslations("helperUI.aiStudio");
   // State
   const [activeTab, setActiveTab] = useState<"settings" | "playground" | "templates">("settings");
   const [isLoading, setIsLoading] = useState(false);
@@ -220,9 +222,9 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
 
   // Tab buttons
   const tabs = [
-    { id: "settings", label: "AI Settings", icon: Cog6ToothIcon },
-    { id: "playground", label: "Playground", icon: BeakerIcon },
-    { id: "templates", label: "Prompt Templates", icon: DocumentTextIcon },
+    { id: "settings", label: t("tabSettings"), icon: Cog6ToothIcon },
+    { id: "playground", label: t("tabPlayground"), icon: BeakerIcon },
+    { id: "templates", label: t("tabTemplates"), icon: DocumentTextIcon },
   ] as const;
 
   return (
@@ -239,7 +241,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
               <CpuChipIcon className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Active Provider</p>
+              <p className="text-sm text-gray-400">{t("activeProvider")}</p>
               <p className="text-lg font-semibold text-white capitalize">{currentSettings.ai_provider}</p>
             </div>
           </div>
@@ -256,7 +258,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
               <SparklesIcon className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Model</p>
+              <p className="text-sm text-gray-400">{t("model")}</p>
               <p className="text-lg font-semibold text-white">{currentSettings.model_name}</p>
             </div>
           </div>
@@ -273,7 +275,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
               <DocumentTextIcon className="w-5 h-5 text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Templates</p>
+              <p className="text-sm text-gray-400">{t("templates")}</p>
               <p className="text-lg font-semibold text-white">{templates.length}</p>
             </div>
           </div>
@@ -290,7 +292,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
               <AdjustmentsHorizontalIcon className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Temperature</p>
+              <p className="text-sm text-gray-400">{t("temperature")}</p>
               <p className="text-lg font-semibold text-white">{currentSettings.temperature}</p>
             </div>
           </div>
@@ -330,13 +332,13 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
             <div className="p-6 rounded-xl bg-white/5 border border-white/10">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <CpuChipIcon className="w-5 h-5 text-purple-400" />
-                AI Provider Configuration
+                {t("providerConfig")}
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Provider */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Provider</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{t("provider")}</label>
                   <select
                     value={currentSettings.ai_provider}
                     onChange={(e) => {
@@ -359,7 +361,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
 
                 {/* Model */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Model</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{t("modelLabel")}</label>
                   <select
                     value={currentSettings.model_name}
                     onChange={(e) => setCurrentSettings(prev => ({ ...prev, model_name: e.target.value }))}
@@ -376,7 +378,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                 {/* Temperature */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Temperature: {currentSettings.temperature}
+                    {t("temperatureLabel", { value: currentSettings.temperature ?? 0 })}
                   </label>
                   <input
                     type="range"
@@ -388,15 +390,15 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                     className="w-full accent-purple-500"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>Precise (0)</span>
-                    <span>Balanced (1)</span>
-                    <span>Creative (2)</span>
+                    <span>{t("precise")}</span>
+                    <span>{t("balanced")}</span>
+                    <span>{t("creative")}</span>
                   </div>
                 </div>
 
                 {/* Max Tokens */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Max Tokens</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{t("maxTokensLabel", { value: currentSettings.max_tokens ?? 0 })}</label>
                   <input
                     type="number"
                     min="256"
@@ -461,7 +463,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   className="flex items-center gap-2 text-green-400"
                 >
                   <CheckCircleIcon className="w-5 h-5" />
-                  Settings saved!
+                  {t("settingsSaved")}
                 </motion.div>
               )}
               {saveStatus === "error" && (
@@ -471,7 +473,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   className="flex items-center gap-2 text-red-400"
                 >
                   <ExclamationTriangleIcon className="w-5 h-5" />
-                  Failed to save
+                  {t("settingsError")}
                 </motion.div>
               )}
               <button
@@ -482,12 +484,12 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                 {isSaving ? (
                   <>
                     <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
                   <>
                     <CheckCircleIcon className="w-4 h-4" />
-                    Save Settings
+                    {t("saveSettings")}
                   </>
                 )}
               </button>
@@ -509,14 +511,14 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
               <div className="p-6 rounded-xl bg-white/5 border border-white/10">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <PencilSquareIcon className="w-5 h-5 text-blue-400" />
-                  Input
+                  {t("prompt")}
                 </h3>
                 <textarea
                   value={playgroundPrompt}
                   onChange={(e) => setPlaygroundPrompt(e.target.value)}
                   rows={12}
                   className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
-                  placeholder="Enter your prompt here..."
+                  placeholder={t("prompt")}
                 />
                 <div className="flex justify-between items-center mt-4">
                   <p className="text-xs text-gray-500">
@@ -527,7 +529,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                       onClick={() => setPlaygroundPrompt("")}
                       className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                     >
-                      Clear
+                      {t("clearResponse")}
                     </button>
                     <button
                       onClick={handleRunPlayground}
@@ -537,12 +539,12 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                       {isRunning ? (
                         <>
                           <StopIcon className="w-4 h-4" />
-                          Stop
+                          {t("generating")}
                         </>
                       ) : (
                         <>
                           <PlayIcon className="w-4 h-4" />
-                          Run
+                          {t("generateResponse")}
                         </>
                       )}
                     </button>
@@ -555,7 +557,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                     <SparklesIcon className="w-5 h-5 text-purple-400" />
-                    Output
+                    {t("response")}
                   </h3>
                   {playgroundResponse && (
                     <button
@@ -571,11 +573,11 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   {isRunning && !playgroundResponse && (
                     <div className="flex items-center gap-2 text-purple-400">
                       <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                      Generating response...
+                      {t("generating")}
                     </div>
                   )}
                   {playgroundResponse || (
-                    <span className="text-gray-500">Response will appear here...</span>
+                    <span className="text-gray-500">{t("responsePlaceholder")}</span>
                   )}
                   {isRunning && playgroundResponse && (
                     <span className="inline-block w-2 h-4 bg-purple-500 animate-pulse ml-1" />
@@ -655,7 +657,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   type="text"
                   value={templateSearch}
                   onChange={(e) => setTemplateSearch(e.target.value)}
-                  placeholder="Search templates..."
+                  placeholder={t("searchTemplates")}
                   className="flex-1 md:w-64 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
                 />
                 <button
@@ -703,24 +705,24 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
             ) : templates.length === 0 ? (
               <div className="p-12 rounded-xl bg-white/5 border border-white/10 text-center">
                 <DocumentTextIcon className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">No Templates Yet</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t("noTemplates")}</h3>
                 <p className="text-gray-400 mb-4">
-                  Create your first prompt template to get started
+                  {t("noTemplates")}
                 </p>
                 <button
                   onClick={() => setIsTemplateModalOpen(true)}
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Create Template
+                  {t("useTemplate")}
                 </button>
               </div>
             ) : (
               <div className="p-12 rounded-xl bg-white/5 border border-white/10 text-center">
                 <DocumentTextIcon className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">No Matching Templates</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t("noTemplates")}</h3>
                 <p className="text-gray-400">
-                  Try adjusting your search or filters
+                  {t("searchTemplates")}
                 </p>
               </div>
             )}
@@ -792,14 +794,14 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                     className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-2"
                   >
                     <BeakerIcon className="w-4 h-4" />
-                    Try in Playground
+                    {t("tabPlayground")}
                   </button>
                   <button
                     onClick={() => copyToClipboard(selectedTemplate.prompt)}
                     className="px-4 py-2 rounded-lg bg-purple-500 text-white hover:opacity-90 transition-opacity flex items-center gap-2"
                   >
                     <ClipboardDocumentIcon className="w-4 h-4" />
-                    Copy
+                    {t("copyResponse")}
                   </button>
                 </div>
               </div>
@@ -831,8 +833,8 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                     <BookOpenIcon className="w-5 h-5 text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white">Create New Template</h3>
-                    <p className="text-sm text-gray-400">Save your prompts for reuse</p>
+                    <h3 className="text-xl font-semibold text-white">{t("templateTitle")}</h3>
+                    <p className="text-sm text-gray-400">{t("templateDesc")}</p>
                   </div>
                 </div>
                 <button
@@ -845,7 +847,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Template Name</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{t("previewTitle")}</label>
                   <input
                     type="text"
                     value={newTemplateName}
@@ -856,7 +858,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Prompt</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">{t("previewPrompt")}</label>
                   <textarea
                     value={newTemplatePrompt}
                     onChange={(e) => setNewTemplatePrompt(e.target.value)}
@@ -904,7 +906,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   }}
                   className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
                 >
-                  Cancel
+                  {t("allCategories")}
                 </button>
                 <button
                   onClick={async () => {
@@ -938,12 +940,12 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
                   {isSaving ? (
                     <>
                       <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                      Saving...
+                      {t("saving")}
                     </>
                   ) : (
                     <>
                       <PlusIcon className="w-4 h-4" />
-                      Create Template
+                      {t("useTemplate")}
                     </>
                   )}
                 </button>
@@ -958,7 +960,7 @@ export function AIStudioClient({ workspaceId, workspaceSlug, initialSettings, in
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50">
           <div className="p-6 rounded-xl bg-gray-900 border border-white/10 flex items-center gap-3">
             <ArrowPathIcon className="w-6 h-6 text-purple-400 animate-spin" />
-            <span className="text-white">Loading...</span>
+            <span className="text-white">{t("saving")}</span>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, Settings2, ShieldOff, Wallet } from "lucide-react";
 import {
   deductWorkspaceTokensAction,
@@ -36,6 +37,7 @@ export function OwnerEntitlementsPanel({
   entitlements: WorkspaceEntitlementRow[];
   readOnly?: boolean;
 }) {
+  const t = useTranslations("opsUI");
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
   const [payloadOpen, setPayloadOpen] = useState(false);
@@ -80,13 +82,13 @@ export function OwnerEntitlementsPanel({
     startTransition(async () => {
       const result = await setWorkspaceEntitlementAction(formData);
       if (result.ok) {
-        toast({ title: "Entitlement updated" });
+        toast({ title: t("owner.panels.grantSuccess") });
         setPayloadOpen(false);
         setDisableOpen(false);
         setDisableReason("");
       } else {
         toast({
-          title: "Update failed",
+          title: t("owner.panels.grantFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -208,7 +210,7 @@ export function OwnerEntitlementsPanel({
       <Dialog open={payloadOpen} onOpenChange={setPayloadOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit entitlement payload</DialogTitle>
+            <DialogTitle>{t("owner.panels.jsonEditor")}</DialogTitle>
             <DialogDescription>
               Update JSON payload for {payloadKey}. This does not toggle enablement.
             </DialogDescription>
@@ -249,7 +251,7 @@ export function OwnerEntitlementsPanel({
                 });
               }}
             >
-              Save payload
+              {t("owner.panels.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -260,7 +262,7 @@ export function OwnerEntitlementsPanel({
       <Dialog open={disableOpen} onOpenChange={setDisableOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Disable entitlement</DialogTitle>
+            <DialogTitle>{t("owner.panels.revokeEntitlement")}</DialogTitle>
             <DialogDescription>
               Disabling immediately blocks the feature for this workspace.
             </DialogDescription>
@@ -292,7 +294,7 @@ export function OwnerEntitlementsPanel({
                 });
               }}
             >
-              Confirm disable
+              {t("owner.panels.revokeEntitlement")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -309,6 +311,7 @@ export function OwnerTokensPanel({
   workspaceId: string;
   balance: number | null;
 }) {
+  const t = useTranslations("opsUI");
   const { toast } = useToast();
   const [grantOpen, setGrantOpen] = useState(false);
   const [deductOpen, setDeductOpen] = useState(false);
@@ -352,14 +355,14 @@ export function OwnerTokensPanel({
 
       if (result.ok) {
         toast({
-          title: action === "grant" ? "Tokens granted" : "Tokens deducted",
+          title: action === "grant" ? t("owner.panels.tokensGranted") : t("owner.panels.tokensDeducted"),
         });
         setGrantOpen(false);
         setDeductOpen(false);
         resetForm();
       } else {
         toast({
-          title: "Token update failed",
+          title: t("owner.panels.tokenFailed"),
           description: result.error,
           variant: "destructive",
         });
@@ -373,7 +376,7 @@ export function OwnerTokensPanel({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Current balance
+              {t("owner.panels.tokenBalance")}
             </p>
             <p className="text-2xl font-semibold text-foreground">
               {balance === null ? "N/A" : balance.toLocaleString()}
@@ -385,17 +388,17 @@ export function OwnerTokensPanel({
 
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" onClick={() => setGrantOpen(true)}>
-          Grant tokens
+          {t("owner.panels.grantTokens")}
         </Button>
         <Button size="sm" variant="destructive" onClick={() => setDeductOpen(true)}>
-          Deduct tokens
+          {t("owner.panels.deductTokens")}
         </Button>
       </div>
 
       <Dialog open={grantOpen} onOpenChange={setGrantOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Grant tokens</DialogTitle>
+            <DialogTitle>{t("owner.panels.grantTokens")}</DialogTitle>
             <DialogDescription>Add credits to the workspace wallet.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -439,7 +442,7 @@ export function OwnerTokensPanel({
       <Dialog open={deductOpen} onOpenChange={setDeductOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deduct tokens</DialogTitle>
+            <DialogTitle>{t("owner.panels.deductTokens")}</DialogTitle>
             <DialogDescription>This will reduce the workspace balance.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">

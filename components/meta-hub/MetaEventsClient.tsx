@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -89,22 +90,22 @@ type Props = {
 
 /* ── helpers ── */
 
-function tokenProviderLabel(provider: string | null) {
-  if (provider === "meta_oauth") return "Meta OAuth";
-  if (provider === "meta_system_user") return "System User";
-  if (provider === "meta_whatsapp") return "Embedded Signup";
-  if (provider === "env_system_user") return "Env System User";
-  return provider || "Not set";
+function tokenProviderLabel(provider: string | null, t: (key: string) => string) {
+  if (provider === "meta_oauth") return t("tokenMetaOAuth");
+  if (provider === "meta_system_user") return t("tokenSystemUser");
+  if (provider === "meta_whatsapp") return t("tokenEmbeddedSignup");
+  if (provider === "env_system_user") return t("tokenEnvSystemUser");
+  return provider || t("tokenNotSet");
 }
 
-function tokenExpiryInfo(expiresAt: string | null): { label: string; warn: boolean; expired: boolean } {
-  if (!expiresAt) return { label: "No expiry", warn: false, expired: false };
+function tokenExpiryInfo(expiresAt: string | null, t: (key: string, values?: Record<string, string | number | Date>) => string): { label: string; warn: boolean; expired: boolean } {
+  if (!expiresAt) return { label: t("noExpiry"), warn: false, expired: false };
   const expDate = new Date(expiresAt);
   const now = new Date();
   const daysLeft = Math.ceil((expDate.getTime() - now.getTime()) / 86_400_000);
-  if (daysLeft < 0) return { label: `Expired ${Math.abs(daysLeft)}d ago`, warn: true, expired: true };
-  if (daysLeft <= 7) return { label: `Expires in ${daysLeft}d`, warn: true, expired: false };
-  return { label: `Expires ${expDate.toLocaleDateString()}`, warn: false, expired: false };
+  if (daysLeft < 0) return { label: t("expiredAgo", { days: Math.abs(daysLeft) }), warn: true, expired: true };
+  if (daysLeft <= 7) return { label: t("expiresInDays", { days: daysLeft }), warn: true, expired: false };
+  return { label: t("expiresOn", { date: expDate.toLocaleDateString() }), warn: false, expired: false };
 }
 
 const PAGE_SIZE = 20;
@@ -112,6 +113,7 @@ const PAGE_SIZE = 20;
 export function MetaEventsClient({ workspaceId, canEdit, connection, logs, tokenStatus, recentEvents }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.metaEvents");
 
   const [wabaId, setWabaId] = useState(connection.wabaId ?? "");
   const [datasetId, setDatasetId] = useState(connection.datasetId ?? "");
@@ -138,7 +140,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
   const hasDataset = !!datasetId;
   const hasSentEvent = logs.some((l) => l.status === "success");
   const hasLogs = logs.length > 0 || recentEvents.length > 0;
-  const expiry = tokenExpiryInfo(tokenStatus.expiresAt);
+  const expiry = tokenExpiryInfo(tokenStatus.expiresAt, t);
 
   const checkSubscription = useCallback(
     async (silent = false) => {
@@ -149,17 +151,17 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
           `/api/meta/events/subscribed-apps?workspaceId=${workspaceId}&wabaId=${wabaId}`
         );
         const data = await res.json().catch(() => null);
-        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || "Check failed");
+        if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || t("checkFailed"));
         setSubscriptionStatus(data.subscribed ? "yes" : "no");
         if (!silent) {
-          toast({ title: data.subscribed ? "App subscribed ✓" : "Not subscribed", description: `App ID: ${data.appId}` });
+          toast({ title: data.subscribed ? t("appSubscribed") : t("notSubscribed"), description: `App ID: ${data.appId}` });
         }
       } catch (err) {
         setSubscriptionStatus("unknown");
         if (!silent) {
           toast({
-            title: "Subscription check failed",
-            description: err instanceof Error ? err.message : "Unknown",
+            title: t("subscriptionCheckFailed"),
+            description: err instanceof Error ? err.message : t("unknownLabel"),
             variant: "destructive",
           });
         }
@@ -167,7 +169,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
         setCheckingSubscription(false);
       }
     },
-    [toast, wabaId, workspaceId]
+    [t, toast, wabaId, workspaceId]
   );
 
   useEffect(() => {
@@ -177,7 +179,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
 
   async function handleCreateDataset() {
     if (!wabaId) {
-      toast({ title: "Enter WABA ID first", variant: "destructive" });
+      toast({ title: t("enterWabaIdFirst"), variant: "destructive" });
       return;
     }
     setCreatingDataset(true);
@@ -189,15 +191,15 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || data?.error) {
-        throw new Error(data?.reason || data?.error || "Failed to create dataset");
+        throw new Error(data?.reason || data?.error || t("errorCreateDataset"));
       }
       setDatasetId(data.datasetId);
-      toast({ title: "Dataset ready ✓", description: `ID: ${data.datasetId}` });
+      toast({ title: t("datasetReady"), description: `ID: ${data.datasetId}` });
       router.refresh();
     } catch (err) {
       toast({
-        title: "Dataset error",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("datasetError"),
+        description: err instanceof Error ? err.message : t("unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -207,15 +209,15 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
 
   async function handleSendEvent() {
     if (!wabaId) {
-      toast({ title: "Enter WABA ID first", variant: "destructive" });
+      toast({ title: t("enterWabaIdFirst"), variant: "destructive" });
       return;
     }
     if (!datasetId) {
-      toast({ title: "Dataset missing", description: "Create a dataset first before sending events.", variant: "destructive" });
+      toast({ title: t("datasetMissing"), description: t("createDatasetFirst"), variant: "destructive" });
       return;
     }
     if (!ctwaClid.trim()) {
-      toast({ title: "ctwa_clid required", description: "Paste the ctwa_clid value from a WhatsApp click-to-chat referral.", variant: "destructive" });
+      toast({ title: t("ctwaClidRequired"), description: t("ctwaClidHint"), variant: "destructive" });
       return;
     }
 
@@ -237,16 +239,16 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || data?.error) {
-        throw new Error(data?.reason || data?.error || "Failed to send event");
+        throw new Error(data?.reason || data?.error || t("errorSendEvent"));
       }
-      toast({ title: "Event sent successfully ✓", description: data.fbtrace_id ? `fbtrace_id: ${data.fbtrace_id}` : "Event logged." });
+      toast({ title: t("eventSentSuccess"), description: data.fbtrace_id ? `fbtrace_id: ${data.fbtrace_id}` : t("eventLogged") });
       setCtwaClid("");
       setValue("");
       router.refresh();
     } catch (err) {
       toast({
-        title: "Send failed",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("sendFailed"),
+        description: err instanceof Error ? err.message : t("unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -256,7 +258,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
 
   async function subscribeApp() {
     if (!wabaId) {
-      toast({ title: "Enter WABA ID first", variant: "destructive" });
+      toast({ title: t("enterWabaIdFirst"), variant: "destructive" });
       return;
     }
     setCheckingSubscription(true);
@@ -267,14 +269,14 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
         body: JSON.stringify({ workspaceId, wabaId }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || "Subscribe failed");
+      if (!res.ok || data?.error) throw new Error(data?.reason || data?.error || t("subscribeFailed"));
       setSubscriptionStatus("yes");
-      toast({ title: "Subscribed ✓", description: data.appId ? `App ${data.appId} subscribed to WABA` : undefined });
+      toast({ title: t("subscribedSuccess"), description: data.appId ? `App ${data.appId} subscribed to WABA` : undefined });
     } catch (err) {
       setSubscriptionStatus("unknown");
       toast({
-        title: "Subscribe failed",
-        description: err instanceof Error ? err.message : "Unknown",
+        title: t("subscribeFailed"),
+        description: err instanceof Error ? err.message : t("unknownLabel"),
         variant: "destructive",
       });
     } finally {
@@ -315,44 +317,44 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Radio className="h-4 w-4 text-[#d4af37]" />
-                  Connection Status
+                  {t("connectionStatus")}
                 </CardTitle>
                 <CardDescription className="text-[#f5f5dc]/60">
-                  WABA and phone details for this workspace.
+                  {t("connectionStatusDesc")}
                 </CardDescription>
               </div>
               {hasConnection && hasToken ? (
                 <Badge className="border-emerald-500/50 bg-emerald-500/10 text-emerald-400">
-                  <CheckCircle2 className="mr-1 h-3 w-3" /> Connected
+                  <CheckCircle2 className="mr-1 h-3 w-3" /> {t("connected")}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="border-rose-500/50 text-rose-300">
-                  <Unplug className="mr-1 h-3 w-3" /> Not Connected
+                  <Unplug className="mr-1 h-3 w-3" /> {t("notConnected")}
                 </Badge>
               )}
             </div>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label className="text-xs text-[#f5f5dc]/70">WABA ID</Label>
+              <Label className="text-xs text-[#f5f5dc]/70">{t("wabaId")}</Label>
               <Input
                 value={wabaId}
                 onChange={(e) => setWabaId(e.target.value)}
-                placeholder="Enter WABA ID"
+                placeholder={t("enterWabaId")}
                 disabled={disabled}
                 className="mt-1 bg-[#050a18] text-[#f5f5dc] border-[#d4af37]/20 font-mono text-sm"
               />
-              <p className="mt-1 text-xs text-[#f5f5dc]/40">Required for dataset & events.</p>
+              <p className="mt-1 text-xs text-[#f5f5dc]/40">{t("wabaIdHint")}</p>
             </div>
             <div>
-              <Label className="text-xs text-[#f5f5dc]/70">Phone Number</Label>
+              <Label className="text-xs text-[#f5f5dc]/70">{t("phoneNumber")}</Label>
               <div className="mt-1 flex items-center gap-2 rounded-md border border-[#d4af37]/20 bg-[#050a18] p-2.5 text-sm text-[#f5f5dc]/80 font-mono">
                 {connection.displayPhoneNumber ?? connection.phoneNumberId ?? (
-                  <span className="text-[#f5f5dc]/40 font-sans">No phone connected</span>
+                  <span className="text-[#f5f5dc]/40 font-sans">{t("noPhoneConnected")}</span>
                 )}
               </div>
               <p className="mt-1 text-xs text-[#f5f5dc]/40">
-                Verified: {connection.verifiedName ? (
+                {t("verified")}: {connection.verifiedName ? (
                   <span className="text-emerald-400">{connection.verifiedName}</span>
                 ) : (
                   <span className="text-[#f5f5dc]/40">—</span>
@@ -360,7 +362,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
               </p>
             </div>
             <div>
-              <Label className="text-xs text-[#f5f5dc]/70">Token</Label>
+              <Label className="text-xs text-[#f5f5dc]/70">{t("token")}</Label>
               <div className={cn(
                 "mt-1 rounded-md border bg-[#050a18]/70 p-3 text-sm",
                 expiry.expired
@@ -375,7 +377,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                   ) : (
                     <Shield className="h-4 w-4 text-[#f5f5dc]/40 shrink-0" />
                   )}
-                  <p className="font-semibold">{tokenProviderLabel(tokenStatus.provider)}</p>
+                  <p className="font-semibold">{tokenProviderLabel(tokenStatus.provider, t)}</p>
                 </div>
                 <p className={cn(
                   "mt-0.5 text-xs",
@@ -388,7 +390,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
               </div>
             </div>
             <div>
-              <Label className="text-xs text-[#f5f5dc]/70">Subscription</Label>
+              <Label className="text-xs text-[#f5f5dc]/70">{t("subscription")}</Label>
               <div className="mt-1 space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge
@@ -404,7 +406,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                   >
                     {subscriptionStatus === "yes" && <CheckCircle2 className="mr-1 h-3 w-3" />}
                     {subscriptionStatus === "no" && <XCircle className="mr-1 h-3 w-3" />}
-                    {subscriptionStatus === "yes" ? "Subscribed" : subscriptionStatus === "no" ? "Not subscribed" : "Unknown"}
+                    {subscriptionStatus === "yes" ? t("subscribed") : subscriptionStatus === "no" ? t("notSubscribed") : t("unknownLabel")}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2">
@@ -416,7 +418,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                     className="text-xs border-[#d4af37]/30 text-[#f5f5dc]/80 hover:bg-[#d4af37]/10"
                   >
                     {checkingSubscription ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
-                    Check
+                    {t("check")}
                   </Button>
                   {subscriptionStatus !== "yes" && (
                     <Button
@@ -426,7 +428,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                       className="text-xs bg-[#d4af37]/20 text-[#f5f5dc] hover:bg-[#d4af37]/30"
                     >
                       {checkingSubscription ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Zap className="mr-1 h-3 w-3" />}
-                      Subscribe
+                      {t("subscribe")}
                     </Button>
                   )}
                 </div>
@@ -446,16 +448,16 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
               App Review Checklist
             </CardTitle>
             <CardDescription className="text-[#f5f5dc]/60">
-              Steps to record for Meta review.
+              {t("checklistDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2.5">
-            <ChecklistStep step={1} label="Login as owner/admin" done={canEdit} />
-            <ChecklistStep step={2} label="Connect via Embedded Signup" done={hasConnection && hasToken} />
-            <ChecklistStep step={3} label="Create dataset" done={hasDataset} />
-            <ChecklistStep step={4} label="Subscribe app to WABA" done={subscriptionStatus === "yes"} />
-            <ChecklistStep step={5} label="Send CAPI event with ctwa_clid" done={hasSentEvent} />
-            <ChecklistStep step={6} label="Show event logs" done={hasLogs} />
+            <ChecklistStep step={1} label={t("step1")} done={canEdit} />
+            <ChecklistStep step={2} label={t("step2")} done={hasConnection && hasToken} />
+            <ChecklistStep step={3} label={t("step3")} done={hasDataset} />
+            <ChecklistStep step={4} label={t("step4")} done={subscriptionStatus === "yes"} />
+            <ChecklistStep step={5} label={t("step5")} done={hasSentEvent} />
+            <ChecklistStep step={6} label={t("step6")} done={hasLogs} />
             <Separator className="bg-[#d4af37]/10 my-2" />
             <div className="text-center">
               <Badge
@@ -467,7 +469,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                     : "border-[#d4af37]/40 text-[#d4af37]"
                 )}
               >
-                {[canEdit, hasConnection && hasToken, hasDataset, subscriptionStatus === "yes", hasSentEvent, hasLogs].filter(Boolean).length}/6 Complete
+                {[canEdit, hasConnection && hasToken, hasDataset, subscriptionStatus === "yes", hasSentEvent, hasLogs].filter(Boolean).length}/6 {t("complete")}
               </Badge>
             </div>
           </CardContent>
@@ -480,21 +482,21 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
               <Database className="h-4 w-4 text-[#d4af37]" />
-              Dataset
+              {t("dataset")}
             </CardTitle>
             <CardDescription className="text-[#f5f5dc]/60">
-              Required for Conversions API (business_messaging).
+              {t("datasetDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[#f5f5dc]/50">Dataset ID</p>
+                <p className="text-xs text-[#f5f5dc]/50">{t("datasetIdLabel")}</p>
                 {datasetId ? (
                   <p className="text-sm font-semibold text-[#f5f5dc] font-mono">{datasetId}</p>
                 ) : (
                   <p className="text-sm text-rose-300/70 flex items-center gap-1">
-                    <XCircle className="h-3 w-3" /> Not set
+                    <XCircle className="h-3 w-3" /> {t("notSet")}
                   </p>
                 )}
               </div>
@@ -505,18 +507,18 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                 className="bg-[#d4af37]/20 text-[#f5f5dc] hover:bg-[#d4af37]/30"
               >
                 {creatingDataset ? (
-                  <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Working...</>
+                  <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> {t("working")}</>
                 ) : datasetId ? (
-                  <><RefreshCw className="mr-1 h-3 w-3" /> Refresh</>
+                  <><RefreshCw className="mr-1 h-3 w-3" /> {t("refresh")}</>
                 ) : (
-                  <><Database className="mr-1 h-3 w-3" /> Create</>
+                  <><Database className="mr-1 h-3 w-3" /> {t("create")}</>
                 )}
               </Button>
             </div>
             <Separator className="bg-[#d4af37]/10" />
             <p className="text-xs text-[#f5f5dc]/40 flex items-center gap-1">
               <Shield className="h-3 w-3" />
-              Graph calls stay server-side; no tokens exposed to client.
+              {t("graphCallsServerSide")}
             </p>
           </CardContent>
         </Card>
@@ -525,16 +527,16 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
               <Send className="h-4 w-4 text-[#d4af37]" />
-              Send Test Event
+              {t("sendTestEvent")}
             </CardTitle>
             <CardDescription className="text-[#f5f5dc]/60">
-              Send Conversions API event with ctwa_clid from referral.
+              {t("sendTestEventDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label className="text-xs text-[#f5f5dc]/70">Event Name</Label>
+                <Label className="text-xs text-[#f5f5dc]/70">{t("eventName")}</Label>
                 <select
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value as (typeof EVENT_OPTIONS)[number])}
@@ -548,7 +550,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                 </select>
               </div>
               <div>
-                <Label className="text-xs text-[#f5f5dc]/70">Value (optional)</Label>
+                <Label className="text-xs text-[#f5f5dc]/70">{t("valueOptional")}</Label>
                 <Input
                   type="number"
                   placeholder="123.45"
@@ -560,7 +562,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label className="text-xs text-[#f5f5dc]/70">Currency</Label>
+                <Label className="text-xs text-[#f5f5dc]/70">{t("currency")}</Label>
                 <Input
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
@@ -568,11 +570,11 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                 />
               </div>
               <div>
-                <Label className="text-xs text-[#f5f5dc]/70">ctwa_clid (required)</Label>
+                <Label className="text-xs text-[#f5f5dc]/70">{t("ctwaClidLabel")}</Label>
                 <Input
                   value={ctwaClid}
                   onChange={(e) => setCtwaClid(e.target.value)}
-                  placeholder="Paste from referral"
+                  placeholder={t("pasteFromReferral")}
                   className="mt-1 bg-[#050a18] text-[#f5f5dc] border-[#d4af37]/20 font-mono text-xs"
                 />
               </div>
@@ -583,14 +585,14 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
               className="w-full bg-[#d4af37]/20 text-[#f5f5dc] hover:bg-[#d4af37]/30"
             >
               {sending ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("sending")}</>
               ) : (
-                <><Send className="mr-2 h-4 w-4" /> Send Event</>
+                <><Send className="mr-2 h-4 w-4" /> {t("sendEvent")}</>
               )}
             </Button>
             <p className="text-[10px] text-[#f5f5dc]/40 flex items-center gap-1">
               <Shield className="h-3 w-3 shrink-0" />
-              We never store raw ctwa_clid. Payloads are redacted and hashed before logging.
+              {t("neverStoreCtwaClidNote")}
             </p>
           </CardContent>
         </Card>
@@ -603,10 +605,10 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-[#d4af37]" />
-                Recent Events
+                {t("recentEvents")}
               </CardTitle>
               <CardDescription className="text-[#f5f5dc]/60">
-                meta_events_log (webhook + api) with hashed referral.
+                {t("recentEventsDesc")}
               </CardDescription>
             </div>
             {recentEvents.length > 0 && (
@@ -620,10 +622,10 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[#f5f5dc]/70">Event</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Source</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Referral Hash</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Received</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("eventHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("sourceHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("referralHashHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("receivedHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -632,8 +634,8 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                   <TableCell colSpan={4} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2 text-[#f5f5dc]/40">
                       <Activity className="h-8 w-8" />
-                      <p className="text-sm">No events yet</p>
-                      <p className="text-xs">Events from webhooks and API will appear here.</p>
+                      <p className="text-sm">{t("noEventsYet")}</p>
+                      <p className="text-xs">{t("eventsWillAppear")}</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -678,7 +680,7 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                 className="border-[#d4af37]/30 text-[#f5f5dc]/70 hover:bg-[#d4af37]/10"
               >
                 <ChevronDown className="mr-1 h-3 w-3" />
-                Load more ({recentEvents.length - visibleEvents.length} remaining)
+                Load more ({recentEvents.length - visibleEvents.length} {t("remaining")})
               </Button>
             </div>
           )}
@@ -692,20 +694,20 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
             <div>
               <CardTitle className="flex items-center gap-2">
                 <ExternalLink className="h-4 w-4 text-[#d4af37]" />
-                CAPI Send Logs
+                {t("capiSendLogs")}
               </CardTitle>
               <CardDescription className="text-[#f5f5dc]/60">
-                Conversions API send history (redacted payloads only).
+                {t("capiSendLogsDesc")}
               </CardDescription>
             </div>
             {logs.length > 0 && (
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-xs">
-                  {logs.filter((l) => l.status === "success").length} success
+                  {logs.filter((l) => l.status === "success").length} {t("success")}
                 </Badge>
                 {logs.some((l) => l.status === "failed") && (
                   <Badge variant="outline" className="border-rose-500/30 text-rose-300 text-xs">
-                    {logs.filter((l) => l.status === "failed").length} failed
+                    {logs.filter((l) => l.status === "failed").length} {t("failed")}
                   </Badge>
                 )}
               </div>
@@ -716,11 +718,11 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[#f5f5dc]/70">Event</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Dataset</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Status</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Error</TableHead>
-                <TableHead className="text-[#f5f5dc]/70">Sent</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("eventHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("datasetHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("statusHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("errorHeader")}</TableHead>
+                <TableHead className="text-[#f5f5dc]/70">{t("sentHeader")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -729,8 +731,8 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                   <TableCell colSpan={5} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2 text-[#f5f5dc]/40">
                       <Send className="h-8 w-8" />
-                      <p className="text-sm">No CAPI events sent yet</p>
-                      <p className="text-xs">Send a test event above to see logs here.</p>
+                      <p className="text-sm">{t("noCapiEvents")}</p>
+                      <p className="text-xs">{t("sendTestAbove")}</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -780,14 +782,14 @@ export function MetaEventsClient({ workspaceId, canEdit, connection, logs, token
                 className="border-[#d4af37]/30 text-[#f5f5dc]/70 hover:bg-[#d4af37]/10"
               >
                 <ChevronDown className="mr-1 h-3 w-3" />
-                Load more ({logs.length - visibleLogs.length} remaining)
+                Load more ({logs.length - visibleLogs.length} {t("remaining")})
               </Button>
             </div>
           )}
           <Separator className="bg-[#d4af37]/10" />
           <p className="text-[10px] text-[#f5f5dc]/40 flex items-center gap-1">
             <Shield className="h-3 w-3 shrink-0" />
-            ctwa_clid is SHA-256 hashed; only redacted payloads are stored server-side.
+              {t("ctwaClidHashedNote")}
           </p>
         </CardContent>
       </Card>

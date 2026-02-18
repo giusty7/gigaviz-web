@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,7 @@ interface StepState {
 
 export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, docsHref, onResult }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.embeddedSignup");
   const router = useRouter();
   const appId = process.env.NEXT_PUBLIC_META_APP_ID ?? "";
   const configId = process.env.NEXT_PUBLIC_META_CONFIG_ID ?? "";
@@ -124,8 +126,8 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
 
     if (!window.FB || !sdkReady) {
       toast({
-        title: "SDK not ready",
-        description: "Facebook SDK is not ready. Try again in a few seconds.",
+        title: t("toastSdkNotReady"),
+        description: t("toastSdkNotReadyDesc"),
         variant: "destructive",
       });
       return;
@@ -133,8 +135,8 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
 
     if (!configId) {
       toast({
-        title: "Config ID missing",
-        description: "Set NEXT_PUBLIC_META_CONFIG_ID before continuing.",
+        title: t("toastConfigMissing"),
+        description: t("toastConfigMissingDesc"),
         variant: "destructive",
       });
       return;
@@ -284,7 +286,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
       if (onResult) {
         onResult("success");
       } else {
-        toast({ title: "Embedded signup succeeded", description: "WhatsApp connection saved." });
+        toast({ title: t("toastSuccess"), description: t("toastSuccessDesc") });
         router.refresh();
       }
 
@@ -308,10 +310,10 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
         }
       });
 
-      toast({ title: "Signup failed", description: msg, variant: "destructive" });
+      toast({ title: t("toastFailed"), description: msg, variant: "destructive" });
       onResult?.("error");
     }
-  }, [sdkReady, configId, solutionId, workspaceSlug, label, onResult, toast, router]);
+  }, [sdkReady, configId, solutionId, workspaceSlug, label, onResult, toast, router, t]);
 
   useEffect(() => {
     if (!appId) return;
@@ -330,10 +332,10 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
   }, [appId]);
 
   const steps = [
-    { key: "authorize", label: "Authorize", status: stepStates.authorize },
-    { key: "setup", label: "Set up WhatsApp", status: stepStates.setup },
-    { key: "saving", label: "Save connection", status: stepStates.saving },
-    { key: "done", label: "Done", status: stepStates.done },
+    { key: "authorize", label: t("stepAuthorize"), status: stepStates.authorize },
+    { key: "setup", label: t("stepSetup"), status: stepStates.setup },
+    { key: "saving", label: t("stepSave"), status: stepStates.saving },
+    { key: "done", label: t("stepDone"), status: stepStates.done },
   ];
 
   const hasFailedStep = Object.values(stepStates).some(s => s === "Failed");
@@ -346,7 +348,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
             <span className="inline-flex h-9 w-9 items-center justify-center bg-[#1877F2] text-white shadow-[0_4px_12px_-2px_rgba(24,119,242,0.5),0_2px_6px_-2px_rgba(24,119,242,0.3),inset_0_-2px_0_0_rgba(0,0,0,0.15)] hover:shadow-[0_6px_16px_-2px_rgba(24,119,242,0.6),0_3px_8px_-2px_rgba(24,119,242,0.4),inset_0_-2px_0_0_rgba(0,0,0,0.15)] transition-shadow">
               <FacebookIcon className="h-6 w-6" />
             </span>
-            <span>Embedded Sign Up (Recommended)</span>
+            <span>{t("cardTitle")}</span>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Connect client&apos;s WhatsApp Business in minutes via Meta.
@@ -365,7 +367,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
               sdkReady ? "text-emerald-200" : "text-muted-foreground"
             )}
           >
-            {sdkReady ? "SDK ready" : "SDK not ready"}
+            {sdkReady ? t("sdkReady") : t("sdkNotReady")}
           </Badge>
         </div>
       </CardHeader>
@@ -380,7 +382,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-emerald-300">WhatsApp Business Connected</p>
+                <p className="text-sm font-semibold text-emerald-300">{t("connectedTitle")}</p>
                 <p className="text-xs text-muted-foreground">
                   Your WhatsApp Business account is linked via Embedded Sign Up. You can manage your connection in the Gateway section below.
                 </p>
@@ -389,7 +391,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
                 variant="outline"
                 className="border-emerald-500/30 bg-emerald-500/10 text-xs text-emerald-200"
               >
-                Active
+                {t("activeBadge")}
               </Badge>
             </div>
             {canEdit && (
@@ -424,7 +426,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
             ) : null}
             <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
               <div className="space-y-1.5">
-                <Label htmlFor="connectionLabel">Connection name (optional)</Label>
+                <Label htmlFor="connectionLabel">{t("connectionNameLabel")}</Label>
                 <Input
                   id="connectionLabel"
                   value={label}
@@ -441,7 +443,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
                 <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-[0_0_8px_rgba(24,119,242,0.5)]">
                   <FacebookIcon className="h-3 w-3" />
                 </span>
-                <span>Continue with Facebook</span>
+                <span>{t("continueWithFacebook")}</span>
               </Button>
             </div>
             {!canEdit ? (
@@ -456,7 +458,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-xl bg-card text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Connect WhatsApp</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{t("dialogTitle")}</DialogTitle>
             <DialogDescription asChild>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Continue in Facebook to complete setup (Embedded Signup).</p>
@@ -509,7 +511,7 @@ export function WhatsappEmbeddedSignup({ workspaceSlug, canEdit, isConnected, do
               onClick={runEmbeddedSignup}
               disabled={!sdkReady || isRunning || stepStates.done === "Done"}
             >
-              {isRunning ? "Processing..." : "Continue with Facebook"}
+              {isRunning ? t("processing") : t("continueWithFacebook")}
             </Button>
           </DialogFooter>
         </DialogContent>

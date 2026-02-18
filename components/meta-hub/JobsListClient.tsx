@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { RefreshCw, Eye, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { JobListResponse } from "@/types/wa-templates";
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export function JobsListClient({ workspaceId, workspaceSlug }: Props) {
+  const t = useTranslations("metaHubUI.jobsList");
   const { toast } = useToast();
   const [jobs, setJobs] = useState<JobListResponse["jobs"]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,28 +66,28 @@ export function JobsListClient({ workspaceId, workspaceSlug }: Props) {
         return (
           <Badge className="bg-green-500/10 text-green-400 border-green-500/30">
             <CheckCircle2 className="mr-1 h-3 w-3" />
-            Completed
+            {t("statusCompleted")}
           </Badge>
         );
       case "processing":
         return (
           <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30">
             <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            Processing
+            {t("statusProcessing")}
           </Badge>
         );
       case "failed":
         return (
           <Badge className="bg-red-500/10 text-red-400 border-red-500/30">
             <XCircle className="mr-1 h-3 w-3" />
-            Failed
+            {t("statusFailed")}
           </Badge>
         );
       case "pending":
         return (
           <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
             <Clock className="mr-1 h-3 w-3" />
-            Pending
+            {t("statusPending")}
           </Badge>
         );
       default:
@@ -102,7 +104,7 @@ export function JobsListClient({ workspaceId, workspaceSlug }: Props) {
     <div className="space-y-4">
       <Card className="border-border bg-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Send Jobs</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <Button
             variant="outline"
             size="sm"
@@ -114,7 +116,7 @@ export function JobsListClient({ workspaceId, workspaceSlug }: Props) {
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Refresh
+            {t("refresh")}
           </Button>
         </CardHeader>
         <CardContent>
@@ -126,20 +128,20 @@ export function JobsListClient({ workspaceId, workspaceSlug }: Props) {
             </div>
           ) : jobs.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
-              <p className="text-sm">No jobs found. Create a batch send to get started.</p>
+              <p className="text-sm">{t("noJobs")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Template</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Progress</TableHead>
-                    <TableHead className="text-right">Sent</TableHead>
-                    <TableHead className="text-right">Failed</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead>{t("headerName")}</TableHead>
+                    <TableHead>{t("headerTemplate")}</TableHead>
+                    <TableHead>{t("headerStatus")}</TableHead>
+                    <TableHead className="text-right">{t("headerProgress")}</TableHead>
+                    <TableHead className="text-right">{t("headerSent")}</TableHead>
+                    <TableHead className="text-right">{t("headerFailed")}</TableHead>
+                    <TableHead className="text-center">{t("headerActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

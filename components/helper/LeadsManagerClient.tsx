@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Target,
@@ -160,6 +161,7 @@ export function LeadsManagerClient({
   workspaceSlug,
   initialLeads,
 }: Props) {
+  const t = useTranslations("helperUI.leadsManager");
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -356,10 +358,10 @@ export function LeadsManagerClient({
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent flex items-center gap-2">
               <Target className="h-6 w-6 text-[#d4af37]" />
-              AI Lead Scoring
+              {t("title")}
             </h1>
             <p className="text-[#f5f5dc]/60 mt-1">
-              Intelligent lead qualification and conversion tracking
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -381,7 +383,7 @@ export function LeadsManagerClient({
               ) : (
                 <Brain className="h-4 w-4 mr-2" />
               )}
-              AI Analyze
+              {t("sortBy")}
             </Button>
             <Button
               variant="outline"
@@ -389,7 +391,7 @@ export function LeadsManagerClient({
               className="border-[#f5f5dc]/20 text-[#f5f5dc] hover:bg-[#f5f5dc]/10"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Import
+              {t("leadSource")}
             </Button>
             <Button
               variant="outline"
@@ -397,7 +399,7 @@ export function LeadsManagerClient({
               className="border-[#f5f5dc]/20 text-[#f5f5dc] hover:bg-[#f5f5dc]/10"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export
+              {t("leadNotes")}
             </Button>
             <Button
               size="sm"
@@ -405,7 +407,7 @@ export function LeadsManagerClient({
               className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Lead
+              {t("addLead")}
             </Button>
           </div>
         </div>
@@ -413,12 +415,12 @@ export function LeadsManagerClient({
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           {[
-            { label: "Total Leads", value: stats.total, icon: Target, gradient: "from-[#d4af37] to-[#f9d976]" },
-            { label: "New", value: stats.new, icon: Plus, gradient: "from-blue-500 to-blue-400" },
-            { label: "Qualified", value: stats.qualified, icon: CheckCircle, gradient: "from-purple-500 to-purple-400" },
-            { label: "Won", value: stats.won, icon: Trophy, gradient: "from-emerald-500 to-emerald-400" },
-            { label: "Conversion", value: `${stats.conversionRate}%`, icon: TrendingUp, gradient: "from-cyan-500 to-cyan-400" },
-            { label: "Avg Score", value: stats.avgScore, icon: Star, gradient: "from-orange-500 to-orange-400" },
+            { label: t("totalLeads"), value: stats.total, icon: Target, gradient: "from-[#d4af37] to-[#f9d976]" },
+            { label: t("statusNew"), value: stats.new, icon: Plus, gradient: "from-blue-500 to-blue-400" },
+            { label: t("qualifiedLeads"), value: stats.qualified, icon: CheckCircle, gradient: "from-purple-500 to-purple-400" },
+            { label: t("statusWon"), value: stats.won, icon: Trophy, gradient: "from-emerald-500 to-emerald-400" },
+            { label: t("conversionRate"), value: `${stats.conversionRate}%`, icon: TrendingUp, gradient: "from-cyan-500 to-cyan-400" },
+            { label: t("score"), value: stats.avgScore, icon: Star, gradient: "from-orange-500 to-orange-400" },
           ].map((stat) => (
             <motion.div
               key={stat.label}
@@ -444,15 +446,15 @@ export function LeadsManagerClient({
           <TabsList className="bg-[#0a1229]/80 border border-[#d4af37]/20 p-1">
             <TabsTrigger value="pipeline" className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]">
               <Activity className="h-4 w-4 mr-2" />
-              Pipeline
+              {t("filterByStatus")}
             </TabsTrigger>
             <TabsTrigger value="ai-insights" className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]">
               <Brain className="h-4 w-4 mr-2" />
-              AI Insights
+              {t("sortBy")}
             </TabsTrigger>
             <TabsTrigger value="leaderboard" className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]">
               <Trophy className="h-4 w-4 mr-2" />
-              Top Leads
+              {t("totalLeads")}
             </TabsTrigger>
           </TabsList>
 
@@ -463,7 +465,7 @@ export function LeadsManagerClient({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
                 <Input
-                  placeholder="Search leads..."
+                  placeholder={t("searchLeads")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]"
@@ -475,20 +477,20 @@ export function LeadsManagerClient({
                 className="border-[#d4af37]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Advanced
+                {t("filterByStatus")}
               </Button>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[150px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="proposal">Proposal</SelectItem>
-                  <SelectItem value="won">Won</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
+                  <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                  <SelectItem value="new">{t("statusNew")}</SelectItem>
+                  <SelectItem value="contacted">{t("statusContacted")}</SelectItem>
+                  <SelectItem value="qualified">{t("statusQualified")}</SelectItem>
+                  <SelectItem value="proposal">{t("statusProposal")}</SelectItem>
+                  <SelectItem value="won">{t("statusWon")}</SelectItem>
+                  <SelectItem value="lost">{t("statusLost")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterTemperature} onValueChange={setFilterTemperature}>
@@ -507,9 +509,9 @@ export function LeadsManagerClient({
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="score">Score (High)</SelectItem>
-                  <SelectItem value="value">Value (High)</SelectItem>
-                  <SelectItem value="recent">Most Recent</SelectItem>
+                  <SelectItem value="score">{t("sortValueHigh")}</SelectItem>
+                  <SelectItem value="value">{t("sortValueLow")}</SelectItem>
+                  <SelectItem value="recent">{t("sortNewest")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -635,7 +637,7 @@ export function LeadsManagerClient({
               {filteredLeads.length === 0 && (
                 <div className="text-center py-12 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80">
                   <Target className="h-12 w-12 text-[#f5f5dc]/20 mx-auto mb-4" />
-                  <p className="text-[#f5f5dc]/60">No leads found matching your filters</p>
+                  <p className="text-[#f5f5dc]/60">{t("noLeads")}</p>
                 </div>
               )}
             </div>
@@ -647,8 +649,8 @@ export function LeadsManagerClient({
               {analyzing ? (
                 <div className="flex flex-col items-center justify-center py-12 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80">
                   <RefreshCw className="h-8 w-8 text-[#d4af37] animate-spin mb-4" />
-                  <p className="text-[#f5f5dc]/60">Analyzing your leads with AI...</p>
-                  <p className="text-sm text-[#f5f5dc]/40 mt-2">This may take a few seconds</p>
+                  <p className="text-[#f5f5dc]/60">{t("saving")}</p>
+                  <p className="text-sm text-[#f5f5dc]/40 mt-2">{t("subtitle")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -707,7 +709,7 @@ export function LeadsManagerClient({
               <div className="p-4 border-b border-[#d4af37]/10">
                 <h3 className="font-semibold text-[#d4af37] flex items-center gap-2">
                   <Trophy className="h-5 w-5" />
-                  Top Performing Leads
+                  {t("totalLeads")}
                 </h3>
               </div>
               <div className="divide-y divide-[#d4af37]/10">
@@ -746,22 +748,22 @@ export function LeadsManagerClient({
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
         <DialogContent className="bg-[#0a1229] border-[#d4af37]/20 text-[#f5f5dc]">
           <DialogHeader>
-            <DialogTitle className="text-[#d4af37]">Add New Lead</DialogTitle>
+            <DialogTitle className="text-[#d4af37]">{t("addLead")}</DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              Add a new lead to your pipeline. AI will automatically score it.
+              {t("noLeadsDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Name</Label>
-              <Input placeholder="Lead name" className="bg-[#050a18] border-[#d4af37]/20" />
+              <Label>{t("leadName")}</Label>
+              <Input placeholder={t("leadName")} className="bg-[#050a18] border-[#d4af37]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Phone</Label>
+              <Label>{t("leadPhone")}</Label>
               <Input placeholder="+62..." className="bg-[#050a18] border-[#d4af37]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Source</Label>
+              <Label>{t("leadSource")}</Label>
               <Select>
                 <SelectTrigger className="bg-[#050a18] border-[#d4af37]/20">
                   <SelectValue placeholder="Select source" />
@@ -775,17 +777,17 @@ export function LeadsManagerClient({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label>{t("leadNotes")}</Label>
               <Textarea placeholder="Additional notes..." className="bg-[#050a18] border-[#d4af37]/20" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddModal(false)} className="border-[#f5f5dc]/20">
-              Cancel
+              {t("cancel")}
             </Button>
             <Button className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18]">
               <Sparkles className="h-4 w-4 mr-2" />
-              Add & Score with AI
+              {t("saveLead")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -797,7 +799,7 @@ export function LeadsManagerClient({
           <DialogHeader>
             <DialogTitle className="text-[#d4af37] flex items-center gap-2">
               <Eye className="h-5 w-5" />
-              Lead Details
+              {t("detailTitle")}
             </DialogTitle>
           </DialogHeader>
           {selectedLead && (
@@ -809,7 +811,7 @@ export function LeadsManagerClient({
                     <span className={`text-3xl font-bold ${getScoreColor(selectedLead.score)}`}>
                       {selectedLead.score}
                     </span>
-                    <span className="text-xs text-[#f5f5dc]/60">Score</span>
+                    <span className="text-xs text-[#f5f5dc]/60">{t("score")}</span>
                   </div>
                 </div>
               </div>
@@ -819,14 +821,14 @@ export function LeadsManagerClient({
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-[#050a18]/50">
                   <Zap className="h-4 w-4 text-[#d4af37]" />
                   <div>
-                    <p className="text-sm text-[#f5f5dc]/60">Name</p>
+                    <p className="text-sm text-[#f5f5dc]/60">{t("leadName")}</p>
                     <p className="font-medium text-[#f5f5dc]">{selectedLead.name || "Unknown"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-[#050a18]/50">
                   <Phone className="h-4 w-4 text-[#d4af37]" />
                   <div>
-                    <p className="text-sm text-[#f5f5dc]/60">Phone</p>
+                    <p className="text-sm text-[#f5f5dc]/60">{t("leadPhone")}</p>
                     <p className="font-medium text-[#f5f5dc]">{selectedLead.phone}</p>
                   </div>
                 </div>
@@ -834,7 +836,7 @@ export function LeadsManagerClient({
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-[#050a18]/50">
                     <Mail className="h-4 w-4 text-[#d4af37]" />
                     <div>
-                      <p className="text-sm text-[#f5f5dc]/60">Email</p>
+                      <p className="text-sm text-[#f5f5dc]/60">{t("leadEmail")}</p>
                       <p className="font-medium text-[#f5f5dc]">{selectedLead.email}</p>
                     </div>
                   </div>
@@ -843,7 +845,7 @@ export function LeadsManagerClient({
                   <div className="p-3 rounded-lg bg-[#d4af37]/10 border border-[#d4af37]/20">
                     <p className="text-sm text-[#d4af37] flex items-center gap-2">
                       <Brain className="h-4 w-4" />
-                      AI Analysis
+                      {t("sortBy")}
                     </p>
                     <p className="text-sm text-[#f5f5dc]/80 mt-1">{selectedLead.aiReason}</p>
                   </div>
@@ -854,11 +856,11 @@ export function LeadsManagerClient({
               <div className="flex gap-2 pt-2">
                 <Button className="flex-1 bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18]">
                   <Send className="h-4 w-4 mr-2" />
-                  Send Message
+                  {t("saveLead")}
                 </Button>
                 <Button variant="outline" className="flex-1 border-[#f5f5dc]/20">
                   <MoreHorizontal className="h-4 w-4 mr-2" />
-                  More Actions
+                  {t("editLead")}
                 </Button>
               </div>
             </div>

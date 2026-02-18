@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -95,6 +96,7 @@ type Props = {
 };
 
 export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
+  const t = useTranslations("opsUI");
   const { toast } = useToast();
   
   // State
@@ -378,8 +380,8 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
           <Key className="h-6 w-6 text-[#d4af37]" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-[#f5f5dc]">Entitlement Manager</h1>
-          <p className="text-sm text-[#f5f5dc]/60">Grant or revoke product access for workspaces</p>
+          <h1 className="text-2xl font-bold text-[#f5f5dc]">{t("entitlements.title")}</h1>
+          <p className="text-sm text-[#f5f5dc]/60">{t("entitlements.subtitle")}</p>
         </div>
       </div>
 
@@ -390,7 +392,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search workspace by name or slug..."
+            placeholder={t("entitlements.searchPlaceholder")}
             className="h-12 w-full rounded-xl border-[#d4af37]/30 bg-[#050a18] pl-12 text-lg text-[#f5f5dc] placeholder:text-[#f5f5dc]/30"
           />
           {searching && (
@@ -601,7 +603,7 @@ export function EntitlementManagerClient({ initialWorkspaceId }: Props) {
                   ) : (
                     <Unlock className="mr-2 h-4 w-4" />
                   )}
-                  Grant Access
+                  {t("entitlements.addGrant")}
                 </Button>
               </div>
             </div>

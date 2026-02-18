@@ -108,10 +108,10 @@ export async function sendInstagramTextMessage(params: {
   const { supabase, workspaceId, threadId, text } = params;
 
   try {
-    // Get thread details
+    // Get thread details with linked Instagram account
     const { data: thread, error: threadError } = await supabase
       .from('instagram_threads')
-      .select('*, instagram_accounts!inner(ig_user_id, access_token)')
+      .select('*, instagram_accounts!inner(id, instagram_business_account_id, access_token)')
       .eq('id', threadId)
       .eq('workspace_id', workspaceId)
       .single();
@@ -134,7 +134,7 @@ export async function sendInstagramTextMessage(params: {
     
     // Type narrowing after validation
     const accountData = account as Record<string, unknown>;
-    if (!accountData.access_token || !accountData.ig_user_id) {
+    if (!accountData.access_token || !accountData.instagram_business_account_id) {
       return {
         ok: false,
         error: 'Instagram account missing required credentials',
@@ -144,7 +144,7 @@ export async function sendInstagramTextMessage(params: {
     // Send message via Graph API
     const result = await sendInstagramMessage({
       threadId: thread.id,
-      recipientIgId: thread.recipient_ig_id,
+      recipientIgId: thread.participant_id,
       message: { text },
       accessToken: accountData.access_token as string,
     });
@@ -158,12 +158,12 @@ export async function sendInstagramTextMessage(params: {
       .from('instagram_messages')
       .insert({
         thread_id: threadId,
-        instagram_account_id: accountData.id,
+        instagram_account_id: accountData.id as string,
         workspace_id: workspaceId,
-        ig_message_id: result.messageId,
+        message_id: result.messageId,
         direction: 'outbound',
         message_type: 'text',
-        text_body: text,
+        text_content: text,
         status: 'sent',
         sent_at: new Date().toISOString(),
       });
@@ -196,10 +196,10 @@ export async function sendInstagramImageMessage(params: {
   const { supabase, workspaceId, threadId, imageUrl, isReusable = false } = params;
 
   try {
-    // Get thread details
+    // Get thread details with linked Instagram account
     const { data: thread, error: threadError } = await supabase
       .from('instagram_threads')
-      .select('*, instagram_accounts!inner(ig_user_id, access_token)')
+      .select('*, instagram_accounts!inner(id, instagram_business_account_id, access_token)')
       .eq('id', threadId)
       .eq('workspace_id', workspaceId)
       .single();
@@ -222,7 +222,7 @@ export async function sendInstagramImageMessage(params: {
     
     // Type narrowing after validation
     const accountData = account as Record<string, unknown>;
-    if (!accountData.access_token || !accountData.ig_user_id) {
+    if (!accountData.access_token || !accountData.instagram_business_account_id) {
       return {
         ok: false,
         error: 'Instagram account missing required credentials',
@@ -232,7 +232,7 @@ export async function sendInstagramImageMessage(params: {
     // Send image via Graph API
     const result = await sendInstagramMessage({
       threadId: thread.id,
-      recipientIgId: thread.recipient_ig_id,
+      recipientIgId: thread.participant_id,
       message: {
         attachment: {
           type: 'image',
@@ -254,9 +254,9 @@ export async function sendInstagramImageMessage(params: {
       .from('instagram_messages')
       .insert({
         thread_id: threadId,
-        instagram_account_id: accountData.id,
+        instagram_account_id: accountData.id as string,
         workspace_id: workspaceId,
-        ig_message_id: result.messageId,
+        message_id: result.messageId,
         direction: 'outbound',
         message_type: 'image',
         media_url: imageUrl,

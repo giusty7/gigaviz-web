@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { RefreshCw, CheckCircle2, XCircle, Clock, Copy, Download } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { JobDetailResponse } from "@/types/wa-templates";
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export function JobDetailClient({ workspaceId, jobId }: Props) {
+  const t = useTranslations("metaHubUI.jobDetail");
   const { toast } = useToast();
   const [data, setData] = useState<JobDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,21 +72,21 @@ export function JobDetailClient({ workspaceId, jobId }: Props) {
         return (
           <Badge className="bg-green-500/10 text-green-400 border-green-500/30">
             <CheckCircle2 className="mr-1 h-3 w-3" />
-            Sent
+            {t("statusSent")}
           </Badge>
         );
       case "failed":
         return (
           <Badge className="bg-red-500/10 text-red-400 border-red-500/30">
             <XCircle className="mr-1 h-3 w-3" />
-            Failed
+            {t("statusFailed")}
           </Badge>
         );
       case "queued":
         return (
           <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
             <Clock className="mr-1 h-3 w-3" />
-            Queued
+            {t("statusQueued")}
           </Badge>
         );
       default:
@@ -138,30 +140,30 @@ export function JobDetailClient({ workspaceId, jobId }: Props) {
           <div>
             <CardTitle>{job.name}</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Template: {job.template?.name} ({job.template?.language})
+              {t("templateLabel", { name: job.template?.name ?? "", language: job.template?.language ?? "" })}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
+            {t("refresh")}
           </Button>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-xs text-muted-foreground">{t("totalLabel")}</p>
               <p className="text-2xl font-bold">{job.total_count}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Sent</p>
+              <p className="text-xs text-muted-foreground">{t("sentLabel")}</p>
               <p className="text-2xl font-bold text-green-400">{job.sent_count}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Failed</p>
+              <p className="text-xs text-muted-foreground">{t("failedLabel")}</p>
               <p className="text-2xl font-bold text-red-400">{job.failed_count}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Progress</p>
+              <p className="text-xs text-muted-foreground">{t("progressLabel")}</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                   <div
@@ -179,12 +181,12 @@ export function JobDetailClient({ workspaceId, jobId }: Props) {
       {/* Items List */}
       <Card className="border-border bg-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Job Items</CardTitle>
+          <CardTitle>{t("jobItems")}</CardTitle>
           <div className="flex gap-2">
             {job.failed_count > 0 && (
               <Button variant="outline" size="sm" onClick={exportFailedItems}>
                 <Download className="mr-2 h-4 w-4" />
-                Export Failed
+                {t("exportFailed")}
               </Button>
             )}
           </div>
@@ -192,27 +194,27 @@ export function JobDetailClient({ workspaceId, jobId }: Props) {
         <CardContent>
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
             <TabsList className="mb-4">
-              <TabsTrigger value="all">All ({job.total_count})</TabsTrigger>
-              <TabsTrigger value="sent">Sent ({job.sent_count})</TabsTrigger>
-              <TabsTrigger value="failed">Failed ({job.failed_count})</TabsTrigger>
-              <TabsTrigger value="queued">Queued ({job.queued_count})</TabsTrigger>
+              <TabsTrigger value="all">{t("tabAll", { count: job.total_count })}</TabsTrigger>
+              <TabsTrigger value="sent">{t("tabSent", { count: job.sent_count })}</TabsTrigger>
+              <TabsTrigger value="failed">{t("tabFailed", { count: job.failed_count })}</TabsTrigger>
+              <TabsTrigger value="queued">{t("tabQueued", { count: job.queued_count })}</TabsTrigger>
             </TabsList>
 
             <TabsContent value={statusFilter} className="mt-0">
               {items.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">
-                  <p className="text-sm">No items found.</p>
+                  <p className="text-sm">{t("noItems")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>To Phone</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>WA Message ID</TableHead>
-                        <TableHead>Error</TableHead>
-                        <TableHead>Sent At</TableHead>
+                        <TableHead>{t("headerPhone")}</TableHead>
+                        <TableHead>{t("headerStatus")}</TableHead>
+                        <TableHead>{t("headerMessageId")}</TableHead>
+                        <TableHead>{t("headerError")}</TableHead>
+                        <TableHead>{t("headerSentAt")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -231,7 +233,7 @@ export function JobDetailClient({ workspaceId, jobId }: Props) {
                                   size="sm"
                                   onClick={() => {
                                     navigator.clipboard.writeText(item.wa_message_id!);
-                                    toast({ title: "Copied!" });
+                                    toast({ title: t("copied") });
                                   }}
                                 >
                                   <Copy className="h-3 w-3" />

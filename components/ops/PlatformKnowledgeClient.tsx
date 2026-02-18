@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   BookOpenIcon,
   PlusIcon,
@@ -86,6 +87,7 @@ const STATUS_STYLES: Record<SourceStatus, { icon: typeof CheckCircleIcon; color:
 };
 
 export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
+  const t = useTranslations("opsUI");
   const [sources, setSources] = useState<KnowledgeSource[]>(initialSources);
   const [currentStats, setCurrentStats] = useState(stats);
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,7 +152,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
       }));
       setIsAddOpen(false);
       resetForm();
-      toast({ title: "Knowledge added successfully" });
+      toast({ title: t("knowledge.sourceCreated") });
     } catch (err) {
       toast({
         title: err instanceof Error ? err.message : "Failed to add knowledge",
@@ -159,7 +161,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }, [formType, formTitle, formContent, formUrl, toast, resetForm]);
+  }, [formType, formTitle, formContent, formUrl, toast, resetForm, t]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedSource) return;
@@ -186,7 +188,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
       }));
       setIsDeleteOpen(false);
       setSelectedSource(null);
-      toast({ title: "Knowledge deleted" });
+      toast({ title: t("knowledge.sourceDeleted") });
     } catch (err) {
       toast({
         title: err instanceof Error ? err.message : "Failed to delete",
@@ -195,7 +197,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSource, toast]);
+  }, [selectedSource, toast, t]);
 
   const handleReindex = useCallback(async (sourceId: string) => {
     setIsLoading(true);
@@ -216,7 +218,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
           s.id === sourceId ? { ...s, status: "indexed" as SourceStatus, indexed_at: new Date().toISOString() } : s
         )
       );
-      toast({ title: "Reindexed successfully" });
+      toast({ title: t("knowledge.reindexStarted") });
     } catch (err) {
       toast({
         title: err instanceof Error ? err.message : "Failed to reindex",
@@ -225,7 +227,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   const handleTestSearch = useCallback(async () => {
     if (!testQuery.trim()) return;
@@ -283,10 +285,10 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-            Platform Knowledge Base
+            {t("knowledge.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage Gigaviz documentation that AI uses to answer questions for all workspaces
+            {t("knowledge.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -297,7 +299,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
             className="gap-2"
           >
             <SearchIcon className="h-4 w-4" />
-            Test Search
+            {t("knowledge.searchTest")}
           </Button>
           <Button
             variant="outline"
@@ -314,7 +316,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
             className="gap-2 bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] hover:opacity-90"
           >
             <PlusIcon className="h-4 w-4" />
-            Add Knowledge
+            {t("knowledge.addSource")}
           </Button>
         </div>
       </div>
@@ -360,7 +362,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
       <div className="relative">
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search knowledge sources..."
+          placeholder={t("knowledge.searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -382,7 +384,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
           {filteredSources.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <BookOpenIcon className="h-12 w-12 mx-auto mb-4 opacity-40" />
-              <p>No knowledge sources yet</p>
+              <p>{t("knowledge.noSources")}</p>
               <p className="text-sm mt-1">Add platform documentation to help AI answer questions</p>
               <Button
                 onClick={() => setIsAddOpen(true)}
@@ -465,7 +467,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <PlusIcon className="h-5 w-5 text-[#d4af37]" />
-              Add Platform Knowledge
+              {t("knowledge.createSource")}
             </DialogTitle>
             <DialogDescription>
               Add documentation that AI will use to answer questions about Gigaviz
@@ -537,7 +539,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-500">Delete Knowledge</DialogTitle>
+            <DialogTitle className="text-red-500">{t("knowledge.deleteConfirm")}</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete &quot;{selectedSource?.title}&quot;? This will remove it from
               the AI&apos;s knowledge base.
@@ -566,7 +568,7 @@ export function PlatformKnowledgeClient({ initialSources, stats }: Props) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <SearchIcon className="h-5 w-5 text-[#d4af37]" />
-              Test Knowledge Search
+              {t("knowledge.searchTest")}
             </DialogTitle>
             <DialogDescription>
               Test how AI will find relevant knowledge for user questions

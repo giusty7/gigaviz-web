@@ -125,11 +125,11 @@ describe("getMetaHubFlags", () => {
 
   it("returns default flags when env vars are empty strings", () => {
     // When env var is empty string, toBool("") → fallback
-    // WA defaults to true, others default to false
+    // WA, IG, MS default to true; ADS, INSIGHTS default to false
     const flags = getMetaHubFlags();
     expect(flags.waEnabled).toBe(true); // fallback = true
-    expect(flags.igEnabled).toBe(false);
-    expect(flags.msEnabled).toBe(false);
+    expect(flags.igEnabled).toBe(true); // fallback = true (Sprint 2)
+    expect(flags.msEnabled).toBe(true); // fallback = true (Sprint 2)
     expect(flags.adsEnabled).toBe(false);
     expect(flags.insightsEnabled).toBe(false);
   });
@@ -150,14 +150,16 @@ describe("getMetaHubFlags", () => {
     });
   });
 
-  it("returns false for non-true string values", () => {
+  it("returns fallback for non-true string values", () => {
     vi.stubEnv("META_HUB_IG_ENABLED", "false");
     vi.stubEnv("META_HUB_MS_ENABLED", "1");
     vi.stubEnv("META_HUB_ADS_ENABLED", "yes");
     const flags = getMetaHubFlags();
-    expect(flags.igEnabled).toBe(false);
-    expect(flags.msEnabled).toBe(false);
-    expect(flags.adsEnabled).toBe(false);
+    // toBool("false") → not "true", so returns fallback
+    // igEnabled/msEnabled fallback = true; adsEnabled fallback = false
+    expect(flags.igEnabled).toBe(true); // fallback = true (Sprint 2)
+    expect(flags.msEnabled).toBe(true); // fallback = true (Sprint 2)
+    expect(flags.adsEnabled).toBe(false); // fallback = false
   });
 
   it("is case-insensitive — 'TRUE' treated as true", () => {

@@ -1,6 +1,7 @@
 "use client";
 import { logger } from "@/lib/logging";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Invite = {
   id: string;
@@ -10,6 +11,7 @@ type Invite = {
 };
 
 export default function PendingInvites({ invites }: { invites: Invite[] }) {
+  const t = useTranslations("adminUI.pendingInvites");
   const [items, setItems] = useState(invites);
 
   async function revoke(id: string) {
@@ -23,11 +25,11 @@ export default function PendingInvites({ invites }: { invites: Invite[] }) {
       setItems((prev) => prev.filter((it) => it.id !== id));
     } catch (err) {
       logger.error(err instanceof Error ? err.message : String(err));
-      alert("Failed to revoke");
+      alert(t("revokeFailed"));
     }
   }
 
-  if (items.length === 0) return <div className="text-sm text-gigaviz-muted">No pending invites.</div>;
+  if (items.length === 0) return <div className="text-sm text-gigaviz-muted">{t("noPending")}</div>;
 
   return (
     <div className="space-y-2">
@@ -38,7 +40,7 @@ export default function PendingInvites({ invites }: { invites: Invite[] }) {
             <div className="text-xs text-gigaviz-muted">{invite.role} â€¢ {new Date(invite.created_at).toLocaleString()}</div>
           </div>
           <div>
-            <button className="rounded-md bg-red-600 px-2 py-1 text-xs" onClick={() => revoke(invite.id)}>Revoke</button>
+            <button className="rounded-md bg-red-600 px-2 py-1 text-xs" onClick={() => revoke(invite.id)}>{t("revoke")}</button>
           </div>
         </div>
       ))}

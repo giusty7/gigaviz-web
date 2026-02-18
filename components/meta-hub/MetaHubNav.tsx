@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
 
 type NavItem = {
-  label: string;
+  labelKey: string;
   href: string;
   status: "live" | "beta" | "soon";
   children?: NavItem[];
@@ -14,33 +15,33 @@ type NavItem = {
 
 function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
   return [
-    { label: "Overview", href: `${base}`, status: "live" },
-    { label: "Connections", href: `${base}/connections`, status: "live" },
-    { label: "Webhooks", href: `${base}/webhooks`, status: "live" },
-    { label: "AI Auto-Reply", href: `${base}/ai-reply`, status: "live" },
+    { labelKey: "overview", href: `${base}`, status: "live" },
+    { labelKey: "connections", href: `${base}/connections`, status: "live" },
+    { labelKey: "webhooks", href: `${base}/webhooks`, status: "live" },
+    { labelKey: "aiAutoReply", href: `${base}/ai-reply`, status: "live" },
     {
-      label: "Messaging - WhatsApp",
+      labelKey: "messagingWhatsApp",
       href: `${base}/messaging/whatsapp`,
       status: flags.waEnabled ? "live" : "beta",
       children: [
-        { label: "Templates", href: `${base}/messaging/whatsapp`, status: "live" },
-        { label: "Contacts", href: `${base}/messaging/whatsapp/contacts`, status: "live" },
-        { label: "Inbox", href: `${base}/messaging/whatsapp/inbox`, status: "live" },
+        { labelKey: "templates", href: `${base}/messaging/whatsapp`, status: "live" },
+        { labelKey: "contacts", href: `${base}/messaging/whatsapp/contacts`, status: "live" },
+        { labelKey: "inbox", href: `${base}/messaging/whatsapp/inbox`, status: "live" },
       ],
     },
     {
-      label: "Messaging - Instagram",
+      labelKey: "messagingInstagram",
       href: `${base}/messaging/instagram`,
       status: flags.igEnabled ? "live" : "soon",
     },
     {
-      label: "Messaging - Messenger",
+      labelKey: "messagingMessenger",
       href: `${base}/messaging/messenger`,
       status: flags.msEnabled ? "beta" : "soon",
     },
-    { label: "Ads", href: `${base}/ads`, status: flags.adsEnabled ? "beta" : "soon" },
+    { labelKey: "ads", href: `${base}/ads`, status: flags.adsEnabled ? "beta" : "soon" },
     {
-      label: "Insights",
+      labelKey: "insights",
       href: `${base}/insights`,
       status: flags.insightsEnabled ? "beta" : "soon",
     },
@@ -49,10 +50,11 @@ function buildNav(flags: MetaHubFlags, base: string): NavItem[] {
 
 export function MetaHubNav({ basePath, flags }: { basePath: string; flags: MetaHubFlags }) {
   const pathname = usePathname();
+  const t = useTranslations("metaHubUI.nav");
   const items = buildNav(flags, basePath);
 
   return (
-    <nav className="space-y-1 text-sm text-muted-foreground">
+    <nav aria-label="Meta Hub navigation" className="space-y-1 text-sm text-muted-foreground">
       {items.map((item) => {
         const active = pathname === item.href || pathname?.startsWith(item.href);
         const hasChildren = item.children && item.children.length > 0;
@@ -66,7 +68,7 @@ export function MetaHubNav({ basePath, flags }: { basePath: string; flags: MetaH
                   : "hover:bg-gigaviz-surface"
               }`}
             >
-              <span className="mr-2">{item.label}</span>
+              <span className="mr-2">{t(item.labelKey)}</span>
               <MetaHubBadge status={item.status} />
             </Link>
             {hasChildren ? (
@@ -84,7 +86,7 @@ export function MetaHubNav({ basePath, flags }: { basePath: string; flags: MetaH
                           : "hover:bg-gigaviz-surface"
                       }`}
                     >
-                      <span className="mr-2">{child.label}</span>
+                      <span className="mr-2">{t(child.labelKey)}</span>
                       <MetaHubBadge status={child.status} />
                     </Link>
                   );

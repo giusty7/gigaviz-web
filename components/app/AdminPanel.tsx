@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { planMeta, type PlanId } from "@/lib/entitlements";
 
 type AdminPanelProps = {
@@ -12,6 +13,7 @@ export default function AdminPanel({
   workspaceId,
   enableBillingTestMode,
 }: AdminPanelProps) {
+  const t = useTranslations("appUI.adminPanel");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [planId, setPlanId] = useState<PlanId>("free_locked");
@@ -36,13 +38,13 @@ export default function AdminPanel({
     setLoading(false);
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}));
-      setMessage(payload?.error || "Failed to credit tokens.");
+      setMessage(payload?.error || t("failedCredit"));
       return;
     }
 
     setAmount("");
     setNote("");
-    setMessage("Token credited.");
+    setMessage(t("tokenCredited"));
   }
 
   async function submitPlanChange(e: React.FormEvent<HTMLFormElement>) {
@@ -62,18 +64,18 @@ export default function AdminPanel({
     setLoading(false);
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}));
-      setMessage(payload?.error || "Failed to update plan.");
+      setMessage(payload?.error || t("failedPlan"));
       return;
     }
 
-    setMessage("Plan updated.");
+    setMessage(t("planUpdated"));
   }
 
   return (
     <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-6">
-      <h2 className="text-lg font-semibold text-amber-50">Admin Panel</h2>
+      <h2 className="text-lg font-semibold text-amber-50">{t("title")}</h2>
       <p className="text-sm text-amber-100/70 mt-2">
-        Admin override: credit tokens and simulate plan changes.
+        {t("description")}
       </p>
 
       <form onSubmit={submitCredit} className="mt-4 grid gap-3 md:grid-cols-3">
@@ -81,7 +83,7 @@ export default function AdminPanel({
           type="number"
           min="1"
           className="rounded-xl border border-amber-400/30 bg-black/30 px-3 py-2 text-sm text-amber-50"
-          placeholder="Amount"
+          placeholder={t("amountPlaceholder")}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
@@ -89,7 +91,7 @@ export default function AdminPanel({
         <input
           type="text"
           className="rounded-xl border border-amber-400/30 bg-black/30 px-3 py-2 text-sm text-amber-50"
-          placeholder="Note (optional)"
+          placeholder={t("notePlaceholder")}
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
@@ -97,7 +99,7 @@ export default function AdminPanel({
           disabled={loading}
           className="rounded-xl border border-amber-400/40 bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-50 hover:bg-amber-500/30 disabled:opacity-60"
         >
-          Credit tokens
+          {t("creditTokens")}
         </button>
       </form>
 
@@ -123,7 +125,7 @@ export default function AdminPanel({
               disabled={loading}
               className="w-full rounded-xl border border-amber-400/40 bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-50 hover:bg-amber-500/30 disabled:opacity-60"
             >
-              Simulate plan change
+              {t("simulatePlan")}
             </button>
           </div>
         </form>

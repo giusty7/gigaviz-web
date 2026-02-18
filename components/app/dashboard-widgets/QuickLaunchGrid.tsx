@@ -14,6 +14,7 @@ import {
   Store,
   type LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/use-toast";
 import type { ModuleIcon } from "@/lib/modules/catalog";
 import type { ModuleRegistryItem } from "@/lib/modules/registry";
@@ -38,6 +39,7 @@ type QuickLaunchGridProps = {
 };
 
 export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLaunchGridProps) {
+  const t = useTranslations("dashboardWidgetsUI");
   const router = useRouter();
   const { toast } = useToast();
   const [notifyingKey, setNotifyingKey] = useState<string | null>(null);
@@ -68,18 +70,18 @@ export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLa
         if (!res.ok) {
           const payload = await res.json().catch(() => null);
           const error = payload?.reason || payload?.error || "request_failed";
-          toast({ title: "Request failed", description: String(error) });
+          toast({ title: t("toastFailed"), description: String(error) });
           return;
         }
 
-        toast({ title: "Saved", description: "We will notify you when this module is ready." });
+        toast({ title: t("toastSaved"), description: "We will notify you when this module is ready." });
       } catch {
-        toast({ title: "Request failed", description: "network_error" });
+        toast({ title: t("toastFailed"), description: "network_error" });
       } finally {
         setNotifyingKey(null);
       }
     },
-    [notifyingKey, toast, workspaceId]
+    [notifyingKey, t, toast, workspaceId]
   );
 
   return (
@@ -92,7 +94,7 @@ export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLa
 
       <div className="relative">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[#f5f5dc]">Quick Launch</h3>
+          <h3 className="text-sm font-semibold text-[#f5f5dc]">{t("quickLaunch")}</h3>
           <span className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/40">8 Products</span>
         </div>
 
@@ -160,7 +162,7 @@ export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLa
                     }}
                     className="text-[9px] font-semibold text-[#d4af37] hover:underline"
                   >
-                    Unlock
+                    {t("unlock")}
                   </button>
                 )}
                 {isComingSoon && (
@@ -173,7 +175,7 @@ export function QuickLaunchGrid({ workspaceSlug, workspaceId, modules }: QuickLa
                     disabled={notifyingKey === module.slug}
                     className="text-[9px] font-semibold text-[#d4af37] hover:underline disabled:opacity-50"
                   >
-                    {notifyingKey === module.slug ? "Saving..." : "Notify me"}
+                    {notifyingKey === module.slug ? t("saving") : "Notify me"}
                   </button>
                 )}
               </motion.div>

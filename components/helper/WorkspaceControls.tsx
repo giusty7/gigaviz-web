@@ -24,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 
 type Props = {
   workspaceName: string;
@@ -49,7 +49,7 @@ function WorkspaceControlsComponent({
   onAutomationChange,
   onQuickPrompt,
 }: Props) {
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.imperiumHelper");
   const [budgetDialog, setBudgetDialog] = useState(false);
   const [automationDialog, setAutomationDialog] = useState(false);
 
@@ -74,7 +74,7 @@ function WorkspaceControlsComponent({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <SettingsIcon className="h-4 w-4 text-gigaviz-gold" />
-              {copy.workspaceControls}
+              {t("workspaceControls")}
             </CardTitle>
             <CardDescription className="text-xs">
               {workspaceName}
@@ -89,7 +89,7 @@ function WorkspaceControlsComponent({
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <WalletIcon className="h-4 w-4 text-gigaviz-gold" />
-                <span className="text-sm font-medium">{copy.todaysBudget}</span>
+                <span className="text-sm font-medium">{t("todaysBudget")}</span>
               </div>
               <Button
                 variant="ghost"
@@ -97,23 +97,23 @@ function WorkspaceControlsComponent({
                 className="h-7 text-xs"
                 onClick={() => setBudgetDialog(true)}
               >
-                {copy.manage}
+                {t("manage")}
               </Button>
             </div>
             <div className="pl-6">
               <p className="text-2xl font-semibold tabular-nums">
                 {dailySpent.toLocaleString()}
                 <span className="text-sm font-normal text-muted-foreground ml-1">
-                  {copy.tokens}
+                  {t("tokens")}
                 </span>
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {copy.monthlyUsage}: {monthlySpent.toLocaleString()}
+                {t("monthlyUsage")}: {monthlySpent.toLocaleString()}
                 {monthlyCap > 0 && ` / ${monthlyCap.toLocaleString()}`}
               </p>
               {isOverBudget && (
                 <p className="text-xs text-destructive font-medium mt-1">
-                  {copy.budgetExceeded ?? "Budget exceeded"}
+                  {t("budgetExceeded")}
                 </p>
               )}
             </div>
@@ -127,9 +127,9 @@ function WorkspaceControlsComponent({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <ShieldIcon className="h-4 w-4 text-gigaviz-gold" />
-                  <span className="text-sm font-medium">{copy.allowAutomation}</span>
+                  <span className="text-sm font-medium">{t("allowAutomation")}</span>
                 </div>
-                <p className="text-xs text-muted-foreground pl-6">{copy.automationDesc}</p>
+                <p className="text-xs text-muted-foreground pl-6">{t("automationDesc")}</p>
               </div>
               <Switch
                 checked={allowAutomation}
@@ -145,10 +145,10 @@ function WorkspaceControlsComponent({
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <LightbulbIcon className="h-4 w-4 text-gigaviz-gold" />
-            <span className="text-sm font-medium">{copy.quickPromptsTitle}</span>
+            <span className="text-sm font-medium">{t("quickPromptsTitle")}</span>
           </div>
           <div className="space-y-1.5">
-            {copy.quickPrompts.map((prompt) => (
+            {[t("quickPrompt1"), t("quickPrompt2"), t("quickPrompt3"), t("quickPrompt4")].map((prompt) => (
               <Button
                 key={prompt}
                 variant="outline"
@@ -169,12 +169,12 @@ function WorkspaceControlsComponent({
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <InfoIcon className="h-4 w-4 text-gigaviz-gold" />
-            <span className="text-sm font-medium">{copy.tipsTitle}</span>
+            <span className="text-sm font-medium">{t("tipsTitle")}</span>
           </div>
           <Card className="bg-gigaviz-surface/30 border-gigaviz-border/40">
             <CardContent className="p-3">
               <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
-                {copy.tips.map((tip) => (
+                {[t("tip1"), t("tip2"), t("tip3")].map((tip) => (
                   <li key={tip}>{tip}</li>
                 ))}
               </ul>
@@ -188,7 +188,7 @@ function WorkspaceControlsComponent({
             href={`/${workspaceSlug}/modules`}
             className="flex items-center gap-2 text-sm text-gigaviz-gold hover:text-gigaviz-gold/80 transition-colors"
           >
-            {copy.viewAllHubs}
+            {t("viewAllHubs")}
             <ArrowRightIcon className="h-4 w-4" />
           </Link>
         </div>
@@ -198,11 +198,11 @@ function WorkspaceControlsComponent({
       <Dialog open={budgetDialog} onOpenChange={setBudgetDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{copy.manageBudgetTitle}</DialogTitle>
-            <DialogDescription>{copy.manageBudgetDesc}</DialogDescription>
+            <DialogTitle>{t("manageBudgetTitle")}</DialogTitle>
+            <DialogDescription>{t("manageBudgetDesc")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setBudgetDialog(false)}>{copy.confirm}</Button>
+            <Button onClick={() => setBudgetDialog(false)}>{t("confirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -211,14 +211,14 @@ function WorkspaceControlsComponent({
       <Dialog open={automationDialog} onOpenChange={setAutomationDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{copy.automationConfirmTitle}</DialogTitle>
-            <DialogDescription>{copy.automationConfirmDesc}</DialogDescription>
+            <DialogTitle>{t("automationConfirmTitle")}</DialogTitle>
+            <DialogDescription>{t("automationConfirmDesc")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAutomationDialog(false)}>
-              {copy.cancel}
+              {t("cancel")}
             </Button>
-            <Button onClick={confirmAutomation}>{copy.confirm}</Button>
+            <Button onClick={confirmAutomation}>{t("confirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

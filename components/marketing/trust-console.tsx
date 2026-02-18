@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { VerificationModal } from "./verification-modal";
 
 const trustIntegrations = ["Meta", "WhatsApp Cloud API", "Supabase", "Vercel"];
 const builtWithChips = ["Next.js 15", "Supabase", "PostgreSQL", "Tailwind CSS", "TypeScript"];
 
 export function TrustConsole() {
+  const t = useTranslations("marketingUI");
+
   return (
     <section className="border-b border-gigaviz-border/50 bg-gradient-to-b from-gigaviz-bg via-gigaviz-surface/40 to-gigaviz-bg">
       <div className="container py-8 md:py-10">
@@ -18,7 +21,7 @@ export function TrustConsole() {
             <span className="h-2.5 w-2.5 rounded-full bg-gigaviz-cream/30" />
           </div>
           <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            System Status
+            {t("trustConsole.status")}
           </span>
         </div>
 
@@ -48,7 +51,7 @@ export function TrustConsole() {
           {/* Integrations Card - Dark Glass */}
           <div className="glass-premium console-border rounded-2xl p-5">
             <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Integrations
+              {t("trustConsole.integrations")}
             </span>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {trustIntegrations.map((item) => (
@@ -71,7 +74,7 @@ export function TrustConsole() {
           {/* Built with Card - Dark Glass */}
           <div className="glass-premium console-border rounded-2xl p-5">
             <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Built with
+              {t("trustConsole.builtWith")}
             </span>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {builtWithChips.map((item) => (

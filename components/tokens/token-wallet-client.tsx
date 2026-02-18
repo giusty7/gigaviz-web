@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import type { TokenOverview, TokenLedgerRow } from "@/lib/tokens";
 
 const packages = [
@@ -29,6 +30,7 @@ function formatNumber(value: number | null | undefined) {
 }
 
 export function TokenWalletClient({ workspaceId, canActivate }: Props) {
+  const t = useTranslations("tokensUI.wallet");
   const { toast } = useToast();
   const [overview, setOverview] = useState<TokenOverview | null>(null);
   const [pending, setPending] = useState<PendingTopup[]>([]);
@@ -49,7 +51,7 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
       setOverview(json.overview as TokenOverview);
     } catch (err) {
       toast({
-        title: "Failed to load balance",
+        title: t("failedToLoadBalance"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -93,13 +95,13 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error || "Top up request failed");
-      toast({ title: "Top up request sent", description: "We will confirm and credit tokens shortly." });
+      toast({ title: t("topUpRequestSent"), description: t("topUpRequestSentDesc") });
       setDialogOpen(false);
       setNotes("");
       await Promise.all([loadOverview(), loadPending()]);
     } catch (err) {
       toast({
-        title: "Unable to request top up",
+        title: t("unableToRequestTopUp"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -118,11 +120,11 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error || "Failed to activate");
-      toast({ title: "Top up activated", description: `New balance: ${formatNumber(json?.balance ?? 0)} tokens` });
+      toast({ title: t("topUpActivated"), description: t("newBalance", { balance: formatNumber(json?.balance ?? 0) }) });
       await Promise.all([loadOverview(), loadPending()]);
     } catch (err) {
       toast({
-        title: "Activation failed",
+        title: t("activationFailed"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -137,14 +139,14 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
         <CardContent className="p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.12em] text-gigaviz-gold">Wallet</p>
-              <h2 className="text-xl font-semibold text-foreground">Token Wallet</h2>
+              <p className="text-xs uppercase tracking-[0.12em] text-gigaviz-gold">{t("sectionLabel")}</p>
+              <h2 className="text-xl font-semibold text-foreground">{t("title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Available balance powers AI/API calls. Top ups post to the ledger for auditability.
+                {t("description")}
               </p>
             </div>
             <div className="rounded-2xl border border-gigaviz-gold/40 bg-gigaviz-surface/70 px-4 py-3 text-right shadow-inner">
-              <p className="text-xs text-muted-foreground">Available balance</p>
+              <p className="text-xs text-muted-foreground">{t("availableBalance")}</p>
               <p className="text-3xl font-semibold text-foreground">
                 {loading ? "…" : formatNumber(overview?.balance)}
               </p>
@@ -168,8 +170,8 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
                   </Badge>
                 ) : null}
               </div>
-              <p className="text-xs text-muted-foreground">{pkg.price} · premium routing</p>
-              <p className="text-xs text-muted-foreground">{formatNumber(pkg.tokens)} tokens</p>
+              <p className="text-xs text-muted-foreground">{t("premiumRouting", { price: pkg.price })}</p>
+              <p className="text-xs text-muted-foreground">{t("tokensCount", { count: formatNumber(pkg.tokens) })}</p>
             </div>
             <Dialog open={dialogOpen && selectedKey === pkg.key} onOpenChange={(open) => {
               setDialogOpen(open);
@@ -177,37 +179,37 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
             }}>
               <DialogTrigger asChild>
                 <Button variant="secondary" className="mt-4" onClick={() => setSelectedKey(pkg.key)}>
-                  Top up
+                  {t("topUp")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Confirm top up</DialogTitle>
+                  <DialogTitle>{t("confirmTopUp")}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-3 text-sm">
                   <div className="rounded-xl border border-border/70 bg-gigaviz-surface/60 p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Package</span>
+                      <span className="text-muted-foreground">{t("package")}</span>
                       <span className="font-semibold text-foreground">{pkg.label}</span>
                     </div>
                     <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Tokens</span>
+                      <span>{t("tokens")}</span>
                       <span className="text-foreground">{formatNumber(pkg.tokens)}</span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">Notes (optional)</label>
+                    <label className="text-xs text-muted-foreground">{t("notesOptional")}</label>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Invoice memo, cost center, or special handling."
+                      placeholder={t("notesPlaceholder")}
                       className="mt-1"
                     />
                   </div>
                 </div>
                 <DialogFooter>
                   <Button onClick={submitTopup} disabled={submitting}>
-                    {submitting ? "Submitting..." : "Submit request"}
+                    {submitting ? t("submitting") : t("submitRequest")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -220,16 +222,16 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
         <CardContent className="p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">Pending</p>
-              <h3 className="text-sm font-semibold text-foreground">Top up requests</h3>
-              <p className="text-xs text-muted-foreground">Pending entries appear before activation. Activation posts to wallet + ledger.</p>
+              <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">{t("pendingLabel")}</p>
+              <h3 className="text-sm font-semibold text-foreground">{t("topUpRequests")}</h3>
+              <p className="text-xs text-muted-foreground">{t("topUpRequestsDesc")}</p>
             </div>
-            <Badge variant="outline" className="border-border/70 text-muted-foreground">{pending.length} pending</Badge>
+            <Badge variant="outline" className="border-border/70 text-muted-foreground">{t("pendingCount", { count: pending.length })}</Badge>
           </div>
           <div className="space-y-2">
             {pending.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/70 bg-gigaviz-surface/60 px-4 py-3 text-sm text-muted-foreground">
-                No pending top ups.
+                {t("noPendingTopUps")}
               </div>
             ) : (
               pending.map((row) => (
@@ -251,7 +253,7 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
                       onClick={() => activate(row.ref_id as string)}
                       disabled={activating === row.ref_id}
                     >
-                      {activating === row.ref_id ? "Activating..." : "Mark paid"}
+                      {activating === row.ref_id ? t("activating") : t("markPaid")}
                     </Button>
                   ) : null}
                 </div>
@@ -260,11 +262,11 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
           </div>
           {canActivate ? (
             <div className="flex items-center gap-2 rounded-xl border border-gigaviz-gold/40 bg-gigaviz-gold/10 px-3 py-2 text-xs text-gigaviz-gold">
-              <ShieldCheck className="h-4 w-4" /> Only owners/admins can activate requests.
+              <ShieldCheck className="h-4 w-4" /> {t("onlyOwnersCanActivate")}
             </div>
           ) : (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock3 className="h-4 w-4" /> Waiting for admin to confirm payment.
+              <Clock3 className="h-4 w-4" /> {t("waitingForAdmin")}
             </div>
           )}
         </CardContent>
@@ -275,14 +277,14 @@ export function TokenWalletClient({ workspaceId, canActivate }: Props) {
           <div className="flex items-center gap-3">
             <Sparkles className="h-5 w-5 text-gigaviz-gold" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Premium wallet</p>
+              <p className="text-sm font-semibold text-foreground">{t("premiumWallet")}</p>
               <p className="text-xs text-muted-foreground">
-                Top ups stay per-workspace. Ledger keeps a signed trail for audits.
+                {t("premiumWalletDesc")}
               </p>
             </div>
           </div>
           <Badge variant="outline" className="border-gigaviz-gold/50 text-gigaviz-gold">
-            Multi-tenant safe
+            {t("multiTenantSafe")}
           </Badge>
         </CardContent>
       </Card>

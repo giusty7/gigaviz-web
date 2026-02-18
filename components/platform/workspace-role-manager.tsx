@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ShieldCheck, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 
 export type WorkspaceMember = {
   userId: string;
@@ -22,6 +23,7 @@ type WorkspaceRoleManagerProps = {
 export function WorkspaceRoleManager({ workspaceId, canManage, members }: WorkspaceRoleManagerProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("platformUI.roleManager");
   const [rows, setRows] = useState<WorkspaceMember[]>(members);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
@@ -39,12 +41,12 @@ export function WorkspaceRoleManager({ workspaceId, canManage, members }: Worksp
 
     setPendingId(null);
     if (!res.ok) {
-      toast({ title: "Role not updated", description: "You need owner or admin rights.", variant: "destructive" });
+      toast({ title: t("roleNotUpdated"), description: t("needOwnerAdmin"), variant: "destructive" });
       return;
     }
 
     setRows((prev) => prev.map((m) => (m.userId === userId ? { ...m, role } : m)));
-    toast({ title: "Role updated", description: `New role: ${role}` });
+    toast({ title: t("roleUpdated"), description: t("newRole", { role }) });
     router.refresh();
   };
 
@@ -52,8 +54,8 @@ export function WorkspaceRoleManager({ workspaceId, canManage, members }: Worksp
     <div className="space-y-3">
       {rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-6 text-center text-sm">
-          <p className="font-semibold text-foreground">No members yet</p>
-          <p className="text-xs text-muted-foreground">Invite members to manage access.</p>
+          <p className="font-semibold text-foreground">{t("noMembers")}</p>
+          <p className="text-xs text-muted-foreground">{t("inviteMembers")}</p>
         </div>
       ) : (
         rows.map((member) => (
@@ -66,8 +68,8 @@ export function WorkspaceRoleManager({ workspaceId, canManage, members }: Worksp
                 {member.role === "owner" ? <ShieldCheck className="h-4 w-4" /> : <Users className="h-4 w-4" />}
               </span>
               <div>
-                <p className="font-semibold text-foreground">{member.name ?? "Member"}</p>
-                <p className="text-xs text-muted-foreground">{member.email ?? "No email"}</p>
+                <p className="font-semibold text-foreground">{member.name ?? t("member")}</p>
+                <p className="text-xs text-muted-foreground">{member.email ?? t("noEmail")}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-xs">
@@ -82,9 +84,9 @@ export function WorkspaceRoleManager({ workspaceId, canManage, members }: Worksp
                   title="Change member role"
                   className="w-32 rounded-md border border-border bg-background px-2 py-1 text-xs capitalize text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
                 >
-                  <option value="owner">Owner</option>
-                  <option value="admin">Admin</option>
-                  <option value="member">Member</option>
+                  <option value="owner">{t("roleOwner")}</option>
+                  <option value="admin">{t("roleAdmin")}</option>
+                  <option value="member">{t("roleMember")}</option>
                 </select>
               ) : null}
             </div>
@@ -93,11 +95,11 @@ export function WorkspaceRoleManager({ workspaceId, canManage, members }: Worksp
       )}
       {canManage ? (
         <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-3 text-xs text-muted-foreground">
-          Owners and admins can change roles. All writes are audit logged.
+          {t("canManageNote")}
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-border/70 bg-background px-4 py-3 text-xs text-muted-foreground">
-          You need owner or admin rights to edit roles.
+          {t("cannotManageNote")}
         </div>
       )}
     </div>

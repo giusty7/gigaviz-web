@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -65,24 +66,47 @@ type WorkflowsClientProps = {
   initialWorkflows: Workflow[];
 };
 
-const TRIGGER_TYPES = [
-  { value: "message_received", label: "Message Received", icon: MessageCircle, description: "Trigger when a new message arrives" },
-  { value: "scheduled", label: "Scheduled", icon: Clock, description: "Run on a schedule (e.g., daily, hourly)" },
-  { value: "tag_added", label: "Tag Added", icon: Zap, description: "Trigger when a tag is added to contact" },
-  { value: "manual", label: "Manual", icon: Play, description: "Trigger manually by clicking Run" },
-];
+const TRIGGER_TYPES_STATIC = [
+  { value: "message_received", icon: MessageCircle },
+  { value: "scheduled", icon: Clock },
+  { value: "tag_added", icon: Zap },
+  { value: "manual", icon: Play },
+] as const;
 
-const ACTION_TYPES = [
-  { value: "send_message", label: "Send WhatsApp Message", icon: Mail },
-  { value: "add_tag", label: "Add Tag", icon: Zap },
-  { value: "notify_team", label: "Notify Team", icon: MessageCircle },
-  { value: "ai_response", label: "AI Response", icon: Zap },
-];
+const ACTION_TYPES_STATIC = [
+  { value: "send_message", icon: Mail },
+  { value: "add_tag", icon: Zap },
+  { value: "notify_team", icon: MessageCircle },
+  { value: "ai_response", icon: Zap },
+] as const;
+
+const TRIGGER_LABELS: Record<string, string> = {
+  message_received: "triggerEvent",
+  scheduled: "triggerSchedule",
+  tag_added: "triggerEvent",
+  manual: "triggerManual",
+};
+
+const TRIGGER_DESCS: Record<string, string> = {
+  message_received: "triggerEvent",
+  scheduled: "triggerSchedule",
+  tag_added: "triggerEvent",
+  manual: "triggerManual",
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  send_message: "stepTypeAction",
+  add_tag: "stepTypeAction",
+  notify_team: "stepTypeNotify",
+  ai_response: "stepTypeAction",
+};
 
 export function WorkflowsClient({
   workspaceId,
   initialWorkflows,
 }: WorkflowsClientProps) {
+  const t = useTranslations("helperUI.workflows");
+
   const [workflows, setWorkflows] = useState<Workflow[]>(initialWorkflows);
   const [isCreating, setIsCreating] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
@@ -140,7 +164,7 @@ export function WorkflowsClient({
 
   const handleSave = useCallback(async () => {
     if (!formName.trim()) {
-      setError("Workflow name is required");
+      setError(t("workflowError"));
       return;
     }
 
@@ -167,7 +191,7 @@ export function WorkflowsClient({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to save workflow");
+        throw new Error(data.error ?? t("workflowError"));
       }
 
       const { workflow } = await res.json();
@@ -184,11 +208,11 @@ export function WorkflowsClient({
 
       resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save");
+      setError(err instanceof Error ? err.message : t("workflowError"));
     } finally {
       setSaving(false);
     }
-  }, [workspaceId, formName, formDescription, formTriggerType, formSteps, editingWorkflow, resetForm]);
+  }, [workspaceId, formName, formDescription, formTriggerType, formSteps, editingWorkflow, resetForm, t]);
 
   const handleToggleActive = useCallback(async (workflow: Workflow, active: boolean) => {
     try {
@@ -263,9 +287,9 @@ export function WorkflowsClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#f5f5dc]">Workflows</h2>
+          <h2 className="text-2xl font-bold text-[#f5f5dc]">{t("title")}</h2>
           <p className="text-[#f5f5dc]/60 mt-1">
-            Automate repetitive tasks with AI-powered workflows
+            {t("subtitle")}
           </p>
         </div>
         <Button
@@ -273,7 +297,7 @@ export function WorkflowsClient({
           className="bg-[#b8860b] hover:bg-[#9a7209] text-white gap-2"
         >
           <Plus className="w-4 h-4" />
-          Create Workflow
+          {t("createWorkflow")}
         </Button>
       </div>
 
@@ -282,7 +306,7 @@ export function WorkflowsClient({
         <Card className="bg-[#1a1a2e]/80 border-[#b8860b]/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60">
-              Total Workflows
+              {t("title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -292,7 +316,7 @@ export function WorkflowsClient({
         <Card className="bg-[#1a1a2e]/80 border-[#b8860b]/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60">
-              Active
+              {t("statusActive")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -304,7 +328,7 @@ export function WorkflowsClient({
         <Card className="bg-[#1a1a2e]/80 border-[#b8860b]/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#f5f5dc]/60">
-              Total Runs
+              {t("totalRuns")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -321,23 +345,23 @@ export function WorkflowsClient({
           <Card className="bg-[#1a1a2e]/80 border-[#b8860b]/30 border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Zap className="w-12 h-12 text-[#b8860b]/50 mb-4" />
-              <h3 className="text-lg font-medium text-[#f5f5dc]/80">No workflows yet</h3>
+              <h3 className="text-lg font-medium text-[#f5f5dc]/80">{t("noWorkflows")}</h3>
               <p className="text-[#f5f5dc]/60 text-center mt-2 max-w-sm">
-                Create your first workflow to automate tasks like sending messages, adding tags, or notifying your team.
+                {t("noWorkflowsDesc")}
               </p>
               <Button
                 onClick={openCreate}
                 className="mt-6 bg-[#b8860b] hover:bg-[#9a7209] text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Create First Workflow
+                {t("createWorkflow")}
               </Button>
             </CardContent>
           </Card>
         ) : (
           <AnimatePresence>
             {workflows.map((workflow) => {
-              const TriggerIcon = TRIGGER_TYPES.find((t) => t.value === workflow.trigger_type)?.icon ?? Zap;
+              const TriggerIcon = TRIGGER_TYPES_STATIC.find((tt) => tt.value === workflow.trigger_type)?.icon ?? Zap;
               
               return (
                 <motion.div
@@ -377,17 +401,17 @@ export function WorkflowsClient({
                                   : "border-[#f5f5dc]/30 text-[#f5f5dc]/50"
                               )}
                             >
-                              {workflow.is_active ? "Active" : "Paused"}
+                              {workflow.is_active ? t("statusActive") : t("statusDraft")}
                             </Badge>
                           </div>
                           <p className="text-sm text-[#f5f5dc]/60 truncate mt-0.5">
-                            {workflow.description || `${workflow.steps?.length ?? 0} steps`}
+                            {workflow.description || `${workflow.steps?.length ?? 0} ${t("steps")}`}
                           </p>
                           <div className="flex items-center gap-4 mt-2 text-xs text-[#f5f5dc]/40">
-                            <span>{workflow.run_count ?? 0} runs</span>
+                            <span>{workflow.run_count ?? 0} {t("totalRuns")}</span>
                             {workflow.last_run_at && (
                               <span>
-                                Last run: {new Date(workflow.last_run_at).toLocaleDateString()}
+                                {t("lastRun")}: {new Date(workflow.last_run_at).toLocaleDateString()}
                               </span>
                             )}
                           </div>
@@ -450,10 +474,10 @@ export function WorkflowsClient({
         <DialogContent className="bg-[#1a1a2e] border-[#b8860b]/30 text-[#f5f5dc] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingWorkflow ? "Edit Workflow" : "Create Workflow"}
+              {editingWorkflow ? t("editWorkflow") : t("createWorkflow")}
             </DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              Define when and how your workflow should run
+              {t("subtitle")}
             </DialogDescription>
           </DialogHeader>
 
@@ -468,24 +492,24 @@ export function WorkflowsClient({
 
             {/* Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Workflow Name</Label>
+              <Label htmlFor="name">{t("workflowName")}</Label>
               <Input
                 id="name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="e.g., Welcome New Customers"
+                placeholder={t("workflowNamePlaceholder")}
                 className="bg-[#16213e] border-[#b8860b]/30 text-[#f5f5dc]"
               />
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
+              <Label htmlFor="description">{t("workflowDesc")}</Label>
               <Textarea
                 id="description"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="What does this workflow do?"
+                placeholder={t("workflowDescPlaceholder")}
                 className="bg-[#16213e] border-[#b8860b]/30 text-[#f5f5dc] resize-none"
                 rows={2}
               />
@@ -493,13 +517,13 @@ export function WorkflowsClient({
 
             {/* Trigger Type */}
             <div className="space-y-2">
-              <Label>Trigger</Label>
+              <Label>{t("triggerType")}</Label>
               <Select value={formTriggerType} onValueChange={setFormTriggerType}>
                 <SelectTrigger className="bg-[#16213e] border-[#b8860b]/30 text-[#f5f5dc]">
-                  <SelectValue placeholder="Select trigger" />
+                  <SelectValue placeholder={t("triggerType")} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#16213e] border-[#b8860b]/30">
-                  {TRIGGER_TYPES.map((trigger) => (
+                  {TRIGGER_TYPES_STATIC.map((trigger) => (
                     <SelectItem
                       key={trigger.value}
                       value={trigger.value}
@@ -507,21 +531,21 @@ export function WorkflowsClient({
                     >
                       <div className="flex items-center gap-2">
                         <trigger.icon className="w-4 h-4 text-[#b8860b]" />
-                        <span>{trigger.label}</span>
+                        <span>{t(TRIGGER_LABELS[trigger.value] ?? trigger.value)}</span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-[#f5f5dc]/50">
-                {TRIGGER_TYPES.find((t) => t.value === formTriggerType)?.description}
+                {t(TRIGGER_DESCS[formTriggerType] ?? formTriggerType)}
               </p>
             </div>
 
             {/* Steps */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label>Steps</Label>
+                <Label>{t("steps")}</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -530,14 +554,14 @@ export function WorkflowsClient({
                   className="border-[#b8860b]/30 text-[#b8860b] hover:bg-[#b8860b]/10"
                 >
                   <Plus className="w-3 h-3 mr-1" />
-                  Add Step
+                  {t("addStep")}
                 </Button>
               </div>
 
               {formSteps.length === 0 ? (
                 <div className="p-6 border border-dashed border-[#b8860b]/30 rounded-lg text-center">
                   <p className="text-[#f5f5dc]/50 text-sm">
-                    No steps added yet. Click &quot;Add Step&quot; to define what happens when this workflow runs.
+                    {t("noWorkflowsDesc")}
                   </p>
                 </div>
               ) : (
@@ -558,13 +582,13 @@ export function WorkflowsClient({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-[#16213e] border-[#b8860b]/30">
-                                {ACTION_TYPES.map((action) => (
+                                {ACTION_TYPES_STATIC.map((action) => (
                                   <SelectItem
                                     key={action.value}
                                     value={action.value}
                                     className="text-[#f5f5dc] focus:bg-[#b8860b]/20"
                                   >
-                                    {action.label}
+                                    {t(ACTION_LABELS[action.value] ?? action.value)}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -597,14 +621,14 @@ export function WorkflowsClient({
               }}
               className="text-[#f5f5dc]/60"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleSave}
               disabled={saving}
               className="bg-[#b8860b] hover:bg-[#9a7209] text-white"
             >
-              {saving ? "Saving..." : editingWorkflow ? "Update" : "Create"}
+              {saving ? t("saving") : editingWorkflow ? t("editWorkflow") : t("createWorkflow")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -614,9 +638,9 @@ export function WorkflowsClient({
       <Dialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <DialogContent className="bg-[#1a1a2e] border-[#b8860b]/30 text-[#f5f5dc]">
           <DialogHeader>
-            <DialogTitle>Delete Workflow</DialogTitle>
+            <DialogTitle>{t("confirmDeleteTitle")}</DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
-              Are you sure you want to delete &quot;{deleteConfirm?.name}&quot;? This action cannot be undone.
+              {t("confirmDeleteDesc", { name: deleteConfirm?.name ?? "" })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -625,13 +649,13 @@ export function WorkflowsClient({
               onClick={() => setDeleteConfirm(null)}
               className="text-[#f5f5dc]/60"
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Delete
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { Coins, TrendingUp, AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +19,7 @@ type Props = {
 };
 
 function TokenUsageDisplayComponent({ dailySpent, monthlySpent, monthlyCap, isOverBudget }: Props) {
+  const t = useTranslations("helperUI.tokenUsage");
   const hasActiveCap = monthlyCap > 0;
   const percentUsed = hasActiveCap ? Math.min(100, (monthlySpent / monthlyCap) * 100) : 0;
   const isWarning = percentUsed >= 80 && percentUsed < 100;
@@ -33,14 +35,14 @@ function TokenUsageDisplayComponent({ dailySpent, monthlySpent, monthlyCap, isOv
               <Coins className="h-3.5 w-3.5 text-gigaviz-gold" />
             )}
             <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Today:</span>
+              <span className="text-muted-foreground">{t("today")}:</span>
               <span className="font-mono font-semibold text-foreground">
                 {dailySpent.toLocaleString()}
               </span>
             </div>
             <div className="h-3 w-px bg-gigaviz-border/60" />
             <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Month:</span>
+              <span className="text-muted-foreground">{t("month")}:</span>
               <span
                 className={cn(
                   "font-mono font-semibold",
@@ -76,22 +78,22 @@ function TokenUsageDisplayComponent({ dailySpent, monthlySpent, monthlyCap, isOv
         <TooltipContent side="bottom" className="max-w-xs">
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Daily usage:</span>
-              <span className="font-mono font-semibold">{dailySpent.toLocaleString()} tokens</span>
+              <span className="text-muted-foreground">{t("dailyUsage")}:</span>
+              <span className="font-mono font-semibold">{dailySpent.toLocaleString()} {t("tokens")}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Monthly usage:</span>
-              <span className="font-mono font-semibold">{monthlySpent.toLocaleString()} tokens</span>
+              <span className="text-muted-foreground">{t("monthlyUsage")}:</span>
+              <span className="font-mono font-semibold">{monthlySpent.toLocaleString()} {t("tokens")}</span>
             </div>
             {hasActiveCap && (
               <>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Monthly cap:</span>
-                  <span className="font-mono font-semibold">{monthlyCap.toLocaleString()} tokens</span>
+                  <span className="text-muted-foreground">{t("monthlyCap")}:</span>
+                  <span className="font-mono font-semibold">{monthlyCap.toLocaleString()} {t("tokens")}</span>
                 </div>
                 <div className="pt-1 border-t border-border">
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">Budget used:</span>
+                    <span className="text-muted-foreground">{t("budgetUsed")}:</span>
                     <span
                       className={cn(
                         "font-mono font-semibold",
@@ -124,7 +126,7 @@ function TokenUsageDisplayComponent({ dailySpent, monthlySpent, monthlyCap, isOv
             )}
             {isOverBudget && (
               <div className="pt-1 border-t border-destructive/20 text-destructive">
-                ⚠️ Monthly budget exceeded. Further requests may be blocked.
+                ⚠️ {t("budgetExceededWarning")}
               </div>
             )}
           </div>

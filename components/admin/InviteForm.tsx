@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function InviteForm({ workspaceSlug }: { workspaceSlug: string }) {
+  const t = useTranslations("adminUI.inviteForm");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"member" | "admin">("member");
   const [loading, setLoading] = useState(false);
@@ -19,9 +21,9 @@ export default function InviteForm({ workspaceSlug }: { workspaceSlug: string })
       });
       const data = await res.json();
       if (!res.ok) {
-        setMessage(data?.error || "Failed to create invite");
+        setMessage(data?.error || t("failedInvite"));
       } else {
-        setMessage("Invite created");
+        setMessage(t("inviteCreated"));
         setEmail("");
       }
     } catch (err) {
@@ -34,7 +36,7 @@ export default function InviteForm({ workspaceSlug }: { workspaceSlug: string })
     <form onSubmit={handleSubmit} className="flex gap-2">
       <input
         className="rounded-xl border px-3 py-2 text-sm"
-        placeholder="email@example.com"
+        placeholder={t("emailPlaceholder")}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
@@ -45,14 +47,14 @@ export default function InviteForm({ workspaceSlug }: { workspaceSlug: string })
         className="rounded-xl border border-gigaviz-border bg-white px-3 py-2 text-sm text-slate-900"
       >
         <option value="member" className="bg-white text-slate-900">
-          Member
+          {t("member")}
         </option>
         <option value="admin" className="bg-white text-slate-900">
-          Admin
+          {t("admin")}
         </option>
       </select>
       <button type="submit" disabled={loading} className="rounded-xl bg-[color:var(--gv-accent)] px-3 py-2 text-sm font-semibold">
-        {loading ? "Sending..." : "Invite"}
+        {loading ? t("sending") : t("invite")}
       </button>
       {message && <div className="text-sm text-gigaviz-muted">{message}</div>}
     </form>

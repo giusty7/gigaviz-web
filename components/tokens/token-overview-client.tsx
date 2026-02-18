@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowUpRight, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import type { TokenOverview, TokenSettings } from "@/lib/tokens";
 
 type OverviewResponse = {
@@ -55,6 +56,7 @@ function padBars(daily: Array<{ day: string; tokens: number }>) {
 }
 
 export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy = false }: Props) {
+  const t = useTranslations("tokensUI.overview");
   const { toast } = useToast();
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,8 +78,8 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
       setData(json as OverviewResponse);
     } catch (err) {
       toast({
-        title: "Unable to load tokens",
-        description: err instanceof Error ? err.message : "Try again later.",
+        title: t("unableToLoadTokens"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -93,8 +95,8 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
 
   const overview = data?.overview;
   const settings = data?.settings;
-  const capLabel = overview?.cap === null ? "Unlimited" : formatNumber(overview?.cap);
-  const remainingLabel = overview?.cap === null ? "Unlimited" : formatNumber(overview?.remaining ?? 0);
+  const capLabel = overview?.cap === null ? t("unlimited") : formatNumber(overview?.cap);
+  const remainingLabel = overview?.cap === null ? t("unlimited") : formatNumber(overview?.remaining ?? 0);
   const badge = statusBadge(overview?.status ?? "normal");
 
   const spark = useMemo(() => {
@@ -119,9 +121,9 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.12em] text-gigaviz-gold">Usage</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-gigaviz-gold">{t("sectionLabel")}</p>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold text-foreground">Usage Summary</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t("title")}</h2>
             {overview ? <Badge className={`border ${badge.className}`}>{badge.label}</Badge> : null}
           </div>
           <p className="text-sm text-muted-foreground">
@@ -129,7 +131,7 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
           </p>
           {showExtraCopy ? (
             <p className="text-xs text-muted-foreground">
-              Cap + alert threshold stay per-workspace. Use wallet for top ups; ledger keeps auditability.
+              {t("extraCopy")}
             </p>
           ) : null}
         </div>
@@ -167,42 +169,42 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
       <div className="grid gap-3 md:grid-cols-4">
         <div className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm shadow-black/10">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Cap</p>
+            <p className="text-xs text-muted-foreground">{t("cap")}</p>
             <Badge variant="outline" className="border-gigaviz-gold/60 text-gigaviz-gold">{capLabel}</Badge>
           </div>
           <p className="mt-2 text-lg font-semibold text-foreground">{capLabel}</p>
           {overview?.cap === null ? (
-            <p className="text-xs text-muted-foreground">Unlimited this month</p>
+            <p className="text-xs text-muted-foreground">{t("unlimitedThisMonth")}</p>
           ) : null}
         </div>
         <div className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm shadow-black/10">
-          <p className="text-xs text-muted-foreground">Used</p>
+          <p className="text-xs text-muted-foreground">{t("used")}</p>
           <p className="mt-2 text-lg font-semibold text-foreground">{loading ? "…" : formatNumber(overview?.used)}</p>
-          <p className="text-xs text-muted-foreground">This month</p>
+          <p className="text-xs text-muted-foreground">{t("thisMonth")}</p>
         </div>
         <div className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm shadow-black/10">
-          <p className="text-xs text-muted-foreground">Remaining</p>
+          <p className="text-xs text-muted-foreground">{t("remaining")}</p>
           <p className="mt-2 text-lg font-semibold text-foreground">{remainingLabel}</p>
           {overview?.cap !== null ? (
             <p className="text-xs text-muted-foreground">
               {overview?.percentUsed !== null && overview?.percentUsed !== undefined
-                ? `${Math.round(overview.percentUsed)}% used`
+                ? t("percentUsed", { percent: Math.round(overview.percentUsed) })
                 : ""}
             </p>
           ) : null}
         </div>
         <div className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm shadow-black/10">
-          <p className="text-xs text-muted-foreground">Wallet balance</p>
+          <p className="text-xs text-muted-foreground">{t("walletBalance")}</p>
           <p className="mt-2 text-2xl font-semibold text-foreground">
             {loading ? "…" : formatNumber(overview?.balance)}
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
             <Link href={`/${workspaceSlug}/tokens/wallet`} className="inline-flex items-center gap-1 text-gigaviz-gold hover:text-gigaviz-gold/80">
-              Top up
+              {t("topUp")}
               <ArrowUpRight className="h-3 w-3" />
             </Link>
             <Link href={`/${workspaceSlug}/tokens/ledger`} className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
-              View ledger
+              {t("viewLedger")}
               <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
@@ -212,8 +214,8 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
       <div className="space-y-3 rounded-2xl border border-border/80 bg-card/90 p-5 shadow-sm shadow-black/10">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Progress</p>
-            <p className="text-sm text-muted-foreground">Alert at {settings?.alert_threshold ?? 80}%</p>
+            <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{t("progress")}</p>
+            <p className="text-sm text-muted-foreground">{t("alertAt", { threshold: settings?.alert_threshold ?? 80 })}</p>
           </div>
           <Badge variant="outline" className={badge.className}>{badge.label}</Badge>
         </div>
@@ -224,7 +226,7 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
           />
           {overview?.status === "critical" ? (
             <div className="absolute inset-0 flex items-center justify-end pr-2 text-[11px] font-semibold text-red-100">
-              Cap exceeded
+              {t("capExceeded")}
             </div>
           ) : null}
         </div>
@@ -232,15 +234,15 @@ export function TokenOverviewClient({ workspaceId, workspaceSlug, showExtraCopy 
           <div className="flex items-center gap-2 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
             <AlertTriangle className="h-4 w-4" />
             {overview?.status === "critical"
-              ? "You are above the configured cap. Top up or raise the cap to avoid spend rejection."
-              : "Approaching cap. Consider topping up or increasing the limit."}
+              ? t("criticalWarning")
+              : t("approachingWarning")}
           </div>
         ) : null}
 
         <div className="mt-2 flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Daily usage</span>
-            <span className="text-[11px] text-muted-foreground/80">Sparkline</span>
+            <span>{t("dailyUsage")}</span>
+            <span className="text-[11px] text-muted-foreground/80">{t("sparkline")}</span>
           </div>
           <div className="flex items-end gap-1 rounded-xl border border-border/70 bg-gigaviz-surface/60 p-3">
             {spark.sorted.map((item) => {

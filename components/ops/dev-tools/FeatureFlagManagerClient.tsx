@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Flag, Plus, Check, X } from "lucide-react";
 
 type FeatureFlag = {
@@ -26,6 +27,7 @@ type WorkspaceFlag = {
 };
 
 export default function FeatureFlagManagerClient() {
+  const t = useTranslations("opsUI");
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [workspaceId, setWorkspaceId] = useState("");
   const [workspaceFlags, setWorkspaceFlags] = useState<WorkspaceFlag[]>([]);
@@ -83,7 +85,7 @@ export default function FeatureFlagManagerClient() {
       await fetchWorkspaceFlags();
     } catch (err) {
       logger.error(err instanceof Error ? err.message : String(err));
-      alert("Failed to update flag");
+      alert(t("devTools.featureFlags.actionFailed"));
     }
   }
 
@@ -107,7 +109,7 @@ export default function FeatureFlagManagerClient() {
       setShowNewFlag(false);
     } catch (err) {
       logger.error(err instanceof Error ? err.message : String(err));
-      alert("Failed to create flag");
+      alert(t("devTools.featureFlags.actionFailed"));
     }
   }
 
@@ -119,23 +121,23 @@ export default function FeatureFlagManagerClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Feature Flags</h1>
-          <p className="text-slate-400 mt-1">Manage feature toggles per workspace</p>
+          <h1 className="text-2xl font-bold text-white">{t("devTools.featureFlags.title")}</h1>
+          <p className="text-slate-400 mt-1">{t("devTools.featureFlags.subtitle")}</p>
         </div>
         <button
           onClick={() => setShowNewFlag(true)}
           className="flex items-center gap-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
         >
           <Plus className="w-4 h-4" />
-          New Flag
+          {t("devTools.featureFlags.addFlag")}
         </button>
       </div>
 
       {showNewFlag && (
         <form onSubmit={createFlag} className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 space-y-4">
-          <h3 className="font-semibold text-white">Create Feature Flag</h3>
+          <h3 className="font-semibold text-white">{t("devTools.featureFlags.createFlag")}</h3>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Flag Key</label>
+            <label className="block text-sm text-slate-400 mb-1">{t("devTools.featureFlags.flagName")}</label>
             <input
               name="flagKey"
               required
@@ -144,7 +146,7 @@ export default function FeatureFlagManagerClient() {
             />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Name</label>
+            <label className="block text-sm text-slate-400 mb-1">{t("devTools.featureFlags.description")}</label>
             <input
               name="flagName"
               required
@@ -153,7 +155,7 @@ export default function FeatureFlagManagerClient() {
             />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Description</label>
+            <label className="block text-sm text-slate-400 mb-1">{t("devTools.featureFlags.description")}</label>
             <textarea
               name="description"
               rows={2}
@@ -162,11 +164,11 @@ export default function FeatureFlagManagerClient() {
           </div>
           <label className="flex items-center gap-2 text-white">
             <input type="checkbox" name="defaultEnabled" />
-            Enabled by default
+            {t("devTools.featureFlags.enabled")}
           </label>
           <div className="flex gap-2">
             <button type="submit" className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm">
-              Create
+              {t("devTools.featureFlags.createFlag")}
             </button>
             <button
               type="button"
@@ -180,7 +182,7 @@ export default function FeatureFlagManagerClient() {
       )}
 
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 space-y-4">
-        <h3 className="font-semibold text-white">Workspace Override</h3>
+        <h3 className="font-semibold text-white">{t("devTools.featureFlags.workspaceOverride")}</h3>
         <input
           type="text"
           placeholder="Enter workspace ID..."

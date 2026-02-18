@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 /**
  * Evidence images for Technology Provider verification.
@@ -33,6 +34,7 @@ export function EvidenceCarousel({
   showThumbnails = true,
   aspectClass = "aspect-video",
 }: EvidenceCarouselProps) {
+  const t = useTranslations("marketingUI");
   const [activeIndex, setActiveIndex] = useState(0);
   const [errorIndexes, setErrorIndexes] = useState<Set<number>>(new Set());
 
@@ -77,7 +79,7 @@ export function EvidenceCarousel({
                 </svg>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Evidence image pending</p>
+                <p className="text-sm font-medium text-foreground">{t("evidence.pendingImage")}</p>
                 <p className="text-xs text-muted-foreground">
                   Add: <code className="rounded bg-muted px-1 py-0.5 text-[10px]">{currentImage.src}</code>
                 </p>
@@ -99,7 +101,7 @@ export function EvidenceCarousel({
         <button
           type="button"
           onClick={goToPrev}
-          aria-label="Previous image"
+          aria-label={t("evidence.prev")}
           className="absolute left-3 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border/50 bg-background/80 text-foreground backdrop-blur transition hover:bg-background hover:border-gigaviz-gold/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -109,7 +111,7 @@ export function EvidenceCarousel({
         <button
           type="button"
           onClick={goToNext}
-          aria-label="Next image"
+          aria-label={t("evidence.next")}
           className="absolute right-3 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border/50 bg-background/80 text-foreground backdrop-blur transition hover:bg-background hover:border-gigaviz-gold/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gigaviz-gold"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

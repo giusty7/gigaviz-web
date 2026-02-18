@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 
 type Props = {
   variant?: "default" | "outline" | "secondary";
@@ -12,6 +13,7 @@ type Props = {
 export function ClaimPlatformAdminButton({ variant = "default" }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("platformUI.claimAdmin");
   const [pending, startTransition] = useTransition();
 
   const handleClaim = () => {
@@ -23,9 +25,9 @@ export function ClaimPlatformAdminButton({ variant = "default" }: Props) {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        const message = body?.error || "Unable to claim platform admin";
+        const message = body?.error || t("unableToClaim");
         toast({
-          title: "Claim failed",
+          title: t("claimFailed"),
           description: message,
           variant: "destructive",
         });
@@ -33,8 +35,8 @@ export function ClaimPlatformAdminButton({ variant = "default" }: Props) {
       }
 
       toast({
-        title: "Platform admin granted",
-        description: "You now have platform admin access.",
+        title: t("platformAdminGranted"),
+        description: t("platformAdminGrantedDesc"),
       });
       router.refresh();
     });
@@ -42,7 +44,7 @@ export function ClaimPlatformAdminButton({ variant = "default" }: Props) {
 
   return (
     <Button variant={variant} onClick={handleClaim} disabled={pending}>
-      {pending ? "Claiming..." : "Claim Platform Admin"}
+      {pending ? t("claiming") : t("claimPlatformAdmin")}
     </Button>
   );
 }

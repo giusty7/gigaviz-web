@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Copy, Plus, RefreshCw, Settings, Trash2 } from "lucide-react";
 
 interface WorkspaceTemplate {
@@ -16,6 +17,7 @@ interface WorkspaceTemplate {
 }
 
 export default function WorkspaceTemplatesClient() {
+  const t = useTranslations("opsUI");
   const [templates, setTemplates] = useState<WorkspaceTemplate[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,8 +43,8 @@ export default function WorkspaceTemplatesClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Workspace Templates</h1>
-          <p className="text-zinc-400">Pre-configured workspace setups for quick provisioning</p>
+          <h1 className="text-2xl font-bold text-white">{t("operations.templates.title")}</h1>
+          <p className="text-zinc-400">{t("operations.templates.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -54,7 +56,7 @@ export default function WorkspaceTemplatesClient() {
           </button>
           <button className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
             <Plus className="h-4 w-4" />
-            New Template
+            {t("operations.templates.addTemplate")}
           </button>
         </div>
       </div>
@@ -67,13 +69,13 @@ export default function WorkspaceTemplatesClient() {
       ) : templates.length === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-12 text-center">
           <Copy className="mx-auto h-12 w-12 text-zinc-600" />
-          <h3 className="mt-4 text-lg font-medium text-white">No Templates Yet</h3>
+          <h3 className="mt-4 text-lg font-medium text-white">{t("operations.templates.noTemplates")}</h3>
           <p className="mt-2 text-zinc-400">
             Create a template to quickly provision new workspaces with pre-configured settings.
           </p>
           <button className="mt-6 inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
             <Plus className="h-4 w-4" />
-            Create First Template
+            {t("operations.templates.createTemplate")}
           </button>
         </div>
       ) : (
@@ -114,7 +116,7 @@ export default function WorkspaceTemplatesClient() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-zinc-400">Used</span>
-                  <span className="text-white">{template.use_count} times</span>
+                  <span className="text-white">{t("operations.templates.usedCount", { count: template.use_count })}</span>
                 </div>
               </div>
               <button className="mt-4 w-full rounded-lg border border-purple-500 bg-purple-500/10 py-2 text-sm text-purple-400 hover:bg-purple-500/20">
@@ -127,7 +129,7 @@ export default function WorkspaceTemplatesClient() {
 
       {/* Info */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-        <h4 className="font-medium text-white">Template Features</h4>
+        <h4 className="font-medium text-white">{t("operations.templates.features")}</h4>
         <ul className="mt-2 space-y-1 text-sm text-zinc-400">
           <li>â€¢ Pre-configured subscription plans</li>
           <li>â€¢ Default module activations</li>

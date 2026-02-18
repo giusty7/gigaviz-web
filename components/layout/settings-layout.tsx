@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/utils";
 
 type SettingsLayoutProps = {
@@ -9,25 +10,26 @@ type SettingsLayoutProps = {
   className?: string;
 };
 
-export function SettingsLayout({
+export async function SettingsLayout({
   title,
   description,
   nav,
   children,
   className,
 }: SettingsLayoutProps) {
+  const t = await getTranslations("metaHubUI.settingsLayout");
   return (
     <div className={cn("grid gap-6 lg:grid-cols-[240px_1fr]", className)}>
       <aside className="space-y-2 rounded-xl border border-border bg-card p-4">
-        <div className="text-sm font-semibold text-foreground">Settings</div>
-        <div className="text-xs text-muted-foreground">Configure your workspace.</div>
+        <div className="text-sm font-semibold text-foreground">{t("title")}</div>
+        <div className="text-xs text-muted-foreground">{t("description")}</div>
         <div className="mt-3 space-y-1 text-sm text-muted-foreground">
           {nav ?? (
             <>
-              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">Profile</div>
-              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">Workspace</div>
-              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">Members</div>
-              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">Billing</div>
+              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">{t("profile")}</div>
+              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">{t("workspace")}</div>
+              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">{t("members")}</div>
+              <div className="rounded-lg px-2 py-1 hover:bg-gigaviz-surface">{t("billing")}</div>
             </>
           )}
         </div>

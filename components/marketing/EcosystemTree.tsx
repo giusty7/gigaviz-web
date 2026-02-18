@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { treeNodes, type NodePillar } from "./ecosystem-tree.data";
 
 /**
@@ -132,6 +133,7 @@ const rootPaths = [
 ];
 
 export function EcosystemTree() {
+  const t = useTranslations("marketingUI");
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [focusedNode, setFocusedNode] = useState<string | null>(null);
 
@@ -290,7 +292,7 @@ export function EcosystemTree() {
                 <div className="mt-1 flex items-center justify-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_6px_2px_rgba(34,197,94,0.6)]" />
                   <span className="text-[6px] font-semibold uppercase tracking-wider text-green-500 sm:text-[7px]">
-                    Online
+                    {t("ecosystem.online")}
                   </span>
                 </div>
               )}

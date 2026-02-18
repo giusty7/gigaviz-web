@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 type NodeAccent = "gold" | "magenta" | "neutral";
 
@@ -71,6 +72,8 @@ function getAccentClasses(accent: NodeAccent) {
 }
 
 export function EcosystemGraph() {
+  const t = useTranslations("marketingUI");
+
   return (
     <div className="relative mx-auto w-full max-w-[500px] lg:max-w-[550px]">
       {/* Container maintains aspect ratio */}
@@ -200,12 +203,12 @@ export function EcosystemGraph() {
             `,
           }}
         >
-          <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-gigaviz-gold">Core</span>
-          <span className="mt-1 text-sm font-bold text-gigaviz-navy">Gigaviz Platform</span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-gigaviz-gold">{t("ecosystem.core")}</span>
+          <span className="mt-1 text-sm font-bold text-gigaviz-navy">{t("ecosystem.gigaviz")} {t("ecosystem.platform")}</span>
           <span className="mt-0.5 text-[10px] font-medium text-gigaviz-navy/60">Auth · Billing · Audit</span>
           <div className="mt-2 flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_2px_rgba(34,197,94,0.65)]" />
-            <span className="text-[8px] font-semibold uppercase tracking-wider text-green-600">Online</span>
+            <span className="text-[8px] font-semibold uppercase tracking-wider text-green-600">{t("ecosystem.online")}</span>
           </div>
         </div>
       </div>

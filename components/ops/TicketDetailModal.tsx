@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   X,
   Loader2,
@@ -29,6 +30,7 @@ export default function TicketDetailModal({
   onUpdate,
   adminUserId,
 }: TicketDetailModalProps) {
+  const t = useTranslations("opsUI");
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
   const [comments, setComments] = useState<TicketComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -306,7 +308,7 @@ export default function TicketDetailModal({
                 disabled={updating}
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-medium rounded transition-colors"
               >
-                Assign to Me
+                {t("tickets.assignee")}
               </button>
             )}
           </div>
@@ -315,7 +317,7 @@ export default function TicketDetailModal({
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Comments ({comments.length})
+              {t("tickets.comments")} ({comments.length})
             </h3>
 
             <div className="space-y-3">
@@ -336,7 +338,7 @@ export default function TicketDetailModal({
                     {comment.isInternal && (
                       <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded flex items-center gap-1">
                         <Lock className="w-3 h-3" />
-                        Internal
+                        {t("tickets.internalNote")}
                       </span>
                     )}
                     <span className="text-xs text-slate-500 ml-auto">
@@ -356,7 +358,7 @@ export default function TicketDetailModal({
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
+                  placeholder={t("tickets.addComment")}
                   rows={3}
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   disabled={submittingComment}
@@ -421,7 +423,7 @@ export default function TicketDetailModal({
                     className="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-2 focus:ring-purple-500"
                   />
                   <Lock className="w-4 h-4" />
-                  Internal note
+                  {t("tickets.internalNote")}
                 </label>
                 <button
                   type="submit"

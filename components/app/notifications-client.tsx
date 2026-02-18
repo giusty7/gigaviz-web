@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   CheckCheckIcon,
   ChevronDownIcon,
@@ -81,15 +82,15 @@ const SEVERITY_STYLES: Record<string, string> = {
   critical: "bg-red-500/20 text-red-300 border-red-500/40",
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  token_missing: "Token Missing",
-  token_near_cap: "Near Token Cap",
-  token_hard_cap_reached: "Token Cap Reached",
-  webhook_error_spike: "Webhook Errors",
-  billing_request_created: "Billing Request",
-  template_sync_failed: "Template Sync Failed",
-  topup_requested: "Topup Requested",
-  topup_posted: "Topup Posted",
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  token_missing: "typeTokenMissing",
+  token_near_cap: "typeTokenNearCap",
+  token_hard_cap_reached: "typeTokenCapReached",
+  webhook_error_spike: "typeWebhookErrors",
+  billing_request_created: "typeBillingRequest",
+  template_sync_failed: "typeTemplateSyncFailed",
+  topup_requested: "typeTopupRequested",
+  topup_posted: "typeTopupPosted",
 };
 
 const PAGE_SIZE = 20;
@@ -117,22 +118,22 @@ function formatDateTime(iso: string): string {
 /**
  * Get the action route based on notification type
  */
-function getActionRoute(type: string, workspaceSlug: string): { href: string; label: string } | null {
+function getActionRoute(type: string, workspaceSlug: string): { href: string; labelKey: string } | null {
   switch (type) {
     case "topup_requested":
     case "topup_posted":
-      return { href: `/${workspaceSlug}/tokens`, label: "View Wallet" };
+      return { href: `/${workspaceSlug}/tokens`, labelKey: "actionViewWallet" };
     case "billing_request_created":
-      return { href: `/${workspaceSlug}/billing`, label: "View Billing" };
+      return { href: `/${workspaceSlug}/billing`, labelKey: "actionViewBilling" };
     case "webhook_error_spike":
-      return { href: `/${workspaceSlug}/meta-hub/messaging/whatsapp/webhooks`, label: "View Webhooks" };
+      return { href: `/${workspaceSlug}/meta-hub/messaging/whatsapp/webhooks`, labelKey: "actionViewWebhooks" };
     case "token_missing":
-      return { href: `/${workspaceSlug}/meta-hub/messaging/whatsapp/connections`, label: "View Connections" };
+      return { href: `/${workspaceSlug}/meta-hub/messaging/whatsapp/connections`, labelKey: "actionViewConnections" };
     case "template_sync_failed":
-      return { href: `/${workspaceSlug}/meta-hub/messaging/whatsapp`, label: "View Templates" };
+      return { href: `/${workspaceSlug}/meta-hub/messaging/whatsapp`, labelKey: "actionViewTemplates" };
     case "token_near_cap":
     case "token_hard_cap_reached":
-      return { href: `/${workspaceSlug}/tokens`, label: "Manage Tokens" };
+      return { href: `/${workspaceSlug}/tokens`, labelKey: "actionManageTokens" };
     default:
       return null;
   }
@@ -144,6 +145,7 @@ function getActionRoute(type: string, workspaceSlug: string): { href: string; la
 
 export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("notificationsUI");
 
   // State
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -192,13 +194,13 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
           setHasMore(fetched.length >= limit);
         }
       } catch {
-        toast({ title: "Failed to load notifications", variant: "destructive" });
+        toast({ title: t("failedToLoad"), variant: "destructive" });
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     },
-    [workspaceId, tab, notifications.length, toast]
+    [workspaceId, tab, notifications.length, toast, t]
   );
 
   // Fetch on mount and when tab changes
@@ -224,12 +226,12 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
           prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() }))
         );
         setUnreadCount(0);
-        toast({ title: "All notifications marked as read" });
+        toast({ title: t("allMarkedRead") });
       }
     } catch {
-      toast({ title: "Failed to mark as read", variant: "destructive" });
+      toast({ title: t("failedToMark"), variant: "destructive" });
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const handleMarkRead = useCallback(
     async (ids: string[]) => {
@@ -273,9 +275,9 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
   const copyMeta = useCallback(() => {
     if (selectedNotification?.meta) {
       navigator.clipboard.writeText(JSON.stringify(selectedNotification.meta, null, 2));
-      toast({ title: "Meta data copied to clipboard" });
+      toast({ title: t("metaCopied") });
     }
-  }, [selectedNotification, toast]);
+  }, [selectedNotification, toast, t]);
 
   // ---------------------------------------------------
   // Filtering
@@ -347,7 +349,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="bg-gigaviz-surface/50 border-gigaviz-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("total")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{notifications.length}</p>
@@ -355,7 +357,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
         </Card>
         <Card className="bg-gigaviz-surface/50 border-gigaviz-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Unread</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("unread")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-amber-400">{unreadCount}</p>
@@ -363,7 +365,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
         </Card>
         <Card className="bg-gigaviz-surface/50 border-gigaviz-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Critical</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t("critical")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-red-400">
@@ -386,7 +388,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
             )}
             onClick={() => setTab("all")}
           >
-            All
+            {t("tabAll")}
           </button>
           <button
             className={cn(
@@ -397,7 +399,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
             )}
             onClick={() => setTab("unread")}
           >
-            Unread {unreadCount > 0 && `(${unreadCount})`}
+            {t("tabUnread")} {unreadCount > 0 && `(${unreadCount})`}
           </button>
         </div>
 
@@ -405,7 +407,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
         <div className="relative flex-1 min-w-[200px]">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search notifications..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-gigaviz-surface/50"
@@ -417,7 +419,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
               <FilterIcon className="h-4 w-4" />
-              Filters
+              {t("filters")}
               {activeFilterCount > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 justify-center">
                   {activeFilterCount}
@@ -426,18 +428,18 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Type</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("filterType")}</DropdownMenuLabel>
             {NOTIFICATION_TYPES.map((type) => (
               <DropdownMenuCheckboxItem
                 key={type}
                 checked={typeFilters.has(type)}
                 onCheckedChange={() => toggleTypeFilter(type)}
               >
-                {TYPE_LABELS[type] ?? type}
+                {TYPE_LABEL_KEYS[type] ? t(TYPE_LABEL_KEYS[type]) : type}
               </DropdownMenuCheckboxItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>Severity</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("filterSeverity")}</DropdownMenuLabel>
             {SEVERITY_OPTIONS.map((sev) => (
               <DropdownMenuCheckboxItem
                 key={sev}
@@ -454,7 +456,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                   className="w-full px-2 py-1.5 text-sm text-left text-muted-foreground hover:text-foreground"
                   onClick={clearFilters}
                 >
-                  Clear all filters
+                  {t("clearAllFilters")}
                 </button>
               </>
             )}
@@ -470,13 +472,13 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
           className="gap-2"
         >
           <RefreshCwIcon className={cn("h-4 w-4", loading && "animate-spin")} />
-          Refresh
+          {t("refresh")}
         </Button>
 
         {unreadCount > 0 && (
           <Button variant="outline" size="sm" onClick={handleMarkAllRead} className="gap-2">
             <CheckCheckIcon className="h-4 w-4" />
-            Mark all read
+            {t("markAllRead")}
           </Button>
         )}
       </div>
@@ -486,21 +488,21 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
         {loading && notifications.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <RefreshCwIcon className="h-5 w-5 animate-spin mr-2" />
-            Loading notifications...
+            {t("loadingNotifications")}
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <InboxIcon className="h-12 w-12 mb-3 opacity-40" />
             <p className="text-sm font-medium">
               {search || activeFilterCount > 0
-                ? "No notifications match your filters"
+                ? t("noMatchFilters")
                 : tab === "unread"
-                ? "All caught up!"
-                : "No notifications yet"}
+                ? t("allCaughtUp")
+                : t("noNotificationsYet")}
             </p>
             {(search || activeFilterCount > 0) && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-2">
-                Clear filters
+                {t("clearFilters")}
               </Button>
             )}
           </div>
@@ -537,7 +539,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                         {notif.severity}
                       </Badge>
                       <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                        {TYPE_LABELS[notif.type] ?? notif.type}
+                        {TYPE_LABEL_KEYS[notif.type] ? t(TYPE_LABEL_KEYS[notif.type]) : notif.type}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
                         {getRelativeTime(notif.created_at)}
@@ -556,7 +558,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                     {action && (
                       <Link href={action.href} onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="sm" className="gap-1 text-xs">
-                          {action.label}
+                          {t(action.labelKey)}
                           <ExternalLinkIcon className="h-3 w-3" />
                         </Button>
                       </Link>
@@ -595,10 +597,10 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
               {loadingMore ? (
                 <>
                   <RefreshCwIcon className="h-4 w-4 mr-2 animate-spin" />
-                  Loading...
+                  {t("loading")}
                 </>
               ) : (
-                "Load more"
+                t("loadMore")
               )}
             </Button>
           </div>
@@ -622,7 +624,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                     {selectedNotification.severity}
                   </Badge>
                   <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                    {TYPE_LABELS[selectedNotification.type] ?? selectedNotification.type}
+                    {TYPE_LABEL_KEYS[selectedNotification.type] ? t(TYPE_LABEL_KEYS[selectedNotification.type]) : selectedNotification.type}
                   </Badge>
                 </div>
                 <DialogTitle>{selectedNotification.title}</DialogTitle>
@@ -643,7 +645,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                       className="flex w-full items-center justify-between p-3 text-sm font-medium"
                       onClick={() => setMetaExpanded(!metaExpanded)}
                     >
-                      <span>Additional Data</span>
+                      <span>{t("additionalData")}</span>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
@@ -655,7 +657,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                           }}
                         >
                           <CopyIcon className="h-3 w-3 mr-1" />
-                          Copy
+                          {t("copy")}
                         </Button>
                         <ChevronDownIcon
                           className={cn(
@@ -680,7 +682,7 @@ export function NotificationsClient({ workspaceId, workspaceSlug }: Props) {
                   return (
                     <Link href={action.href}>
                       <Button className="w-full gap-2">
-                        {action.label}
+                        {t(action.labelKey)}
                         <ExternalLinkIcon className="h-4 w-4" />
                       </Button>
                     </Link>

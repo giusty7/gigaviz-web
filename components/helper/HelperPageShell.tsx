@@ -18,7 +18,7 @@ import {
   loadConversations,
   saveConversations,
 } from "./types";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 
 type Props = {
   workspaceName: string;
@@ -26,7 +26,7 @@ type Props = {
 };
 
 function HelperPageShellComponent({ workspaceName, workspaceSlug }: Props) {
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.imperiumHelper");
   const storageKey = `helper-conversations-${workspaceSlug}`;
 
   // State with lazy initialization from localStorage
@@ -66,7 +66,7 @@ function HelperPageShellComponent({ workspaceName, workspaceSlug }: Props) {
   const handleNewConversation = useCallback(() => {
     const newConv: HelperConversation = {
       id: generateId(),
-      title: `${copy.newConversation} ${conversations.length + 1}`,
+      title: `${t("newConversation")} ${conversations.length + 1}`,
       messages: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -74,7 +74,7 @@ function HelperPageShellComponent({ workspaceName, workspaceSlug }: Props) {
     setConversations((prev) => [newConv, ...prev]);
     setActiveId(newConv.id);
     setLeftOpen(false);
-  }, [conversations.length, copy.newConversation]);
+  }, [conversations.length, t]);
 
   const handleSelectConversation = useCallback((id: string) => {
     setActiveId(id);
@@ -223,7 +223,7 @@ function HelperPageShellComponent({ workspaceName, workspaceSlug }: Props) {
           </SheetTrigger>
           <SheetContent side="left" className="w-80 p-0">
             <div className="flex items-center justify-between p-4 border-b border-gigaviz-border">
-              <span className="font-semibold">{copy.conversations}</span>
+              <span className="font-semibold">{t("conversations")}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon">
                   <XIcon className="h-5 w-5" />
@@ -234,7 +234,7 @@ function HelperPageShellComponent({ workspaceName, workspaceSlug }: Props) {
           </SheetContent>
         </Sheet>
 
-        <span className="font-medium text-sm">{copy.title}</span>
+        <span className="font-medium text-sm">{t("title")}</span>
 
         <Sheet open={rightOpen} onOpenChange={setRightOpen}>
           <SheetTrigger asChild>
@@ -245,7 +245,7 @@ function HelperPageShellComponent({ workspaceName, workspaceSlug }: Props) {
           </SheetTrigger>
           <SheetContent side="right" className="w-80 p-0">
             <div className="flex items-center justify-between p-4 border-b border-gigaviz-border">
-              <span className="font-semibold">{copy.workspaceControls}</span>
+              <span className="font-semibold">{t("workspaceControls")}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon">
                   <XIcon className="h-5 w-5" />

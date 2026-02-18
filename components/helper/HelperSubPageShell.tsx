@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   MessageCircleIcon,
   BookOpenIcon,
@@ -34,41 +35,46 @@ type NavSection = {
   items: NavItem[];
 };
 
-const HELPER_SECTIONS: NavSection[] = [
-  {
-    label: "AI Assistant",
-    items: [
-      { id: "chat", label: "Chat", icon: MessageCircleIcon, href: "" },
-      { id: "ai", label: "AI Studio", icon: SparklesIcon, href: "/ai-studio" },
-    ],
-  },
-  {
-    label: "CRM",
-    items: [
-      { id: "crm", label: "CRM Insights", icon: UsersIcon, href: "/crm" },
-      { id: "leads", label: "Leads AI", icon: TargetIcon, href: "/leads" },
-    ],
-  },
-  {
-    label: "Automation",
-    items: [
-      { id: "workflows", label: "Workflows", icon: ZapIcon, href: "/workflows" },
-      { id: "history", label: "Run History", icon: HistoryIcon, href: "/history" },
-    ],
-  },
-  {
-    label: "Resources",
-    items: [
-      { id: "knowledge", label: "Knowledge Base", icon: DatabaseIcon, href: "/knowledge" },
-      { id: "docs", label: "Documentation", icon: BookOpenIcon, href: "/docs" },
-      { id: "analytics", label: "Analytics", icon: BarChart3Icon, href: "/analytics" },
-    ],
-  },
-];
+function useHelperSections(): NavSection[] {
+  const t = useTranslations("helperUI.subPageShell");
+  return [
+    {
+      label: t("sectionAI"),
+      items: [
+        { id: "chat", label: t("navChat"), icon: MessageCircleIcon, href: "" },
+        { id: "ai", label: t("navAIStudio"), icon: SparklesIcon, href: "/ai-studio" },
+      ],
+    },
+    {
+      label: t("sectionCRM"),
+      items: [
+        { id: "crm", label: t("navCRMInsights"), icon: UsersIcon, href: "/crm" },
+        { id: "leads", label: t("navLeadsAI"), icon: TargetIcon, href: "/leads" },
+      ],
+    },
+    {
+      label: t("sectionAutomation"),
+      items: [
+        { id: "workflows", label: t("navWorkflows"), icon: ZapIcon, href: "/workflows" },
+        { id: "history", label: t("navRunHistory"), icon: HistoryIcon, href: "/history" },
+      ],
+    },
+    {
+      label: t("sectionResources"),
+      items: [
+        { id: "knowledge", label: t("navKnowledgeBase"), icon: DatabaseIcon, href: "/knowledge" },
+        { id: "docs", label: t("navDocumentation"), icon: BookOpenIcon, href: "/docs" },
+        { id: "analytics", label: t("navAnalytics"), icon: BarChart3Icon, href: "/analytics" },
+      ],
+    },
+  ];
+}
 
 export function HelperSubPageShell({ workspaceSlug, activeTab, children }: Props) {
+  const t = useTranslations("helperUI.subPageShell");
   const pathname = usePathname();
   const basePath = `/${workspaceSlug}/helper`;
+  const HELPER_SECTIONS = useHelperSections();
 
   return (
     <div className="h-[calc(100vh-8rem)]">
@@ -83,9 +89,9 @@ export function HelperSubPageShell({ workspaceSlug, activeTab, children }: Props
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-purple-400">
-                  Helper
+                  {t("headerBadge")}
                 </p>
-                <h1 className="text-base font-semibold text-[#f5f5dc]">AI Assistant</h1>
+                <h1 className="text-base font-semibold text-[#f5f5dc]">{t("headerTitle")}</h1>
               </div>
             </div>
           </div>
@@ -133,7 +139,7 @@ export function HelperSubPageShell({ workspaceSlug, activeTab, children }: Props
           <div className="mt-6 flex items-center gap-2 rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-2">
             <SparklesIcon className="h-4 w-4 text-purple-400" />
             <span className="text-[10px] font-semibold text-purple-400">
-              Powered by AI
+              {t("poweredByAI")}
             </span>
           </div>
         </aside>

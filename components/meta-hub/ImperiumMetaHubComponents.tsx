@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { motion, type Variants } from "framer-motion";
 import {
   CheckCircle2,
@@ -75,6 +76,7 @@ export function WABAStatusHero({
   qualityRating = null,
   verificationStatus = "none",
 }: WABAStatusHeroProps) {
+  const t = useTranslations("metaHubUI.components");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const qualityColors = {
@@ -126,10 +128,10 @@ export function WABAStatusHero({
             </div>
             <div>
               <h2 className="text-xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-                WhatsApp Business Account
+                {t("whatsappBusinessAccount")}
               </h2>
               <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                {connected ? "Connected and receiving messages" : "Not connected yet"}
+                {connected ? t("connected") : t("notConnected")}
               </p>
             </div>
           </div>
@@ -152,7 +154,7 @@ export function WABAStatusHero({
               <span
                 className={`text-xs font-semibold ${connected ? "text-emerald-400" : "text-amber-400"}`}
               >
-                {connected ? "CONNECTED" : "SETUP REQUIRED"}
+                {connected ? t("badgeConnected") : t("setupRequired")}
               </span>
             </div>
 
@@ -160,7 +162,7 @@ export function WABAStatusHero({
             {verificationStatus === "verified" && (
               <div className="flex items-center gap-2 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/15 px-3 py-1.5">
                 <Shield className="h-4 w-4 text-[#d4af37]" />
-                <span className="text-xs font-semibold text-[#d4af37]">META VERIFIED</span>
+                <span className="text-xs font-semibold text-[#d4af37]">{t("metaVerified")}</span>
               </div>
             )}
           </div>
@@ -170,30 +172,30 @@ export function WABAStatusHero({
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-              WABA ID
+              {t("wabaId")}
             </p>
             <p className="mt-1 font-mono text-sm text-[#f5f5dc]">{wabaIdMasked}</p>
           </div>
           <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-              Phone Number ID
+              {t("phoneNumberId")}
             </p>
             <p className="mt-1 font-mono text-sm text-[#f5f5dc]">{phoneIdMasked}</p>
           </div>
           <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-              Access Token
+              {t("accessToken")}
             </p>
             <p className={`mt-1 text-sm font-semibold ${tokenConfigured ? "text-emerald-400" : "text-amber-400"}`}>
-              {tokenConfigured ? "Configured" : "Missing"}
+              {tokenConfigured ? t("configured") : t("missing")}
             </p>
           </div>
           <div className={`rounded-xl border ${quality.border} ${quality.bg} p-4`}>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-              Quality Rating
+              {t("qualityRating")}
             </p>
             <p className={`mt-1 text-sm font-semibold ${quality.text}`}>
-              {qualityRating ?? "Not available"}
+              {qualityRating ?? t("notAvailable")}
             </p>
           </div>
         </div>
@@ -311,6 +313,7 @@ export function AnalyticsPulseSection({
   events24h,
   latencyMs = null,
 }: AnalyticsPulseProps) {
+  const t = useTranslations("metaHubUI.components");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const formatCount = (value: number | null) => {
@@ -324,11 +327,11 @@ export function AnalyticsPulseSection({
   const hasEvents = events24h !== null;
   const deliveryValue = null; // no reliable numerator/denominator available yet
   const deliveryLabel = !hasEvents
-    ? "No data"
+    ? t("noData")
     : (events24h ?? 0) === 0
-      ? "No events yet"
-      : "Delivery data not available";
-  const latencyBadgeLabel = latencyMs === null ? "No data" : "Healthy";
+      ? t("noEventsYet")
+      : t("deliveryDataNotAvailable");
+  const latencyBadgeLabel = latencyMs === null ? t("noData") : t("healthy");
   const latencyBadgeClass =
     latencyMs === null
       ? "rounded-full bg-[#f5f5dc]/10 px-2 py-1 text-[9px] font-bold uppercase text-[#f5f5dc]/60"
@@ -363,13 +366,13 @@ export function AnalyticsPulseSection({
           <Zap className="h-4 w-4 text-[#f5f5dc]/20 group-hover:text-[#e11d48] transition-colors" />
         </div>
         <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-          API Throughput
+          {t("apiThroughput")}
         </p>
         <p className="mt-1 text-2xl font-bold text-[#f5f5dc]">
           {formatCount(throughput)}
         </p>
         <p className="text-xs text-[#f5f5dc]/40">
-          {throughput === null ? "No data yet" : "requests / 24h"}
+          {throughput === null ? t("noDataYet") : t("requestsPer24h")}
         </p>
         {throughput !== null && (
           <div className="mt-3">
@@ -389,7 +392,7 @@ export function AnalyticsPulseSection({
               <Send className="h-5 w-5 text-[#d4af37]" />
             </div>
             <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-              Delivery Rate
+              {t("deliveryRate")}
             </p>
             <p className="mt-1 text-xs text-[#f5f5dc]/40">{deliveryLabel}</p>
           </div>
@@ -411,20 +414,20 @@ export function AnalyticsPulseSection({
           <div>
             <div className="flex items-center gap-1.5">
               <ArrowDownLeft className="h-3.5 w-3.5 text-emerald-400" />
-              <span className="text-[10px] font-semibold uppercase text-[#f5f5dc]/40">In</span>
+              <span className="text-[10px] font-semibold uppercase text-[#f5f5dc]/40">{t("in")}</span>
             </div>
             <p className="mt-1 text-xl font-bold text-emerald-400">{formatCount(inbound24h)}</p>
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <ArrowUpRight className="h-3.5 w-3.5 text-[#d4af37]" />
-              <span className="text-[10px] font-semibold uppercase text-[#f5f5dc]/40">Out</span>
+              <span className="text-[10px] font-semibold uppercase text-[#f5f5dc]/40">{t("out")}</span>
             </div>
             <p className="mt-1 text-xl font-bold text-[#d4af37]">{formatCount(outbound24h)}</p>
           </div>
         </div>
         <p className="mt-2 text-xs text-[#f5f5dc]/40">
-          {hasTraffic ? "Messages in last 24h" : "No data yet"}
+          {hasTraffic ? t("messagesIn24h") : t("noDataYet")}
         </p>
       </motion.div>
 
@@ -440,7 +443,7 @@ export function AnalyticsPulseSection({
           <span className={latencyBadgeClass}>{latencyBadgeLabel}</span>
         </div>
         <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
-          API Latency
+          {t("apiLatency")}
         </p>
         <p className="mt-1 text-2xl font-bold text-[#f5f5dc]">
           {latencyMs === null ? "--" : `${latencyMs}ms`}
@@ -481,72 +484,73 @@ export function QuickActionsGrid({
   allowWebhooks: boolean;
   whatsappConnected: boolean;
 }) {
+  const t = useTranslations("metaHubUI.components");
   const actions: QuickAction[] = [];
   const upgradeHref = "/pricing";
 
   if (!whatsappConnected) {
     actions.push({
-      label: "Connect WhatsApp",
+      label: t("connectWhatsApp"),
       href: `${basePath}/connections`,
       icon: <Settings className="h-4 w-4" />,
       variant: "primary",
     });
     actions.push({
-      label: "View Events",
+      label: t("viewEvents"),
       href: `${basePath}/webhooks`,
       icon: <Eye className="h-4 w-4" />,
       variant: "secondary",
       disabled: !allowWebhooks,
-      helper: !allowWebhooks ? "Upgrade to unlock" : undefined,
+      helper: !allowWebhooks ? t("upgradeToUnlock") : undefined,
       ctaHref: upgradeHref,
     });
   } else {
     if (allowTemplates) {
       actions.push({
-        label: "Sync Templates",
+        label: t("syncTemplates"),
         href: `${basePath}/messaging/whatsapp`,
         icon: <RefreshCw className="h-4 w-4" />,
         variant: "primary",
       });
     } else {
       actions.push({
-        label: "Sync Templates",
+        label: t("syncTemplates"),
         href: `${basePath}/messaging/whatsapp`,
         icon: <RefreshCw className="h-4 w-4" />,
         variant: "primary",
         disabled: true,
-        helper: "Upgrade required",
+        helper: t("upgradeRequired"),
         ctaHref: upgradeHref,
       });
     }
     actions.push({
-      label: "Open Inbox",
+      label: t("openInbox"),
       href: `${basePath}/messaging/whatsapp/inbox`,
       icon: <Inbox className="h-4 w-4" />,
       variant: "primary",
     });
     actions.push({
-      label: "Test Send",
+      label: t("testSend"),
       href: `${basePath}/messaging/whatsapp`,
       icon: <Send className="h-4 w-4" />,
       variant: "secondary",
       disabled: !allowSend,
-      helper: !allowSend ? "Upgrade required" : undefined,
+      helper: !allowSend ? t("upgradeRequired") : undefined,
       ctaHref: upgradeHref,
     });
     actions.push({
-      label: "Connections",
+      label: t("connections"),
       href: `${basePath}/connections`,
       icon: <Settings className="h-4 w-4" />,
       variant: "secondary",
     });
     actions.push({
-      label: "View Events",
+      label: t("viewEvents"),
       href: `${basePath}/webhooks`,
       icon: <Eye className="h-4 w-4" />,
       variant: "secondary",
       disabled: !allowWebhooks,
-      helper: !allowWebhooks ? "Upgrade to unlock" : undefined,
+      helper: !allowWebhooks ? t("upgradeToUnlock") : undefined,
       ctaHref: upgradeHref,
     });
   }
@@ -560,7 +564,7 @@ export function QuickActionsGrid({
     >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-          Quick Actions
+          {t("quickActions")}
         </h3>
         <Zap className="h-4 w-4 text-[#d4af37]" />
       </div>
@@ -604,6 +608,7 @@ export function CyberLogConsole({
   recentEvents: Array<{ id: string; type: string; receivedAt: string | null }>;
   basePath: string;
 }) {
+  const t = useTranslations("metaHubUI.components");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const uniqueEvents = recentEvents.filter(
@@ -614,13 +619,13 @@ export function CyberLogConsole({
     id: evt.id,
     timestamp: evt.receivedAt,
     type: evt.type || "event",
-    payload: "View details in Webhooks",
+    payload: t("viewDetailsInWebhooks"),
   }));
 
   const formatTimestamp = (timestamp: string | null) => {
-    if (!timestamp) return "No timestamp";
+    if (!timestamp) return t("noTimestamp");
     const parsed = new Date(timestamp);
-    if (Number.isNaN(parsed.getTime())) return "No timestamp";
+    if (Number.isNaN(parsed.getTime())) return t("noTimestamp");
     return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
@@ -649,7 +654,7 @@ export function CyberLogConsole({
           </div>
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-[#d4af37]" />
-            <span className="text-xs font-semibold text-[#f5f5dc]/60">CYBER-LOG CONSOLE</span>
+            <span className="text-xs font-semibold text-[#f5f5dc]/60">{t("cyberLogConsole")}</span>
           </div>
         </div>
       </div>
@@ -673,17 +678,17 @@ export function CyberLogConsole({
             ))}
             <div className="flex items-center gap-2 text-[#d4af37]">
               <span className="animate-pulse">{">>"}</span>
-              <span className="text-[#f5f5dc]/30">Awaiting next event...</span>
+              <span className="text-[#f5f5dc]/30">{t("awaitingNextEvent")}</span>
             </div>
           </>
         ) : (
           <div className="flex h-full flex-col items-start justify-center gap-3 text-[#f5f5dc]/60">
-            <p>No webhook events yet.</p>
+            <p>{t("noWebhookEvents")}</p>
             <Link
               href={`${basePath}/webhooks`}
               className="inline-flex items-center gap-2 rounded-lg border border-[#d4af37]/30 px-3 py-1.5 text-[11px] font-semibold text-[#d4af37] hover:border-[#d4af37]/50"
             >
-              Open Webhook Events
+              {t("openWebhookEvents")}
               <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -707,6 +712,7 @@ type TemplatePreviewProps = {
 };
 
 export function TemplateGridPreview({ approved, pending, rejected, basePath }: TemplatePreviewProps) {
+  const t = useTranslations("metaHubUI.components");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const statusStyles: Record<TemplateStatus, string> = {
@@ -717,9 +723,9 @@ export function TemplateGridPreview({ approved, pending, rejected, basePath }: T
 
   const total = (approved ?? 0) + (pending ?? 0) + (rejected ?? 0);
   const summary = [
-    { label: "Approved", count: approved ?? 0, status: "approved" as TemplateStatus },
-    { label: "Pending", count: pending ?? 0, status: "pending" as TemplateStatus },
-    { label: "Rejected", count: rejected ?? 0, status: "rejected" as TemplateStatus },
+    { label: t("approved"), count: approved ?? 0, status: "approved" as TemplateStatus },
+    { label: t("pending"), count: pending ?? 0, status: "pending" as TemplateStatus },
+    { label: t("rejected"), count: rejected ?? 0, status: "rejected" as TemplateStatus },
   ];
 
   if (!mounted) {
@@ -738,26 +744,26 @@ export function TemplateGridPreview({ approved, pending, rejected, basePath }: T
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-            Template Explorer
+            {t("templateExplorer")}
           </h3>
           <p className="mt-1 text-xs text-[#f5f5dc]/40">
-            {approved ?? 0} approved / {pending ?? 0} pending / {rejected ?? 0} rejected
+            {t("templateSummary", { approved: approved ?? 0, pending: pending ?? 0, rejected: rejected ?? 0 })}
           </p>
         </div>
         <Link
           href={`${basePath}/messaging/whatsapp`}
           className="flex items-center gap-1.5 text-xs font-semibold text-[#d4af37] hover:underline"
         >
-          View All
+          {t("viewAll")}
           <ChevronRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
       {total === 0 ? (
         <div className="mt-4 rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4">
-          <p className="text-sm font-semibold text-[#f5f5dc]">No templates yet</p>
+          <p className="text-sm font-semibold text-[#f5f5dc]">{t("noTemplatesYet")}</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/50">
-            Sync templates from Meta to populate this view.
+            {t("syncTemplatesDesc")}
           </p>
         </div>
       ) : (
@@ -794,6 +800,7 @@ type Channel = {
 };
 
 export function ChannelsGrid({ channels }: { channels: Channel[] }) {
+  const t = useTranslations("metaHubUI.components");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const statusIcons = {
@@ -821,7 +828,7 @@ export function ChannelsGrid({ channels }: { channels: Channel[] }) {
       className="rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-5 backdrop-blur-3xl"
     >
       <h3 className="text-sm font-semibold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent">
-        All Channels
+        {t("allChannels")}
       </h3>
       <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {channels.map((channel) => (

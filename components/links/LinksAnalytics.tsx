@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, MousePointerClick, BarChart3, Smartphone, Monitor, Tablet } from "lucide-react";
 
 type ClickRow = { item_id: string; page_id: string; clicked_at: string; device_type: string | null };
@@ -16,6 +17,7 @@ interface LinksAnalyticsProps {
 }
 
 export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days }: LinksAnalyticsProps) {
+  const t = useTranslations("linksUI");
   const base = `/${workspaceSlug}/links`;
 
   // Aggregations
@@ -68,21 +70,21 @@ export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">Analytics</h1>
-          <p className="text-[11px] text-[#f5f5dc]/40">Last 30 days · {totalClicks.toLocaleString()} clicks</p>
+          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">{t("analytics")}</h1>
+          <p className="text-[11px] text-[#f5f5dc]/40">{t("last30days", { count: totalClicks.toLocaleString() })}</p>
         </div>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard icon={MousePointerClick} label="Total Clicks" value={totalClicks} />
-        <StatCard icon={BarChart3} label="Active Pages" value={topPages.length} />
-        <StatCard icon={Smartphone} label="Mobile %" value={totalClicks > 0 ? Math.round(((byDevice.mobile ?? 0) / totalClicks) * 100) : 0} suffix="%" />
+        <StatCard icon={MousePointerClick} label={t("totalClicks")} value={totalClicks} />
+        <StatCard icon={BarChart3} label={t("activePages")} value={topPages.length} />
+        <StatCard icon={Smartphone} label={t("mobilePercent")} value={totalClicks > 0 ? Math.round(((byDevice.mobile ?? 0) / totalClicks) * 100) : 0} suffix="%" />
       </div>
 
       {/* Daily chart */}
       <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] p-4">
-        <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-3">Clicks per day</p>
+        <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-3">{t("clicksPerDay")}</p>
         <div className="flex items-end gap-1 h-24">
           {last14Days.map((day) => {
             const count = byDay[day] ?? 0;
@@ -104,9 +106,9 @@ export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days
       <div className="grid gap-3 lg:grid-cols-2">
         {/* Top links */}
         <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] p-4">
-          <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">Top Links</p>
+          <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">{t("topLinks")}</p>
           {topItems.length === 0 ? (
-            <p className="text-[11px] text-[#f5f5dc]/25 py-4 text-center">No clicks yet</p>
+            <p className="text-[11px] text-[#f5f5dc]/25 py-4 text-center">{t("noClicksYet")}</p>
           ) : (
             <div className="space-y-1.5">
               {topItems.map((item, i) => (
@@ -126,7 +128,7 @@ export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days
         <div className="space-y-3">
           {/* Devices */}
           <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] p-4">
-            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">Devices</p>
+            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">{t("devices")}</p>
             <div className="space-y-1.5">
               {Object.entries(byDevice)
                 .sort(([, a], [, b]) => b - a)
@@ -143,14 +145,14 @@ export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days
                   );
                 })}
               {Object.keys(byDevice).length === 0 && (
-                <p className="text-[11px] text-[#f5f5dc]/25 py-2 text-center">No data</p>
+                <p className="text-[11px] text-[#f5f5dc]/25 py-2 text-center">{t("noData")}</p>
               )}
             </div>
           </div>
 
           {/* Pages */}
           <div className="rounded-xl border border-[#f5f5dc]/[0.06] bg-[#f5f5dc]/[0.02] p-4">
-            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">By Page</p>
+            <p className="text-[10px] uppercase tracking-wider text-[#f5f5dc]/30 mb-2">{t("byPage")}</p>
             <div className="space-y-1.5">
               {topPages.map((p) => (
                 <div key={p.id} className="flex items-center gap-2">
@@ -159,7 +161,7 @@ export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days
                 </div>
               ))}
               {topPages.length === 0 && (
-                <p className="text-[11px] text-[#f5f5dc]/25 py-2 text-center">No data</p>
+                <p className="text-[11px] text-[#f5f5dc]/25 py-2 text-center">{t("noData")}</p>
               )}
             </div>
           </div>

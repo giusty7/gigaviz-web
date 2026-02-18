@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -79,28 +80,28 @@ interface Props {
 }
 
 const TRIGGER_CONFIG: Record<AutoReplyTrigger, { 
-  label: string; 
-  description: string;
+  labelKey: string; 
+  descKey: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = {
   new_message: { 
-    label: "New Message", 
-    description: "Reply to every new incoming message",
+    labelKey: "newMessage", 
+    descKey: "newMessageDesc",
     icon: MessageSquareIcon,
   },
   outside_hours: { 
-    label: "Outside Hours", 
-    description: "Reply when message arrives outside business hours",
+    labelKey: "outsideHours", 
+    descKey: "outsideHoursDesc",
     icon: ClockIcon,
   },
   keyword: { 
-    label: "Keyword Match", 
-    description: "Reply when message contains specific keywords",
+    labelKey: "keywordMatch", 
+    descKey: "keywordMatchDesc",
     icon: HashIcon,
   },
   unassigned: { 
-    label: "Unassigned", 
-    description: "Reply when no agent is assigned to the chat",
+    labelKey: "unassigned", 
+    descKey: "unassignedDesc",
     icon: UserXIcon,
   },
 };
@@ -112,6 +113,7 @@ const TRIGGER_CONFIG: Record<AutoReplyTrigger, {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function AutoReplyRulesManager(_props: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.autoReplyRules");
   
   // State
   const [rules, setRules] = useState<AutoReplyRule[]>([]);
@@ -143,14 +145,14 @@ export function AutoReplyRulesManager(_props: Props) {
       setRules(data.rules || []);
     } catch (err) {
       toast({
-        title: "Error loading auto-reply rules",
+        title: t("errorLoading"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     fetchRules();
@@ -197,8 +199,8 @@ export function AutoReplyRulesManager(_props: Props) {
   const handleSave = async () => {
     if (!formName.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Name is required",
+        title: t("validationError"),
+        description: t("nameRequired"),
         variant: "destructive",
       });
       return;
@@ -206,8 +208,8 @@ export function AutoReplyRulesManager(_props: Props) {
 
     if (!formContent.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Reply message is required",
+        title: t("validationError"),
+        description: t("messageRequired"),
         variant: "destructive",
       });
       return;
@@ -251,15 +253,15 @@ export function AutoReplyRulesManager(_props: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: editingRule ? "Rule updated" : "Rule created",
-        description: `"${formName}" has been saved`,
+        title: editingRule ? t("ruleUpdated") : t("ruleCreated"),
+        description: t("ruleSavedDesc", { name: formName }),
       });
 
       setDialogOpen(false);
       fetchRules();
     } catch (err) {
       toast({
-        title: "Error saving rule",
+        title: t("errorSaving"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -280,13 +282,13 @@ export function AutoReplyRulesManager(_props: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: rule.isActive ? "Rule deactivated" : "Rule activated",
+        title: rule.isActive ? t("ruleDeactivated") : t("ruleActivated"),
       });
 
       fetchRules();
     } catch (err) {
       toast({
-        title: "Error updating rule",
+        title: t("errorUpdating"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -294,7 +296,7 @@ export function AutoReplyRulesManager(_props: Props) {
   };
 
   const handleDelete = async (rule: AutoReplyRule) => {
-    if (!confirm(`Delete auto-reply "${rule.name}"?`)) return;
+    if (!confirm(t("confirmDelete", { name: rule.name }))) return;
 
     try {
       const res = await fetch(`/api/meta-hub/auto-reply?id=${rule.id}`, {
@@ -304,14 +306,14 @@ export function AutoReplyRulesManager(_props: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: "Rule deleted",
-        description: `"${rule.name}" has been removed`,
+        title: t("ruleDeleted"),
+        description: t("ruleDeletedDesc", { name: rule.name }),
       });
 
       fetchRules();
     } catch (err) {
       toast({
-        title: "Error deleting rule",
+        title: t("errorDeleting"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -326,8 +328,8 @@ export function AutoReplyRulesManager(_props: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Auto-Reply Rules</CardTitle>
-          <CardDescription>Loading...</CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("loading")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Skeleton className="h-24 w-full" />
@@ -344,15 +346,15 @@ export function AutoReplyRulesManager(_props: Props) {
           <div>
             <CardTitle className="flex items-center gap-2">
               <BotIcon className="h-5 w-5 text-blue-500" />
-              Auto-Reply Rules
+              {t("title")}
             </CardTitle>
             <CardDescription>
-              Automatically reply to messages based on triggers
+              {t("description")}
             </CardDescription>
           </div>
           <Button onClick={openCreateDialog}>
             <PlusIcon className="h-4 w-4 mr-2" />
-            Add Rule
+            {t("addRule")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -360,11 +362,11 @@ export function AutoReplyRulesManager(_props: Props) {
           {rules.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <BotIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="font-medium">No auto-reply rules</p>
-              <p className="text-sm">Create rules to automatically respond to messages</p>
+              <p className="font-medium">{t("noRulesTitle")}</p>
+              <p className="text-sm">{t("noRulesDesc")}</p>
               <Button className="mt-4" onClick={openCreateDialog}>
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Create Rule
+                {t("createRule")}
               </Button>
             </div>
           )}
@@ -387,26 +389,26 @@ export function AutoReplyRulesManager(_props: Props) {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingRule ? "Edit Auto-Reply Rule" : "Create Auto-Reply Rule"}
+              {editingRule ? t("editTitle") : t("createTitle")}
             </DialogTitle>
             <DialogDescription>
-              Set up automatic responses for incoming messages
+              {t("createDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Rule Name</Label>
+              <Label htmlFor="name">{t("ruleName")}</Label>
               <Input
                 id="name"
-                placeholder="e.g., Out of Office Reply"
+                placeholder={t("ruleNamePlaceholder")}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Trigger Type</Label>
+              <Label>{t("triggerType")}</Label>
               <Select 
                 value={formTriggerType} 
                 onValueChange={(v) => setFormTriggerType(v as AutoReplyTrigger)}
@@ -421,7 +423,7 @@ export function AutoReplyRulesManager(_props: Props) {
                       <SelectItem key={trigger} value={trigger}>
                         <div className="flex items-center gap-2">
                           <config.icon className="h-4 w-4" />
-                          <span>{config.label}</span>
+                          <span>{t(config.labelKey)}</span>
                         </div>
                       </SelectItem>
                     );
@@ -429,29 +431,29 @@ export function AutoReplyRulesManager(_props: Props) {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {TRIGGER_CONFIG[formTriggerType].description}
+                {t(TRIGGER_CONFIG[formTriggerType].descKey)}
               </p>
             </div>
 
             {/* Trigger-specific config */}
             {formTriggerType === "keyword" && (
               <div className="space-y-2">
-                <Label htmlFor="keywords">Keywords</Label>
+                <Label htmlFor="keywords">{t("keywords")}</Label>
                 <Input
                   id="keywords"
-                  placeholder="price, harga, berapa"
+                  placeholder={t("keywordsPlaceholder")}
                   value={formKeywords}
                   onChange={(e) => setFormKeywords(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Comma-separated list of keywords to match
+                  {t("keywordsHint")}
                 </p>
               </div>
             )}
 
             {formTriggerType === "outside_hours" && (
               <div className="space-y-2">
-                <Label>Business Hours</Label>
+                <Label>{t("businessHoursLabel")}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="time"
@@ -459,7 +461,7 @@ export function AutoReplyRulesManager(_props: Props) {
                     onChange={(e) => setFormBusinessHours(prev => ({ ...prev, start: e.target.value }))}
                     className="w-32"
                   />
-                  <span className="text-muted-foreground">to</span>
+                  <span className="text-muted-foreground">{t("businessHoursTo")}</span>
                   <Input
                     type="time"
                     value={formBusinessHours.end}
@@ -468,16 +470,16 @@ export function AutoReplyRulesManager(_props: Props) {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Auto-reply will trigger outside these hours (Mon-Fri)
+                  {t("businessHoursHint")}
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="content">Reply Message</Label>
+              <Label htmlFor="content">{t("replyMessage")}</Label>
               <Textarea
                 id="content"
-                placeholder="Thank you for reaching out! We'll get back to you as soon as possible."
+                placeholder={t("replyPlaceholder")}
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
                 rows={4}
@@ -485,7 +487,7 @@ export function AutoReplyRulesManager(_props: Props) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cooldown">Cooldown (minutes)</Label>
+              <Label htmlFor="cooldown">{t("cooldownLabel")}</Label>
               <Input
                 id="cooldown"
                 type="number"
@@ -495,17 +497,17 @@ export function AutoReplyRulesManager(_props: Props) {
                 className="w-32"
               />
               <p className="text-xs text-muted-foreground">
-                Wait this long before sending the same auto-reply to the same contact
+                {t("cooldownMinutesHint")}
               </p>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : editingRule ? "Save Changes" : "Create Rule"}
+              {saving ? t("saving") : editingRule ? t("save") : t("createRule")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -529,6 +531,7 @@ function AutoReplyRuleCard({
   onDelete: () => void;
   onToggleActive: () => void;
 }) {
+  const t = useTranslations("metaHubUI.autoReplyRules");
   const config = TRIGGER_CONFIG[rule.triggerType];
   const Icon = config.icon;
 
@@ -547,14 +550,14 @@ function AutoReplyRuleCard({
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium">{rule.name}</h4>
               <Badge variant={rule.isActive ? "default" : "secondary"}>
-                {rule.isActive ? "Active" : "Inactive"}
+                {rule.isActive ? t("active") : t("inactive")}
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <ZapIcon className="h-3 w-3" />
-              <span>{config.label}</span>
+              <span>{t(config.labelKey)}</span>
               <span>•</span>
-              <span>{rule.cooldownMinutes}m cooldown</span>
+              <span>{t("cooldown", { minutes: rule.cooldownMinutes })}</span>
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {rule.messageContent}
@@ -581,11 +584,11 @@ function AutoReplyRuleCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}>
                 <EditIcon className="h-4 w-4 mr-2" />
-                Edit
+                {t("editRule")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDelete} className="text-destructive">
                 <TrashIcon className="h-4 w-4 mr-2" />
-                Delete
+                {t("deleteRule")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -9,6 +9,7 @@ import {
   ScrollText,
   Users2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 type PlatformTabsProps = {
@@ -17,15 +18,16 @@ type PlatformTabsProps = {
 
 // Client-facing tabs only - Entitlements moved to /ops for Gigaviz staff
 const tabs = [
-  { label: "Overview", segment: "", icon: Home },
-  { label: "Workspaces", segment: "/workspaces", icon: Users2 },
-  { label: "Roles & Access", segment: "/roles", icon: KeyRound },
-  { label: "Audit Log", segment: "/audit", icon: ScrollText },
-  { label: "Billing", segment: "/billing", icon: CreditCard },
+  { labelKey: "overview" as const, segment: "", icon: Home },
+  { labelKey: "workspaces" as const, segment: "/workspaces", icon: Users2 },
+  { labelKey: "rolesAccess" as const, segment: "/roles", icon: KeyRound },
+  { labelKey: "auditLog" as const, segment: "/audit", icon: ScrollText },
+  { labelKey: "billing" as const, segment: "/billing", icon: CreditCard },
 ];
 
 export function PlatformTabs({ baseHref }: PlatformTabsProps) {
   const pathname = usePathname();
+  const t = useTranslations("platformUI.tabs");
 
   return (
     <div className="sticky top-16 z-20 -mx-1 rounded-2xl border border-border/70 bg-gigaviz-surface/80 px-2 py-2 shadow-lg shadow-black/10 backdrop-blur">
@@ -51,7 +53,7 @@ export function PlatformTabs({ baseHref }: PlatformTabsProps) {
               <span className={cn("flex h-5 w-5 items-center justify-center", active ? "text-foreground" : "text-muted-foreground") }>
                 <Icon size={16} strokeWidth={2} />
               </span>
-              <span>{tab.label}</span>
+              <span>{t(tab.labelKey)}</span>
             </Link>
           );
         })}

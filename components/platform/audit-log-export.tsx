@@ -3,6 +3,7 @@ import { logger } from "@/lib/logging";
 
 import { useState } from "react";
 import { Download, FileJson, FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type AuditEvent = {
   id: string;
@@ -18,6 +19,7 @@ type AuditLogExportProps = {
 };
 
 export function AuditLogExport({ events, workspaceName }: AuditLogExportProps) {
+  const t = useTranslations("platformUI.auditExport");
   const [isExporting, setIsExporting] = useState(false);
 
   const exportToCSV = () => {
@@ -89,7 +91,7 @@ export function AuditLogExport({ events, workspaceName }: AuditLogExportProps) {
         title="Export as CSV"
       >
         <FileText className="h-4 w-4" />
-        CSV
+        {t("csv")}
       </button>
       <button
         onClick={exportToJSON}
@@ -98,12 +100,12 @@ export function AuditLogExport({ events, workspaceName }: AuditLogExportProps) {
         title="Export as JSON"
       >
         <FileJson className="h-4 w-4" />
-        JSON
+        {t("json")}
       </button>
       {isExporting && (
         <span className="text-xs text-[#f5f5dc]/50 flex items-center gap-2">
           <Download className="h-4 w-4 animate-bounce" />
-          Exporting...
+          {t("exporting")}
         </span>
       )}
     </div>

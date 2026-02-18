@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2, Info, Lock, ArrowRight } from "lucide-react";
 import type { ProductWidget } from "@/lib/dashboard/overview";
 
@@ -11,22 +12,22 @@ type ProductKPICardProps = {
 
 const statusConfig = {
   live: {
-    badge: "LIVE",
+    badgeKey: "statusLive" as const,
     badgeClass: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
     borderClass: "border-[#f5f5dc]/[0.06] hover:border-emerald-500/30",
   },
   beta: {
-    badge: "BETA",
+    badgeKey: "statusBeta" as const,
     badgeClass: "bg-blue-500/15 text-blue-300 border-blue-500/30",
     borderClass: "border-[#f5f5dc]/[0.06] hover:border-blue-500/30",
   },
   locked: {
-    badge: "LOCKED",
+    badgeKey: "statusLocked" as const,
     badgeClass: "bg-amber-500/15 text-amber-300 border-amber-500/30",
     borderClass: "border-[#f5f5dc]/[0.06] hover:border-amber-500/30",
   },
   "coming-soon": {
-    badge: "SOON",
+    badgeKey: "statusSoon" as const,
     badgeClass: "bg-slate-500/15 text-slate-400 border-slate-500/30",
     borderClass: "border-[#f5f5dc]/[0.06] hover:border-slate-500/30",
   },
@@ -47,6 +48,7 @@ const alertColors = {
 };
 
 export function ProductKPICard({ widget }: ProductKPICardProps) {
+  const t = useTranslations("dashboardWidgetsUI");
   const config = statusConfig[widget.status];
   const isLocked = widget.status === "locked";
   const isComingSoon = widget.status === "coming-soon";
@@ -66,7 +68,7 @@ export function ProductKPICard({ widget }: ProductKPICardProps) {
         <span
           className={`shrink-0 rounded-md px-1.5 py-px text-[9px] font-bold uppercase tracking-wider border ${config.badgeClass}`}
         >
-          {config.badge}
+          {t(config.badgeKey)}
         </span>
       </div>
 

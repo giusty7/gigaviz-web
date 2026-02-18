@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Wifi, Bot, Store, AlertCircle } from "lucide-react";
 import type { ModuleRegistryItem } from "@/lib/modules/registry";
@@ -13,16 +14,16 @@ type ServiceItem = {
   icon: React.ReactNode;
 };
 
-const statusConfig: Record<ConnectionStatus, { label: string; color: string; pulse: boolean }> = {
-  active: { label: "Active", color: "#10b981", pulse: true },
-  locked: { label: "Locked", color: "#d4af37", pulse: false },
-  coming_soon: { label: "Planned", color: "#6b7280", pulse: false },
+const statusConfigBase: Record<ConnectionStatus, { labelKey: string; color: string; pulse: boolean }> = {
+  active: { labelKey: "statusActive", color: "#10b981", pulse: true },
+  locked: { labelKey: "statusLocked", color: "#d4af37", pulse: false },
+  coming_soon: { labelKey: "statusPlanned", color: "#6b7280", pulse: false },
 };
 
 const serviceKeyMap = [
-  { key: "meta_hub", label: "Meta Hub", icon: <Wifi className="h-4 w-4" /> },
-  { key: "helper", label: "Helper AI", icon: <Bot className="h-4 w-4" /> },
-  { key: "marketplace", label: "Marketplace", icon: <Store className="h-4 w-4" /> },
+  { key: "meta_hub", labelKey: "serviceMetaHub" as const, icon: <Wifi className="h-4 w-4" /> },
+  { key: "helper", labelKey: "serviceHelperAI" as const, icon: <Bot className="h-4 w-4" /> },
+  { key: "marketplace", labelKey: "serviceMarketplace" as const, icon: <Store className="h-4 w-4" /> },
 ];
 
 type EcosystemHealthWidgetProps = {
@@ -30,15 +31,16 @@ type EcosystemHealthWidgetProps = {
 };
 
 export function EcosystemHealthWidget({ modules }: EcosystemHealthWidgetProps) {
+  const t = useTranslations("dashboardWidgetsUI");
   const services = useMemo<ServiceItem[]>(
     () =>
       serviceKeyMap.map((item) => {
         const mod = modules.find((module) => module.key === item.key);
         const status: ConnectionStatus =
           mod?.status === "available" ? "active" : mod?.status === "locked" ? "locked" : "coming_soon";
-        return { name: mod?.name ?? item.label, status, icon: item.icon };
+        return { name: mod?.name ?? t(item.labelKey), status, icon: item.icon };
       }),
-    [modules]
+    [modules, t]
   );
 
   return (
@@ -52,12 +54,12 @@ export function EcosystemHealthWidget({ modules }: EcosystemHealthWidgetProps) {
       <div className="relative">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-[#d4af37]" />
-          <h3 className="text-sm font-semibold text-[#f5f5dc]">System Connectivity</h3>
+          <h3 className="text-sm font-semibold text-[#f5f5dc]">{t("systemConnectivity")}</h3>
         </div>
         
         <div className="mt-4 space-y-3">
           {services.map((service, index) => {
-            const config = statusConfig[service.status];
+            const config = statusConfigBase[service.status];
             return (
               <motion.div
                 key={service.name}
@@ -71,7 +73,7 @@ export function EcosystemHealthWidget({ modules }: EcosystemHealthWidgetProps) {
                   <span className="text-sm text-[#f5f5dc]">{service.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#f5f5dc]/50">{config.label}</span>
+                  <span className="text-xs text-[#f5f5dc]/50">{t(config.labelKey)}</span>
                   <div className="relative">
                     <span
                       className="block h-2.5 w-2.5 rounded-full"

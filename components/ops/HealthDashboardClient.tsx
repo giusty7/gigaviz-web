@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Activity,
   Database,
@@ -27,6 +28,7 @@ type HealthSummary = {
 };
 
 export default function HealthDashboardClient() {
+  const t = useTranslations("opsUI");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<HealthSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +46,9 @@ export default function HealthDashboardClient() {
         cache: "no-store",
       });
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Anda belum login");
-        if (res.status === 403) throw new Error("Akses dibatasi (bukan platform admin)");
-        throw new Error("Failed to fetch health");
+        if (res.status === 401) throw new Error(t("health.checkFailed"));
+        if (res.status === 403) throw new Error(t("health.checkFailed"));
+        throw new Error(t("health.checkFailed"));
       }
       const json = await res.json();
       setData(json);
@@ -63,7 +65,7 @@ export default function HealthDashboardClient() {
       <div className="flex items-center justify-center py-12">
         <div className="flex items-center gap-2 text-slate-400">
           <Clock className="w-5 h-5 animate-spin" />
-          <span>Loading health status...</span>
+          <span>Loading...</span>
         </div>
       </div>
     );
@@ -111,7 +113,7 @@ export default function HealthDashboardClient() {
             <StatusIcon status={data.overallStatus} />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-white">System Status</h2>
+            <h2 className="text-xl font-semibold text-white">{t("health.title")}</h2>
             <p className={`text-sm ${statusColor[data.overallStatus]}`}>
               {data.overallStatus.toUpperCase()} - {data.summary.healthyChecks}/{data.summary.totalChecks} checks passing
             </p>
@@ -170,7 +172,7 @@ export default function HealthDashboardClient() {
       <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Database className="w-5 h-5 text-blue-400" />
-          <h3 className="text-lg font-semibold text-white">Health Checks</h3>
+          <h3 className="text-lg font-semibold text-white">{t("health.title")}</h3>
         </div>
 
         {data.checks.length === 0 ? (
@@ -238,7 +240,7 @@ export default function HealthDashboardClient() {
 
       {/* Last Updated */}
       <div className="text-center text-xs text-slate-500">
-        Last updated: {new Date().toLocaleString()} · Auto-refreshes every 30s
+        {t("health.lastChecked", { time: new Date().toLocaleString() })}
       </div>
     </div>
   );

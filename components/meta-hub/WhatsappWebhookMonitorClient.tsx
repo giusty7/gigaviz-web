@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -120,6 +121,7 @@ export function WhatsappWebhookMonitorClient({
   initialStats,
 }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.webhookMonitor");
   const [events, setEvents] = useState<WebhookEvent[]>(initialEvents);
   const [stats, setStats] = useState<Stats>(initialStats);
   const [loading, setLoading] = useState(false);
@@ -290,12 +292,12 @@ export function WhatsappWebhookMonitorClient({
         <div className="flex items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <div className="flex-1">
-            <p className="font-semibold text-red-300">Token Missing</p>
-            <p className="text-red-300/80">WhatsApp connection requires a valid access token.</p>
+            <p className="font-semibold text-red-300">{t("alertTokenMissing")}</p>
+            <p className="text-red-300/80">{t("alertTokenMissingDesc")}</p>
           </div>
           <Link href={`/${workspaceSlug}/meta-hub/connections`}>
             <Button size="sm" variant="outline" className="border-red-400/50 text-red-300 hover:bg-red-500/20">
-              Open Connections
+              {t("openConnections")}
             </Button>
           </Link>
         </div>
@@ -305,8 +307,8 @@ export function WhatsappWebhookMonitorClient({
         <div className="flex items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
           <AlertTriangle className="h-5 w-5 text-amber-400" />
           <div className="flex-1">
-            <p className="font-semibold text-amber-300">No Events in 24h</p>
-            <p className="text-amber-300/80">Verify your webhook is configured correctly in Meta Business Suite.</p>
+            <p className="font-semibold text-amber-300">{t("alertNoEvents")}</p>
+            <p className="text-amber-300/80">{t("alertNoEventsDesc")}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -315,7 +317,7 @@ export function WhatsappWebhookMonitorClient({
               rel="noopener noreferrer"
             >
               <Button size="sm" variant="ghost" className="text-amber-300">
-                How to Verify <ExternalLink className="ml-1 h-3 w-3" />
+                {t("howToVerify")} <ExternalLink className="ml-1 h-3 w-3" />
               </Button>
             </Link>
             <Button
@@ -325,7 +327,7 @@ export function WhatsappWebhookMonitorClient({
               onClick={handleReconcile}
               disabled={reconciling}
             >
-              Reconcile now
+              {t("reconcileNow")}
             </Button>
           </div>
         </div>
@@ -335,8 +337,8 @@ export function WhatsappWebhookMonitorClient({
         <div className="flex items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <div className="flex-1">
-            <p className="font-semibold text-red-300">{stats.errors24h} Errors in 24h</p>
-            <p className="text-red-300/80">Some webhook events failed to process.</p>
+            <p className="font-semibold text-red-300">{t("alertErrors", { count: stats.errors24h })}</p>
+            <p className="text-red-300/80">{t("alertErrorsDesc", { count: stats.errors24h })}</p>
           </div>
           <Button
             size="sm"
@@ -358,7 +360,7 @@ export function WhatsappWebhookMonitorClient({
                 <Zap size={18} />
               </span>
               <div>
-                <CardTitle className="text-lg font-semibold text-foreground">Webhook Health</CardTitle>
+                <CardTitle className="text-lg font-semibold text-foreground">{t("cardTitle")}</CardTitle>
                 <p className="text-xs text-muted-foreground">
                   {displayName ?? "WhatsApp"} • {maskPhoneId(phoneNumberId)}
                 </p>
@@ -366,7 +368,7 @@ export function WhatsappWebhookMonitorClient({
             </div>
             <div className="flex items-center gap-2">
               <Badge className={cn("border text-xs", healthBadgeStyle)}>
-                {healthStatus === "ok" ? "Healthy" : healthStatus === "stale" ? "Stale" : "No events"}
+                {healthStatus === "ok" ? t("healthy") : healthStatus === "stale" ? t("stale") : t("noEvents")}
               </Badge>
               <Badge
                 variant="outline"
@@ -383,22 +385,22 @@ export function WhatsappWebhookMonitorClient({
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-border bg-card/60 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Last Event</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("lastEvent")}</p>
               <p className="mt-1 text-lg font-semibold text-foreground">{getRelativeTime(stats.lastEventAt)}</p>
               <p className="text-xs text-muted-foreground">{formatTime(stats.lastEventAt)}</p>
             </div>
             <div className="rounded-xl border border-border bg-card/60 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Events (24h)</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("events24h")}</p>
               <p className="mt-1 text-lg font-semibold text-foreground">{stats.total24h}</p>
             </div>
             <div className="rounded-xl border border-border bg-card/60 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Errors (24h)</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("errors24h")}</p>
               <p className={cn("mt-1 text-lg font-semibold", stats.errors24h > 0 ? "text-red-400" : "text-foreground")}>
                 {stats.errors24h}
               </p>
             </div>
             <div className="rounded-xl border border-border bg-card/60 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Auto Refresh</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("autoRefresh")}</p>
               <select
                 className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1 text-sm"
                 value={autoRefreshInterval}
@@ -415,16 +417,16 @@ export function WhatsappWebhookMonitorClient({
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button size="sm" variant="outline" onClick={handleReconcile} disabled={reconciling}>
-              {reconciling ? "Reconciling..." : "Reconcile now"}
+              {reconciling ? t("reconciling") : t("reconcileNow")}
             </Button>
             <Button size="sm" variant="ghost" onClick={fetchEvents} disabled={loading}>
               <RefreshCw className={cn("mr-1 h-4 w-4", loading && "animate-spin")} />
-              {loading ? "Refreshing..." : "Refresh"}
+              {loading ? t("refreshing") : t("refresh")}
             </Button>
             <Link href={`/${workspaceSlug}/meta-hub/connections`}>
               <Button size="sm" variant="ghost">
                 <Settings className="mr-1 h-4 w-4" />
-                Open Connections
+                {t("openConnections")}
               </Button>
             </Link>
             <Link
@@ -433,7 +435,7 @@ export function WhatsappWebhookMonitorClient({
               rel="noopener noreferrer"
             >
               <Button size="sm" variant="ghost">
-                How to Verify <ExternalLink className="ml-1 h-3 w-3" />
+                {t("howToVerify")} <ExternalLink className="ml-1 h-3 w-3" />
               </Button>
             </Link>
             {lastRefreshed && (
@@ -448,13 +450,13 @@ export function WhatsappWebhookMonitorClient({
       {/* Filters */}
       <Card className="border-border bg-card">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-foreground">Event Timeline</CardTitle>
+          <CardTitle className="text-base font-semibold text-foreground">{t("eventTimeline")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <input
               type="text"
-              placeholder="Search events..."
+              placeholder={t("searchEvents")}
               className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -477,7 +479,7 @@ export function WhatsappWebhookMonitorClient({
               onChange={(e) => setTypeFilter(e.target.value)}
               title="Filter by event type"
             >
-              <option value="">All types</option>
+              <option value="">{t("allTypes")}</option>
               {eventTypes.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -519,9 +521,9 @@ export function WhatsappWebhookMonitorClient({
             </div>
           ) : filteredEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-              <p className="text-sm font-semibold text-foreground">No webhook events found</p>
+              <p className="text-sm font-semibold text-foreground">{t("noEventsFound")}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Check that your webhook is configured correctly in Meta Business Suite.
+                {t("noEventsFoundDesc")}
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link
@@ -533,7 +535,7 @@ export function WhatsappWebhookMonitorClient({
                   Verify webhook setup →
                 </Link>
                 <Button size="sm" variant="outline" onClick={handleReconcile} disabled={reconciling}>
-                  Reconcile now
+                  {t("reconcileNow")}
                 </Button>
               </div>
             </div>
@@ -578,7 +580,7 @@ export function WhatsappWebhookMonitorClient({
                                   : "border-amber-400/50 text-amber-300"
                               )}
                             >
-                              {isError ? "Failed" : isProcessed ? "OK" : "Pending"}
+                              {isError ? t("failed") : isProcessed ? t("ok") : t("pending")}
                             </Badge>
                           </div>
                           <div className="flex-1 space-y-1">
@@ -590,7 +592,7 @@ export function WhatsappWebhookMonitorClient({
                         {isExpanded && (
                           <div className="border-t border-border bg-background px-4 py-3">
                             <div className="flex items-center justify-between gap-2 pb-2">
-                              <span className="text-xs font-semibold uppercase text-muted-foreground">Payload</span>
+                              <span className="text-xs font-semibold uppercase text-muted-foreground">{t("payload")}</span>
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -601,7 +603,7 @@ export function WhatsappWebhookMonitorClient({
                                 }}
                               >
                                 <Copy size={12} className="mr-1" />
-                                Copy
+                                {t("copy")}
                               </Button>
                             </div>
                             <pre className="max-h-64 overflow-auto rounded-lg bg-gigaviz-surface p-3 text-xs text-muted-foreground">

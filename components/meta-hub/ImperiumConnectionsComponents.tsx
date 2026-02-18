@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import Script from "next/script";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Shield,
@@ -92,6 +93,7 @@ export function NeuralLinkHero({
   displayName,
   tokenSet,
 }: NeuralLinkHeroProps) {
+  const t = useTranslations("metaHubUI.connections.hero");
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const orbColors = {
@@ -101,9 +103,9 @@ export function NeuralLinkHero({
   };
 
   const statusLabels = {
-    connected: "Neural Link Active",
-    disconnected: "Awaiting Connection",
-    syncing: "Synchronizing...",
+    connected: t("statusConnected"),
+    disconnected: t("statusDisconnected"),
+    syncing: t("statusSyncing"),
   };
 
   const colors = orbColors[status];
@@ -140,8 +142,8 @@ export function NeuralLinkHero({
             />
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold tracking-wider text-[#f9d976]">GIGAVIZ CORE</p>
-            <p className="text-xs text-[#f5f5dc]/60">Secure Infrastructure</p>
+            <p className="text-sm font-bold tracking-wider text-[#f9d976]">{t("gigavizCore")}</p>
+            <p className="text-xs text-[#f5f5dc]/60">{t("secureInfrastructure")}</p>
           </div>
         </div>
 
@@ -244,8 +246,8 @@ export function NeuralLinkHero({
             />
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold tracking-wider text-blue-400">META CLOUD API</p>
-            <p className="text-xs text-[#f5f5dc]/60">WhatsApp Business</p>
+            <p className="text-sm font-bold tracking-wider text-blue-400">{t("metaCloudApi")}</p>
+            <p className="text-xs text-[#f5f5dc]/60">{t("whatsappBusiness")}</p>
           </div>
         </div>
       </div>
@@ -275,19 +277,19 @@ export function NeuralLinkHero({
         <div className="flex flex-wrap items-center gap-3 text-xs">
           {wabaId && (
             <div className="rounded-lg border border-[#d4af37]/30 bg-[#0a1229]/80 px-3 py-1.5">
-              <span className="text-[#f5f5dc]/60">WABA:</span>{" "}
+              <span className="text-[#f5f5dc]/60">{t("wabaLabel")}</span>{" "}
               <span className="font-mono text-[#f9d976]">{wabaId}</span>
             </div>
           )}
           {phoneNumberId && (
             <div className="rounded-lg border border-[#d4af37]/30 bg-[#0a1229]/80 px-3 py-1.5">
-              <span className="text-[#f5f5dc]/60">Phone:</span>{" "}
+              <span className="text-[#f5f5dc]/60">{t("phoneLabel")}</span>{" "}
               <span className="font-mono text-[#f9d976]">{phoneNumberId}</span>
             </div>
           )}
           {displayName && (
             <div className="rounded-lg border border-[#d4af37]/30 bg-[#0a1229]/80 px-3 py-1.5">
-              <span className="text-[#f5f5dc]/60">Name:</span>{" "}
+              <span className="text-[#f5f5dc]/60">{t("nameLabel")}</span>{" "}
               <span className="text-[#f5f5dc]">{displayName}</span>
             </div>
           )}
@@ -300,7 +302,7 @@ export function NeuralLinkHero({
             )}
           >
             <Lock className="mr-1 inline h-3 w-3" />
-            {tokenSet ? "Token Secured" : "Token Missing"}
+            {tokenSet ? t("tokenSecured") : t("tokenMissing")}
           </div>
         </div>
       </motion.div>
@@ -333,6 +335,7 @@ export function VaultCard({
   testDisabled = false,
   testDisabledReason,
 }: VaultCardProps) {
+  const t = useTranslations("metaHubUI.connections.vault");
   const [showWaba, setShowWaba] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
 
@@ -350,8 +353,8 @@ export function VaultCard({
             <Shield className="h-5 w-5 text-[#f9d976]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-[#f9d976]">SECURE VAULT</h3>
-            <p className="text-xs text-[#f5f5dc]/50">Encrypted Credentials</p>
+            <h3 className="text-sm font-bold tracking-wider text-[#f9d976]">{t("title")}</h3>
+            <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
           </div>
         </div>
 
@@ -359,19 +362,19 @@ export function VaultCard({
           {/* WABA ID */}
           <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/80 p-3">
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-xs text-[#f5f5dc]/60">WABA ID</span>
+              <span className="text-xs text-[#f5f5dc]/60">{t("wabaIdLabel")}</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowWaba(!showWaba)}
-                  title="Toggle visibility"
+                  title={t("toggleVisibility")}
                   className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                 >
                   {showWaba ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
                 {wabaId && (
                   <button
-                    onClick={() => onCopy(wabaId, "WABA ID")}
-                    title="Copy WABA ID"
+                    onClick={() => onCopy(wabaId, t("wabaIdLabel"))}
+                    title={t("copyWabaId")}
                     className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                   >
                     <Copy className="h-3.5 w-3.5" />
@@ -380,26 +383,26 @@ export function VaultCard({
               </div>
             </div>
             <p className="font-mono text-sm text-[#f5f5dc]">
-              {wabaId ? (showWaba ? wabaId : "••••••••••••") : "Not configured"}
+              {wabaId ? (showWaba ? wabaId : "••••••••••••") : t("notConfigured")}
             </p>
           </div>
 
           {/* Phone Number ID */}
           <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/80 p-3">
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-xs text-[#f5f5dc]/60">Phone Number ID</span>
+              <span className="text-xs text-[#f5f5dc]/60">{t("phoneNumberIdLabel")}</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setShowPhone(!showPhone)}
-                  title="Toggle visibility"
+                  title={t("toggleVisibility")}
                   className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                 >
                   {showPhone ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
                 {phoneNumberId && (
                   <button
-                    onClick={() => onCopy(phoneNumberId, "Phone Number ID")}
-                    title="Copy Phone Number ID"
+                    onClick={() => onCopy(phoneNumberId, t("phoneNumberIdLabel"))}
+                    title={t("copyPhoneNumberId")}
                     className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
                   >
                     <Copy className="h-3.5 w-3.5" />
@@ -408,7 +411,7 @@ export function VaultCard({
               </div>
             </div>
             <p className="font-mono text-sm text-[#f5f5dc]">
-              {phoneNumberId ? (showPhone ? phoneNumberId : "••••••••••••") : "Not configured"}
+              {phoneNumberId ? (showPhone ? phoneNumberId : "••••••••••••") : t("notConfigured")}
             </p>
           </div>
 
@@ -423,7 +426,7 @@ export function VaultCard({
           >
             <div className="flex items-center gap-2">
               <Lock className={cn("h-4 w-4", tokenSet ? "text-emerald-400" : "text-red-400")} />
-              <span className="text-sm text-[#f5f5dc]">Access Token</span>
+              <span className="text-sm text-[#f5f5dc]">{t("accessTokenLabel")}</span>
             </div>
             <span
               className={cn(
@@ -431,7 +434,7 @@ export function VaultCard({
                 tokenSet ? "text-emerald-400" : "text-red-400"
               )}
             >
-              {tokenSet ? "SECURED" : "MISSING"}
+              {tokenSet ? t("tokenSecured") : t("tokenMissing")}
             </span>
           </div>
           {onTestConnection && (
@@ -443,7 +446,7 @@ export function VaultCard({
               disabled={testDisabled || testing}
               className="w-full border-[#d4af37]/40 text-[#f9d976] hover:bg-[#d4af37]/10"
             >
-              {testing ? "Testing..." : "Test connection"}
+              {testing ? t("testing") : t("testConnection")}
             </Button>
           )}
           {testDisabledReason && (
@@ -479,6 +482,7 @@ export function BusinessAssetVault({
   linkedAssets = null,
   onCopy,
 }: BusinessAssetVaultProps) {
+  const t = useTranslations("metaHubUI.connections.businessAssets");
   const [showBmId, setShowBmId] = useState(false);
   const hasLinkedAssets = linkedAssets !== null && linkedAssets !== undefined;
   const getAssetCount = (value?: number | null) => (hasLinkedAssets ? String(value ?? 0) : "--");
@@ -495,21 +499,21 @@ export function BusinessAssetVault({
       border: "border-emerald-500/40",
       text: "text-emerald-400",
       icon: <BadgeCheck className="h-4 w-4" />,
-      label: "Verified",
+      label: t("verified"),
     },
     pending: {
       bg: "bg-amber-500/10",
       border: "border-amber-500/40",
       text: "text-amber-400",
       icon: <AlertTriangle className="h-4 w-4" />,
-      label: "Pending Verification",
+      label: t("pendingVerification"),
     },
     not_verified: {
       bg: "bg-red-500/10",
       border: "border-red-500/40",
       text: "text-red-400",
       icon: <XCircle className="h-4 w-4" />,
-      label: "Not Verified",
+      label: t("notVerified"),
     },
   };
 
@@ -520,7 +524,7 @@ export function BusinessAssetVault({
         border: "border-[#f5f5dc]/20",
         text: "text-[#f5f5dc]/60",
         icon: <AlertTriangle className="h-4 w-4" />,
-        label: "Not configured",
+        label: t("notConfigured"),
       };
 
   return (
@@ -537,27 +541,27 @@ export function BusinessAssetVault({
             <Building2 className="h-5 w-5 text-blue-400" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-blue-400">META BUSINESS INTELLIGENCE</h3>
-            <p className="text-xs text-[#f5f5dc]/50">Business Manager Assets</p>
+            <h3 className="text-sm font-bold tracking-wider text-blue-400">{t("title")}</h3>
+            <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
           </div>
         </div>
 
         {/* Business Manager ID */}
         <div className="mb-3 rounded-xl border border-blue-500/20 bg-[#050a18]/80 p-3">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-xs text-[#f5f5dc]/60">Business Manager ID</span>
+            <span className="text-xs text-[#f5f5dc]/60">{t("businessManagerId")}</span>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowBmId(!showBmId)}
-                title="Toggle visibility"
+                title={t("toggleVisibility")}
                 className="rounded p-1 text-[#f5f5dc]/60 hover:bg-blue-500/10 hover:text-blue-400"
               >
                 {showBmId ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
               {businessManagerId && (
                 <button
-                  onClick={() => onCopy(businessManagerId, "Business Manager ID")}
-                  title="Copy Business Manager ID"
+                  onClick={() => onCopy(businessManagerId, t("businessManagerId"))}
+                  title={t("copyBusinessManagerId")}
                   className="rounded p-1 text-[#f5f5dc]/60 hover:bg-blue-500/10 hover:text-blue-400"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -567,7 +571,7 @@ export function BusinessAssetVault({
           </div>
           <div className="flex items-center gap-2">
             <p className="font-mono text-sm text-[#f5f5dc]">
-              {businessManagerId ? (showBmId ? businessManagerId : "************") : "Not linked"}
+              {businessManagerId ? (showBmId ? businessManagerId : "************") : t("notLinked")}
             </p>
             {businessManagerId && (
               <div className="rounded-full bg-emerald-500/20 p-1">
@@ -585,7 +589,7 @@ export function BusinessAssetVault({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className={status.text}>{status.icon}</span>
-              <span className="text-sm font-medium text-[#f5f5dc]">Verification Status</span>
+              <span className="text-sm font-medium text-[#f5f5dc]">{t("verificationStatus")}</span>
             </div>
             <span className={cn("text-xs font-bold tracking-wide", status.text)}>
               {status.label.toUpperCase()}
@@ -593,14 +597,14 @@ export function BusinessAssetVault({
           </div>
           {verificationStatus && verificationStatus !== "verified" && (
             <p className="mt-2 text-xs text-[#f5f5dc]/50">
-              Complete Meta business verification to unlock full API access.
+              {t("completeVerification")}
             </p>
           )}
         </div>
 
         {/* Linked Assets Grid */}
         <div className="mb-2 flex items-center gap-2">
-          <span className="text-xs font-semibold text-[#f5f5dc]/60">LINKED ASSETS</span>
+          <span className="text-xs font-semibold text-[#f5f5dc]/60">{t("linkedAssets")}</span>
           <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -611,7 +615,7 @@ export function BusinessAssetVault({
             <p className="text-lg font-bold text-blue-400">
               {getAssetCount(linkedAssets?.facebookPages ?? null)}
             </p>
-            <p className="text-[10px] text-[#f5f5dc]/50">FB Pages</p>
+            <p className="text-[10px] text-[#f5f5dc]/50">{t("fbPages")}</p>
           </div>
           <div className="flex flex-col items-center rounded-xl border border-pink-500/20 bg-[#050a18]/60 p-3 text-center">
             <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-pink-500/10">
@@ -620,7 +624,7 @@ export function BusinessAssetVault({
             <p className="text-lg font-bold text-pink-400">
               {getAssetCount(linkedAssets?.instagramAccounts ?? null)}
             </p>
-            <p className="text-[10px] text-[#f5f5dc]/50">IG Accounts</p>
+            <p className="text-[10px] text-[#f5f5dc]/50">{t("igAccounts")}</p>
           </div>
           <div className="flex flex-col items-center rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-3 text-center">
             <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4af37]/10">
@@ -629,11 +633,11 @@ export function BusinessAssetVault({
             <p className="text-lg font-bold text-[#f9d976]">
               {getAssetCount(linkedAssets?.systemUsers ?? null)}
             </p>
-            <p className="text-[10px] text-[#f5f5dc]/50">Sys Users</p>
+            <p className="text-[10px] text-[#f5f5dc]/50">{t("sysUsers")}</p>
           </div>
         </div>
         {!hasLinkedAssets && (
-          <p className="mt-2 text-xs text-[#f5f5dc]/40">No linked assets synced yet.</p>
+          <p className="mt-2 text-xs text-[#f5f5dc]/40">{t("noLinkedAssets")}</p>
         )}
       </div>
     </motion.div>
@@ -663,11 +667,12 @@ export function EventRadar({
   conversionTrackingEnabled = false,
   onToggleConversionTracking,
 }: EventRadarProps) {
+  const t = useTranslations("metaHubUI.connections.eventRadar");
   const stats = eventStats ?? {};
   const hasStats = Object.values(stats).some((value) => (value ?? 0) > 0);
   const hasEvents = (eventsLast24h ?? 0) > 0;
   const showData = hasStats || hasEvents;
-  const statusLabel = showData ? "LIVE" : "NO DATA";
+  const statusLabel = showData ? t("statusLive") : t("statusNoData");
   const statusClass = showData ? "text-[#e11d48]" : "text-[#f5f5dc]/50";
   const getCount = (value?: number) => (showData ? String(value ?? 0) : "--");
 
@@ -702,8 +707,8 @@ export function EventRadar({
               <BarChart3 className="h-5 w-5 text-[#e11d48]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold tracking-wider text-[#e11d48]">EVENT RADAR</h3>
-              <p className="text-xs text-[#f5f5dc]/50">Real-Time Monitoring</p>
+              <h3 className="text-sm font-bold tracking-wider text-[#e11d48]">{t("title")}</h3>
+              <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -777,22 +782,22 @@ export function EventRadar({
           <div className="absolute bottom-2 left-2 flex gap-3 text-[10px]">
             <span className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-full bg-[#d4af37]" />
-              <span className="text-[#f5f5dc]/50">Sent</span>
+              <span className="text-[#f5f5dc]/50">{t("sent")}</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span className="text-[#f5f5dc]/50">Delivered</span>
+              <span className="text-[#f5f5dc]/50">{t("delivered")}</span>
             </span>
             <span className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-full bg-blue-400" />
-              <span className="text-[#f5f5dc]/50">Read</span>
+              <span className="text-[#f5f5dc]/50">{t("read")}</span>
             </span>
           </div>
         </div>
 
         {!showData && (
           <div className="mb-4 rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-3 text-xs text-[#f5f5dc]/50">
-            No events yet. Configure your connection and wait for incoming messages.
+            {t("noEvents")}
           </div>
         )}
 
@@ -801,22 +806,22 @@ export function EventRadar({
           <div className="rounded-lg border border-[#d4af37]/20 bg-[#050a18]/60 p-2 text-center">
             <Send className="mx-auto mb-1 h-3.5 w-3.5 text-[#d4af37]" />
             <p className="text-sm font-bold text-[#d4af37]">{getCount(stats.messageSent)}</p>
-            <p className="text-[9px] text-[#f5f5dc]/40">Sent</p>
+            <p className="text-[9px] text-[#f5f5dc]/40">{t("sent")}</p>
           </div>
           <div className="rounded-lg border border-emerald-500/20 bg-[#050a18]/60 p-2 text-center">
             <CheckCheck className="mx-auto mb-1 h-3.5 w-3.5 text-emerald-400" />
             <p className="text-sm font-bold text-emerald-400">{getCount(stats.messageDelivered)}</p>
-            <p className="text-[9px] text-[#f5f5dc]/40">Delivered</p>
+            <p className="text-[9px] text-[#f5f5dc]/40">{t("delivered")}</p>
           </div>
           <div className="rounded-lg border border-blue-500/20 bg-[#050a18]/60 p-2 text-center">
             <Eye className="mx-auto mb-1 h-3.5 w-3.5 text-blue-400" />
             <p className="text-sm font-bold text-blue-400">{getCount(stats.messageRead)}</p>
-            <p className="text-[9px] text-[#f5f5dc]/40">Read</p>
+            <p className="text-[9px] text-[#f5f5dc]/40">{t("read")}</p>
           </div>
           <div className="rounded-lg border border-[#e11d48]/20 bg-[#050a18]/60 p-2 text-center">
             <MousePointerClick className="mx-auto mb-1 h-3.5 w-3.5 text-[#e11d48]" />
             <p className="text-sm font-bold text-[#e11d48]">{getCount(stats.linkClicked)}</p>
-            <p className="text-[9px] text-[#f5f5dc]/40">Clicked</p>
+            <p className="text-[9px] text-[#f5f5dc]/40">{t("clicked")}</p>
           </div>
         </div>
 
@@ -824,12 +829,12 @@ export function EventRadar({
         <div className="flex items-center justify-between rounded-xl border border-[#e11d48]/20 bg-[#050a18]/60 p-3">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-[#e11d48]" />
-            <span className="text-sm text-[#f5f5dc]">Track Conversion Events</span>
+            <span className="text-sm text-[#f5f5dc]">{t("trackConversionEvents")}</span>
           </div>
           <button
             onClick={onToggleConversionTracking}
             disabled={!showData}
-            title="Toggle conversion tracking"
+            title={t("toggleConversionTracking")}
             className={cn(
               "relative h-6 w-11 rounded-full transition-colors",
               conversionTrackingEnabled ? "bg-[#e11d48]" : "bg-[#f5f5dc]/20",
@@ -866,6 +871,7 @@ export function WebhookStatusCard({
   onCopy,
   pingDisabledReason,
 }: WebhookStatusCardProps) {
+  const t = useTranslations("metaHubUI.connections.webhookGateway");
   const [isPinging, setIsPinging] = useState(false);
   const [pingResult, setPingResult] = useState<"success" | "error" | null>(null);
 
@@ -897,19 +903,19 @@ export function WebhookStatusCard({
             <Wifi className="h-5 w-5 text-[#f9d976]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-[#f9d976]">WEBHOOK GATEWAY</h3>
-            <p className="text-xs text-[#f5f5dc]/50">Real-time Event Delivery</p>
+            <h3 className="text-sm font-bold tracking-wider text-[#f9d976]">{t("title")}</h3>
+            <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
           </div>
         </div>
 
         {/* Webhook URL */}
         <div className="mb-3 rounded-xl border border-[#d4af37]/20 bg-[#050a18]/80 p-3">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-xs text-[#f5f5dc]/60">Callback URL</span>
+            <span className="text-xs text-[#f5f5dc]/60">{t("callbackUrl")}</span>
             {webhookUrl && (
               <button
-                onClick={() => onCopy(webhookUrl, "Webhook URL")}
-                title="Copy Webhook URL"
+                onClick={() => onCopy(webhookUrl, t("callbackUrl"))}
+                title={t("copyWebhookUrl")}
                 className="rounded p-1 text-[#f5f5dc]/60 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -917,7 +923,7 @@ export function WebhookStatusCard({
             )}
           </div>
           <p className="truncate font-mono text-xs text-[#f5f5dc]">
-            {webhookUrl ?? "Not configured"}
+            {webhookUrl ?? t("notConfigured")}
           </p>
         </div>
 
@@ -938,7 +944,7 @@ export function WebhookStatusCard({
               <AlertTriangle className="h-4 w-4 text-amber-400" />
             )}
             <span className={cn("text-sm", isVerified ? "text-emerald-400" : "text-amber-400")}>
-              {isVerified ? "Verified" : "Pending"}
+              {isVerified ? t("verified") : t("pending")}
             </span>
           </div>
 
@@ -979,7 +985,7 @@ export function WebhookStatusCard({
             ) : (
               <Radio className="h-4 w-4" />
             )}
-            <span className="relative z-10">Ping Test</span>
+            <span className="relative z-10">{t("pingTest")}</span>
           </motion.button>
         </div>
         {pingDisabledReason && (
@@ -1005,6 +1011,7 @@ export function MonitorCard({
   uptime = null,
   eventsLast24h = null,
 }: MonitorCardProps) {
+  const t = useTranslations("metaHubUI.connections.monitor");
   const latencyValue = latencyMs === null ? "--" : `${latencyMs}ms`;
   const latencyValueClass = latencyMs === null ? "text-[#f5f5dc]/60" : "text-emerald-400";
   const uptimeValue = uptime === null ? "--" : `${uptime}%`;
@@ -1025,14 +1032,14 @@ export function MonitorCard({
             <Activity className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-wider text-emerald-400">LIVE MONITOR</h3>
-            <p className="text-xs text-[#f5f5dc]/50">Real-Time Metrics</p>
+            <h3 className="text-sm font-bold tracking-wider text-emerald-400">{t("title")}</h3>
+            <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
           </div>
         </div>
 
         {/* EKG Graph */}
         <div className="mb-4 rounded-xl border border-emerald-500/20 bg-[#050a18]/80 p-3">
-          <p className="mb-2 text-xs text-[#f5f5dc]/60">API Latency</p>
+          <p className="mb-2 text-xs text-[#f5f5dc]/60">{t("apiLatency")}</p>
           <svg className="h-12 w-full" viewBox="0 0 200 40" preserveAspectRatio="none">
             <defs>
               <linearGradient id="ekgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -1064,7 +1071,7 @@ export function MonitorCard({
             )}
           </svg>
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs text-[#f5f5dc]/60">Current</span>
+            <span className="text-xs text-[#f5f5dc]/60">{t("current")}</span>
             <span className={`font-mono text-lg font-bold ${latencyValueClass}`}>{latencyValue}</span>
           </div>
         </div>
@@ -1073,11 +1080,11 @@ export function MonitorCard({
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-emerald-500/20 bg-[#050a18]/80 p-3 text-center">
             <p className={`text-3xl font-bold ${uptimeValueClass}`}>{uptimeValue}</p>
-            <p className="text-xs text-[#f5f5dc]/60">Uptime</p>
+            <p className="text-xs text-[#f5f5dc]/60">{t("uptime")}</p>
           </div>
           <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/80 p-3 text-center">
             <p className="text-3xl font-bold text-[#f9d976]">{eventsValue}</p>
-            <p className="text-xs text-[#f5f5dc]/60">Events 24h</p>
+            <p className="text-xs text-[#f5f5dc]/60">{t("events24h")}</p>
           </div>
         </div>
       </div>
@@ -1108,6 +1115,7 @@ export function SandboxSettingsCard({
   canEdit,
   onUpdate,
 }: SandboxSettingsCardProps) {
+  const t = useTranslations("metaHubUI.connections.sandbox");
   const { toast } = useToast();
   const [enabled, setEnabled] = useState(sandboxEnabled);
   const [whitelistText, setWhitelistText] = useState(whitelist.join("\n"));
@@ -1137,12 +1145,12 @@ export function SandboxSettingsCard({
         throw new Error(json?.message ?? json?.error ?? "Save failed");
       }
 
-      toast({ title: "Sandbox settings saved", description: enabled ? "Sandbox mode ON" : "Sandbox mode OFF" });
+      toast({ title: t("toastSaved"), description: enabled ? t("toastSavedOn") : t("toastSavedOff") });
       onUpdate?.(enabled, parsed);
     } catch (err) {
       toast({
-        title: "Failed to save sandbox settings",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("toastSaveFailed"),
+        description: err instanceof Error ? err.message : t("toastUnknownError"),
         variant: "destructive",
       });
     } finally {
@@ -1164,12 +1172,12 @@ export function SandboxSettingsCard({
             <Shield className="h-5 w-5 text-amber-400" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold tracking-wider text-amber-400">SANDBOX MODE</h3>
-            <p className="text-xs text-[#f5f5dc]/50">Test Environment Control</p>
+            <h3 className="text-sm font-bold tracking-wider text-amber-400">{t("title")}</h3>
+            <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
           </div>
           {enabled && (
             <span className="rounded-full border border-amber-500/40 bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-300">
-              ACTIVE
+              {t("active")}
             </span>
           )}
         </div>
@@ -1177,9 +1185,9 @@ export function SandboxSettingsCard({
         {/* Toggle */}
         <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-500/20 bg-[#050a18]/80 p-3">
           <div>
-            <p className="text-sm font-medium text-[#f5f5dc]">Sandbox Mode</p>
+            <p className="text-sm font-medium text-[#f5f5dc]">{t("sandboxMode")}</p>
             <p className="text-xs text-[#f5f5dc]/60">
-              {enabled ? "Only whitelist numbers can receive messages" : "All numbers can receive messages"}
+              {enabled ? t("enabledDesc") : t("disabledDesc")}
             </p>
           </div>
           <button
@@ -1206,7 +1214,7 @@ export function SandboxSettingsCard({
         {/* Whitelist Editor */}
         <div className="mb-4 rounded-xl border border-amber-500/20 bg-[#050a18]/80 p-3">
           <Label htmlFor="sandbox-whitelist" className="mb-2 block text-xs text-[#f5f5dc]/60">
-            Whitelist Numbers (one per line, e.g. 628123456789)
+            {t("whitelistLabel")}
           </Label>
           <textarea
             id="sandbox-whitelist"
@@ -1221,7 +1229,7 @@ export function SandboxSettingsCard({
             )}
           />
           <p className="mt-1 text-xs text-[#f5f5dc]/40">
-            {whitelistText.split("\n").filter((l) => l.trim()).length} numbers in whitelist
+            {t("whitelistCount", { count: whitelistText.split("\n").filter((l) => l.trim()).length })}
           </p>
         </div>
 
@@ -1235,12 +1243,12 @@ export function SandboxSettingsCard({
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                {t("saving")}
               </>
             ) : (
               <>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Save Sandbox Settings
+                {t("saveSettings")}
               </>
             )}
           </Button>
@@ -1248,7 +1256,7 @@ export function SandboxSettingsCard({
 
         {!canEdit && (
           <p className="text-center text-xs text-[#f5f5dc]/40">
-            Admin access required to modify sandbox settings
+            {t("adminRequired")}
           </p>
         )}
       </div>
@@ -1262,6 +1270,7 @@ interface WebhookTerminalCardProps {
 }
 
 export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: WebhookTerminalCardProps) {
+  const t = useTranslations("metaHubUI.connections.webhookStream");
   // Transform events to logs format - using useMemo instead of useState+useEffect
   const logs = recentEvents.slice(0, 6).map((e) => ({
     type: e.type,
@@ -1283,8 +1292,8 @@ export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: Webhoo
               <Terminal className="h-5 w-5 text-[#e11d48]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold tracking-wider text-[#e11d48]">WEBHOOK STREAM</h3>
-              <p className="text-xs text-[#f5f5dc]/50">Live Event Log</p>
+              <h3 className="text-sm font-bold tracking-wider text-[#e11d48]">{t("title")}</h3>
+              <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -1293,7 +1302,7 @@ export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: Webhoo
               animate={{ opacity: [1, 0.4, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             />
-            <span className="text-xs text-emerald-400">LIVE</span>
+            <span className="text-xs text-emerald-400">{t("live")}</span>
           </div>
         </div>
 
@@ -1304,7 +1313,7 @@ export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: Webhoo
             <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
             <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
             <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-            <span className="ml-2 text-[#f5f5dc]/40">webhook-events.log</span>
+            <span className="ml-2 text-[#f5f5dc]/40">{t("filename")}</span>
           </div>
 
           {/* Log entries */}
@@ -1325,7 +1334,7 @@ export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: Webhoo
               ))}
             </AnimatePresence>
             {logs.length === 0 && (
-              <p className="py-4 text-center text-[#f5f5dc]/40">No events yet...</p>
+              <p className="py-4 text-center text-[#f5f5dc]/40">{t("noEventsYet")}</p>
             )}
           </div>
         </div>
@@ -1338,7 +1347,7 @@ export function WebhookTerminalCard({ recentEvents = [], workspaceSlug }: Webhoo
               className="w-full border-[#e11d48]/40 text-[#e11d48] hover:bg-[#e11d48]/10"
             >
               <ExternalLink className="mr-2 h-3.5 w-3.5" />
-              View All Events
+              {t("viewAllEvents")}
             </Button>
           </Link>
         </div>
@@ -1382,6 +1391,7 @@ export function ImperiumEmbeddedSignup({
   isConnected,
   onSuccess,
 }: ImperiumEmbeddedSignupProps) {
+  const t = useTranslations("metaHubUI.connections.embeddedSignup");
   const { toast } = useToast();
   const router = useRouter();
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
@@ -1449,7 +1459,7 @@ export function ImperiumEmbeddedSignup({
         }
         setStatus("done");
         setShowSuccess(true);
-        toast({ title: "Neural Connection Established!", description: "WhatsApp connected successfully." });
+        toast({ title: t("toastConnected"), description: t("toastConnectedDesc") });
         setTimeout(() => {
           setShowSuccess(false);
           router.refresh();
@@ -1457,11 +1467,11 @@ export function ImperiumEmbeddedSignup({
         }, 3000);
       } catch (err) {
         setStatus("error");
-        const msg = err instanceof Error ? err.message : "Failed to save connection.";
-        toast({ title: "Connection failed", description: msg, variant: "destructive" });
+        const msg = err instanceof Error ? err.message : t("toastConnectionFailedDefault");
+        toast({ title: t("toastConnectionFailed"), description: msg, variant: "destructive" });
       }
     },
-    [label, router, toast, workspaceSlug, onSuccess]
+    [label, router, toast, workspaceSlug, onSuccess, t]
   );
 
   // Listen for postMessage from Meta Embedded Signup
@@ -1520,8 +1530,8 @@ export function ImperiumEmbeddedSignup({
   function launchSignup() {
     if (!window.FB || !sdkReady) {
       toast({
-        title: "SDK not ready",
-        description: "Please wait a moment and try again.",
+        title: t("toastSdkNotReady"),
+        description: t("toastSdkNotReadyDesc"),
         variant: "destructive",
       });
       return;
@@ -1578,9 +1588,9 @@ export function ImperiumEmbeddedSignup({
           >
             <CheckCircle2 className="h-8 w-8 text-emerald-400" />
           </motion.div>
-          <h3 className="text-xl font-bold text-emerald-400">Connection Active</h3>
+          <h3 className="text-xl font-bold text-emerald-400">{t("connectionActive")}</h3>
           <p className="mt-2 text-sm text-[#f5f5dc]/60">
-            Your WhatsApp Business API is connected and operational.
+            {t("connectionActiveDesc")}
           </p>
         </div>
       </motion.div>
@@ -1627,8 +1637,8 @@ export function ImperiumEmbeddedSignup({
               className="text-center"
             >
               <Sparkles className="mx-auto mb-4 h-16 w-16 text-[#f9d976]" />
-              <h2 className="text-3xl font-bold text-[#f9d976]">Neural Connection Established!</h2>
-              <p className="mt-2 text-[#f5f5dc]/70">WhatsApp Business API is now linked</p>
+              <h2 className="text-3xl font-bold text-[#f9d976]">{t("neuralConnectionEstablished")}</h2>
+              <p className="mt-2 text-[#f5f5dc]/70">{t("whatsappApiLinked")}</p>
             </motion.div>
           </motion.div>
         )}
@@ -1666,20 +1676,20 @@ export function ImperiumEmbeddedSignup({
               </div>
             </motion.div>
 
-            <h3 className="text-2xl font-bold text-[#f9d976]">Connect with Facebook</h3>
+            <h3 className="text-2xl font-bold text-[#f9d976]">{t("connectWithFacebook")}</h3>
             <p className="mt-3 max-w-lg text-sm text-[#f5f5dc]/60">
-              Establish a secure neural link with Meta&apos;s WhatsApp Business Platform using the Official Embedded Signup.
+              {t("connectWithFacebookDesc")}
             </p>
 
             {/* Official Meta Technology Provider Seal */}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
               <div className="flex items-center gap-2 rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2">
                 <BadgeCheck className="h-4 w-4 text-blue-400" />
-                <span className="text-xs font-semibold text-blue-400">Official Meta Technology Provider</span>
+                <span className="text-xs font-semibold text-blue-400">{t("officialMetaProvider")}</span>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2">
                 <Lock className="h-4 w-4 text-emerald-400" />
-                <span className="text-xs font-semibold text-emerald-400">256-bit Secure Encryption</span>
+                <span className="text-xs font-semibold text-emerald-400">{t("secureEncryption")}</span>
               </div>
             </div>
           </div>
@@ -1687,19 +1697,19 @@ export function ImperiumEmbeddedSignup({
           {!isConfigured ? (
             <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-center text-sm text-amber-200">
               <AlertTriangle className="mx-auto mb-2 h-5 w-5" />
-              Configuration required. Set NEXT_PUBLIC_META_APP_ID and NEXT_PUBLIC_META_CONFIG_ID.
+              {t("configRequired")}
             </div>
           ) : (
             <>
               <div className="mb-6">
                 <Label htmlFor="connectionLabel" className="text-sm text-[#f5f5dc]/70">
-                  Connection Label (optional)
+                  {t("connectionLabel")}
                 </Label>
                 <Input
                   id="connectionLabel"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
-                  placeholder="e.g., WA Support / WA Sales"
+                  placeholder={t("connectionLabelPlaceholder")}
                   disabled={!canEdit || status === "saving"}
                   className="mt-2 border-[#d4af37]/30 bg-[#050a18]/80 text-[#f5f5dc] placeholder:text-[#f5f5dc]/40 focus:ring-2 focus:ring-[#d4af37]/50"
                 />
@@ -1733,14 +1743,14 @@ export function ImperiumEmbeddedSignup({
                   {status === "saving" ? (
                     <>
                       <Loader2 className="h-7 w-7 animate-spin" />
-                      Establishing Neural Link...
+                      {t("establishingLink")}
                     </>
                   ) : (
                     <>
                       <svg className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                       </svg>
-                      Launch Embedded Signup
+                      {t("launchSignup")}
                     </>
                   )}
                 </span>
@@ -1750,18 +1760,18 @@ export function ImperiumEmbeddedSignup({
               <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/50">
                   <Shield className="h-4 w-4 text-emerald-400" />
-                  <span>Data handled via Meta&apos;s Official SDK</span>
+                  <span>{t("dataHandledViaSdk")}</span>
                 </div>
                 <span className="hidden text-[#f5f5dc]/30 sm:inline">•</span>
                 <div className="flex items-center gap-2 text-xs text-[#f5f5dc]/50">
                   <Lock className="h-4 w-4 text-blue-400" />
-                  <span>We never store your Facebook credentials</span>
+                  <span>{t("neverStoreCredentials")}</span>
                 </div>
               </div>
 
               {!canEdit && (
                 <p className="mt-4 text-center text-xs text-amber-400">
-                  Only owners or admins can add new connections.
+                  {t("onlyOwnersOrAdmins")}
                 </p>
               )}
             </>
@@ -1776,7 +1786,7 @@ export function ImperiumEmbeddedSignup({
               )}
             />
             <span className={sdkReady ? "text-emerald-400" : "text-amber-400"}>
-              {sdkReady ? "Meta SDK Ready" : "Loading SDK..."}
+              {sdkReady ? t("metaSdkReady") : t("loadingSdk")}
             </span>
           </div>
         </div>
@@ -1813,6 +1823,7 @@ type VerifyResponse = {
 };
 
 export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckProps) {
+  const t = useTranslations("metaHubUI.connections.healthCheck");
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerifyResponse | null>(null);
@@ -1826,27 +1837,27 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
       const data = await res.json();
       setResult(data);
       if (data.ok) {
-        toast({ title: "All systems operational!", description: "Health check passed." });
+        toast({ title: t("toastAllOperational"), description: t("toastAllOperationalDesc") });
       } else {
         toast({
-          title: "Issues detected",
-          description: "Review the health panel for details.",
+          title: t("toastIssuesDetected"),
+          description: t("toastIssuesDetectedDesc"),
           variant: "destructive",
         });
       }
     } catch {
-      toast({ title: "Verification failed", variant: "destructive" });
+      toast({ title: t("toastVerificationFailed"), variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const checks = result?.checks;
   const checkItems = [
-    { key: "token", label: "Access Token", icon: Lock },
-    { key: "connection", label: "Phone Connection", icon: Radio },
-    { key: "templates", label: "Templates Synced", icon: Activity },
-    { key: "webhooks", label: "Webhook Events", icon: Terminal },
+    { key: "token", label: t("accessToken"), icon: Lock },
+    { key: "connection", label: t("phoneConnection"), icon: Radio },
+    { key: "templates", label: t("templatesSynced"), icon: Activity },
+    { key: "webhooks", label: t("webhookEvents"), icon: Terminal },
   ] as const;
 
   return (
@@ -1861,8 +1872,8 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
               <Zap className="h-5 w-5 text-[#f9d976]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold tracking-wider text-[#f9d976]">SYSTEM DIAGNOSTICS</h3>
-              <p className="text-xs text-[#f5f5dc]/50">Run health verification</p>
+              <h3 className="text-sm font-bold tracking-wider text-[#f9d976]">{t("title")}</h3>
+              <p className="text-xs text-[#f5f5dc]/50">{t("subtitle")}</p>
             </div>
           </div>
           <Button
@@ -1876,7 +1887,7 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            Verify Now
+            {t("verifyNow")}
           </Button>
         </div>
 
@@ -1925,10 +1936,10 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
                     <p className="text-xs text-red-400">{check.reason}</p>
                   )}
                   {key === "webhooks" && check?.events24h !== undefined && (
-                    <p className="text-xs text-[#f5f5dc]/50">{check.events24h} events in 24h</p>
+                    <p className="text-xs text-[#f5f5dc]/50">{t("eventsIn24h", { count: check.events24h })}</p>
                   )}
                   {key === "templates" && check?.count !== undefined && (
-                    <p className="text-xs text-[#f5f5dc]/50">{check.count} templates synced</p>
+                    <p className="text-xs text-[#f5f5dc]/50">{t("templatesSyncedCount", { count: check.count })}</p>
                   )}
                 </div>
               </div>
@@ -1942,7 +1953,7 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
               <div>
-                <p className="text-xs font-semibold text-amber-400">Recommendations</p>
+                <p className="text-xs font-semibold text-amber-400">{t("recommendations")}</p>
                 <ul className="mt-1 space-y-1">
                   {result.recommendations.map((rec, i) => (
                     <li key={i} className="text-xs text-amber-300/80">
@@ -1964,7 +1975,7 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
               className="gap-2 border-[#d4af37]/30 text-[#f5f5dc]/70 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Webhooks
+              {t("webhooksLink")}
             </Button>
           </Link>
           <Link href={`/${workspaceSlug}/meta-hub/messaging/whatsapp`}>
@@ -1974,7 +1985,7 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
               className="gap-2 border-[#d4af37]/30 text-[#f5f5dc]/70 hover:bg-[#d4af37]/10 hover:text-[#f9d976]"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Sync Templates
+              {t("syncTemplates")}
             </Button>
           </Link>
         </div>
@@ -1988,6 +1999,7 @@ export function ImperiumHealthCheck({ workspaceId, workspaceSlug }: HealthCheckP
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function ImperiumConnectionsFooter() {
+  const t = useTranslations("metaHubUI.connections.footer");
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1997,10 +2009,9 @@ export function ImperiumConnectionsFooter() {
     >
       <div className="text-xs leading-relaxed text-[#f5f5dc]/40">
         <p>
-          Gigaviz is a Verified Technology Provider for solutions built on the
-          WhatsApp Business Platform (Cloud API).
+          {t("verifiedProvider")}
         </p>
-        <p className="mt-2">WhatsApp and Meta are trademarks of Meta Platforms, Inc.</p>
+        <p className="mt-2">{t("metaTrademarks")}</p>
       </div>
     </motion.div>
   );

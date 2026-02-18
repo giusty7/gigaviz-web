@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Download, RefreshCw, FileJson, FileSpreadsheet, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 interface ExportJob {
@@ -26,6 +27,7 @@ const FORMATS = [
 ];
 
 export default function ExportsClient() {
+  const t = useTranslations("opsUI");
   const [jobs, setJobs] = useState<ExportJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -110,8 +112,8 @@ export default function ExportsClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Data Exports</h1>
-          <p className="text-zinc-400">Export workspace and user data</p>
+          <h1 className="text-2xl font-bold text-white">{t("exports.title")}</h1>
+          <p className="text-zinc-400">{t("exports.subtitle")}</p>
         </div>
         <button
           onClick={fetchJobs}
@@ -124,11 +126,11 @@ export default function ExportsClient() {
 
       {/* New Export */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">Create Export</h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">{t("exports.newExport")}</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <label className="mb-2 block text-sm text-zinc-400">
-              Export Type
+              {t("exports.exportType")}
             </label>
             <select
               value={exportType}
@@ -143,7 +145,7 @@ export default function ExportsClient() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Format</label>
+            <label className="mb-2 block text-sm text-zinc-400">{t("exports.format")}</label>
             <div className="flex gap-2">
               {FORMATS.map((f) => (
                 <button
@@ -172,7 +174,7 @@ export default function ExportsClient() {
               ) : (
                 <Download className="h-4 w-4" />
               )}
-              {exporting ? "Exporting..." : "Export"}
+              {exporting ? "Exporting..." : t("exports.generate")}
             </button>
           </div>
         </div>
@@ -214,7 +216,7 @@ export default function ExportsClient() {
 
       {/* Export History */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">Export History</h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">{t("exports.historyTitle")}</h2>
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <RefreshCw className="h-6 w-6 animate-spin text-zinc-500" />
@@ -226,9 +228,9 @@ export default function ExportsClient() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-zinc-700 text-zinc-400">
-                  <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">Format</th>
-                  <th className="pb-3 font-medium">Status</th>
+                  <th className="pb-3 font-medium">{t("exports.type")}</th>
+                  <th className="pb-3 font-medium">{t("exports.format")}</th>
+                  <th className="pb-3 font-medium">{t("exports.status")}</th>
                   <th className="pb-3 font-medium">Rows</th>
                   <th className="pb-3 font-medium">Created</th>
                 </tr>

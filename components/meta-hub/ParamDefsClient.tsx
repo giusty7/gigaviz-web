@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ParamMappingEditorModal } from "./ParamMappingEditorModal";
@@ -14,6 +15,7 @@ type Props = {
 
 export function ParamDefsClient({ workspaceSlug, template, paramDefs }: Props) {
   const router = useRouter();
+  const t = useTranslations("metaHubUI.paramDefs");
 
   // Show template selector if no template
   if (!template) {
@@ -29,7 +31,7 @@ export function ParamDefsClient({ workspaceSlug, template, paramDefs }: Props) {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            All Templates
+            {t("allTemplates")}
           </Link>
         </div>
 
@@ -40,7 +42,7 @@ export function ParamDefsClient({ workspaceSlug, template, paramDefs }: Props) {
             <span>•</span>
             <span className="uppercase">{template.language}</span>
             <span>•</span>
-            <span>{template.variable_count} parameters</span>
+            <span>{template.variable_count} {t("parameters")}</span>
           </div>
         </div>
 

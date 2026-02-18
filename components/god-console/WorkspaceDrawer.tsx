@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, ShieldCheck, ShieldOff, Loader2, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ function formatDate(value?: string | null) {
 }
 
 export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
+  const t = useTranslations("opsUI");
   const { toast } = useToast();
   const [entitlements, setEntitlements] = useState<Set<string>>(new Set());
   const [amount, setAmount] = useState("");
@@ -64,13 +66,13 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
     startGrant(async () => {
       const result = await grantWorkspaceTokensAction(formData);
       if (result.ok) {
-        toast({ title: "Tokens granted", description: "Balance updated via manual reward." });
+        toast({ title: t("godConsole.tokensGranted"), description: "Balance updated via manual reward." });
         setAmount("");
         setReason("");
         setRefId("");
       } else {
         toast({
-          title: "Reward failed",
+          title: t("godConsole.rewardFailed"),
           description: result.error ?? "Unable to apply reward.",
           variant: "destructive",
         });
@@ -95,10 +97,10 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
           else next.delete(key);
           return next;
         });
-        toast({ title: enabled ? "Feature unlocked" : "Feature locked", description: key });
+        toast({ title: enabled ? t("godConsole.featureUnlocked") : t("godConsole.featureLocked"), description: key });
       } else {
         toast({
-          title: "Override failed",
+          title: t("godConsole.overrideFailed"),
           description: result.error ?? "Unable to update entitlement.",
           variant: "destructive",
         });
@@ -178,7 +180,7 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                     {workspace.monthly_cap ? ` / ${workspace.monthly_cap.toLocaleString()}` : ""}
                   </p>
                   {workspace.hard_cap ? (
-                    <p className="text-[11px] text-[#f5f5dc]/60">Hard cap enforced</p>
+                    <p className="text-[11px] text-[#f5f5dc]/60">{t("godConsole.hardCapEnforced")}</p>
                   ) : null}
                 </div>
               </div>
@@ -189,10 +191,10 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.16em] text-[#d4af37]">
-                      Manual Reward
+                      {t("godConsole.manualReward")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Apply token delta via platform authority.
+                      {t("godConsole.applyDelta")}
                     </p>
                   </div>
                   <Sparkles className="h-5 w-5 text-[#d4af37]" />
@@ -203,24 +205,24 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                     min={1}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    placeholder="Amount"
+                    placeholder={t("godConsole.amountPlaceholder")}
                     className="rounded-xl border-[#d4af37]/30 bg-[#0a1229]/80 text-[#f5f5dc] placeholder:text-[#f5f5dc]/50 focus:border-[#d4af37]"
                   />
                   <Textarea
                     rows={3}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Reason (required)"
+                    placeholder={t("godConsole.reasonPlaceholder")}
                     className="rounded-xl border-[#d4af37]/30 bg-[#0a1229]/80 text-[#f5f5dc] placeholder:text-[#f5f5dc]/50 focus:border-[#d4af37]"
                   />
                   <Input
                     value={refId}
                     onChange={(e) => setRefId(e.target.value)}
-                    placeholder="Reference ID (optional)"
+                    placeholder={t("godConsole.referencePlaceholder")}
                     className="rounded-xl border-[#d4af37]/30 bg-[#0a1229]/80 text-[#f5f5dc] placeholder:text-[#f5f5dc]/50 focus:border-[#d4af37]"
                   />
                   <div className="flex items-center justify-between text-xs text-[#f5f5dc]/70">
-                    <span>Preview new balance</span>
+                    <span>{t("godConsole.previewBalance")}</span>
                     <span className="font-semibold text-[#d4af37]">
                       {previewBalance.toLocaleString()} tokens
                     </span>
@@ -235,7 +237,7 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                     ) : (
                       <Sparkles className="mr-2 h-4 w-4" />
                     )}
-                    Inject Tokens
+                    {t("godConsole.injectTokens")}
                   </Button>
                 </div>
               </section>
@@ -244,10 +246,10 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="text-xs uppercase tracking-[0.16em] text-[#d4af37]">
-                      Manual Overrides
+                      {t("godConsole.manualOverrides")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Force unlock or lock modules per workspace.
+                      {t("godConsole.forceUnlockLock")}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -264,7 +266,7 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                       }}
                       className="h-7 rounded-lg border-emerald-400/40 bg-emerald-500/10 text-emerald-200 text-xs hover:bg-emerald-500/20"
                     >
-                      Unlock All
+                      {t("godConsole.unlockAll")}
                     </Button>
                     <Button
                       size="sm"
@@ -279,7 +281,7 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                       }}
                       className="h-7 rounded-lg border-red-400/40 bg-red-500/10 text-red-200 text-xs hover:bg-red-500/20"
                     >
-                      Lock All
+                      {t("godConsole.lockAll")}
                     </Button>
                   </div>
                 </div>
@@ -317,9 +319,9 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                           {entPending ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : enabled ? (
-                            "Lock"
+                            t("godConsole.lock")
                           ) : (
-                            "Unlock"
+                            t("godConsole.unlock")
                           )}
                         </Button>
                       </div>
@@ -332,12 +334,12 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                 <div className="flex items-center gap-2">
                   <History className="h-4 w-4 text-[#d4af37]" />
                   <p className="text-xs uppercase tracking-[0.16em] text-[#d4af37]">
-                    Audit Trail
+                    {t("godConsole.auditTrail")}
                   </p>
                 </div>
                 <div className="mt-3 space-y-3">
                   {workspace.audits.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No recent activity.</p>
+                    <p className="text-sm text-muted-foreground">{t("godConsole.noRecentActivity")}</p>
                   ) : (
                     workspace.audits.map((row) => (
                       <div

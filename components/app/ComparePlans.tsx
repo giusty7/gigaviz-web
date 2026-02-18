@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import ContactSalesDialog from "@/components/app/ContactSalesDialog";
 import { Button } from "@/components/ui/button";
 import type { PlanMeta } from "@/lib/entitlements";
@@ -15,6 +16,7 @@ type ComparePlansProps = {
 };
 
 export default function ComparePlans({ plans, activePlanId, workspaceId, workspaceSlug, workspaceName, userEmail }: ComparePlansProps) {
+  const t = useTranslations("appUI.comparePlans");
   const [mode, setMode] = useState<"individual" | "team">("individual");
 
   const filtered = useMemo(
@@ -35,9 +37,9 @@ export default function ComparePlans({ plans, activePlanId, workspaceId, workspa
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Compare Plans</h2>
+              <h2 className="text-lg font-semibold">{t("title")}</h2>
               <p className="text-sm text-white/60">
-                Individual vs Team plans. Upgrade when you are ready.
+                {t("description")}
               </p>
             </div>
             <div className="flex rounded-xl border border-white/10 bg-black/20 p-1 text-xs">
@@ -49,7 +51,7 @@ export default function ComparePlans({ plans, activePlanId, workspaceId, workspa
                     mode === tab ? "bg-white/10 text-white" : "text-white/50"
                   }`}
                 >
-                  {tab === "individual" ? "Individual" : "Team"}
+                  {tab === "individual" ? t("individual") : t("team")}
                 </button>
               ))}
             </div>
@@ -69,7 +71,7 @@ export default function ComparePlans({ plans, activePlanId, workspaceId, workspa
                   <div>
                     <h3 className="text-base font-semibold">{plan.name}</h3>
                     <p className="text-xs text-white/50 mt-1">
-                      Seat limit: {plan.seat_limit}
+                      {t("seatLimit", { limit: plan.seat_limit })}
                     </p>
                   </div>
                   <span
@@ -77,7 +79,7 @@ export default function ComparePlans({ plans, activePlanId, workspaceId, workspa
                       activePlanId === plan.plan_id ? "text-[color:var(--gv-accent)]" : "text-white/40"
                     }`}
                   >
-                    {activePlanId === plan.plan_id ? "Current plan" : plan.plan_id}
+                    {activePlanId === plan.plan_id ? t("currentPlan") : plan.plan_id}
                   </span>
                 </div>
                 <ul className="mt-3 space-y-2 text-sm text-white/70">

@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Clock, Plus, X, RefreshCw, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 interface ScheduledAction {
@@ -30,6 +31,7 @@ const TARGET_TYPES = [
 ];
 
 export default function ScheduledActionsClient() {
+  const t = useTranslations("opsUI");
   const [actions, setActions] = useState<ScheduledAction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -115,8 +117,8 @@ export default function ScheduledActionsClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Scheduled Actions</h1>
-          <p className="text-zinc-400">Schedule future operations</p>
+          <h1 className="text-2xl font-bold text-white">{t("operations.scheduledActions.title")}</h1>
+          <p className="text-zinc-400">{t("operations.scheduledActions.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -131,7 +133,7 @@ export default function ScheduledActionsClient() {
             className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" />
-            Schedule Action
+            {t("operations.scheduledActions.newAction")}
           </button>
         </div>
       </div>
@@ -141,11 +143,11 @@ export default function ScheduledActionsClient() {
         <div className="rounded-xl border border-blue-900/50 bg-blue-950/20 p-6">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
             <Clock className="h-5 w-5 text-blue-400" />
-            New Scheduled Action
+            {t("operations.scheduledActions.newAction")}
           </h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Action Type</label>
+              <label className="mb-2 block text-sm text-zinc-400">{t("operations.scheduledActions.actionType")}</label>
               <select
                 value={actionType}
                 onChange={(e) => setActionType(e.target.value)}
@@ -159,7 +161,7 @@ export default function ScheduledActionsClient() {
               </select>
             </div>
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Target Type</label>
+              <label className="mb-2 block text-sm text-zinc-400">{t("operations.scheduledActions.targetType")}</label>
               <select
                 value={targetType}
                 onChange={(e) => setTargetType(e.target.value)}
@@ -183,7 +185,7 @@ export default function ScheduledActionsClient() {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Scheduled For</label>
+              <label className="mb-2 block text-sm text-zinc-400">{t("operations.scheduledActions.schedule")}</label>
               <input
                 type="datetime-local"
                 value={scheduledFor}
@@ -222,7 +224,7 @@ export default function ScheduledActionsClient() {
 
       {/* Actions List */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">Scheduled Actions</h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">{t("operations.scheduledActions.title")}</h2>
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <RefreshCw className="h-6 w-6 animate-spin text-zinc-500" />

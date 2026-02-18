@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,6 +82,7 @@ const VARIABLE_HINTS = [
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function QuickRepliesManager(_props: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.quickReplies");
   
   // State
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
@@ -112,14 +114,14 @@ export function QuickRepliesManager(_props: Props) {
       setQuickReplies(data.quickReplies || []);
     } catch (err) {
       toast({
-        title: "Error loading quick replies",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("errorLoading"),
+        description: err instanceof Error ? err.message : t("unknownError"),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     fetchQuickReplies();
@@ -150,8 +152,8 @@ export function QuickRepliesManager(_props: Props) {
   const handleSave = async () => {
     if (!formTitle.trim() || !formContent.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Title and content are required",
+        title: t("validationError"),
+        description: t("titleContentRequired"),
         variant: "destructive",
       });
       return;
@@ -179,16 +181,16 @@ export function QuickRepliesManager(_props: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: editingReply ? "Quick reply updated" : "Quick reply created",
-        description: `"${formTitle}" has been saved`,
+        title: editingReply ? t("replyUpdated") : t("replyCreated"),
+        description: t("replySaved", { title: formTitle }),
       });
 
       setDialogOpen(false);
       fetchQuickReplies();
     } catch (err) {
       toast({
-        title: "Error saving quick reply",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("errorSaving"),
+        description: err instanceof Error ? err.message : t("unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -197,7 +199,7 @@ export function QuickRepliesManager(_props: Props) {
   };
 
   const handleDelete = async (reply: QuickReply) => {
-    if (!confirm(`Delete quick reply "${reply.title}"?`)) return;
+    if (!confirm(t("confirmDelete", { title: reply.title }))) return;
 
     try {
       const res = await fetch(`/api/meta-hub/quick-replies?id=${reply.id}`, {
@@ -207,15 +209,15 @@ export function QuickRepliesManager(_props: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: "Quick reply deleted",
-        description: `"${reply.title}" has been removed`,
+        title: t("replyDeleted"),
+        description: t("replyRemoved", { title: reply.title }),
       });
 
       fetchQuickReplies();
     } catch (err) {
       toast({
-        title: "Error deleting quick reply",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("errorDeleting"),
+        description: err instanceof Error ? err.message : t("unknownError"),
         variant: "destructive",
       });
     }
@@ -258,8 +260,8 @@ export function QuickRepliesManager(_props: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Quick Replies</CardTitle>
-          <CardDescription>Loading...</CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("loading")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Skeleton className="h-10 w-full" />
@@ -277,15 +279,15 @@ export function QuickRepliesManager(_props: Props) {
           <div>
             <CardTitle className="flex items-center gap-2">
               <SparklesIcon className="h-5 w-5 text-amber-500" />
-              Quick Replies
+              {t("title")}
             </CardTitle>
             <CardDescription>
-              Save and reuse common responses. Use /shortcut in the inbox composer.
+              {t("description")}
             </CardDescription>
           </div>
           <Button onClick={openCreateDialog}>
             <PlusIcon className="h-4 w-4 mr-2" />
-            Add Reply
+            {t("addReply")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -294,7 +296,7 @@ export function QuickRepliesManager(_props: Props) {
             <div className="relative flex-1">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search quick replies..."
+                placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -305,7 +307,7 @@ export function QuickRepliesManager(_props: Props) {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">{t("allCategories")}</SelectItem>
                 {allCategories.map(cat => (
                   <SelectItem key={cat} value={cat}>
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -319,16 +321,16 @@ export function QuickRepliesManager(_props: Props) {
           {filteredReplies.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <SparklesIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="font-medium">No quick replies found</p>
+              <p className="font-medium">{t("noRepliesFound")}</p>
               <p className="text-sm">
                 {quickReplies.length === 0 
-                  ? "Create your first quick reply to get started"
-                  : "Try adjusting your search or filter"}
+                  ? t("createFirstReply")
+                  : t("adjustSearch")}
               </p>
               {quickReplies.length === 0 && (
                 <Button className="mt-4" onClick={openCreateDialog}>
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  Create Quick Reply
+                  {t("createReply")}
                 </Button>
               )}
             </div>
@@ -360,16 +362,16 @@ export function QuickRepliesManager(_props: Props) {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingReply ? "Edit Quick Reply" : "Create Quick Reply"}
+              {editingReply ? t("editReply") : t("createReply")}
             </DialogTitle>
             <DialogDescription>
-              Quick replies can include variables like {"{{contact_name}}"} that get replaced when used.
+              {t("dialogDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">{t("titleLabel")}</Label>
               <Input
                 id="title"
                 placeholder="e.g., Welcome Message"
@@ -380,7 +382,7 @@ export function QuickRepliesManager(_props: Props) {
 
             <div className="space-y-2">
               <Label htmlFor="shortcut">
-                Shortcut <span className="text-muted-foreground">(optional)</span>
+                {t("shortcutLabel")} <span className="text-muted-foreground">({t("optional")})</span>
               </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">/</span>
@@ -398,7 +400,7 @@ export function QuickRepliesManager(_props: Props) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("categoryLabel")}</Label>
               <Select value={formCategory} onValueChange={setFormCategory}>
                 <SelectTrigger>
                   <SelectValue />
@@ -415,12 +417,12 @@ export function QuickRepliesManager(_props: Props) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="content">Content</Label>
+                <Label htmlFor="content">{t("contentLabel")}</Label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-7 text-xs">
                       <HashIcon className="h-3 w-3 mr-1" />
-                      Insert Variable
+                      {t("insertVariable")}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -445,10 +447,10 @@ export function QuickRepliesManager(_props: Props) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : editingReply ? "Save Changes" : "Create Reply"}
+              {saving ? t("saving") : editingReply ? t("saveChanges") : t("createReply")}
             </Button>
           </DialogFooter>
         </DialogContent>

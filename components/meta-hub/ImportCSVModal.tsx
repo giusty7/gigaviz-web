@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
 import { Upload, FileSpreadsheet } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   workspaceId: string;
@@ -52,6 +53,7 @@ export function ImportCSVModal({
   onClose,
   onImported,
 }: Props) {
+  const t = useTranslations("metaHubUI.importCSV");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -219,9 +221,9 @@ export function ImportCSVModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import Contacts from CSV</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Upload a CSV file with contact information
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -246,7 +248,7 @@ export function ImportCSVModal({
             </Alert>
 
             <div>
-              <Label htmlFor="csv-file">Select CSV File</Label>
+              <Label htmlFor="csv-file">{t("selectFile")}</Label>
               <div className="mt-2">
                 <input
                   ref={fileInputRef}
@@ -262,25 +264,25 @@ export function ImportCSVModal({
                   className="w-full"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  {fileName || "Choose CSV File"}
+                  {fileName || t("selectFile")}
                 </Button>
               </div>
             </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={handleClose}>
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Column Mapping</Label>
+              <Label>{t("mappingTitle")}</Label>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="map-phone" className="text-xs">
-                    Phone Column <span className="text-red-500">*</span>
+                    {t("phoneNumber")} <span className="text-red-500">*</span>
                   </Label>
                   <select
                     id="map-phone"
@@ -301,7 +303,7 @@ export function ImportCSVModal({
 
                 <div>
                   <Label htmlFor="map-name" className="text-xs">
-                    Name Column (optional)
+                    {t("firstName")}
                   </Label>
                   <select
                     id="map-name"
@@ -322,7 +324,7 @@ export function ImportCSVModal({
 
                 <div>
                   <Label htmlFor="map-tags" className="text-xs">
-                    Tags Column (optional)
+                    {t("notes")}
                   </Label>
                   <select
                     id="map-tags"
@@ -357,16 +359,16 @@ export function ImportCSVModal({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Preview (first 10 rows)</Label>
-                <Badge>{rows.length} total rows</Badge>
+                <Label>{t("previewTitle")}</Label>
+                <Badge>{t("rows", { count: rows.length })}</Badge>
               </div>
               <div className="border rounded-lg max-h-[300px] overflow-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Tags</TableHead>
+                      <TableHead>{t("phoneNumber")}</TableHead>
+                      <TableHead>{t("firstName")}</TableHead>
+                      <TableHead>{t("notes")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -412,13 +414,13 @@ export function ImportCSVModal({
                 onClick={() => setShowPreview(false)}
                 disabled={loading}
               >
-                Back
+                {t("cancel")}
               </Button>
               <Button
                 onClick={handleImport}
                 disabled={loading || !mapping.phone}
               >
-                {loading ? "Importing..." : `Import ${rows.length} Contacts`}
+                {loading ? t("importing") : t("importButton")}
               </Button>
             </div>
           </div>

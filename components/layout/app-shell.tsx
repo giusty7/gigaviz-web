@@ -36,7 +36,7 @@ export function AppShell({ sidebar, header, children, className, collapsed = fal
           <header className="sticky top-0 z-20 border-b border-[#d4af37]/15 bg-[#050a18]/80 backdrop-blur-xl">
             {header}
           </header>
-          <main className="bg-background px-6 py-8">{children}</main>
+          <main id="main-content" className="bg-background px-6 py-8">{children}</main>
         </div>
       </div>
     </div>

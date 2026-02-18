@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Search, Loader2, User, Building2, Mail, Phone, Wallet, Shield, LogIn, X, Ticket } from "lucide-react";
 import type { CustomerSearchResult } from "@/lib/ops/customers";
 
@@ -13,6 +14,7 @@ export default function CustomerSearchClient({
   initialQuery = "",
   initialResults = [],
 }: CustomerSearchClientProps) {
+  const t = useTranslations("opsUI");
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<CustomerSearchResult[]>(initialResults);
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ export default function CustomerSearchClient({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by email, phone, workspace slug, or ID..."
+            placeholder={t("customerSearch.searchPlaceholder")}
             className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
             disabled={loading}
           />
@@ -69,12 +71,12 @@ export default function CustomerSearchClient({
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Searching...
+              {t("customerSearch.searching")}
             </>
           ) : (
             <>
               <Search className="w-5 h-5" />
-              Search
+              {t("customerSearch.search")}
             </>
           )}
         </button>
@@ -105,7 +107,7 @@ export default function CustomerSearchClient({
       ) : !loading && query ? (
         <div className="text-center py-12">
           <Search className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No results found for &quot;{query}&quot;</p>
+          <p className="text-slate-400">{t("customerSearch.noResults")}</p>
         </div>
       ) : null}
     </div>
@@ -113,6 +115,7 @@ export default function CustomerSearchClient({
 }
 
 function CustomerCard({ result }: { result: CustomerSearchResult }) {
+  const t = useTranslations("opsUI");
   const [impersonateModal, setImpersonateModal] = useState(false);
   const [impersonating, setImpersonating] = useState(false);
   const [reason, setReason] = useState("");
@@ -298,21 +301,21 @@ function CustomerCard({ result }: { result: CustomerSearchResult }) {
           className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded transition-colors flex items-center gap-2"
         >
           <LogIn className="w-4 h-4" />
-          Impersonate
+          {t("customerSearch.impersonate")}
         </button>
         <button
           onClick={() => setCreateTicketModal(true)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors flex items-center gap-2"
         >
           <Ticket className="w-4 h-4" />
-          Create Ticket
+          {t("customerSearch.createTicket")}
         </button>
         <button
           disabled
           className="px-4 py-2 bg-slate-700 text-slate-500 text-sm font-medium rounded cursor-not-allowed"
           title="Coming soon"
         >
-          Suspend
+          {t("customerSearch.suspend")}
         </button>
         <button
           disabled
@@ -325,7 +328,7 @@ function CustomerCard({ result }: { result: CustomerSearchResult }) {
           href={`/ops/workspaces/${result.workspaceId}`}
           className="ml-auto px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white text-sm font-medium rounded transition-colors"
         >
-          View Details
+          {t("customerSearch.viewDetails")}
         </a>
       </div>
 
@@ -334,7 +337,7 @@ function CustomerCard({ result }: { result: CustomerSearchResult }) {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Start Impersonation</h3>
+              <h3 className="text-lg font-semibold text-white">{t("customerSearch.impersonate")}</h3>
               <button
                 onClick={() => setImpersonateModal(false)}
                 className="text-slate-400 hover:text-white"
@@ -410,7 +413,7 @@ function CustomerCard({ result }: { result: CustomerSearchResult }) {
                 ) : (
                   <>
                     <LogIn className="w-4 h-4" />
-                    Start Impersonation
+                    {t("customerSearch.impersonate")}
                   </>
                 )}
               </button>
@@ -428,7 +431,7 @@ function CustomerCard({ result }: { result: CustomerSearchResult }) {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Create Support Ticket</h3>
+              <h3 className="text-lg font-semibold text-white">{t("customerSearch.createTicket")}</h3>
               <button
                 onClick={() => setCreateTicketModal(false)}
                 className="text-slate-400 hover:text-white"
@@ -523,7 +526,7 @@ function CustomerCard({ result }: { result: CustomerSearchResult }) {
                 ) : (
                   <>
                     <Ticket className="w-4 h-4" />
-                    Create Ticket
+                    {t("customerSearch.createTicket")}
                   </>
                 )}
               </button>

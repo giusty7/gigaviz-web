@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Plus,
   ExternalLink,
@@ -34,6 +35,7 @@ interface LinksOverviewProps {
 }
 
 export function LinksOverview({ workspaceSlug, pages, totalClicks, totalItems }: LinksOverviewProps) {
+  const t = useTranslations("linksUI");
   const base = `/${workspaceSlug}/links`;
   const publicBase = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -42,9 +44,9 @@ export function LinksOverview({ workspaceSlug, pages, totalClicks, totalItems }:
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">Links</h1>
+          <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">{t("links")}</h1>
           <p className="text-[11px] text-[#f5f5dc]/40 mt-0.5">
-            Bio pages, smart links &amp; QR codes with click analytics
+            {t("linksDesc")}
           </p>
         </div>
         <Link
@@ -52,15 +54,15 @@ export function LinksOverview({ workspaceSlug, pages, totalClicks, totalItems }:
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#d4af37] px-3 py-1.5 text-[11px] font-semibold text-[#050a18] transition hover:bg-[#d4af37]/90"
         >
           <Plus className="h-3.5 w-3.5" />
-          New Page
+          {t("newPage")}
         </Link>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard icon={FileStack} label="Pages" value={pages.length} />
-        <StatCard icon={Link2} label="Links" value={totalItems} />
-        <StatCard icon={MousePointerClick} label="Clicks (30d)" value={totalClicks} />
+        <StatCard icon={FileStack} label={t("pages")} value={pages.length} />
+        <StatCard icon={Link2} label={t("linksCount")} value={totalItems} />
+        <StatCard icon={MousePointerClick} label={t("clicks30d")} value={totalClicks} />
       </div>
 
       {/* Quick nav */}
@@ -111,19 +113,20 @@ function NavPill({ href, icon: Icon, label }: { href: string; icon: typeof BarCh
 
 /* ── Empty state ── */
 function EmptyState({ base }: { base: string }) {
+  const t = useTranslations("linksUI");
   return (
     <div className="rounded-xl border border-dashed border-[#f5f5dc]/[0.08] bg-[#f5f5dc]/[0.01] px-6 py-10 text-center">
       <Link2 className="mx-auto h-8 w-8 text-[#f5f5dc]/20" />
-      <h3 className="mt-3 text-sm font-semibold text-[#f5f5dc]/70">No link pages yet</h3>
+      <h3 className="mt-3 text-sm font-semibold text-[#f5f5dc]/70">{t("noPagesYet")}</h3>
       <p className="mt-1 text-[11px] text-[#f5f5dc]/40 max-w-xs mx-auto">
-        Create your first bio page with smart links, QR codes, and click-to-WhatsApp — all with built-in analytics.
+        {t("noPagesDesc")}
       </p>
       <Link
         href={`${base}/pages/new`}
         className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#d4af37] px-4 py-2 text-xs font-semibold text-[#050a18] transition hover:bg-[#d4af37]/90"
       >
         <Plus className="h-3.5 w-3.5" />
-        Create Page
+        {t("createPage")}
       </Link>
     </div>
   );
@@ -141,6 +144,7 @@ function PageCard({
   publicBase: string;
   workspaceSlug: string;
 }) {
+  const t = useTranslations("linksUI");
   const [menuOpen, setMenuOpen] = useState(false);
   const publicUrl = `${publicBase}/l/${page.slug}`;
   const editHref = `${base}/pages/${page.id}`;
@@ -151,7 +155,7 @@ function PageCard({
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${page.title}"? This cannot be undone.`)) return;
+    if (!confirm(t("deleteConfirm", { title: page.title }))) return;
     setMenuOpen(false);
     await fetch(`/api/links/pages/${page.id}?workspace_id=${workspaceSlug}`, { method: "DELETE" });
     window.location.reload();
@@ -178,7 +182,7 @@ function PageCard({
                 : "bg-[#f5f5dc]/[0.04] text-[#f5f5dc]/30"
             )}
           >
-            {page.published ? "Live" : "Draft"}
+            {page.published ? t("statusLive") : t("statusDraft")}
           </span>
 
           {/* Public link */}
@@ -210,13 +214,13 @@ function PageCard({
                     onClick={handleCopy}
                     className="flex w-full items-center gap-2 px-3 py-1.5 text-[11px] text-[#f5f5dc]/60 hover:bg-[#f5f5dc]/[0.04] hover:text-[#f5f5dc]"
                   >
-                    <Copy className="h-3 w-3" /> Copy Link
+                    <Copy className="h-3 w-3" /> {t("copyLink")}
                   </button>
                   <button
                     onClick={handleDelete}
                     className="flex w-full items-center gap-2 px-3 py-1.5 text-[11px] text-red-400/70 hover:bg-red-500/5 hover:text-red-400"
                   >
-                    <Trash2 className="h-3 w-3" /> Delete
+                    <Trash2 className="h-3 w-3" /> {t("delete")}
                   </button>
                 </div>
               </>
@@ -227,7 +231,7 @@ function PageCard({
 
       {/* Bottom meta */}
       <div className="mt-2 flex items-center gap-3 text-[10px] text-[#f5f5dc]/25">
-        <span>Created {new Date(page.created_at).toLocaleDateString()}</span>
+        <span>{t("createdDate", { date: new Date(page.created_at).toLocaleDateString() })}</span>
       </div>
     </div>
   );

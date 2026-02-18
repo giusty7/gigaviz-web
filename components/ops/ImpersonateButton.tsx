@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { EyeIcon, Loader2 } from "lucide-react";
 
@@ -11,6 +12,7 @@ interface ImpersonateButtonProps {
 }
 
 export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: ImpersonateButtonProps) {
+  const t = useTranslations("opsUI");
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState(60);
@@ -22,7 +24,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
     return (
       <Button variant="outline" size="sm" disabled title="No owner to impersonate">
         <EyeIcon className="mr-2 h-4 w-4" />
-        Impersonate
+        {t("impersonate.startSession")}
       </Button>
     );
   }
@@ -88,7 +90,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
       <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 space-y-2">
         <div className="flex items-center gap-2 text-yellow-400 text-sm font-medium">
           <EyeIcon className="h-4 w-4" />
-          Active impersonation session
+          {t("impersonate.sessionActive")}
         </div>
         <p className="text-xs text-muted-foreground">
           Impersonating {ownerEmail ?? ownerId} · Expires{" "}
@@ -101,7 +103,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
           disabled={loading}
         >
           {loading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-          End Impersonation
+          {t("impersonate.endSession")}
         </Button>
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
@@ -112,7 +114,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
     return (
       <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
         <EyeIcon className="mr-2 h-4 w-4" />
-        Impersonate
+        {t("impersonate.startSession")}
       </Button>
     );
   }
@@ -122,7 +124,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
           <EyeIcon className="h-4 w-4" />
-          Start Impersonation
+          {t("impersonate.title")}
         </h4>
         <button
           className="text-xs text-muted-foreground hover:text-foreground"
@@ -146,7 +148,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
         />
       </div>
       <div className="flex items-center gap-3">
-        <label className="text-xs text-muted-foreground">Duration</label>
+        <label className="text-xs text-muted-foreground">{t("impersonate.duration")}</label>
         <select
           className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
           value={duration}
@@ -168,7 +170,7 @@ export function ImpersonateButton({ workspaceId, ownerId, ownerEmail }: Imperson
         disabled={loading || reason.length < 10}
       >
         {loading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-        Start Impersonation
+        {t("impersonate.startSession")}
       </Button>
     </div>
   );

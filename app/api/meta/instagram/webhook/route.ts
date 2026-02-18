@@ -89,11 +89,11 @@ async function handleMessageEvent(event: {
   const supabase = supabaseAdmin();
 
   try {
-    // Find Instagram account by instagram_id
+    // Find Instagram account by instagram_business_account_id
     const { data: account } = await supabase
       .from('instagram_accounts')
       .select('id, workspace_id')
-      .eq('instagram_id', event.account_id)
+      .eq('instagram_business_account_id', event.account_id)
       .single();
 
     if (!account) {
@@ -130,7 +130,7 @@ async function handleMessageEvent(event: {
       const messageData: {
         workspace_id: string;
         thread_id: string;
-        account_id: string;
+        instagram_account_id: string;
         message_id: string;
         direction: string;
         text_content: string | null;
@@ -141,7 +141,7 @@ async function handleMessageEvent(event: {
       } = {
         workspace_id,
         thread_id: threadId,
-        account_id,
+        instagram_account_id: account_id,
         message_id: messageId,
         direction: 'inbound',
         text_content: message.text || null,
@@ -201,7 +201,7 @@ async function getOrCreateThread(
     .from('instagram_threads')
     .select('id')
     .eq('workspace_id', workspaceId)
-    .eq('account_id', accountId)
+    .eq('instagram_account_id', accountId)
     .eq('participant_id', participantId)
     .single();
 
@@ -210,7 +210,7 @@ async function getOrCreateThread(
   // Create new thread
   const threadData = {
     workspace_id: workspaceId,
-    account_id: accountId,
+    instagram_account_id: accountId,
     thread_id: `ig_thread_${participantId}`,
     participant_id: participantId,
     participant_username: participantUsername || null,

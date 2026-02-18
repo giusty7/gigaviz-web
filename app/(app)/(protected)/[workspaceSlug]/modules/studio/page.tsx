@@ -13,6 +13,7 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { canAccess, getPlanMeta, type FeatureKey } from "@/lib/entitlements";
+import { PageHeader } from "@/components/ui/page-header";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -137,18 +138,18 @@ export default async function StudioHubPage({ params }: PageProps) {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="h-5 w-5 text-cyan-400" />
-          <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
-            {t("hub.badge")}
-          </span>
-        </div>
-        <h1 className="text-2xl font-bold text-[#f5f5dc]">{t("hub.title")}</h1>
-        <p className="mt-1 text-sm text-[#f5f5dc]/60 max-w-2xl">
-          {t("hub.description")}
-        </p>
-      </div>
+      <PageHeader
+        title={t("hub.title")}
+        description={t("hub.description")}
+        badge={
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-cyan-400" aria-hidden="true" />
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+              {t("hub.badge")}
+            </span>
+          </div>
+        }
+      />
 
       {/* Module Cards */}
       <div className="grid gap-5 md:grid-cols-3">
@@ -158,12 +159,12 @@ export default async function StudioHubPage({ params }: PageProps) {
           return (
             <div
               key={mod.key}
-              className={`group relative rounded-2xl border ${c.border} bg-[#0a1229]/60 p-6 transition-all duration-300 hover:shadow-lg ${c.hover}`}
+              className={`group relative rounded-2xl border ${c.border} bg-gigaviz-surface/60 p-6 transition-all duration-300 hover:shadow-lg ${c.hover}`}
             >
               {/* Icon + Badge */}
               <div className="flex items-start justify-between mb-4">
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${c.bg}`}>
-                  <Icon className={`h-6 w-6 ${c.text}`} />
+                  <Icon className={`h-6 w-6 ${c.text}`} aria-hidden="true" />
                 </div>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -177,14 +178,14 @@ export default async function StudioHubPage({ params }: PageProps) {
               </div>
 
               {/* Name + Description */}
-              <h3 className="text-lg font-semibold text-[#f5f5dc] mb-2">{mod.name}</h3>
-              <p className="text-sm text-[#f5f5dc]/50 mb-4 leading-relaxed">{mod.description}</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">{mod.name}</h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{mod.description}</p>
 
               {/* Features */}
               <div className="space-y-1 mb-5">
                 {mod.features.map((f) => (
-                  <div key={f} className="flex items-center gap-2 text-xs text-[#f5f5dc]/40">
-                    <Zap className="h-3 w-3 text-cyan-500/60" />
+                  <div key={f} className="flex items-center gap-2 text-xs text-muted-foreground/60">
+                    <Zap className="h-3 w-3 text-cyan-500/60" aria-hidden="true" />
                     <span>{f}</span>
                   </div>
                 ))}
@@ -194,14 +195,14 @@ export default async function StudioHubPage({ params }: PageProps) {
               <div className="flex items-end justify-between">
                 <div>
                   <p className={`text-2xl font-bold ${c.text}`}>{mod.stat}</p>
-                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider">{mod.statLabel}</p>
+                  <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">{mod.statLabel}</p>
                 </div>
                 {mod.unlocked ? (
                   <Link
                     href={mod.href}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border ${c.border} px-3 py-1.5 text-xs font-semibold ${c.text} transition-colors hover:bg-[#f5f5dc]/5`}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border ${c.border} px-3 py-1.5 text-xs font-semibold ${c.text} transition-colors hover:bg-foreground/5`}
                   >
-                    {t("hub.openButton")} <ArrowRight className="h-3 w-3" />
+                    {t("hub.openButton")} <ArrowRight className="h-3 w-3" aria-hidden="true" />
                   </Link>
                 ) : (
                   <Link
@@ -219,8 +220,8 @@ export default async function StudioHubPage({ params }: PageProps) {
 
       {/* Integrations Section */}
       <div>
-        <h2 className="text-lg font-semibold text-[#f5f5dc] mb-4 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-cyan-400" />
+        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Zap className="h-4 w-4 text-cyan-400" aria-hidden="true" />
           {t("hub.integrations.title")}
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
@@ -230,20 +231,20 @@ export default async function StudioHubPage({ params }: PageProps) {
               <Link
                 key={int.title}
                 href={int.href}
-                className="group flex items-start gap-4 rounded-2xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-cyan-500/20 hover:bg-[#0a1229]/60"
+                className="group flex items-start gap-4 rounded-2xl border border-border bg-gigaviz-surface/40 p-5 transition-all hover:border-cyan-500/20 hover:bg-gigaviz-surface/60"
               >
                 <div className="mt-0.5">
-                  <IntIcon className={`h-5 w-5 ${int.color}`} />
+                  <IntIcon className={`h-5 w-5 ${int.color}`} aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#f5f5dc] group-hover:text-cyan-300 transition-colors">
+                  <h3 className="text-sm font-semibold text-foreground group-hover:text-cyan-300 transition-colors">
                     {int.title}
                   </h3>
-                  <p className="mt-1 text-xs text-[#f5f5dc]/40 leading-relaxed">
+                  <p className="mt-1 text-xs text-muted-foreground/60 leading-relaxed">
                     {int.description}
                   </p>
                 </div>
-                <ArrowRight className="ml-auto mt-0.5 h-4 w-4 text-[#f5f5dc]/20 group-hover:text-cyan-400 transition-colors" />
+                <ArrowRight className="ml-auto mt-0.5 h-4 w-4 text-muted-foreground/30 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
               </Link>
             );
           })}

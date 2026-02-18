@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -71,23 +72,23 @@ interface Props {
 }
 
 const STRATEGY_CONFIG: Record<AssignmentStrategy, { 
-  label: string; 
-  description: string;
+  labelKey: string; 
+  descKey: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = {
   round_robin: { 
-    label: "Round Robin", 
-    description: "Assign chats to agents in rotation",
+    labelKey: "roundRobin", 
+    descKey: "roundRobinDesc",
     icon: ShuffleIcon,
   },
   load_balance: { 
-    label: "Load Balance", 
-    description: "Assign to agent with fewest active chats",
+    labelKey: "loadBalance", 
+    descKey: "loadBalanceDesc",
     icon: ScaleIcon,
   },
   manual: { 
-    label: "Manual", 
-    description: "Agents manually pick up chats",
+    labelKey: "manual", 
+    descKey: "manualDesc",
     icon: UserIcon,
   },
 };
@@ -98,6 +99,7 @@ const STRATEGY_CONFIG: Record<AssignmentStrategy, {
 
 export function AssignmentRulesManager({ members }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.assignmentRules");
   
   // State
   const [rules, setRules] = useState<AssignmentRule[]>([]);
@@ -128,14 +130,14 @@ export function AssignmentRulesManager({ members }: Props) {
       setRules(data.rules || []);
     } catch (err) {
       toast({
-        title: "Error loading assignment rules",
+        title: t("errorLoading"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     fetchRules();
@@ -168,8 +170,8 @@ export function AssignmentRulesManager({ members }: Props) {
   const handleSave = async () => {
     if (!formName.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Name is required",
+        title: t("validationError"),
+        description: t("nameRequired"),
         variant: "destructive",
       });
       return;
@@ -177,8 +179,8 @@ export function AssignmentRulesManager({ members }: Props) {
 
     if (formAgentIds.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "Select at least one agent",
+        title: t("validationError"),
+        description: t("selectOneAgent"),
         variant: "destructive",
       });
       return;
@@ -207,15 +209,15 @@ export function AssignmentRulesManager({ members }: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: editingRule ? "Rule updated" : "Rule created",
-        description: `"${formName}" has been saved`,
+        title: editingRule ? t("ruleUpdated") : t("ruleCreated"),
+        description: t("ruleSavedDesc", { name: formName }),
       });
 
       setDialogOpen(false);
       fetchRules();
     } catch (err) {
       toast({
-        title: "Error saving rule",
+        title: t("errorSaving"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -236,13 +238,13 @@ export function AssignmentRulesManager({ members }: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: rule.isActive ? "Rule deactivated" : "Rule activated",
+        title: rule.isActive ? t("ruleDeactivated") : t("ruleActivated"),
       });
 
       fetchRules();
     } catch (err) {
       toast({
-        title: "Error updating rule",
+        title: t("errorUpdating"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -250,7 +252,7 @@ export function AssignmentRulesManager({ members }: Props) {
   };
 
   const handleDelete = async (rule: AssignmentRule) => {
-    if (!confirm(`Delete rule "${rule.name}"?`)) return;
+    if (!confirm(t("confirmDelete", { name: rule.name }))) return;
 
     try {
       const res = await fetch(`/api/meta-hub/assignment?id=${rule.id}`, {
@@ -260,14 +262,14 @@ export function AssignmentRulesManager({ members }: Props) {
       if (!res.ok) throw new Error(data.error);
 
       toast({
-        title: "Rule deleted",
-        description: `"${rule.name}" has been removed`,
+        title: t("ruleDeleted"),
+        description: t("ruleDeletedDesc", { name: rule.name }),
       });
 
       fetchRules();
     } catch (err) {
       toast({
-        title: "Error deleting rule",
+        title: t("errorDeleting"),
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -290,8 +292,8 @@ export function AssignmentRulesManager({ members }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Assignment Rules</CardTitle>
-          <CardDescription>Loading...</CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Skeleton className="h-24 w-full" />
@@ -308,15 +310,15 @@ export function AssignmentRulesManager({ members }: Props) {
           <div>
             <CardTitle className="flex items-center gap-2">
               <SettingsIcon className="h-5 w-5" />
-              Assignment Rules
+              {t("title")}
             </CardTitle>
             <CardDescription>
-              Configure how chats are assigned to agents
+              {t("description")}
             </CardDescription>
           </div>
           <Button onClick={openCreateDialog}>
             <PlusIcon className="h-4 w-4 mr-2" />
-            Add Rule
+            {t("addRule")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -324,11 +326,11 @@ export function AssignmentRulesManager({ members }: Props) {
           {rules.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <SettingsIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="font-medium">No assignment rules</p>
-              <p className="text-sm">Create a rule to automate chat assignment</p>
+              <p className="font-medium">{t("noRulesTitle")}</p>
+              <p className="text-sm">{t("noRulesDesc")}</p>
               <Button className="mt-4" onClick={openCreateDialog}>
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Create Rule
+                {t("createRule")}
               </Button>
             </div>
           )}
@@ -352,16 +354,16 @@ export function AssignmentRulesManager({ members }: Props) {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingRule ? "Edit Assignment Rule" : "Create Assignment Rule"}
+              {editingRule ? t("editTitle") : t("createTitle")}
             </DialogTitle>
             <DialogDescription>
-              Configure how chats are automatically assigned to agents
+              {t("createDesc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Rule Name</Label>
+              <Label htmlFor="name">{t("ruleName")}</Label>
               <Input
                 id="name"
                 placeholder="e.g., Default Assignment"
@@ -371,7 +373,7 @@ export function AssignmentRulesManager({ members }: Props) {
             </div>
 
             <div className="space-y-2">
-              <Label>Assignment Strategy</Label>
+              <Label>{t("strategy")}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(STRATEGY_CONFIG) as AssignmentStrategy[]).map(strategy => {
                   const config = STRATEGY_CONFIG[strategy];
@@ -394,34 +396,34 @@ export function AssignmentRulesManager({ members }: Props) {
                         "h-5 w-5 mb-1",
                         isSelected ? "text-primary" : "text-muted-foreground"
                       )} />
-                      <div className="text-sm font-medium">{config.label}</div>
+                      <div className="text-sm font-medium">{t(config.labelKey)}</div>
                     </button>
                   );
                 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {STRATEGY_CONFIG[formStrategy].description}
+                {t(STRATEGY_CONFIG[formStrategy].descKey)}
               </p>
             </div>
 
             {formStrategy === "load_balance" && (
               <div className="space-y-2">
-                <Label htmlFor="maxChats">Max Chats Per Agent</Label>
+                <Label htmlFor="maxChats">{t("maxChatsLabel")}</Label>
                 <Input
                   id="maxChats"
                   type="number"
-                  placeholder="20"
+                  placeholder={t("maxChatsPlaceholder")}
                   value={formMaxChats}
                   onChange={(e) => setFormMaxChats(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Stop assigning to an agent once they reach this limit
+                  {t("maxChatsHint")}
                 </p>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label>Agents</Label>
+              <Label>{t("selectAgents")}</Label>
               <div className="border rounded-lg max-h-48 overflow-y-auto">
                 {members.map(member => {
                   const name = member.profile?.fullName || member.profile?.email || member.userId;
@@ -445,17 +447,17 @@ export function AssignmentRulesManager({ members }: Props) {
                 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {formAgentIds.length} agent{formAgentIds.length !== 1 ? "s" : ""} selected
+                {t("agents", { count: formAgentIds.length })}
               </p>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : editingRule ? "Save Changes" : "Create Rule"}
+              {saving ? t("saving") : editingRule ? t("save") : t("createRule")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -481,6 +483,7 @@ function AssignmentRuleCard({
   onDelete: () => void;
   onToggleActive: () => void;
 }) {
+  const t = useTranslations("metaHubUI.assignmentRules");
   const config = STRATEGY_CONFIG[rule.strategy];
   const Icon = config.icon;
   
@@ -508,11 +511,11 @@ function AssignmentRuleCard({
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium">{rule.name}</h4>
               <Badge variant={rule.isActive ? "default" : "secondary"}>
-                {rule.isActive ? "Active" : "Inactive"}
+                {rule.isActive ? t("active") : t("inactive")}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              {config.label}: {config.description}
+              {t(config.labelKey)}: {t(config.descKey)}
             </p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <UsersIcon className="h-3 w-3" />
@@ -523,7 +526,7 @@ function AssignmentRuleCard({
               {rule.maxChatsPerAgent && (
                 <>
                   <span>•</span>
-                  <span>Max {rule.maxChatsPerAgent} chats/agent</span>
+                  <span>{t("maxChats", { count: rule.maxChatsPerAgent })}</span>
                 </>
               )}
             </div>
@@ -549,11 +552,11 @@ function AssignmentRuleCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}>
                 <EditIcon className="h-4 w-4 mr-2" />
-                Edit
+                {t("editRule")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDelete} className="text-destructive">
                 <TrashIcon className="h-4 w-4 mr-2" />
-                Delete
+                {t("deleteRule")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -2,6 +2,7 @@
 
 import { type ReactNode } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -48,6 +49,7 @@ export function ImperiumSettingsLayout({
   children,
   navLinks,
 }: ImperiumSettingsLayoutProps) {
+  const t = useTranslations("settingsUI");
   return (
     <div className="relative min-h-[600px]">
       {/* Cyber-Batik Pattern Overlay */}
@@ -66,8 +68,8 @@ export function ImperiumSettingsLayout({
                 <Settings className="h-5 w-5 text-[#d4af37]" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-[#f5f5dc]">Settings</div>
-                <div className="text-[11px] text-[#f5f5dc]/50">Configure your workspace</div>
+                <div className="text-sm font-semibold text-[#f5f5dc]">{t("settings")}</div>
+                <div className="text-[11px] text-[#f5f5dc]/50">{t("configureWorkspace")}</div>
               </div>
             </div>
           </div>
@@ -104,7 +106,7 @@ export function ImperiumSettingsLayout({
           {navLinks && navLinks.length > 0 && (
             <div className="rounded-2xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-3">
               <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-[#f5f5dc]/30">
-                Quick Links
+                {t("quickLinks")}
               </div>
               <div className="space-y-1">
                 {navLinks.map((link) => (
@@ -371,16 +373,27 @@ type RoleBadgeProps = {
   role: "owner" | "admin" | "editor" | "viewer" | "member" | string;
 };
 
-const roleConfig: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-  owner: { icon: <Crown className="h-3 w-3" />, label: "Owner", color: "#d4af37" },
-  admin: { icon: <Shield className="h-3 w-3" />, label: "Admin", color: "#d4af37" },
-  editor: { icon: <Edit className="h-3 w-3" />, label: "Editor", color: "#10b981" },
-  viewer: { icon: <Eye className="h-3 w-3" />, label: "Viewer", color: "#6b7280" },
-  member: { icon: <User className="h-3 w-3" />, label: "Member", color: "#f5f5dc" },
+const roleIcons: Record<string, { icon: React.ReactNode; color: string }> = {
+  owner: { icon: <Crown className="h-3 w-3" />, color: "#d4af37" },
+  admin: { icon: <Shield className="h-3 w-3" />, color: "#d4af37" },
+  editor: { icon: <Edit className="h-3 w-3" />, color: "#10b981" },
+  viewer: { icon: <Eye className="h-3 w-3" />, color: "#6b7280" },
+  member: { icon: <User className="h-3 w-3" />, color: "#f5f5dc" },
+};
+
+const roleKeyMap: Record<string, string> = {
+  owner: "roleOwner",
+  admin: "roleAdmin",
+  editor: "roleEditor",
+  viewer: "roleViewer",
+  member: "roleMember",
 };
 
 export function RoleBadge({ role }: RoleBadgeProps) {
-  const config = roleConfig[role] || { icon: <User className="h-3 w-3" />, label: role, color: "#f5f5dc" };
+  const t = useTranslations("settingsUI");
+  const iconConfig = roleIcons[role] || { icon: <User className="h-3 w-3" />, color: "#f5f5dc" };
+  const labelKey = roleKeyMap[role];
+  const config = { ...iconConfig, label: labelKey ? t(labelKey as "roleOwner" | "roleAdmin" | "roleEditor" | "roleViewer" | "roleMember") : role };
   
   return (
     <span
@@ -401,14 +414,15 @@ export function RoleBadge({ role }: RoleBadgeProps) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function MetaComplianceBadge() {
+  const t = useTranslations("settingsUI");
   return (
     <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
         <BadgeCheck className="h-5 w-5 text-emerald-400" />
       </div>
       <div>
-        <div className="text-sm font-semibold text-emerald-400">Verified Secure Environment</div>
-        <div className="text-xs text-emerald-400/60">Meta Platform Compliance Verified</div>
+        <div className="text-sm font-semibold text-emerald-400">{t("verifiedSecure")}</div>
+        <div className="text-xs text-emerald-400/60">{t("metaCompliance")}</div>
       </div>
     </div>
   );
@@ -426,6 +440,7 @@ type ActivityLogItemProps = {
 };
 
 export function ActivityLogItem({ action, user, timestamp, icon }: ActivityLogItemProps) {
+  const t = useTranslations("settingsUI");
   return (
     <div className="flex items-center gap-4 rounded-xl border border-[#f5f5dc]/5 bg-[#050a18]/40 p-4 transition-colors hover:border-[#d4af37]/20">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f5f5dc]/5 text-[#f5f5dc]/60">
@@ -433,7 +448,7 @@ export function ActivityLogItem({ action, user, timestamp, icon }: ActivityLogIt
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm text-[#f5f5dc]">{action}</div>
-        <div className="text-xs text-[#f5f5dc]/40">by {user}</div>
+        <div className="text-xs text-[#f5f5dc]/40">{t("byUser", { user })}</div>
       </div>
       <div className="text-xs text-[#f5f5dc]/30">{timestamp}</div>
     </div>

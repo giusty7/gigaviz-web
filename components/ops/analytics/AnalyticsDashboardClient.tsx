@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   BarChart3,
   TrendingUp,
@@ -39,6 +40,7 @@ interface AnalyticsSummary {
 }
 
 export default function AnalyticsDashboardClient() {
+  const t = useTranslations("opsUI");
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,8 +71,8 @@ export default function AnalyticsDashboardClient() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Business Analytics</h1>
-            <p className="text-zinc-400">Revenue, growth, and usage metrics</p>
+            <h1 className="text-2xl font-bold text-white">{t("analytics.title")}</h1>
+            <p className="text-zinc-400">{t("analytics.subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center justify-center py-20">
@@ -85,8 +87,8 @@ export default function AnalyticsDashboardClient() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Business Analytics</h1>
-            <p className="text-zinc-400">Revenue, growth, and usage metrics</p>
+            <h1 className="text-2xl font-bold text-white">{t("analytics.title")}</h1>
+            <p className="text-zinc-400">{t("analytics.subtitle")}</p>
           </div>
         </div>
         <div className="rounded-lg border border-red-900/50 bg-red-950/20 p-6 text-center">
@@ -107,8 +109,8 @@ export default function AnalyticsDashboardClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Business Analytics</h1>
-          <p className="text-zinc-400">Revenue, growth, and usage metrics</p>
+          <h1 className="text-2xl font-bold text-white">{t("analytics.title")}</h1>
+          <p className="text-zinc-400">{t("analytics.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -131,7 +133,7 @@ export default function AnalyticsDashboardClient() {
       {/* Metric Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title="Total Workspaces"
+          title={t("analytics.totalWorkspaces")}
           value={summary?.current.total_workspaces || 0}
           change={summary?.growth.workspaces_change || 0}
           changePercent={summary?.growth.workspaces_percent || 0}
@@ -139,14 +141,14 @@ export default function AnalyticsDashboardClient() {
           color="blue"
         />
         <MetricCard
-          title="Active Workspaces"
+          title={t("analytics.totalWorkspaces")}
           value={summary?.current.active_workspaces || 0}
           subtitle="Last 30 days"
           icon={Building2}
           color="green"
         />
         <MetricCard
-          title="Total Users"
+          title={t("analytics.activeUsers")}
           value={summary?.current.total_users || 0}
           change={summary?.growth.users_change || 0}
           changePercent={summary?.growth.users_percent || 0}
@@ -154,7 +156,7 @@ export default function AnalyticsDashboardClient() {
           color="purple"
         />
         <MetricCard
-          title="Monthly Revenue"
+          title={t("analytics.revenue")}
           value={summary?.current.total_mrr || 0}
           prefix="$"
           change={summary?.growth.mrr_change || 0}
@@ -168,7 +170,7 @@ export default function AnalyticsDashboardClient() {
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
           <BarChart3 className="h-5 w-5 text-blue-400" />
-          Plan Distribution
+          {t("analytics.planDistribution")}
         </h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {Object.entries(summary?.plan_distribution || {}).map(
@@ -184,7 +186,7 @@ export default function AnalyticsDashboardClient() {
           )}
           {Object.keys(summary?.plan_distribution || {}).length === 0 && (
             <p className="col-span-4 text-center text-zinc-500">
-              No subscription data available
+              {t("analytics.noData")}
             </p>
           )}
         </div>
@@ -193,7 +195,7 @@ export default function AnalyticsDashboardClient() {
       {/* Recent Activity */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">
-          Recent Daily Snapshots
+          {t("analytics.activityOverview")}
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -252,6 +254,7 @@ function MetricCard({
   icon: React.ComponentType<{ className?: string }>;
   color: "blue" | "green" | "purple" | "amber";
 }) {
+  const t = useTranslations("opsUI");
   const colors = {
     blue: "text-blue-400 bg-blue-500/10",
     green: "text-green-400 bg-green-500/10",
@@ -287,7 +290,7 @@ function MetricCard({
             {isPositive ? "+" : ""}
             {change} ({changePercent?.toFixed(1)}%)
           </span>
-          <span className="text-xs text-zinc-500">vs 30d ago</span>
+          <span className="text-xs text-zinc-500">{t("analytics.vs30dAgo")}</span>
         </div>
       )}
     </div>

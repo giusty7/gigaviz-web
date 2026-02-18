@@ -12,8 +12,8 @@ export type MetaHubFlags = {
 export function getMetaHubFlags(): MetaHubFlags {
   return {
     waEnabled: toBool(process.env.META_HUB_WA_ENABLED, true),
-    igEnabled: toBool(process.env.META_HUB_IG_ENABLED, false),
-    msEnabled: toBool(process.env.META_HUB_MS_ENABLED, false),
+    igEnabled: toBool(process.env.META_HUB_IG_ENABLED, true),
+    msEnabled: toBool(process.env.META_HUB_MS_ENABLED, true),
     adsEnabled: toBool(process.env.META_HUB_ADS_ENABLED, false),
     insightsEnabled: toBool(process.env.META_HUB_INSIGHTS_ENABLED, false),
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, Crown, Zap, Sparkles, TrendingUp, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ const planIcons = {
 
 export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans, midtransEnabled }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("billing");
   const [billingMode, setBillingMode] = useState<"individual" | "team">("individual");
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
@@ -97,7 +99,7 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
         });
         const data = await res.json().catch(() => null);
         if (!res.ok || !data?.token) {
-          throw new Error(data?.message || data?.error || "Failed to create checkout");
+          throw new Error(data?.message || data?.error || t("failedCreateCheckout"));
         }
 
         await loadSnapScript();
@@ -105,14 +107,14 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
         if (window.snap) {
           window.snap.pay(data.token, {
             onSuccess: () => {
-              toast({ title: "Plan activated", description: `${planCode.toUpperCase()} plan is now active. Refresh to see changes.` });
+              toast({ title: t("subscriptionActivated"), description: t("planActivatedReload", { plan: planCode.toUpperCase() }) });
               setTimeout(() => window.location.reload(), 1500);
             },
             onPending: () => {
-              toast({ title: "Payment pending", description: "Complete your payment to activate the plan." });
+              toast({ title: t("paymentPending"), description: t("completePayment") });
             },
             onError: () => {
-              toast({ title: "Payment failed", description: "Try again or choose a different payment method.", variant: "destructive" });
+              toast({ title: t("paymentFailed"), description: t("tryDifferentMethod"), variant: "destructive" });
             },
           });
         } else if (data.redirectUrl) {
@@ -127,18 +129,18 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
         });
         const data = await res.json();
         if (!res.ok || !data.ok) {
-          throw new Error(data.message || "Failed to update plan");
+          throw new Error(data.message || t("failedUpdatePlan"));
         }
         toast({
-          title: "Plan activated",
-          description: `${planCode.toUpperCase()} plan is now active. Refresh to see changes.`,
+          title: t("subscriptionActivated"),
+          description: t("planActivatedReload", { plan: planCode.toUpperCase() }),
         });
         setTimeout(() => window.location.reload(), 1500);
       }
     } catch (err) {
       toast({
-        title: "Failed to update plan",
-        description: err instanceof Error ? err.message : "Try again later",
+        title: t("failedUpdatePlan"),
+        description: err instanceof Error ? err.message : t("tryAgainLater"),
         variant: "destructive",
       });
     } finally {
@@ -153,15 +155,15 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
         <Tabs value={billingMode} onValueChange={(v) => setBillingMode(v as "individual" | "team")}>
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="individual">
-              Individual
+              {t("individual")}
               <Badge variant="outline" className="ml-2 text-[10px]">
-                Solo
+                {t("solo")}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="team">
-              Team
+              {t("team")}
               <Badge variant="outline" className="ml-2 text-[10px]">
-                Multi-user
+                {t("multiUser")}
               </Badge>
             </TabsTrigger>
           </TabsList>
@@ -189,7 +191,7 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
               {/* Recommended badge */}
               {plan.recommended && (
                 <div className="absolute top-0 right-0 bg-gradient-to-r from-[#d4af37] to-[#f9d976] px-3 py-1 text-xs font-semibold text-[#050a18] rounded-bl-lg">
-                  Recommended
+                  {t("recommended")}
                 </div>
               )}
 
@@ -203,7 +205,7 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
                     <div>
                       <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {plan.seat_limit} seat{plan.seat_limit > 1 ? "s" : ""}
+                        {t("seats", { count: plan.seat_limit })}
                       </p>
                     </div>
                   </div>
@@ -214,22 +216,22 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-bold text-foreground">
                       {plan.monthly_price_idr === 0
-                        ? "Free"
+                        ? t("free")
                         : `Rp ${(plan.monthly_price_idr / 1000).toLocaleString()}k`}
                     </span>
                     {plan.monthly_price_idr > 0 && (
-                      <span className="text-sm text-muted-foreground">/month</span>
+                      <span className="text-sm text-muted-foreground">{t("pricePerMonth")}</span>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {billingMode === "team" ? "Per workspace" : "Single user"}
+                    {billingMode === "team" ? t("perWorkspace") : t("singleUser")}
                   </p>
                 </div>
 
                 {/* Features */}
                 <div className="space-y-2 border-t border-border/60 pt-4">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    What&apos;s included
+                    {t("whatsIncluded")}
                   </p>
                   <ul className="space-y-2">
                     {plan.features.map((feature, idx) => (
@@ -250,7 +252,7 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
                       disabled
                     >
                       <Check className="h-4 w-4 mr-2" />
-                      Current Plan
+                      {t("currentPlan")}
                     </Button>
                   ) : (
                     <Button
@@ -265,11 +267,11 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
                       {isUpgrading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Activating...
+                          {t("activating")}
                         </>
                       ) : (
                         <>
-                          Select Plan
+                          {t("selectPlan")}
                           <ArrowRight className="h-4 w-4 ml-2" />
                         </>
                       )}
@@ -285,8 +287,7 @@ export function PlanComparisonInteractive({ workspaceId, currentPlanCode, plans,
       {/* Disclaimer */}
       <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground text-center">
         <p>
-          💡 Plans can be changed anytime. Token usage is billed separately based on actual consumption.
-          Contact support for enterprise pricing or custom plans.
+          {t("planDisclaimer")}
         </p>
       </div>
     </div>

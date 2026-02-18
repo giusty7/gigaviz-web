@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Play, Pause, Music } from "lucide-react";
 
 type WaveformVisualizerProps = {
@@ -16,6 +17,7 @@ export function WaveformVisualizer({
   duration,
   className = "",
 }: WaveformVisualizerProps) {
+  const t = useTranslations("studioRenderers.waveform");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -96,7 +98,7 @@ export function WaveformVisualizer({
       <div className={`flex items-center justify-center rounded-xl border border-dashed border-[#f5f5dc]/10 bg-[#0a1229]/30 p-12 ${className}`}>
         <div className="text-center">
           <Music className="mx-auto mb-2 h-8 w-8 text-purple-400/20" />
-          <p className="text-xs text-[#f5f5dc]/30">No waveform data</p>
+          <p className="text-xs text-[#f5f5dc]/30">{t("noData")}</p>
         </div>
       </div>
     );
@@ -116,7 +118,7 @@ export function WaveformVisualizer({
         <h4 className="mb-1 text-xs font-semibold text-[#f5f5dc]/50">{title}</h4>
       )}
       <p className="mb-3 text-[10px] text-[#f5f5dc]/30 italic">
-        AI-generated composition preview. Real audio rendering coming soon.
+        {t("betaNote")}
       </p>
 
       {/* Waveform */}

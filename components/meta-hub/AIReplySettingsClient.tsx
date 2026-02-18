@@ -56,6 +56,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -131,6 +132,7 @@ const defaultSettings: AIReplySettings = {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 export function AIReplySettingsClient({ }: Props) {
+  const t = useTranslations("metaHubUI.aiReply");
   const [settings, setSettings] = useState<AIReplySettings>(defaultSettings);
   const [stats, setStats] = useState<AIReplyStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,11 +162,11 @@ export function AIReplySettingsClient({ }: Props) {
       setSettings(data.settings || defaultSettings);
       setStats(data.stats || null);
     } catch {
-      setError("Failed to load AI settings");
+      setError(t("toasts.failedToLoad"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchSettings();
@@ -183,10 +185,10 @@ export function AIReplySettingsClient({ }: Props) {
       if (!res.ok) throw new Error("Failed to toggle");
 
       setSettings((prev) => ({ ...prev, enabled: !prev.enabled }));
-      setSuccess(settings.enabled ? "AI Reply disabled" : "AI Reply enabled");
+      setSuccess(settings.enabled ? t("toasts.disabled") : t("toasts.enabled"));
       setTimeout(() => setSuccess(null), 3000);
     } catch {
-      setError("Failed to toggle AI status");
+      setError(t("toasts.failedToToggle"));
     } finally {
       setToggling(false);
     }
@@ -212,10 +214,10 @@ export function AIReplySettingsClient({ }: Props) {
       const updated = await res.json();
       setSettings(updated);
       setHasChanges(false);
-      setSuccess("Settings saved successfully");
+      setSuccess(t("toasts.settingsSaved"));
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to save settings");
+      setError(error instanceof Error ? error.message : t("toasts.failedToSave"));
     } finally {
       setSaving(false);
     }
@@ -260,9 +262,9 @@ export function AIReplySettingsClient({ }: Props) {
             )} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-[#f5f5dc]">AI Auto-Reply</h2>
+            <h2 className="text-2xl font-bold text-[#f5f5dc]">{t("title")}</h2>
             <p className="text-[#f5f5dc]/60">
-              Automatically reply to WhatsApp messages with AI intelligence
+              {t("description")}
             </p>
           </div>
         </div>
@@ -284,12 +286,12 @@ export function AIReplySettingsClient({ }: Props) {
             ) : settings.enabled ? (
               <>
                 <Power className="h-4 w-4" />
-                AI Active
+                {t("aiActive")}
               </>
             ) : (
               <>
                 <PowerOff className="h-4 w-4" />
-                AI Inactive
+                {t("aiInactive")}
               </>
             )}
           </Button>
@@ -326,11 +328,11 @@ export function AIReplySettingsClient({ }: Props) {
       {stats && settings.enabled && (
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { label: "Total Replies", value: stats.totalReplies, icon: MessageSquare, color: "text-[#d4af37]" },
-            { label: "Success Rate", value: `${stats.successRate}%`, icon: Target, color: "text-emerald-400" },
-            { label: "Avg Response Time", value: `${stats.avgResponseTime}ms`, icon: Timer, color: "text-cyan-400" },
-            { label: "Tokens Used", value: stats.tokensUsed.toLocaleString(), icon: Zap, color: "text-purple-400" },
-            { label: "Handed to Agent", value: stats.handoffs, icon: Users, color: "text-orange-400" },
+            { label: t("stats.totalReplies"), value: stats.totalReplies, icon: MessageSquare, color: "text-[#d4af37]" },
+            { label: t("stats.successRate"), value: `${stats.successRate}%`, icon: Target, color: "text-emerald-400" },
+            { label: t("stats.avgResponseTime"), value: `${stats.avgResponseTime}ms`, icon: Timer, color: "text-cyan-400" },
+            { label: t("stats.tokensUsed"), value: stats.tokensUsed.toLocaleString(), icon: Zap, color: "text-purple-400" },
+            { label: t("stats.handedToAgent"), value: stats.handoffs, icon: Users, color: "text-orange-400" },
           ].map((stat) => (
             <Card key={stat.label} className="bg-[#0a1229]/80 border-[#d4af37]/20">
               <CardContent className="p-4">
@@ -351,8 +353,8 @@ export function AIReplySettingsClient({ }: Props) {
       <div className="space-y-4">
         {/* Personality & AI Model */}
         <SettingsSection
-          title="Personality & AI Model"
-          description="Configure how AI communicates with customers"
+          title={t("personality.title")}
+          description={t("personality.description")}
           icon={Brain}
           isOpen={openSections.personality}
           onToggle={() => toggleSection("personality")}
@@ -360,26 +362,26 @@ export function AIReplySettingsClient({ }: Props) {
           <div className="space-y-6">
             {/* AI Model Selection */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Model AI</Label>
+              <Label className="text-[#f5f5dc]">{t("personality.modelLabel")}</Label>
               <Select value={settings.aiModel} onValueChange={(v) => updateField("aiModel", v)}>
                 <SelectTrigger className="bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast & Affordable)</SelectItem>
-                  <SelectItem value="gpt-4o">GPT-4o (Very Intelligent)</SelectItem>
-                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo (Most Powerful)</SelectItem>
+                  <SelectItem value="gpt-4o-mini">{t("personality.gpt4oMini")}</SelectItem>
+                  <SelectItem value="gpt-4o">{t("personality.gpt4o")}</SelectItem>
+                  <SelectItem value="gpt-4-turbo">{t("personality.gpt4Turbo")}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-[#f5f5dc]/50">
-                GPT-4o Mini is recommended for a balance of speed and cost
+                {t("personality.modelRecommendation")}
               </p>
             </div>
 
             {/* Temperature */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-[#f5f5dc]">Response Creativity</Label>
+                <Label className="text-[#f5f5dc]">{t("personality.creativityLabel")}</Label>
                 <span className="text-sm text-[#d4af37]">{settings.temperature.toFixed(1)}</span>
               </div>
               <Slider
@@ -391,14 +393,14 @@ export function AIReplySettingsClient({ }: Props) {
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-[#f5f5dc]/50">
-                <span>Consistent</span>
-                <span>Creative</span>
+                <span>{t("personality.consistent")}</span>
+                <span>{t("personality.creative")}</span>
               </div>
             </div>
 
             {/* Max Tokens */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Maximum Reply Length</Label>
+              <Label className="text-[#f5f5dc]">{t("personality.maxReplyLength")}</Label>
               <div className="flex items-center gap-4">
                 <Slider
                   value={[settings.maxTokens]}
@@ -408,21 +410,21 @@ export function AIReplySettingsClient({ }: Props) {
                   step={50}
                   className="flex-1"
                 />
-                <span className="text-sm text-[#f5f5dc]/70 w-20">{settings.maxTokens} token</span>
+                <span className="text-sm text-[#f5f5dc]/70 w-20">{settings.maxTokens} {t("personality.tokenUnit")}</span>
               </div>
             </div>
 
             {/* System Prompt */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label className="text-[#f5f5dc]">AI Personality Instructions</Label>
+                <Label className="text-[#f5f5dc]">{t("personality.personalityLabel")}</Label>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
                       <HelpCircle className="h-4 w-4 text-[#f5f5dc]/40" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-sm bg-[#0a1229] border-[#d4af37]/20">
-                      Instruct how AI should communicate. Example: &quot;You are a friendly and professional online store assistant.&quot;
+                      {t("personality.personalityTooltip")}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -430,18 +432,18 @@ export function AIReplySettingsClient({ }: Props) {
               <Textarea
                 value={settings.systemPrompt || ""}
                 onChange={(e) => updateField("systemPrompt", e.target.value || null)}
-                placeholder="You are a friendly and professional virtual assistant. Answer questions clearly and helpfully."
+                placeholder={t("personality.personalityPlaceholder")}
                 className="min-h-[100px] bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc] placeholder:text-[#f5f5dc]/30"
               />
             </div>
 
             {/* Fallback Message */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Message When AI Cannot Answer</Label>
+              <Label className="text-[#f5f5dc]">{t("personality.fallbackLabel")}</Label>
               <Textarea
                 value={settings.fallbackMessage}
                 onChange={(e) => updateField("fallbackMessage", e.target.value)}
-                placeholder="I apologize, I am unable to assist at the moment..."
+                placeholder={t("personality.fallbackPlaceholder")}
                 className="min-h-[80px] bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
               />
             </div>
@@ -450,8 +452,8 @@ export function AIReplySettingsClient({ }: Props) {
 
         {/* Knowledge Base */}
         <SettingsSection
-          title="Knowledge Base"
-          description="Use your documents and data for accurate responses"
+          title={t("knowledge.title")}
+          description={t("knowledge.description")}
           icon={BookOpen}
           isOpen={openSections.knowledge}
           onToggle={() => toggleSection("knowledge")}
@@ -459,9 +461,9 @@ export function AIReplySettingsClient({ }: Props) {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-[#f5f5dc]">Use Knowledge Base</Label>
+                <Label className="text-[#f5f5dc]">{t("knowledge.useKnowledgeBase")}</Label>
                 <p className="text-xs text-[#f5f5dc]/50 mt-1">
-                  AI will search references from your Helper documents
+                  {t("knowledge.useKnowledgeBaseDesc")}
                 </p>
               </div>
               <Switch
@@ -473,7 +475,7 @@ export function AIReplySettingsClient({ }: Props) {
             {settings.useKnowledgeBase && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-[#f5f5dc]">Minimum Confidence Level</Label>
+                  <Label className="text-[#f5f5dc]">{t("knowledge.confidenceLevel")}</Label>
                   <span className="text-sm text-[#d4af37]">
                     {Math.round(settings.knowledgeConfidenceThreshold * 100)}%
                   </span>
@@ -487,7 +489,7 @@ export function AIReplySettingsClient({ }: Props) {
                   className="w-full"
                 />
                 <p className="text-xs text-[#f5f5dc]/50">
-                  Higher value means AI must be more confident when using references
+                  {t("knowledge.confidenceDesc")}
                 </p>
               </div>
             )}
@@ -496,8 +498,8 @@ export function AIReplySettingsClient({ }: Props) {
 
         {/* Active Hours */}
         <SettingsSection
-          title="Active Hours"
-          description="Set when AI responds to messages"
+          title={t("schedule.title")}
+          description={t("schedule.description")}
           icon={Clock}
           isOpen={openSections.schedule}
           onToggle={() => toggleSection("schedule")}
@@ -505,9 +507,9 @@ export function AIReplySettingsClient({ }: Props) {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-[#f5f5dc]">Limit Active Hours</Label>
+                <Label className="text-[#f5f5dc]">{t("schedule.limitActiveHours")}</Label>
                 <p className="text-xs text-[#f5f5dc]/50 mt-1">
-                  AI only active during specific hours
+                  {t("schedule.limitActiveHoursDesc")}
                 </p>
               </div>
               <Switch
@@ -519,7 +521,7 @@ export function AIReplySettingsClient({ }: Props) {
             {settings.activeHoursEnabled && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[#f5f5dc]">Start Time</Label>
+                  <Label className="text-[#f5f5dc]">{t("schedule.startTime")}</Label>
                   <Input
                     type="time"
                     value={settings.activeHoursStart || "09:00"}
@@ -528,7 +530,7 @@ export function AIReplySettingsClient({ }: Props) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[#f5f5dc]">End Time</Label>
+                  <Label className="text-[#f5f5dc]">{t("schedule.endTime")}</Label>
                   <Input
                     type="time"
                     value={settings.activeHoursEnd || "17:00"}
@@ -537,15 +539,15 @@ export function AIReplySettingsClient({ }: Props) {
                   />
                 </div>
                 <div className="col-span-2 space-y-2">
-                  <Label className="text-[#f5f5dc]">Timezone</Label>
+                  <Label className="text-[#f5f5dc]">{t("schedule.timezone")}</Label>
                   <Select value={settings.activeTimezone} onValueChange={(v) => updateField("activeTimezone", v)}>
                     <SelectTrigger className="bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                      <SelectItem value="Asia/Jakarta">WIB (Jakarta)</SelectItem>
-                      <SelectItem value="Asia/Makassar">WITA (Makassar)</SelectItem>
-                      <SelectItem value="Asia/Jayapura">WIT (Jayapura)</SelectItem>
+                      <SelectItem value="Asia/Jakarta">{t("schedule.wib")}</SelectItem>
+                      <SelectItem value="Asia/Makassar">{t("schedule.wita")}</SelectItem>
+                      <SelectItem value="Asia/Jayapura">{t("schedule.wit")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -556,8 +558,8 @@ export function AIReplySettingsClient({ }: Props) {
 
         {/* Rate Limits */}
         <SettingsSection
-          title="Limits & Control"
-          description="Prevent spam and control usage"
+          title={t("limits.title")}
+          description={t("limits.description")}
           icon={Shield}
           isOpen={openSections.limits}
           onToggle={() => toggleSection("limits")}
@@ -565,7 +567,7 @@ export function AIReplySettingsClient({ }: Props) {
           <div className="space-y-6">
             {/* Cooldown */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Delay Between Replies (seconds)</Label>
+              <Label className="text-[#f5f5dc]">{t("limits.delayBetweenReplies")}</Label>
               <div className="flex items-center gap-4">
                 <Slider
                   value={[settings.cooldownSeconds]}
@@ -578,14 +580,14 @@ export function AIReplySettingsClient({ }: Props) {
                 <span className="text-sm text-[#f5f5dc]/70 w-16">{settings.cooldownSeconds}s</span>
               </div>
               <p className="text-xs text-[#f5f5dc]/50">
-                Prevents AI from responding too quickly in a conversation
+                {t("limits.delayDesc")}
               </p>
             </div>
 
             {/* Max per thread */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-[#f5f5dc]">Max Replies per Thread</Label>
+                <Label className="text-[#f5f5dc]">{t("limits.maxRepliesPerThread")}</Label>
                 <Switch
                   checked={settings.maxMessagesPerThread !== null}
                   onCheckedChange={(v) => updateField("maxMessagesPerThread", v ? 10 : null)}
@@ -608,7 +610,7 @@ export function AIReplySettingsClient({ }: Props) {
 
             {/* Max per day */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Max Replies per Day</Label>
+              <Label className="text-[#f5f5dc]">{t("limits.maxRepliesPerDay")}</Label>
               <div className="flex items-center gap-4">
                 <Slider
                   value={[settings.maxMessagesPerDay]}
@@ -626,8 +628,8 @@ export function AIReplySettingsClient({ }: Props) {
 
         {/* Handoff Rules */}
         <SettingsSection
-          title="Handoff to Human Agent"
-          description="Set when AI forwards conversation to your team"
+          title={t("handoff.title")}
+          description={t("handoff.description")}
           icon={Hand}
           isOpen={openSections.handoff}
           onToggle={() => toggleSection("handoff")}
@@ -635,25 +637,25 @@ export function AIReplySettingsClient({ }: Props) {
           <div className="space-y-6">
             {/* Handoff Keywords */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Handoff Keywords</Label>
+              <Label className="text-[#f5f5dc]">{t("handoff.keywords")}</Label>
               <Input
                 value={settings.handoffKeywords.join(", ")}
                 onChange={(e) => updateField("handoffKeywords", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
-                placeholder="agent, human, operator, support, help"
+                placeholder={t("handoff.keywordsPlaceholder")}
                 className="bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
               />
               <p className="text-xs text-[#f5f5dc]/50">
-                When customers type these words, AI will forward to a human agent
+                {t("handoff.keywordsDesc")}
               </p>
             </div>
 
             {/* Handoff Message */}
             <div className="space-y-2">
-              <Label className="text-[#f5f5dc]">Handoff Message</Label>
+              <Label className="text-[#f5f5dc]">{t("handoff.message")}</Label>
               <Textarea
                 value={settings.handoffMessage}
                 onChange={(e) => updateField("handoffMessage", e.target.value)}
-                placeholder="Certainly, I will forward this to our team..."
+                placeholder={t("handoff.messagePlaceholder")}
                 className="min-h-[80px] bg-[#050a18] border-[#d4af37]/20 text-[#f5f5dc]"
               />
             </div>
@@ -661,7 +663,7 @@ export function AIReplySettingsClient({ }: Props) {
             {/* Auto handoff */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-[#f5f5dc]">Auto Handoff After N Messages</Label>
+                <Label className="text-[#f5f5dc]">{t("handoff.autoAfterN")}</Label>
                 <Switch
                   checked={settings.autoHandoffAfterMessages !== null}
                   onCheckedChange={(v) => updateField("autoHandoffAfterMessages", v ? 5 : null)}
@@ -702,7 +704,7 @@ export function AIReplySettingsClient({ }: Props) {
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            Save Changes
+            {t("saveChanges")}
           </Button>
         </motion.div>
       )}

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +23,7 @@ export type FeatureInterestDialogProps = {
 
 export default function FeatureInterestDialog({ workspaceId, children }: FeatureInterestDialogProps) {
   const { toast } = useToast();
+  const t = useTranslations("appUI.featureInterest");
   const [open, setOpen] = useState(false);
   const [moduleSlug, setModuleSlug] = useState<string>("");
   const [moduleName, setModuleName] = useState<string>("");
@@ -34,11 +36,11 @@ export default function FeatureInterestDialog({ workspaceId, children }: Feature
     setOpen(true);
   }, []);
 
-  const title = useMemo(() => (moduleName ? `Notify me: ${moduleName}` : "Notify me"), [moduleName]);
+  const title = useMemo(() => (moduleName ? t("notifyMeModule", { name: moduleName }) : t("notifyMe")), [moduleName, t]);
 
   const handleSubmit = useCallback(async () => {
     if (!moduleSlug) {
-      toast({ title: "Module required", description: "Pick a module to subscribe to updates." });
+      toast({ title: t("moduleRequired"), description: t("moduleRequiredDesc") });
       return;
     }
 
@@ -57,17 +59,17 @@ export default function FeatureInterestDialog({ workspaceId, children }: Feature
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
         const error = payload?.reason || payload?.error || "request_failed";
-        toast({ title: "Request failed", description: String(error) });
+        toast({ title: t("requestFailed"), description: String(error) });
         return;
       }
 
-      toast({ title: "Saved", description: "We will notify you when this module is ready." });
+      toast({ title: t("saved"), description: t("savedDesc") });
       setOpen(false);
       setNotes("");
     } finally {
       setSubmitting(false);
     }
-  }, [moduleSlug, notes, toast, workspaceId]);
+  }, [moduleSlug, notes, toast, t, workspaceId]);
 
   return (
     <>
@@ -78,30 +80,30 @@ export default function FeatureInterestDialog({ workspaceId, children }: Feature
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
-              We will reach out when this module is available. Share any context to help us prioritize.
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
             <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              Module: {moduleName || moduleSlug}
+              {t("module", { name: moduleName || moduleSlug })}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fi-notes">Notes (optional)</Label>
+              <Label htmlFor="fi-notes">{t("notesOptional")}</Label>
               <Textarea
                 id="fi-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Timeline, business impact, or extra details."
+                placeholder={t("notesPlaceholder")}
                 maxLength={2000}
               />
-              <p className="text-[11px] text-muted-foreground">Up to 2000 characters.</p>
+              <p className="text-[11px] text-muted-foreground">{t("charLimit")}</p>
             </div>
           </div>
 
           <DialogFooter>
             <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Submitting..." : "Notify me"}
+              {submitting ? t("submitting") : t("notifyMe")}
             </Button>
           </DialogFooter>
         </DialogContent>

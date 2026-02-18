@@ -6,6 +6,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Plus, ChevronLeft, ChevronRight, X, Loader2, Send, Eye, TestTube, Settings, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { SendTestTemplateModal } from "./SendTestTemplateModal";
 import { ParamMappingEditorModal } from "./ParamMappingEditorModal";
@@ -116,6 +117,7 @@ export function ImperiumTemplateForgeClient({
   connections,
 }: ImperiumTemplateForgeClientProps) {
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
+  const t = useTranslations("metaHubUI.templateForge");
   const { toast } = useToast();
 
   // Connection state
@@ -207,14 +209,14 @@ export function ImperiumTemplateForgeClient({
       setTemplates(data.templates ?? []);
     } catch (err) {
       toast({
-        title: "Failed to load templates",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("syncFailed"),
+        description: err instanceof Error ? err.message : t("syncFailed"),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [workspaceSlug, activeConnection, toast]);
+  }, [workspaceSlug, activeConnection, toast, t]);
 
   // Initial fetch
   useEffect(() => {
@@ -236,20 +238,20 @@ export function ImperiumTemplateForgeClient({
         throw new Error(data?.message || "Sync failed");
       }
       toast({
-        title: "Sync completed",
-        description: `Inserted ${data?.inserted ?? 0}, updated ${data?.updated ?? 0}`,
+        title: t("syncComplete"),
+        description: t("syncResult", { inserted: data?.inserted ?? 0, updated: data?.updated ?? 0 }),
       });
       await fetchTemplates();
     } catch (err) {
       toast({
-        title: "Sync failed",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("syncFailed"),
+        description: err instanceof Error ? err.message : t("syncFailed"),
         variant: "destructive",
       });
     } finally {
       setSyncing(false);
     }
-  }, [workspaceId, activeConnection, toast, fetchTemplates]);
+  }, [workspaceId, activeConnection, toast, fetchTemplates, t]);
 
   // Wizard handlers
   const openWizard = useCallback(() => {
@@ -282,23 +284,23 @@ export function ImperiumTemplateForgeClient({
 
       if (step === 1) {
         if (!templateState.name || templateState.name.length < 3) {
-          newErrors.name = "Name must be at least 3 characters";
+          newErrors.name = t("validationName");
         }
         if (!/^[a-z0-9_]+$/.test(templateState.name)) {
-          newErrors.name = "Only lowercase letters, numbers, and underscores allowed";
+          newErrors.name = t("validationNameChars");
         }
       }
 
       if (step === 3) {
         if (!templateState.bodyText || templateState.bodyText.length < 10) {
-          newErrors.bodyText = "Body must be at least 10 characters";
+          newErrors.bodyText = t("validationBody");
         }
       }
 
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     },
-    [templateState]
+    [templateState, t]
   );
 
   const handleNext = useCallback(() => {
@@ -376,19 +378,19 @@ export function ImperiumTemplateForgeClient({
         throw new Error(data?.message || data?.error || "Failed to create template");
       }
 
-      toast({ title: "Template created!", description: `"${templateState.name}" submitted to Meta.` });
+      toast({ title: t("submitted"), description: t("submittedDesc", { name: templateState.name }) });
       closeWizard();
       await fetchTemplates();
     } catch (err) {
       toast({
-        title: "Creation failed",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("submitFailed"),
+        description: err instanceof Error ? err.message : t("submitFailed"),
         variant: "destructive",
       });
     } finally {
       setCreating(false);
     }
-  }, [templateState, wizardStep, validateStep, workspaceId, activeConnection, toast, closeWizard, fetchTemplates]);
+  }, [templateState, wizardStep, validateStep, workspaceId, activeConnection, toast, closeWizard, fetchTemplates, t]);
 
   if (!mounted) {
     return (
@@ -431,9 +433,9 @@ export function ImperiumTemplateForgeClient({
             className="flex flex-col gap-4 rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-6"
           >
             <div>
-              <p className="text-sm font-semibold text-[#f5f5dc]">No WhatsApp connection</p>
+              <p className="text-sm font-semibold text-[#f5f5dc]">{t("noTemplatesFound")}</p>
               <p className="mt-1 text-sm text-[#f5f5dc]/60">
-                Connect a WhatsApp phone number to sync and manage templates.
+                {t("noTemplatesDesc")}
               </p>
             </div>
             <Link href={connectHref} className="w-fit">
@@ -464,7 +466,7 @@ export function ImperiumTemplateForgeClient({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search templates..."
+            placeholder={t("searchPlaceholder")}
             disabled={!hasConnection}
             className="flex-1 rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/30 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 disabled:opacity-60"
           />
@@ -476,7 +478,7 @@ export function ImperiumTemplateForgeClient({
                 className="gap-2 bg-gradient-to-br from-[#10b981] to-[#059669] text-white hover:from-[#34d399] hover:to-[#10b981]"
               >
                 <Send className="h-4 w-4" />
-                Create Campaign
+                {t("createCampaign")}
               </Button>
               <Button
                 onClick={openWizard}
@@ -484,7 +486,7 @@ export function ImperiumTemplateForgeClient({
                 className="gap-2 bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18] hover:from-[#f9d976] hover:to-[#d4af37]"
               >
                 <Plus className="h-4 w-4" />
-                Create Template
+                {t("createTemplate")}
               </Button>
             </>
           )}
@@ -547,13 +549,13 @@ export function ImperiumTemplateForgeClient({
                   <div className="mb-6 space-y-3 rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/50 p-4">
                     {selectedTemplateNormalized.header && (
                       <div className="border-b border-[#f5f5dc]/10 pb-2">
-                        <p className="text-xs font-semibold text-[#d4af37]">HEADER</p>
+                        <p className="text-xs font-semibold text-[#d4af37]">{t("header")}</p>
                         <p className="mt-1 text-sm text-[#f5f5dc]">{selectedTemplateNormalized.header}</p>
                       </div>
                     )}
                     {selectedTemplateNormalized.body && (
                       <div className="border-b border-[#f5f5dc]/10 pb-2">
-                        <p className="text-xs font-semibold text-[#d4af37]">BODY</p>
+                        <p className="text-xs font-semibold text-[#d4af37]">{t("body")}</p>
                         <p className="mt-1 whitespace-pre-wrap text-sm text-[#f5f5dc]">{selectedTemplateNormalized.body}</p>
                         {selectedTemplateNormalized.variable_count > 0 && (
                           <p className="mt-2 text-xs text-[#f5f5dc]/40">
@@ -564,7 +566,7 @@ export function ImperiumTemplateForgeClient({
                     )}
                     {selectedTemplateNormalized.footer && (
                       <div>
-                        <p className="text-xs font-semibold text-[#d4af37]">FOOTER</p>
+                        <p className="text-xs font-semibold text-[#d4af37]">{t("footer")}</p>
                         <p className="mt-1 text-sm text-[#f5f5dc]/60">{selectedTemplateNormalized.footer}</p>
                       </div>
                     )}
@@ -588,7 +590,7 @@ export function ImperiumTemplateForgeClient({
                           variant="outline"
                         >
                           <Settings className="h-4 w-4" />
-                          Edit Param Mapping
+                          {t("editParamMapping")}
                         </Button>
                       )}
 
@@ -598,7 +600,7 @@ export function ImperiumTemplateForgeClient({
                           variant="outline"
                         >
                           <Users className="h-4 w-4" />
-                          Create Batch Campaign
+                          {t("createBatchCampaign")}
                         </Button>
                       </Link>
                     </div>
@@ -606,7 +608,7 @@ export function ImperiumTemplateForgeClient({
 
                   {selectedTemplateNormalized?.status === "REJECTED" && selectedTemplateNormalized.rejection_reason && (
                     <div className="mt-4 rounded-lg border border-[#e11d48]/30 bg-[#e11d48]/10 p-4">
-                      <p className="text-xs font-semibold text-[#e11d48]">REJECTION REASON</p>
+                      <p className="text-xs font-semibold text-[#e11d48]">{t("rejectionReason")}</p>
                       <p className="mt-1 text-sm text-[#f5f5dc]/80">{selectedTemplateNormalized.rejection_reason}</p>
                     </div>
                   )}
@@ -646,8 +648,8 @@ export function ImperiumTemplateForgeClient({
                 {/* Header */}
                 <div className="mb-6 flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-[#f5f5dc]">Template Forge</h2>
-                    <p className="text-sm text-[#f5f5dc]/50">Create a new message template</p>
+                    <h2 className="text-xl font-bold text-[#f5f5dc]">{t("heading")}</h2>
+                    <p className="text-sm text-[#f5f5dc]/50">{t("description")}</p>
                   </div>
                   <button
                     onClick={closeWizard}
@@ -708,14 +710,14 @@ export function ImperiumTemplateForgeClient({
                     className="gap-2 border-[#f5f5dc]/20 text-[#f5f5dc]/60"
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Back
+                    {t("back")}
                   </Button>
                   {wizardStep < 4 ? (
                     <Button
                       onClick={handleNext}
                       className="gap-2 bg-gradient-to-br from-[#d4af37] to-[#b8962e] text-[#050a18]"
                     >
-                      Next
+                      {t("next")}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   ) : (
@@ -729,7 +731,7 @@ export function ImperiumTemplateForgeClient({
                       ) : (
                         <Send className="h-4 w-4" />
                       )}
-                      Submit to Meta
+                      {t("submitToMeta")}
                     </Button>
                   )}
                 </div>
@@ -746,7 +748,7 @@ export function ImperiumTemplateForgeClient({
                   <>
                     <div className="mb-2 flex items-center gap-2">
                       <Eye className="h-4 w-4 text-[#d4af37]" />
-                      <span className="text-xs font-semibold text-[#d4af37]">MIRAGE PREVIEW</span>
+                      <span className="text-xs font-semibold text-[#d4af37]">{t("miragePreview")}</span>
                     </div>
                     <MiragePreview
                       state={templateState}
@@ -785,7 +787,7 @@ export function ImperiumTemplateForgeClient({
           existingDefs={[]}
           onClose={() => setParamMappingOpen(false)}
           onSaved={() => {
-            toast({ title: "✅ Parameter mappings saved!" });
+            toast({ title: t("paramMappingsSaved") });
             setParamMappingOpen(false);
           }}
         />

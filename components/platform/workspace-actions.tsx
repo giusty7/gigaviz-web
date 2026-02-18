@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Settings2, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { EditWorkspaceDialog } from "./edit-workspace-dialog";
 import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
 
@@ -24,6 +25,7 @@ export function WorkspaceActions({
 }: WorkspaceActionsProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const t = useTranslations("platformUI.workspaceActions");
 
   // Only owner can delete, owner/admin can edit
   const canEdit = userRole === "owner" || userRole === "admin";
@@ -39,7 +41,7 @@ export function WorkspaceActions({
           className="flex items-center gap-2 rounded-xl border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 text-sm font-semibold text-[#d4af37] transition hover:bg-[#d4af37]/20"
         >
           <Settings2 className="h-4 w-4" />
-          Settings
+          {t("settings")}
         </button>
       )}
       {canDelete && (
@@ -48,7 +50,7 @@ export function WorkspaceActions({
           className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
         >
           <Trash2 className="h-4 w-4" />
-          Delete
+          {t("delete")}
         </button>
       )}
 

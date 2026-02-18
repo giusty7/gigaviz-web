@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { BellIcon, CheckCheckIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,7 @@ function getRelativeTime(iso: string): string {
 
 export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("appUI.notifications");
   const [mounted, setMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -105,12 +107,12 @@ export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
           prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() }))
         );
         setUnreadCount(0);
-        toast({ title: "All notifications marked as read" });
+        toast({ title: t("allMarkedRead") });
       }
     } catch {
-      toast({ title: "Failed to mark as read", variant: "destructive" });
+      toast({ title: t("failedMarkRead"), variant: "destructive" });
     }
-  }, [workspaceId, toast]);
+  }, [workspaceId, toast, t]);
 
   const handleMarkRead = useCallback(
     async (id: string) => {
@@ -154,19 +156,19 @@ export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 max-h-[400px] overflow-y-auto border-[#d4af37]/20 bg-[#050a18]/95 backdrop-blur-xl">
         <div className="flex items-center justify-between px-3 py-2">
-          <span className="font-semibold text-sm">Notifications</span>
+          <span className="font-semibold text-sm">{t("title")}</span>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={handleMarkAllRead}>
-              <CheckCheckIcon className="mr-1 h-3 w-3" /> Mark all read
+              <CheckCheckIcon className="mr-1 h-3 w-3" /> {t("markAllRead")}
             </Button>
           )}
         </div>
         <DropdownMenuSeparator />
         {loading && notifications.length === 0 && (
-          <div className="px-3 py-4 text-center text-sm text-muted-foreground">Loading...</div>
+          <div className="px-3 py-4 text-center text-sm text-muted-foreground">{t("loading")}</div>
         )}
         {!loading && notifications.length === 0 && (
-          <div className="px-3 py-4 text-center text-sm text-muted-foreground">No notifications</div>
+          <div className="px-3 py-4 text-center text-sm text-muted-foreground">{t("noNotifications")}</div>
         )}
         {notifications.map((notif) => (
           <DropdownMenuItem
@@ -191,7 +193,7 @@ export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
                 <button
                   onClick={() => handleMarkRead(notif.id)}
                   className="p-0.5 hover:bg-gigaviz-surface rounded"
-                  title="Mark as read"
+                  title={t("markAsRead")}
                 >
                   <XIcon className="h-3 w-3 text-muted-foreground" />
                 </button>
@@ -206,7 +208,7 @@ export function NotificationBell({ workspaceId, workspaceSlug }: Props) {
         <DropdownMenuSeparator />
         <Link href={`/${workspaceSlug}/notifications`}>
           <DropdownMenuItem className="justify-center text-sm text-gigaviz-gold">
-            View all notifications
+            {t("viewAll")}
           </DropdownMenuItem>
         </Link>
       </DropdownMenuContent>

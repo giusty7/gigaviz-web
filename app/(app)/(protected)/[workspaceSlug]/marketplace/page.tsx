@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Store, ShoppingCart, TrendingUp, Star, Package, Download } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { requireEntitlement } from "@/lib/entitlements/server";
 import { FeatureGate } from "@/components/gates/feature-gate";
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 
 type MarketplaceItem = {
   id: string;
@@ -44,6 +46,7 @@ export default async function MarketplacePage({ params }: Props) {
 
   const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "marketplace");
 
+  const t = await getTranslations("marketplace");
   const supabase = await supabaseServer();
 
   // Fetch approved marketplace items
@@ -85,37 +88,33 @@ export default async function MarketplacePage({ params }: Props) {
       {/* Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container max-w-7xl py-8">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600">
-                  <Store className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold">Marketplace</h1>
-                  <p className="text-sm text-muted-foreground">
-                    Templates, prompts, assets & mini-apps
-                  </p>
-                </div>
+          <PageHeader
+            title={t("title")}
+            description={t("description")}
+            badge={
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600">
+                <Store className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Link
-                href={`/${workspaceSlug}/marketplace/sell`}
-                className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Start Selling
-              </Link>
-              <Link
-                href={`/${workspaceSlug}/marketplace/purchases`}
-                className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 text-sm font-medium hover:bg-accent"
-              >
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                My Purchases
-              </Link>
-            </div>
-          </div>
+            }
+            actions={
+              <div className="flex gap-2">
+                <Link
+                  href={`/${workspaceSlug}/marketplace/sell`}
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  <TrendingUp className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t("startSelling")}
+                </Link>
+                <Link
+                  href={`/${workspaceSlug}/marketplace/purchases`}
+                  className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 text-sm font-medium hover:bg-accent"
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t("myPurchases")}
+                </Link>
+              </div>
+            }
+          />
         </div>
       </div>
 
@@ -129,7 +128,7 @@ export default async function MarketplacePage({ params }: Props) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.total_items}</p>
-                <p className="text-sm text-muted-foreground">Items Listed</p>
+                <p className="text-sm text-muted-foreground">{t("itemsListed")}</p>
               </div>
             </div>
           </div>
@@ -140,7 +139,7 @@ export default async function MarketplacePage({ params }: Props) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.total_creators}</p>
-                <p className="text-sm text-muted-foreground">Active Creators</p>
+                <p className="text-sm text-muted-foreground">{t("activeCreators")}</p>
               </div>
             </div>
           </div>
@@ -151,7 +150,7 @@ export default async function MarketplacePage({ params }: Props) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.total_purchases}</p>
-                <p className="text-sm text-muted-foreground">Total Sales</p>
+                <p className="text-sm text-muted-foreground">{t("totalSales")}</p>
               </div>
             </div>
           </div>
@@ -225,16 +224,16 @@ export default async function MarketplacePage({ params }: Props) {
         {marketplaceItems.length === 0 && (
           <div className="py-12 text-center">
             <Store className="mx-auto mb-4 h-12 w-12 text-muted-foreground/40" />
-            <h3 className="mb-2 text-lg font-semibold">No items yet</h3>
+            <h3 className="mb-2 text-lg font-semibold">{t("noItemsYet")}</h3>
             <p className="text-sm text-muted-foreground">
-              Be the first creator to list your templates or prompts!
+              {t("noItemsDesc")}
             </p>
             <Link
               href={`/${workspaceSlug}/marketplace/sell`}
               className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
               <TrendingUp className="h-4 w-4" />
-              Start Selling
+              {t("startSelling")}
             </Link>
           </div>
         )}

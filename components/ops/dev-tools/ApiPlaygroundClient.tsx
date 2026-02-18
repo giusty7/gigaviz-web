@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Send, Copy, Check, Clock, XCircle } from "lucide-react";
 
 interface RequestConfig {
@@ -30,6 +31,7 @@ const SAMPLE_ENDPOINTS = [
 ];
 
 export default function ApiPlaygroundClient() {
+  const t = useTranslations("opsUI");
   const [config, setConfig] = useState<RequestConfig>({
     method: "GET",
     endpoint: "/api/ops/health",
@@ -112,8 +114,8 @@ export default function ApiPlaygroundClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">API Playground</h1>
-        <p className="text-slate-400 mt-1">Test internal API endpoints</p>
+        <h1 className="text-2xl font-bold text-white">{t("devTools.apiPlayground.title")}</h1>
+        <p className="text-slate-400 mt-1">{t("devTools.apiPlayground.subtitle")}</p>
       </div>
 
       {/* Quick Actions */}
@@ -139,7 +141,7 @@ export default function ApiPlaygroundClient() {
         {/* Request Panel */}
         <div className="space-y-4">
           <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Request</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">{t("devTools.apiPlayground.endpoint")}</h2>
 
             {/* Method + Endpoint */}
             <div className="flex gap-2 mb-4">
@@ -171,7 +173,7 @@ export default function ApiPlaygroundClient() {
                 className="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-white hover:bg-amber-700 disabled:opacity-50"
               >
                 <Send className="h-4 w-4" />
-                {loading ? "..." : "Send"}
+                {loading ? "..." : t("devTools.apiPlayground.send")}
               </button>
             </div>
 
@@ -179,7 +181,7 @@ export default function ApiPlaygroundClient() {
             {config.method !== "GET" && (
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-2">
-                  Request Body (JSON)
+                  {t("devTools.apiPlayground.body")}
                 </label>
                 <textarea
                   value={config.body}
@@ -220,7 +222,7 @@ export default function ApiPlaygroundClient() {
         {/* Response Panel */}
         <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Response</h2>
+            <h2 className="text-lg font-semibold text-white">{t("devTools.apiPlayground.response")}</h2>
             {response && (
               <div className="flex items-center gap-3">
                 <span className={`text-sm font-medium ${getStatusColor(response.status)}`}>
@@ -247,7 +249,7 @@ export default function ApiPlaygroundClient() {
           ) : (
             <div className="flex items-center justify-center py-20 text-slate-500">
               <XCircle className="h-8 w-8 mr-2" />
-              No response yet. Send a request to see results.
+              {t("devTools.apiPlayground.noResponse")}
             </div>
           )}
         </div>

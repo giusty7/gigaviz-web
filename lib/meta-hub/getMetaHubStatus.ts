@@ -76,6 +76,28 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
   // Derive Meta Portfolio status
   const metaPortfolioStatus: MetaPortfolioStatus = metaToken?.id ? 'linked' : 'none';
 
+  // Check Instagram connection status from instagram_accounts
+  const { data: igAccount } = await supabase
+    .from('instagram_accounts')
+    .select('id, status')
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle();
+
+  // Check Messenger connection status from messenger_pages
+  const { data: msPage } = await supabase
+    .from('messenger_pages')
+    .select('id, status')
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle();
+
+  // Derive Instagram / Messenger connector status
+  const igStatus: import('./types').FutureConnectorStatus = igAccount ? 'connected' : 'available';
+  const msStatus: import('./types').FutureConnectorStatus = msPage ? 'connected' : 'available';
+
   return {
     workspace_id: workspaceId,
     whatsapp: {
@@ -102,8 +124,8 @@ export async function getMetaHubStatus(workspaceId: string): Promise<MetaIntegra
       whatsapp: whatsappConnectorStatus,
       whatsappHealth: whatsappConnectorHealth,
       metaPortfolio: metaPortfolioStatus,
-      instagram: 'soon',
-      messenger: 'soon',
+      instagram: igStatus,
+      messenger: msStatus,
     },
   };
 }

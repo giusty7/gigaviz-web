@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { topLevelProducts, productCategories } from "@/lib/products";
 import { MarketingIcon } from "@/components/marketing/icons";
 import { StatusBadge } from "@/components/marketing/status-badge";
@@ -9,6 +10,7 @@ import { StatusBadge } from "@/components/marketing/status-badge";
 const categoryOptions = ["All", ...productCategories];
 
 export default function ProductsOverview() {
+  const t = useTranslations("marketingUI");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
@@ -50,7 +52,7 @@ export default function ProductsOverview() {
             id="product-search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search modules, features, or keywords"
+            placeholder={t("products.searchPlaceholder")}
             className="mt-2 w-full rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-4 py-3 text-sm text-[color:var(--gv-text)] placeholder:text-[color:var(--gv-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--gv-accent)]"
           />
         </div>
@@ -106,7 +108,7 @@ export default function ProductsOverview() {
               </p>
             </div>
             <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--gv-accent)]">
-              View details
+              {t("products.learnMore")}
             </div>
           </Link>
         ))}
@@ -114,7 +116,7 @@ export default function ProductsOverview() {
 
       {filtered.length === 0 ? (
         <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 text-sm text-[color:var(--gv-muted)]">
-          No modules match this filter. Try a different keyword.
+          {t("products.noResults")}
         </div>
       ) : null}
     </div>

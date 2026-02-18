@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -64,6 +65,7 @@ export function WhatsappConnectionForm({
   onSaved,
 }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.connectionForm");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(status ?? "inactive");
@@ -121,17 +123,15 @@ export function WhatsappConnectionForm({
         accessToken: "",
       });
       toast({
-        title: "Connection saved",
-        description: trimmedToken
-          ? "Connection and new token saved securely."
-          : "Connection details updated.",
+        title: t("toastSaved"),
+        description: t("toastSavedDesc"),
       });
       // Trigger parent to refresh server data so all sections update
       onSaved?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to save connection";
       toast({
-        title: "Save failed",
+        title: t("toastSaveFailed"),
         description: message,
         variant: "destructive",
       });
@@ -143,16 +143,16 @@ export function WhatsappConnectionForm({
   async function onTest() {
     if (hasMissingEnv) {
       toast({
-        title: "Missing environment variables",
-        description: `Set ${missingEnvKeys.join(", ")} to enable tests.`,
+        title: t("toastMissingEnv"),
+        description: t("toastMissingEnvDesc"),
         variant: "destructive",
       });
       return;
     }
     if (!testPermission) {
       toast({
-        title: "Access denied",
-        description: "Admin access is required to run connection tests.",
+        title: t("toastAccessDenied"),
+        description: t("toastAccessDeniedDesc"),
         variant: "destructive",
       });
       return;
@@ -160,8 +160,7 @@ export function WhatsappConnectionForm({
     const phoneNumberId = form.getValues("phoneNumberId") || initialPhoneNumberId;
     if (!phoneNumberId) {
       toast({
-        title: "Phone Number ID required",
-        description: "Fill in the Phone Number ID before running a connection test.",
+        title: t("toastPhoneRequired"),
         variant: "destructive",
       });
       return;
@@ -181,8 +180,8 @@ export function WhatsappConnectionForm({
       setCurrentTestedAt(data?.lastTestedAt ?? null);
       setCurrentTestResult(data?.result ?? null);
       toast({
-        title: "Test succeeded",
-        description: data?.result === "validated" ? "Token is valid and connected." : data?.result,
+        title: t("toastTestSucceeded"),
+        description: data?.result,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Connection test failed";
@@ -190,7 +189,7 @@ export function WhatsappConnectionForm({
       setCurrentTestResult(message);
       setCurrentTestedAt(new Date().toISOString());
       toast({
-        title: "Test failed",
+        title: t("toastTestFailed"),
         description: message,
         variant: "destructive",
       });
@@ -203,7 +202,7 @@ export function WhatsappConnectionForm({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold text-foreground">WhatsApp Connection</p>
+          <p className="text-sm font-semibold text-foreground">{t("title")}</p>
           <p className="text-sm text-muted-foreground">
             Store the phone number ID and access token securely. The token will not be shown again.
           </p>
@@ -217,15 +216,15 @@ export function WhatsappConnectionForm({
                 : "border-amber-500/60 bg-amber-500/10 text-amber-100"
             )}
           >
-            {currentStatus === "active" ? "Connected" : "Inactive"}
+            {currentStatus === "active" ? t("statusConnected") : t("statusInactive")}
           </Badge>
           {hasToken ? (
             <Badge className="border border-border bg-gigaviz-surface px-3 py-1 text-xs">
-              Token set
+              {t("tokenSet")}
             </Badge>
           ) : (
             <Badge className="border border-border/80 bg-background px-3 py-1 text-xs text-muted-foreground">
-              Token not set
+              {t("tokenNotSet")}
             </Badge>
           )}
         </div>
@@ -238,7 +237,7 @@ export function WhatsappConnectionForm({
             name="phoneNumberId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number ID</FormLabel>
+                <FormLabel>{t("phoneNumberId")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter phone number ID"
@@ -255,7 +254,7 @@ export function WhatsappConnectionForm({
             name="wabaId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>WABA ID (optional)</FormLabel>
+                <FormLabel>{t("wabaIdOptional")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="WABA ID"
@@ -272,7 +271,7 @@ export function WhatsappConnectionForm({
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Display name (optional)</FormLabel>
+                <FormLabel>{t("displayNameOptional")}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Display name"
@@ -289,14 +288,14 @@ export function WhatsappConnectionForm({
             name="accessToken"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Access token</FormLabel>
+                <FormLabel>{t("accessToken")}</FormLabel>
                 {hasToken && !showTokenReplace ? (
                   /* Token already secured — show badge + replace option */
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5">
                       <ShieldCheck className="h-4 w-4 text-emerald-400" />
                       <span className="text-sm font-medium text-emerald-300">
-                        Token secured &amp; encrypted
+                        {t("tokenSecured")}
                       </span>
                     </div>
                     {canEdit && (
@@ -306,7 +305,7 @@ export function WhatsappConnectionForm({
                         className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
                       >
                         <RefreshCw className="h-3 w-3" />
-                        Replace with a new token
+                        {t("replaceToken")}
                       </button>
                     )}
                   </div>
@@ -334,7 +333,7 @@ export function WhatsappConnectionForm({
                         }}
                         className="text-xs text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        ← Cancel, keep current token
+                        {t("cancelKeepToken")}
                       </button>
                     )}
                     <FormMessage />
@@ -346,7 +345,7 @@ export function WhatsappConnectionForm({
 
           <div className="flex items-center gap-3 md:col-span-2">
             <Button type="submit" disabled={readOnly || saving}>
-              {saving ? "Saving..." : "Save connection"}
+              {saving ? t("saving") : t("saveConnection")}
             </Button>
             <div className="flex flex-col items-start gap-1">
               <Button
@@ -355,7 +354,7 @@ export function WhatsappConnectionForm({
                 onClick={onTest}
                 disabled={testing || hasMissingEnv || !testPermission}
               >
-                {testing ? "Testing..." : "Test connection"}
+                {testing ? t("testing") : t("testConnection")}
               </Button>
               {hasMissingEnv && (
                 <p className="text-xs text-muted-foreground">
@@ -372,14 +371,14 @@ export function WhatsappConnectionForm({
       </Form>
 
       <div className="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-        <p className="font-semibold text-foreground">Latest status</p>
+        <p className="font-semibold text-foreground">{t("latestStatus")}</p>
         <p className="mt-1">
           {currentTestedAt
-            ? `Last tested: ${new Date(currentTestedAt).toLocaleString()}`
-            : "Never tested"}
+            ? `${t("lastTested")} ${new Date(currentTestedAt).toLocaleString()}`
+            : t("neverTested")}
         </p>
         <p className="mt-1">
-          Result: {currentTestResult ? <span className="text-foreground">{currentTestResult}</span> : "--"}
+          {t("result")} {currentTestResult ? <span className="text-foreground">{currentTestResult}</span> : "--"}
         </p>
       </div>
     </div>

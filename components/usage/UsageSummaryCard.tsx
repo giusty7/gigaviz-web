@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type UsageSummary = {
   cap: number | null;
@@ -28,6 +29,7 @@ export default function UsageSummaryCard({
   workspaceSlug,
   canEditCap,
 }: Props) {
+  const t = useTranslations("usageUI");
   const [summary, setSummary] = useState<UsageSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +60,7 @@ export default function UsageSummaryCard({
       setSummary(usage ?? null);
       setCapInput(usage?.cap === null || usage?.cap === undefined ? "" : String(usage.cap));
     } catch {
-      setError("Failed to load usage summary.");
+      setError(t("failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ export default function UsageSummaryCard({
     if (trimmed !== "") {
       const parsed = Number(trimmed);
       if (!Number.isInteger(parsed) || parsed < 0 || parsed > 1_000_000_000) {
-        setSaveError("Enter 0..1,000,000,000 or leave blank for Unlimited.");
+        setSaveError(t("errorInvalidRange"));
         return;
       }
       cap = parsed;
@@ -96,18 +98,18 @@ export default function UsageSummaryCard({
 
       if (!res.ok) {
         if (res.status === 403) {
-          setSaveError("Only workspace owners or admins can change the limit.");
+          setSaveError(t("errorAdminOnly"));
         } else {
           const data = await res.json().catch(() => null);
-          setSaveError(data?.error || "Failed to save the limit.");
+          setSaveError(data?.error || t("errorSaveFailed"));
         }
         return;
       }
 
-      setSaveSuccess("Limit saved.");
+      setSaveSuccess(t("limitSaved"));
       await fetchSummary();
     } catch {
-      setSaveError("Failed to save the limit.");
+      setSaveError(t("errorSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -117,10 +119,10 @@ export default function UsageSummaryCard({
     <section className="rounded-2xl border border-border bg-card p-6 text-foreground shadow-lg shadow-gigaviz-navy/30">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-wide text-muted-foreground">Usage</p>
-          <h2 className="text-xl font-semibold">Usage Summary</h2>
+          <p className="text-sm uppercase tracking-wide text-muted-foreground">{t("usage")}</p>
+          <h2 className="text-xl font-semibold">{t("usageSummary")}</h2>
           <p className="text-sm text-muted-foreground">
-            Workspace: {workspaceSlug} - Month {summary?.yyyymm ?? "-"}
+            {t("workspaceMonth", { slug: workspaceSlug, month: summary?.yyyymm ?? "-" })}
           </p>
         </div>
         <div className="flex gap-2">
@@ -129,7 +131,7 @@ export default function UsageSummaryCard({
             disabled={loading}
             className="rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-sm font-semibold text-foreground hover:bg-gigaviz-surface/80 disabled:opacity-60"
           >
-            Refresh
+            {t("refresh")}
           </button>
         </div>
       </div>
@@ -141,32 +143,32 @@ export default function UsageSummaryCard({
             onClick={fetchSummary}
             className="underline decoration-dashed decoration-foreground/40"
           >
-            Coba lagi
+            {t("retryLoad")}
           </button>
         </p>
       )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-4">
         <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
-          <p className="text-xs text-muted-foreground">Cap</p>
+          <p className="text-xs text-muted-foreground">{t("cap")}</p>
           <p className="mt-1 text-lg font-semibold">
-            {summary?.cap === null ? "Unlimited" : formatNumber(summary?.cap)}
+            {summary?.cap === null ? t("unlimited") : formatNumber(summary?.cap)}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
-          <p className="text-xs text-muted-foreground">Used (this month)</p>
+          <p className="text-xs text-muted-foreground">{t("usedThisMonth")}</p>
           <p className="mt-1 text-lg font-semibold">
-            {loading ? "Loading..." : formatNumber(summary?.used)}
+            {loading ? t("loading") : formatNumber(summary?.used)}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
-          <p className="text-xs text-muted-foreground">Remaining</p>
+          <p className="text-xs text-muted-foreground">{t("remaining")}</p>
           <p className="mt-1 text-lg font-semibold">
-            {summary?.cap === null ? "Unlimited" : formatNumber(summary?.remaining)}
+            {summary?.cap === null ? t("unlimited") : formatNumber(summary?.remaining)}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-gigaviz-surface p-4">
-          <p className="text-xs text-muted-foreground">Progress</p>
+          <p className="text-xs text-muted-foreground">{t("progress")}</p>
           <p className="mt-1 text-lg font-semibold">
             {summary?.percentUsed !== null && summary?.percentUsed !== undefined
               ? `${Math.round(summary.percentUsed)}%`
@@ -185,18 +187,18 @@ export default function UsageSummaryCard({
       {canEditCap ? (
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <label className="text-sm text-white/70">Set Usage Cap (tokens)</label>
+            <label className="text-sm text-white/70">{t("setUsageCap")}</label>
             <input
               type="number"
               min={0}
               max={1_000_000_000}
               value={capInput}
               onChange={(e) => setCapInput(e.target.value)}
-              placeholder="Leave blank for Unlimited"
+              placeholder={t("placeholderUnlimited")}
               className="mt-2 w-full rounded-xl border border-border bg-gigaviz-surface px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-gigaviz-gold focus:outline-none"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Enter a number to cap monthly tokens, or leave blank for Unlimited.
+              {t("capHelp")}
             </p>
           </div>
           <button
@@ -204,12 +206,12 @@ export default function UsageSummaryCard({
             disabled={saving}
             className="h-10 rounded-xl border border-gigaviz-gold/40 bg-gigaviz-gold px-4 text-sm font-semibold text-gigaviz-navy shadow-lg shadow-gigaviz-gold/20 hover:bg-gigaviz-gold/90 disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save Cap"}
+            {saving ? t("saving") : t("saveCap")}
           </button>
         </div>
       ) : (
         <p className="mt-4 text-xs text-muted-foreground">
-          Only workspace owners or admins can change the usage cap. Contact your workspace admin for updates.
+          {t("adminOnly")}
         </p>
       )}
 

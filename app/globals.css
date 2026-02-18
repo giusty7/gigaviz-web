@@ -40,6 +40,18 @@
   --ring: var(--gv-accent);
   --input: var(--gv-border);
 
+  /* Semantic status colors */
+  --success: #10b981;
+  --success-foreground: #050a18;
+  --info: #3b82f6;
+  --info-foreground: #050a18;
+  --warning: #f59e0b;
+  --warning-foreground: #050a18;
+  --destructive: #e11d48;
+  --destructive-foreground: #f5f5dc;
+  --popover: var(--gv-card);
+  --popover-foreground: var(--gv-text);
+
   /* Typography scale */
   --gv-text-xs: 0.75rem;
   --gv-text-sm: 0.875rem;
@@ -93,6 +105,17 @@
   --border: var(--gv-border);
   --ring: var(--gv-accent);
   --input: var(--gv-border);
+
+  --success: #10b981;
+  --success-foreground: #050a18;
+  --info: #3b82f6;
+  --info-foreground: #050a18;
+  --warning: #f59e0b;
+  --warning-foreground: #050a18;
+  --destructive: #e11d48;
+  --destructive-foreground: var(--gv-text);
+  --popover: var(--gv-card);
+  --popover-foreground: var(--gv-text);
 }
 
 .dark {

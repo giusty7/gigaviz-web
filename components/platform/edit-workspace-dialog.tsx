@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslations } from "next-intl";
 
 type EditWorkspaceDialogProps = {
   open: boolean;
@@ -38,6 +39,7 @@ export function EditWorkspaceDialog({
   initialType,
 }: EditWorkspaceDialogProps) {
   const router = useRouter();
+  const t = useTranslations("platformUI.editWorkspace");
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription || "");
   const [workspaceType, setWorkspaceType] = useState(initialType);
@@ -47,7 +49,7 @@ export function EditWorkspaceDialog({
 
   const handleSave = async () => {
     if (!name.trim()) {
-      setError("Workspace name is required");
+      setError(t("nameRequired"));
       return;
     }
 
@@ -96,10 +98,10 @@ export function EditWorkspaceDialog({
             </div>
             <div>
               <DialogTitle className="text-xl text-[#f5f5dc]">
-                Workspace Settings
+                {t("title")}
               </DialogTitle>
               <DialogDescription className="text-[#f5f5dc]/60">
-                Update workspace details and preferences
+                {t("description")}
               </DialogDescription>
             </div>
           </div>
@@ -109,67 +111,67 @@ export function EditWorkspaceDialog({
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-[#f5f5dc]">
-              Workspace Name *
+              {t("nameLabel")}
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Acme Corporation"
+              placeholder={t("namePlaceholder")}
               className="border-[#d4af37]/30 bg-[#0a1229]/80 text-[#f5f5dc]"
               maxLength={100}
             />
             <p className="text-xs text-[#f5f5dc]/50">
-              {name.length}/100 characters
+              {t("charsCount", { count: name.length, max: 100 })}
             </p>
           </div>
 
           {/* Description Field */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-[#f5f5dc]">
-              Description
+              {t("descriptionLabel")}
             </Label>
             <Input
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of your workspace"
+              placeholder={t("descriptionPlaceholder")}
               className="border-[#d4af37]/30 bg-[#0a1229]/80 text-[#f5f5dc]"
               maxLength={500}
             />
             <p className="text-xs text-[#f5f5dc]/50">
-              {description.length}/500 characters
+              {t("charsCount", { count: description.length, max: 500 })}
             </p>
           </div>
 
           {/* Workspace Type Field */}
           <div className="space-y-2">
             <Label htmlFor="type" className="text-[#f5f5dc]">
-              Workspace Type
+              {t("typeLabel")}
             </Label>
             <Select value={workspaceType} onValueChange={setWorkspaceType}>
               <SelectTrigger className="border-[#d4af37]/30 bg-[#0a1229]/80 text-[#f5f5dc]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="border-[#d4af37]/20 bg-[#0a1229]">
-                <SelectItem value="personal">Personal</SelectItem>
-                <SelectItem value="team">Team</SelectItem>
-                <SelectItem value="company">Company</SelectItem>
-                <SelectItem value="enterprise">Enterprise</SelectItem>
+                <SelectItem value="personal">{t("typePersonal")}</SelectItem>
+                <SelectItem value="team">{t("typeTeam")}</SelectItem>
+                <SelectItem value="company">{t("typeCompany")}</SelectItem>
+                <SelectItem value="enterprise">{t("typeEnterprise")}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-[#f5f5dc]/50">
-              {workspaceType === "personal" && "For individual use"}
-              {workspaceType === "team" && "For small teams (2-10 members)"}
-              {workspaceType === "company" && "For companies (10-100 members)"}
-              {workspaceType === "enterprise" && "For large organizations (100+ members)"}
+              {workspaceType === "personal" && t("typePersonalDesc")}
+              {workspaceType === "team" && t("typeTeamDesc")}
+              {workspaceType === "company" && t("typeCompanyDesc")}
+              {workspaceType === "enterprise" && t("typeEnterpriseDesc")}
             </p>
           </div>
 
           {/* Success Message */}
           {success && (
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">
-              ✅ Workspace updated successfully!
+              {t("updatedSuccess")}
             </div>
           )}
 
@@ -188,7 +190,7 @@ export function EditWorkspaceDialog({
             disabled={isSaving}
             className="flex-1 rounded-xl border border-[#d4af37]/30 bg-[#0a1229]/80 px-4 py-2.5 text-sm font-semibold text-[#f5f5dc] transition hover:border-[#d4af37]/60 disabled:opacity-50"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleSave}
@@ -198,12 +200,12 @@ export function EditWorkspaceDialog({
             {isSaving ? (
               <>
                 <span className="inline-block animate-spin mr-2">⚙️</span>
-                Saving...
+                {t("saving")}
               </>
             ) : (
               <>
                 <Save className="inline h-4 w-4 mr-2" />
-                Save Changes
+                {t("saveChanges")}
               </>
             )}
           </button>

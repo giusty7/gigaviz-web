@@ -61,7 +61,7 @@ export default async function PlatformTeamsPage({ params }: Props) {
           </p>
         </div>
         <Link
-          href={`/${workspaceSlug}/settings/team/invite`}
+          href={`/${workspaceSlug}/settings`}
           className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <UserPlus className="h-4 w-4" />
@@ -112,7 +112,7 @@ export default async function PlatformTeamsPage({ params }: Props) {
       {/* Quick Actions */}
       <div className="mb-8 grid gap-4 md:grid-cols-3">
         <Link
-          href={`/${workspaceSlug}/settings/team`}
+          href={`/${workspaceSlug}/settings`}
           className="rounded-lg border bg-card p-6 transition-shadow hover:shadow-md"
         >
           <Users2 className="mb-3 h-8 w-8 text-blue-500" />
@@ -122,7 +122,7 @@ export default async function PlatformTeamsPage({ params }: Props) {
           </p>
         </Link>
         <Link
-          href={`/${workspaceSlug}/settings/team/roles`}
+          href={`/${workspaceSlug}/platform/roles`}
           className="rounded-lg border bg-card p-6 transition-shadow hover:shadow-md"
         >
           <Shield className="mb-3 h-8 w-8 text-purple-500" />
@@ -132,7 +132,7 @@ export default async function PlatformTeamsPage({ params }: Props) {
           </p>
         </Link>
         <Link
-          href={`/${workspaceSlug}/settings/team/activity`}
+          href={`/${workspaceSlug}/platform/audit`}
           className="rounded-lg border bg-card p-6 transition-shadow hover:shadow-md"
         >
           <Settings className="mb-3 h-8 w-8 text-orange-500" />

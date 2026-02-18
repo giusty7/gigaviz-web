@@ -7,22 +7,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import type { TokenLedgerRow } from "@/lib/tokens";
 
 const formatter = new Intl.NumberFormat("en-US");
 
 const typeOptions = [
-  { label: "All", value: "" },
-  { label: "Top up", value: "topup" },
-  { label: "Spend", value: "spend" },
-  { label: "Adjust", value: "adjust" },
+  { labelKey: "typeAll" as const, value: "" },
+  { labelKey: "typeTopup" as const, value: "topup" },
+  { labelKey: "typeSpend" as const, value: "spend" },
+  { labelKey: "typeAdjust" as const, value: "adjust" },
 ];
 
 const statusOptions = [
-  { label: "All", value: "" },
-  { label: "Posted", value: "posted" },
-  { label: "Pending", value: "pending" },
-  { label: "Void", value: "void" },
+  { labelKey: "statusAll" as const, value: "" },
+  { labelKey: "statusPosted" as const, value: "posted" },
+  { labelKey: "statusPending" as const, value: "pending" },
+  { labelKey: "statusVoid" as const, value: "void" },
 ];
 
 type LedgerResponse = {
@@ -68,6 +69,7 @@ function formatDate(value: string) {
 }
 
 export function TokenLedgerClient({ workspaceId }: Props) {
+  const t = useTranslations("tokensUI.ledger");
   const { toast } = useToast();
   const [rows, setRows] = useState<TokenLedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ export function TokenLedgerClient({ workspaceId }: Props) {
       setRows(json.ledger.rows ?? []);
     } catch (err) {
       toast({
-        title: "Unable to load ledger",
+        title: t("unableToLoadLedger"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -109,21 +111,21 @@ export function TokenLedgerClient({ workspaceId }: Props) {
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">Ledger</p>
-            <h3 className="text-lg font-semibold text-foreground">Token ledger</h3>
-            <p className="text-sm text-muted-foreground">Signed trail of top ups, spends, and adjustments per workspace.</p>
+            <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">{t("sectionLabel")}</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("title")}</h3>
+            <p className="text-sm text-muted-foreground">{t("description")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-gigaviz-surface/60 px-3 py-2 text-xs text-muted-foreground">
               <Filter className="h-4 w-4" />
-              {filteredCount} entries
+              {t("entries", { count: filteredCount })}
             </div>
           </div>
         </div>
 
         <div className="grid gap-2 md:grid-cols-4 md:items-end">
           <label className="text-xs text-muted-foreground">
-            Type
+            {t("typeLabel")}
             <select
               value={filters.type}
               onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
@@ -131,13 +133,13 @@ export function TokenLedgerClient({ workspaceId }: Props) {
             >
               {typeOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </option>
               ))}
             </select>
           </label>
           <label className="text-xs text-muted-foreground">
-            Status
+            {t("statusLabel")}
             <select
               value={filters.status}
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
@@ -145,13 +147,13 @@ export function TokenLedgerClient({ workspaceId }: Props) {
             >
               {statusOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </option>
               ))}
             </select>
           </label>
           <label className="text-xs text-muted-foreground">
-            From
+            {t("fromLabel")}
             <Input
               type="date"
               value={filters.from}
@@ -160,7 +162,7 @@ export function TokenLedgerClient({ workspaceId }: Props) {
             />
           </label>
           <label className="text-xs text-muted-foreground">
-            To
+            {t("toLabel")}
             <Input
               type="date"
               value={filters.to}
@@ -174,12 +176,12 @@ export function TokenLedgerClient({ workspaceId }: Props) {
           <Table>
             <TableHeader>
               <TableRow className="bg-gigaviz-surface/70">
-                <TableHead>Time</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Tokens</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Notes</TableHead>
+                <TableHead>{t("time")}</TableHead>
+                <TableHead>{t("type")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead className="text-right">{t("tokens")}</TableHead>
+                <TableHead>{t("source")}</TableHead>
+                <TableHead>{t("notes")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -187,14 +189,14 @@ export function TokenLedgerClient({ workspaceId }: Props) {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground">
                     <div className="flex items-center justify-center gap-2 py-4">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Loading ledger...
+                      <Loader2 className="h-4 w-4 animate-spin" /> {t("loadingLedger")}
                     </div>
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    <div className="py-4">No ledger entries yet.</div>
+                    <div className="py-4">{t("noEntriesYet")}</div>
                   </TableCell>
                 </TableRow>
               ) : (

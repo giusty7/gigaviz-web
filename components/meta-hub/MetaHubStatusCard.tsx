@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { supabaseClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export function MetaHubStatusCard({
 }: MetaHubStatusCardProps) {
   const [status, setStatus] = useState<MetaIntegrationStatus>(initialStatus);
   const [realtimeState, setRealtimeState] = useState<RealtimeConnectionState>("CONNECTING");
+  const t = useTranslations("metaHubUI.statusCard");
 
   useEffect(() => {
     const supabase = supabaseClient();
@@ -118,25 +120,25 @@ export function MetaHubStatusCard({
 
   if (connectors.whatsapp === 'none' || connectors.whatsapp === 'partial') {
     primaryCTA = {
-      label: connectors.whatsapp === 'partial' ? "Complete WhatsApp Setup" : "Connect WhatsApp",
+      label: connectors.whatsapp === 'partial' ? t("completeWhatsAppSetup") : t("connectWhatsApp"),
       href: `/${workspaceSlug}/meta-hub/connections`,
     };
     secondaryCTA = {
-      label: "Learn How It Works",
+      label: t("learnHowItWorks"),
       href: `/products/meta-hub`,
     };
   } else if (connectors.metaPortfolio === 'none') {
     primaryCTA = {
-      label: "Link Meta Portfolio (Recommended)",
+      label: t("linkMetaPortfolio"),
       href: `/${workspaceSlug}/meta-hub/connections`,
     };
     secondaryCTA = {
-      label: "Skip for now",
+      label: t("skipForNow"),
       href: `/${workspaceSlug}/meta-hub`,
     };
   } else {
     primaryCTA = {
-      label: "Manage Connections",
+      label: t("manageConnections"),
       href: `/${workspaceSlug}/meta-hub/connections`,
       variant: "outline",
     };
@@ -146,41 +148,49 @@ export function MetaHubStatusCard({
   const connectorCards = [
     {
       key: 'whatsapp',
-      name: 'WhatsApp',
+      name: t("whatsapp"),
       icon: MessageSquare,
       status: connectors.whatsapp,
       health: connectors.whatsappHealth,
       description: connectors.whatsapp === 'connected' 
-        ? (status.whatsapp.displayName || 'Connected and receiving messages')
+        ? (status.whatsapp.displayName || t("connectedReceiving"))
         : connectors.whatsapp === 'partial' 
-        ? 'Incomplete setup'
-        : 'Not configured',
-      badgeLabel: connectors.whatsapp === 'connected' ? 'Connected' : 
-                  connectors.whatsapp === 'partial' ? 'Partial' : 'Not Connected',
+        ? t("incompleteSetup")
+        : t("notConfigured"),
+      badgeLabel: connectors.whatsapp === 'connected' ? t("connectedStatus") : 
+                  connectors.whatsapp === 'partial' ? t("partialStatus") : t("notConnectedStatus"),
     },
     {
       key: 'metaPortfolio',
-      name: 'Meta Portfolio',
+      name: t("metaPortfolio"),
       icon: Share2,
       status: connectors.metaPortfolio,
-      description: connectors.metaPortfolio === 'linked' ? 'Business account linked' : 'Not linked',
-      badgeLabel: connectors.metaPortfolio === 'linked' ? 'Linked' : 'Not Linked',
+      description: connectors.metaPortfolio === 'linked' ? t("businessLinked") : t("notLinkedDesc"),
+      badgeLabel: connectors.metaPortfolio === 'linked' ? t("linkedStatus") : t("notLinkedStatus"),
     },
     {
       key: 'instagram',
       name: 'Instagram',
       icon: Instagram,
-      status: 'soon' as const,
-      description: 'Coming soon',
-      badgeLabel: 'Soon',
+      status: connectors.instagram === 'connected' ? 'connected' : connectors.instagram === 'available' ? 'none' : 'soon',
+      description: connectors.instagram === 'connected'
+        ? t("connectedDMs")
+        : connectors.instagram === 'available'
+        ? t("readyToConnect")
+        : t("comingSoon"),
+      badgeLabel: connectors.instagram === 'connected' ? t("connectedStatus") : connectors.instagram === 'available' ? t("availableStatus") : t("soonStatus"),
     },
     {
       key: 'messenger',
       name: 'Messenger',
       icon: MessagesSquare,
-      status: 'soon' as const,
-      description: 'Coming soon',
-      badgeLabel: 'Soon',
+      status: connectors.messenger === 'connected' ? 'connected' : connectors.messenger === 'available' ? 'none' : 'soon',
+      description: connectors.messenger === 'connected'
+        ? t("connectedMessages")
+        : connectors.messenger === 'available'
+        ? t("readyToConnect")
+        : t("comingSoon"),
+      badgeLabel: connectors.messenger === 'connected' ? t("connectedStatus") : connectors.messenger === 'available' ? t("availableStatus") : t("soonStatus"),
     },
   ];
 
@@ -188,7 +198,7 @@ export function MetaHubStatusCard({
     <Card className="border-[#d4af37]/15 bg-[#0a1229]/70">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-[#f5f5dc]">Integration Status</CardTitle>
+          <CardTitle className="text-[#f5f5dc]">{t("integrationStatus")}</CardTitle>
           <Badge 
             variant="outline" 
             className={
@@ -202,7 +212,7 @@ export function MetaHubStatusCard({
           </Badge>
         </div>
         <CardDescription className="text-[#f5f5dc]/60">
-          Multi-connector integration hub for Meta platforms
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -240,7 +250,7 @@ export function MetaHubStatusCard({
                       <p className="text-xs text-[#f5f5dc]/50">
                         {connector.description}
                         {connector.key === 'whatsapp' && connector.health === 'needs_attention' && (
-                          <span className="ml-1 text-amber-400">• Needs verification</span>
+                          <span className="ml-1 text-amber-400">• {t("needsVerification")}</span>
                         )}
                       </p>
                     </div>
@@ -305,11 +315,11 @@ export function MetaHubStatusCard({
           <div className="rounded-lg border border-[#d4af37]/20 bg-[#0a1229]/40 p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#f5f5dc]">Webhooks</p>
+                <p className="text-sm font-medium text-[#f5f5dc]">{t("webhooks")}</p>
                 <p className="text-xs text-[#f5f5dc]/50">
                   {status.webhooks.status === 'active' 
-                    ? `${status.webhooks.events24h} events (24h)` 
-                    : 'No recent events'}
+                    ? t("eventsCount", { count: status.webhooks.events24h }) 
+                    : t("noRecentEvents")}
                 </p>
               </div>
               <Badge 

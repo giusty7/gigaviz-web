@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useTranslations } from "next-intl";
 import type { TokenSettings } from "@/lib/tokens";
 
 type Props = {
@@ -20,6 +21,7 @@ type OverviewResponse = {
 };
 
 export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
+  const t = useTranslations("tokensUI.settings");
   const { toast } = useToast();
   const [settings, setSettings] = useState<TokenSettings | null>(null);
   const [capInput, setCapInput] = useState("");
@@ -41,7 +43,7 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
       setHardCap(Boolean(s.hard_cap));
     } catch (err) {
       toast({
-        title: "Unable to load settings",
+        title: t("unableToLoadSettings"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -63,8 +65,8 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
       const parsed = Number(trimmed);
       if (!Number.isInteger(parsed) || parsed < 0 || parsed > 1_000_000_000) {
         toast({
-          title: "Invalid cap",
-          description: "Enter 0..1,000,000,000 or leave blank for Unlimited.",
+          title: t("invalidCap"),
+          description: t("invalidCapDesc"),
           variant: "destructive",
         });
         return;
@@ -86,11 +88,11 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error || "Save failed");
-      toast({ title: "Settings saved" });
+      toast({ title: t("settingsSaved") });
       await load();
     } catch (err) {
       toast({
-        title: "Unable to save",
+        title: t("unableToSave"),
         description: err instanceof Error ? err.message : "",
         variant: "destructive",
       });
@@ -104,9 +106,9 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Settings</p>
-            <h3 className="text-lg font-semibold text-foreground">Usage guardrails</h3>
-            <p className="text-sm text-muted-foreground">Monthly cap and alerts apply per workspace. Owner/Admin only.</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{t("sectionLabel")}</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("title")}</h3>
+            <p className="text-sm text-muted-foreground">{t("description")}</p>
             {settings?.updated_at ? (
               <p className="text-[11px] text-muted-foreground">
                 Updated {new Date(settings.updated_at).toLocaleString()}
@@ -114,28 +116,28 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
             ) : null}
           </div>
           <Badge variant="outline" className="border-border/70 text-muted-foreground">
-            {canEdit ? "Owner/Admin" : "View only"}
+            {canEdit ? t("ownerAdmin") : t("viewOnly")}
           </Badge>
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
           <label className="text-xs text-muted-foreground">
-            Monthly cap (tokens)
+            {t("monthlyCap")}
             <Input
               type="number"
               min={0}
               max={1_000_000_000}
               value={capInput}
               onChange={(e) => setCapInput(e.target.value)}
-              placeholder="Unlimited"
+              placeholder={t("unlimited")}
               disabled={!canEdit}
               className="mt-1"
             />
-            <span className="text-[11px] text-muted-foreground">Leave blank for Unlimited</span>
+            <span className="text-[11px] text-muted-foreground">{t("monthlyCapHelp")}</span>
           </label>
 
           <label className="text-xs text-muted-foreground">
-            Alert threshold (%)
+            {t("alertThreshold")}
             <Input
               type="range"
               min={50}
@@ -148,12 +150,12 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
             />
             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
               <span>{alertThreshold}%</span>
-              <span className="text-[11px]">Alert when usage crosses this percentage.</span>
+              <span className="text-[11px]">{t("alertThresholdHelp")}</span>
             </div>
           </label>
 
           <label className="text-xs text-muted-foreground">
-            Enforce hard cap
+            {t("enforceHardCap")}
             <div className="mt-1 flex items-center gap-2">
               <button
                 type="button"
@@ -165,10 +167,10 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
                 } ${canEdit ? "" : "opacity-60"}`}
               >
                 {hardCap ? <ShieldCheck className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
-                {hardCap ? "On" : "Off"}
+                {hardCap ? t("on") : t("off")}
               </button>
               <span className="text-[11px] text-muted-foreground">
-                If on, spends are rejected after cap is reached.
+                {t("hardCapHelp")}
               </span>
             </div>
           </label>
@@ -176,10 +178,10 @@ export function TokenSettingsClient({ workspaceId, canEdit }: Props) {
 
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            Who can change settings: Owners & Admins.
+            {t("whoCanChange")}
           </div>
           <Button onClick={save} disabled={!canEdit || saving || loading}>
-            {saving ? "Saving..." : "Save settings"}
+            {saving ? t("saving") : t("saveSettings")}
           </Button>
         </div>
       </CardContent>

@@ -4,6 +4,7 @@ import { logger } from "@/lib/logging";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -42,35 +43,36 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-function getErrorMessage(code?: string, status?: number) {
+function getErrorMessage(code: string | undefined, status: number | undefined, t: (key: string) => string) {
   switch (code) {
     case "invite_not_found":
     case "invite_not_found_or_expired":
     case "invite_expired":
     case "invite_revoked":
-      return "This invite link is invalid, expired, or has been revoked.";
+      return t("errorInvalidExpired");
     case "invite_already_accepted":
-      return "This invite has already been accepted.";
+      return t("errorAlreadyAccepted");
     case "member_already_exists":
-      return "You're already a member of this workspace.";
+      return t("errorAlreadyMember");
     case "invite_used":
-      return "This invite has already been used.";
+      return t("errorAlreadyUsed");
     case "account_exists":
-      return "Account already exists. Please sign in to accept the invitation.";
+      return t("errorAccountExists");
     case "email_mismatch":
-      return "This invite was sent to a different email address.";
+      return t("errorEmailMismatch");
     case "email_not_verified":
-      return "Please verify your email before accepting this invite.";
+      return t("errorEmailNotVerified");
     default:
-      if (status === 401) return "Please sign in to accept this invitation.";
-      if (status === 403) return "You do not have permission to accept this invite.";
-      if (status === 404) return "This invite link is invalid, expired, or has been revoked.";
-      if (status === 409) return "This invite has already been used.";
-      return "Unable to accept the invitation. Please try again.";
+      if (status === 401) return t("errorSignIn");
+      if (status === 403) return t("errorNoPermission");
+      if (status === 404) return t("errorInvalidExpired");
+      if (status === 409) return t("errorAlreadyUsed");
+      return t("errorDefault");
   }
 }
 
 export default function AcceptInviteClient({ token }: { token: string }) {
+  const t = useTranslations("inviteUI");
   const supabase = useMemo(() => supabaseClient(), []);
   const router = useRouter();
   const [status, setStatus] = useState<Status>("loading");
@@ -99,7 +101,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
     const run = async () => {
       if (!normalizedToken) {
         setStatus("error");
-        setError("Missing invitation token.");
+        setError(t("missingToken"));
         return;
       }
 
@@ -113,7 +115,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       if (!previewRes.ok) {
         const code = preview?.status ?? preview?.error;
         setStatus("invalid");
-        setError(getErrorMessage(code, previewRes.status));
+        setError(getErrorMessage(code, previewRes.status, t));
         return;
       }
 
@@ -148,12 +150,12 @@ export default function AcceptInviteClient({ token }: { token: string }) {
     return () => {
       active = false;
     };
-  }, [attempt, normalizedToken, supabase]);
+  }, [attempt, normalizedToken, supabase, t]);
 
   const acceptInvite = async () => {
     if (!normalizedToken) {
       setStatus("error");
-      setError("Missing invitation token.");
+      setError(t("missingToken"));
       return;
     }
     setAccepting(true);
@@ -170,7 +172,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       if (res.status === 401) {
         setStatus("unauth");
         setAccepting(false);
-        setError(getErrorMessage(payload?.error, res.status));
+        setError(getErrorMessage(payload?.error, res.status, t));
         return;
       }
       if (DEV) {
@@ -181,7 +183,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       }
       setStatus("error");
       setAccepting(false);
-      setError(getErrorMessage(payload?.error, res.status));
+      setError(getErrorMessage(payload?.error, res.status, t));
       return;
     }
 
@@ -195,7 +197,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
   const claimInvite = async (values: z.infer<typeof passwordSchema>) => {
     if (!normalizedToken) {
       setStatus("error");
-      setError("Missing invitation token.");
+      setError(t("missingToken"));
       return;
     }
     setClaiming(true);
@@ -211,7 +213,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
 
     if (!res.ok) {
       setClaiming(false);
-      setError(getErrorMessage(payload?.error, res.status));
+      setError(getErrorMessage(payload?.error, res.status, t));
       if (payload?.error === "account_exists") {
         setStatus("account_exists");
       } else {
@@ -225,7 +227,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
     if (!email || !slug) {
       setClaiming(false);
       setStatus("error");
-      setError("Unable to complete signup. Please try again.");
+      setError(t("unableToComplete"));
       return;
     }
 
@@ -248,13 +250,13 @@ export default function AcceptInviteClient({ token }: { token: string }) {
     <div className="space-y-4">
       {invitedEmailMasked ? (
         <div className="rounded-xl border border-gigaviz-border bg-gigaviz-card/60 px-3 py-2 text-sm text-gigaviz-cream">
-          Invitation for: <span className="font-semibold">{invitedEmailMasked}</span>
+          {t("invitationFor")} <span className="font-semibold">{invitedEmailMasked}</span>
         </div>
       ) : null}
 
       {workspaceName ? (
         <div className="text-sm text-gigaviz-muted">
-          Workspace: <span className="font-semibold text-gigaviz-cream">{workspaceName}</span>
+          {t("workspace")} <span className="font-semibold text-gigaviz-cream">{workspaceName}</span>
         </div>
       ) : null}
 
@@ -262,20 +264,20 @@ export default function AcceptInviteClient({ token }: { token: string }) {
         <div className="space-y-2 text-sm text-gigaviz-muted">
           <p>
             {status === "loading"
-              ? "Checking your invite..."
-              : "Accepting your invitation..."}
+              ? t("checkingInvite")
+              : t("acceptingInvitation")}
           </p>
-          <p>Do not close this window.</p>
+          <p>{t("doNotClose")}</p>
         </div>
       ) : null}
 
       {status === "ready" && hasUserSession ? (
         <div className="space-y-3">
           <p className="text-sm text-gigaviz-muted">
-            You are signed in. Accept to join this workspace.
+            {t("signedInReady")}
           </p>
           <Button onClick={acceptInvite} disabled={accepting}>
-            Accept invitation
+            {t("acceptInvitation")}
           </Button>
         </div>
       ) : null}
@@ -283,7 +285,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       {status === "claim" ? (
         <div className="space-y-4">
           <p className="text-sm text-gigaviz-muted">
-            Create a password to accept this invite. The email is fixed from the invitation.
+            {t("createPasswordPrompt")}
           </p>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(claimInvite)} className="space-y-3">
@@ -292,7 +294,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Create password</FormLabel>
+                    <FormLabel>{t("createPassword")}</FormLabel>
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
@@ -305,7 +307,7 @@ export default function AcceptInviteClient({ token }: { token: string }) {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm password</FormLabel>
+                    <FormLabel>{t("confirmPassword")}</FormLabel>
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
@@ -314,12 +316,12 @@ export default function AcceptInviteClient({ token }: { token: string }) {
                 )}
               />
               <Button type="submit" disabled={claiming} className="w-full">
-                {claiming ? "Processing..." : "Go to dashboard"}
+                {claiming ? t("processing") : t("goToDashboard")}
               </Button>
             </form>
           </Form>
           <div className="text-xs text-gigaviz-muted">
-            Already have an account? <Link href={loginUrl} className="underline">Login</Link>
+            {t("alreadyHaveAccount")} <Link href={loginUrl} className="underline">{t("login")}</Link>
           </div>
         </div>
       ) : null}
@@ -327,17 +329,17 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       {status === "account_exists" ? (
         <div className="space-y-4">
           <Alert>
-            <AlertTitle>Account exists</AlertTitle>
+            <AlertTitle>{t("accountExists")}</AlertTitle>
             <AlertDescription>
-              An account for this invite email already exists. Please sign in to accept the invite.
+              {t("accountExistsDesc")}
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">
             <Button asChild>
-              <Link href={loginUrl}>Continue to login</Link>
+              <Link href={loginUrl}>{t("continueToLogin")}</Link>
             </Button>
             <Button asChild variant="secondary">
-              <a href={oauthUrl}>Continue with Google</a>
+              <a href={oauthUrl}>{t("continueWithGoogle")}</a>
             </Button>
           </div>
         </div>
@@ -346,17 +348,17 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       {status === "unauth" ? (
         <div className="space-y-4">
           <Alert>
-            <AlertTitle>Sign in required</AlertTitle>
+            <AlertTitle>{t("signInRequired")}</AlertTitle>
             <AlertDescription>
-              Sign in to accept this invitation.
+              {t("signInRequiredDesc")}
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">
             <Button asChild>
-              <Link href={loginUrl}>Continue to login</Link>
+              <Link href={loginUrl}>{t("continueToLogin")}</Link>
             </Button>
             <Button asChild variant="secondary">
-              <a href={oauthUrl}>Continue with Google</a>
+              <a href={oauthUrl}>{t("continueWithGoogle")}</a>
             </Button>
           </div>
         </div>
@@ -365,17 +367,17 @@ export default function AcceptInviteClient({ token }: { token: string }) {
       {status === "invalid" || status === "error" ? (
         <div className="space-y-4">
           <Alert variant="destructive">
-            <AlertTitle>Invitation failed</AlertTitle>
+            <AlertTitle>{t("invitationFailed")}</AlertTitle>
             <AlertDescription>
-              {error ?? "Unable to accept invite."}
+              {error ?? t("errorDefault")}
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-2">
             <Button onClick={() => setAttempt((prev) => prev + 1)}>
-              Try again
+              {t("tryAgain")}
             </Button>
             <Button asChild variant="secondary">
-              <Link href="/app">Go to app</Link>
+              <Link href="/app">{t("goToApp")}</Link>
             </Button>
           </div>
         </div>

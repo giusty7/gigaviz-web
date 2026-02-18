@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
@@ -62,6 +63,7 @@ export function CustomizePinnedDialog({
   onSave,
 }: CustomizePinnedDialogProps) {
   const { toast } = useToast();
+  const t = useTranslations("dashboardWidgets.customizeDialog");
   const [selected, setSelected] = useState<ModuleKey[]>(currentPinned);
   const [saving, setSaving] = useState(false);
 
@@ -79,8 +81,8 @@ export function CustomizePinnedDialog({
           // Don't allow deselecting if at minimum
           if (prev.length <= MIN_PINNED_MODULES) {
             toast({
-              title: "Cannot remove",
-              description: `At least ${MIN_PINNED_MODULES} module must be pinned`,
+              title: t("cannotRemove"),
+              description: t("cannotRemoveDesc", { min: MIN_PINNED_MODULES }),
               variant: "destructive",
             });
             return prev;
@@ -90,8 +92,8 @@ export function CustomizePinnedDialog({
           // Don't allow selecting if at maximum
           if (prev.length >= MAX_PINNED_MODULES) {
             toast({
-              title: "Maximum reached",
-              description: `You can pin up to ${MAX_PINNED_MODULES} modules`,
+              title: t("maxReached"),
+              description: t("maxReachedDesc", { max: MAX_PINNED_MODULES }),
               variant: "destructive",
             });
             return prev;
@@ -100,14 +102,14 @@ export function CustomizePinnedDialog({
         }
       });
     },
-    [toast]
+    [toast, t]
   );
 
   const handleSave = useCallback(async () => {
     if (selected.length < MIN_PINNED_MODULES || selected.length > MAX_PINNED_MODULES) {
       toast({
-        title: "Invalid selection",
-        description: `Please select ${MIN_PINNED_MODULES}-${MAX_PINNED_MODULES} modules`,
+        title: t("invalidSelection"),
+        description: t("invalidSelectionDesc", { min: MIN_PINNED_MODULES, max: MAX_PINNED_MODULES }),
         variant: "destructive",
       });
       return;
@@ -130,22 +132,22 @@ export function CustomizePinnedDialog({
       }
 
       toast({
-        title: "Saved",
-        description: "Your Quick Access modules have been updated",
+        title: t("saved"),
+        description: t("savedDesc"),
       });
 
       onSave(selected);
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Failed to save",
-        description: error instanceof Error ? error.message : "Please try again",
+        title: t("failedSave"),
+        description: error instanceof Error ? error.message : t("failedSaveDesc"),
         variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
-  }, [selected, workspaceId, toast, onSave, onOpenChange]);
+  }, [selected, workspaceId, toast, t, onSave, onOpenChange]);
 
   // Group modules by status
   const available = availableModules.filter((m) => m.status === "available");
@@ -217,12 +219,12 @@ export function CustomizePinnedDialog({
       <DialogContent className="max-w-2xl border-[#d4af37]/20 bg-[#0a1229] text-slate-100">
         <DialogHeader>
           <DialogTitle className="text-xl text-[#d4af37]">
-            Customize Quick Access
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Select {MIN_PINNED_MODULES}-{MAX_PINNED_MODULES} modules to pin in your dashboard.{" "}
+            {t("description", { min: MIN_PINNED_MODULES, max: MAX_PINNED_MODULES })}{" "}
             <span className="text-slate-300">
-              ({selected.length}/{MAX_PINNED_MODULES} selected)
+              {t("selected", { count: selected.length, max: MAX_PINNED_MODULES })}
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -231,7 +233,7 @@ export function CustomizePinnedDialog({
           {/* Available modules */}
           {available.length > 0 && (
             <div>
-              <h3 className="mb-3 text-sm font-medium text-emerald-400">Available</h3>
+              <h3 className="mb-3 text-sm font-medium text-emerald-400">{t("available")}</h3>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                 {available.map(renderModuleCard)}
               </div>
@@ -241,7 +243,7 @@ export function CustomizePinnedDialog({
           {/* Beta modules */}
           {beta.length > 0 && (
             <div>
-              <h3 className="mb-3 text-sm font-medium text-blue-400">Beta</h3>
+              <h3 className="mb-3 text-sm font-medium text-blue-400">{t("beta")}</h3>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                 {beta.map(renderModuleCard)}
               </div>
@@ -251,7 +253,7 @@ export function CustomizePinnedDialog({
           {/* Coming soon modules */}
           {coming.length > 0 && (
             <div>
-              <h3 className="mb-3 text-sm font-medium text-slate-500">Coming Soon</h3>
+              <h3 className="mb-3 text-sm font-medium text-slate-500">{t("comingSoon")}</h3>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 opacity-50">
                 {coming.map(renderModuleCard)}
               </div>
@@ -266,7 +268,7 @@ export function CustomizePinnedDialog({
             disabled={saving}
             className="border-slate-700 text-slate-300 hover:bg-slate-800"
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSave}
@@ -277,7 +279,7 @@ export function CustomizePinnedDialog({
             }
             className="bg-[#d4af37] text-[#0a1229] hover:bg-[#d4af37]/90"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? t("saving") : t("saveChanges")}
           </Button>
         </DialogFooter>
       </DialogContent>

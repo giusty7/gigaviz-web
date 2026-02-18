@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type Props = {
   needs: string[];
@@ -11,6 +12,7 @@ type Props = {
 
 export function LeadsFilters({ needs, sources, tab }: Props) {
   const router = useRouter();
+  const t = useTranslations("adminUI.leadsFilters");
   const pathname = usePathname();
   const sp = useSearchParams();
 
@@ -53,24 +55,24 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
     <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
       <div className="grid gap-3 md:grid-cols-12 md:items-end">
         <div className="md:col-span-5">
-          <label className="text-xs text-white/70">Search (name / WA / business / notes)</label>
+          <label className="text-xs text-white/70">{t("searchLabel")}</label>
           <input
             defaultValue={q}
             onChange={(e) => setParam("q", e.target.value)}
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-cyan-500/30"
-            placeholder="e.g., 62812 / brandx / chatbot"
+            placeholder={t("searchPlaceholder")}
           />
         </div>
 
         <div className="md:col-span-3">
-          <label className="text-xs text-white/70">Need filter</label>
+          <label className="text-xs text-white/70">{t("needFilter")}</label>
           <select
             value={need}
             onChange={(e) => setParam("need", e.target.value)}
             title="Filter by need"
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
-            <option value="">All needs</option>
+            <option value="">{t("allNeeds")}</option>
             {needs.map((n) => (
               <option key={n} value={n} className="text-black">
                 {n}
@@ -80,14 +82,14 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
         </div>
 
         <div className="md:col-span-2">
-          <label className="text-xs text-white/70">Source</label>
+          <label className="text-xs text-white/70">{t("source")}</label>
           <select
             value={source}
             onChange={(e) => setParam("source", e.target.value)}
             title="Filter by source"
             className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
           >
-            <option value="">All sources</option>
+            <option value="">{t("allSources")}</option>
             {sources.map((s) => (
               <option key={s} value={s} className="text-black">
                 {s}
@@ -98,14 +100,14 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
 
         {tab === "attempts" && (
           <div className="md:col-span-2">
-            <label className="text-xs text-white/70">Status</label>
+            <label className="text-xs text-white/70">{t("status")}</label>
             <select
               value={status}
               onChange={(e) => setParam("status", e.target.value)}
               title="Filter by status"
               className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-cyan-500/30"
             >
-              <option value="">All statuses</option>
+              <option value="">{t("allStatuses")}</option>
               {["inserted", "deduped", "rate_limited", "invalid", "honeypot", "error"].map((s) => (
                 <option key={s} value={s} className="text-black">
                   {s}
@@ -120,20 +122,20 @@ export function LeadsFilters({ needs, sources, tab }: Props) {
             onClick={apply}
             className="rounded-2xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-cyan-300"
           >
-            Apply
+            {t("apply")}
           </button>
           <button
             onClick={reset}
             className="rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10"
           >
-            Reset
+            {t("reset")}
           </button>
 
           <a
             href={exportHref}
             className="ml-auto rounded-2xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10"
           >
-            Export CSV
+            {t("exportCSV")}
           </a>
         </div>
       </div>

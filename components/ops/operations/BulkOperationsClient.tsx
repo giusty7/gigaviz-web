@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Zap,
   Play,
@@ -47,6 +48,7 @@ const TARGET_TYPES = [
 ];
 
 export default function BulkOperationsClient() {
+  const t = useTranslations("opsUI");
   const [jobs, setJobs] = useState<BulkJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -129,8 +131,8 @@ export default function BulkOperationsClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Bulk Operations</h1>
-          <p className="text-zinc-400">Execute operations on multiple targets</p>
+          <h1 className="text-2xl font-bold text-white">{t("operations.bulk.title")}</h1>
+          <p className="text-zinc-400">{t("operations.bulk.subtitle")}</p>
         </div>
         <button
           onClick={fetchJobs}
@@ -145,11 +147,11 @@ export default function BulkOperationsClient() {
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
           <Zap className="h-5 w-5 text-orange-400" />
-          Create Bulk Operation
+          {t("operations.bulk.newOperation")}
         </h2>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Operation Type</label>
+            <label className="mb-2 block text-sm text-zinc-400">{t("operations.bulk.operationType")}</label>
             <select
               value={operationType}
               onChange={(e) => setOperationType(e.target.value)}
@@ -163,7 +165,7 @@ export default function BulkOperationsClient() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Target Type</label>
+            <label className="mb-2 block text-sm text-zinc-400">{t("operations.bulk.targetType")}</label>
             <select
               value={targetType}
               onChange={(e) => setTargetType(e.target.value)}
@@ -183,7 +185,7 @@ export default function BulkOperationsClient() {
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500 bg-amber-500/10 px-4 py-2 text-amber-400 hover:bg-amber-500/20"
             >
               <Eye className="h-4 w-4" />
-              {previewing ? "Loading..." : "Preview"}
+              {previewing ? t("operations.bulk.executing") : t("operations.bulk.preview")}
             </button>
           </div>
         </div>
@@ -192,7 +194,7 @@ export default function BulkOperationsClient() {
       {/* Preview Result */}
       {preview && (
         <div className="rounded-xl border border-amber-900/50 bg-amber-950/20 p-6">
-          <h3 className="mb-4 text-lg font-semibold text-white">Operation Preview</h3>
+          <h3 className="mb-4 text-lg font-semibold text-white">{t("operations.bulk.preview")}</h3>
           <div className="grid gap-4 md:grid-cols-4">
             <div>
               <p className="text-sm text-zinc-400">Targets</p>
@@ -214,7 +216,7 @@ export default function BulkOperationsClient() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-white hover:bg-orange-700"
               >
                 <Play className="h-4 w-4" />
-                Create Job
+                {t("operations.bulk.execute")}
               </button>
             </div>
           </div>
@@ -240,7 +242,7 @@ export default function BulkOperationsClient() {
 
       {/* Jobs List */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">Recent Jobs</h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">{t("operations.bulk.history")}</h2>
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <RefreshCw className="h-6 w-6 animate-spin text-zinc-500" />

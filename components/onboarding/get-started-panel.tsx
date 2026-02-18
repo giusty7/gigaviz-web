@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export type OnboardingStep = {
   id: string;
@@ -47,6 +48,7 @@ export function GetStartedPanel({
   };
   const [dismissed, setDismissed] = useState(getInitialDismissed);
   const [expanded, setExpanded] = useState(true);
+  const t = useTranslations("onboardingUI.getStarted");
 
   // Keep workspaceSlug reference to avoid lint warning (future navigation use)
   void _workspaceSlug;
@@ -76,7 +78,7 @@ export function GetStartedPanel({
             <span className="rounded-lg bg-gigaviz-gold/20 p-1.5 text-gigaviz-gold">
               <Sparkles size={18} />
             </span>
-            <CardTitle className="text-lg font-semibold text-foreground">Get Started</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">{t("title")}</CardTitle>
             <Badge
               variant="outline"
               className={cn(
@@ -168,17 +170,17 @@ export function GetStartedPanel({
             {nextStep ? (
               <Link href={nextStep.href}>
                 <Button size="sm" className="bg-gigaviz-gold text-gigaviz-navy hover:bg-gigaviz-gold/90">
-                  Continue: {nextStep.label}
+                  {t("continueLabel", { label: nextStep.label })}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             ) : (
               <div className="flex items-center gap-2">
                 <Badge className="bg-emerald-400/20 text-emerald-200 border-emerald-400/40">
-                  🎉 All set!
+                  {t("allSet")}
                 </Badge>
                 <Button size="sm" variant="ghost" onClick={handleDismiss}>
-                  Dismiss
+                  {t("dismiss")}
                 </Button>
               </div>
             )}
@@ -187,7 +189,7 @@ export function GetStartedPanel({
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-gigaviz-gold"
             >
               <BookOpen size={14} />
-              Learn more
+              {t("learnMore")}
             </Link>
           </div>
         </CardContent>

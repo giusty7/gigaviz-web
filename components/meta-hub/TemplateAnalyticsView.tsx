@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -45,6 +46,7 @@ interface TemplateAnalyticsViewProps {
 
 export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnalyticsViewProps) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.templateAnalytics");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<TemplateAnalytics | null>(null);
 
@@ -68,8 +70,8 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to load analytics",
+        title: t("toastError"),
+        description: error instanceof Error ? error.message : t("toastLoadFailed"),
         variant: "destructive",
       });
     } finally {
@@ -88,7 +90,7 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
   if (!data) {
     return (
       <div className="text-center text-[#f5f5dc]/60 py-12">
-        <p>No analytics data available</p>
+        <p>{t("noAnalytics")}</p>
       </div>
     );
   }
@@ -112,7 +114,7 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
           className="border-[#d4af37]/30"
         >
           <Download className="h-4 w-4 mr-2" />
-          Export Report
+          {t("exportReport")}
         </Button>
       </div>
 
@@ -120,27 +122,27 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           icon={Send}
-          label="Total Sent"
+          label={t("totalSent")}
           value={metrics.total_sent}
           color="text-blue-400"
         />
         <MetricCard
           icon={CheckCircle}
-          label="Delivered"
+          label={t("delivered")}
           value={metrics.delivered}
-          subtitle={`${metrics.delivery_rate}% delivery rate`}
+          subtitle={t("deliveryRate", { rate: metrics.delivery_rate })}
           color="text-green-400"
         />
         <MetricCard
           icon={XCircle}
-          label="Failed"
+          label={t("deliveredFailed")}
           value={metrics.failed}
-          subtitle={`${metrics.failure_rate}% failure rate`}
+          subtitle={t("failureRate", { rate: metrics.failure_rate })}
           color="text-red-400"
         />
         <MetricCard
           icon={Clock}
-          label="Pending"
+          label={t("deliveredPending")}
           value={metrics.pending}
           color="text-yellow-400"
         />
@@ -150,19 +152,19 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
       <div className="bg-[#1a1a1a] border border-[#d4af37]/20 rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="h-5 w-5 text-[#d4af37]" />
-          <h3 className="text-lg font-bold text-[#f5f5dc]">Campaign Jobs</h3>
+          <h3 className="text-lg font-bold text-[#f5f5dc]">{t("campaignJobs")}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <p className="text-sm text-[#f5f5dc]/60">Total Jobs</p>
+            <p className="text-sm text-[#f5f5dc]/60">{t("totalJobs")}</p>
             <p className="text-2xl font-bold text-[#f5f5dc]">{jobs.total}</p>
           </div>
           <div>
-            <p className="text-sm text-[#f5f5dc]/60">Completed</p>
+            <p className="text-sm text-[#f5f5dc]/60">{t("completed")}</p>
             <p className="text-2xl font-bold text-green-400">{jobs.completed}</p>
           </div>
           <div>
-            <p className="text-sm text-[#f5f5dc]/60">Failed</p>
+            <p className="text-sm text-[#f5f5dc]/60">{t("failed")}</p>
             <p className="text-2xl font-bold text-red-400">{jobs.failed}</p>
           </div>
         </div>
@@ -172,7 +174,7 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
       <div className="bg-[#1a1a1a] border border-[#d4af37]/20 rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="h-5 w-5 text-[#d4af37]" />
-          <h3 className="text-lg font-bold text-[#f5f5dc]">Usage Trend (Last 30 Days)</h3>
+          <h3 className="text-lg font-bold text-[#f5f5dc]">{t("usageTrend")}</h3>
         </div>
         {trend.length > 0 ? (
           <div className="flex items-end gap-2 h-48">
@@ -197,7 +199,7 @@ export function TemplateAnalyticsView({ templateId, workspaceId }: TemplateAnaly
             })}
           </div>
         ) : (
-          <p className="text-center text-[#f5f5dc]/60 py-8">No usage data available</p>
+          <p className="text-center text-[#f5f5dc]/60 py-8">{t("noUsageData")}</p>
         )}
       </div>
     </div>

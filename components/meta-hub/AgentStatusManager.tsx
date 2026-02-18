@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,10 +47,10 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<AgentStatusType, { label: string; color: string; bgColor: string }> = {
-  online: { label: "Online", color: "text-green-500", bgColor: "bg-green-500" },
-  away: { label: "Away", color: "text-yellow-500", bgColor: "bg-yellow-500" },
-  busy: { label: "Busy", color: "text-red-500", bgColor: "bg-red-500" },
-  offline: { label: "Offline", color: "text-gray-400", bgColor: "bg-gray-400" },
+  online: { label: "online", color: "text-green-500", bgColor: "bg-green-500" },
+  away: { label: "away", color: "text-yellow-500", bgColor: "bg-yellow-500" },
+  busy: { label: "busy", color: "text-red-500", bgColor: "bg-red-500" },
+  offline: { label: "offline", color: "text-gray-400", bgColor: "bg-gray-400" },
 };
 
 // ============================================================================
@@ -58,6 +59,7 @@ const STATUS_CONFIG: Record<AgentStatusType, { label: string; color: string; bgC
 
 export function AgentStatusManager({ currentUserId }: Props) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.agentStatus");
   
   // State
   const [agents, setAgents] = useState<AgentStatus[]>([]);
@@ -138,15 +140,15 @@ export function AgentStatusManager({ currentUserId }: Props) {
       if (!res.ok) throw new Error(data.error);
       
       toast({
-        title: "Status updated",
-        description: `You are now ${STATUS_CONFIG[newStatus].label.toLowerCase()}`,
+        title: t("statusUpdated"),
+        description: t("youAreNow", { status: t(STATUS_CONFIG[newStatus].label) }),
       });
       
       fetchAgentStatuses();
     } catch (err) {
       toast({
-        title: "Error updating status",
-        description: err instanceof Error ? err.message : "Unknown error",
+        title: t("errorUpdatingStatus"),
+        description: err instanceof Error ? err.message : t("unknownError"),
         variant: "destructive",
       });
       fetchAgentStatuses(); // Revert to server state
@@ -170,10 +172,10 @@ export function AgentStatusManager({ currentUserId }: Props) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <UsersIcon className="h-5 w-5" />
-          Agent Status
+          {t("title")}
         </CardTitle>
         <CardDescription>
-          Manage your availability and see who&apos;s online
+          {t("description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -181,21 +183,21 @@ export function AgentStatusManager({ currentUserId }: Props) {
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-3 bg-muted rounded-lg">
             <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-xs text-muted-foreground">Total Agents</div>
+            <div className="text-xs text-muted-foreground">{t("totalAgents")}</div>
           </div>
           <div className="text-center p-3 bg-green-500/10 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{stats.online}</div>
-            <div className="text-xs text-muted-foreground">Online</div>
+            <div className="text-xs text-muted-foreground">{t("online")}</div>
           </div>
           <div className="text-center p-3 bg-yellow-500/10 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{stats.available}</div>
-            <div className="text-xs text-muted-foreground">Available</div>
+            <div className="text-xs text-muted-foreground">{t("available")}</div>
           </div>
         </div>
 
         {/* My Status */}
         <div className="border rounded-lg p-4 bg-muted/30">
-          <h3 className="font-medium mb-3">Your Status</h3>
+          <h3 className="font-medium mb-3">{t("yourStatus")}</h3>
           <div className="flex items-center gap-3">
             <Popover>
               <PopoverTrigger asChild>
@@ -210,7 +212,7 @@ export function AgentStatusManager({ currentUserId }: Props) {
                       STATUS_CONFIG[myStatus].color
                     )} 
                   />
-                  {STATUS_CONFIG[myStatus].label}
+                  {t(STATUS_CONFIG[myStatus].label)}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-48 p-2" align="start">
@@ -227,14 +229,14 @@ export function AgentStatusManager({ currentUserId }: Props) {
                         STATUS_CONFIG[status].color
                       )} 
                     />
-                    {STATUS_CONFIG[status].label}
+                    {t(STATUS_CONFIG[status].label)}
                   </Button>
                 ))}
               </PopoverContent>
             </Popover>
             
             <Input
-              placeholder="Status message (optional)"
+              placeholder={t("statusMessagePlaceholder")}
               value={myStatusMessage}
               onChange={(e) => setMyStatusMessage(e.target.value)}
               onBlur={updateStatusMessage}
@@ -247,7 +249,7 @@ export function AgentStatusManager({ currentUserId }: Props) {
         {/* Other Agents */}
         {otherAgents.length > 0 && (
           <div>
-            <h3 className="font-medium mb-3">Team</h3>
+            <h3 className="font-medium mb-3">{t("team")}</h3>
             <div className="space-y-2">
               {otherAgents.map(agent => (
                 <AgentStatusRow key={agent.userId} agent={agent} />
@@ -258,7 +260,7 @@ export function AgentStatusManager({ currentUserId }: Props) {
 
         {loading && agents.length === 0 && (
           <div className="text-center py-6 text-muted-foreground">
-            Loading agent statuses...
+            {t("loadingStatuses")}
           </div>
         )}
       </CardContent>
@@ -322,14 +324,14 @@ function formatTimeAgo(date: Date): string {
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) return "now";
+  if (diffMins < 60) return `${diffMins}m`;
   
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return `${diffHours}h`;
   
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
+  return `${diffDays}d`;
 }
 
 export default AgentStatusManager;

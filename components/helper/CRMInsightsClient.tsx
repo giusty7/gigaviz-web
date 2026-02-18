@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -150,6 +151,7 @@ export function CRMInsightsClient({
   initialContacts,
   initialStats,
 }: Props) {
+  const t = useTranslations("helperUI.crmInsights");
   const [contacts] = useState<Contact[]>(initialContacts);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStage, setFilterStage] = useState<string>("all");
@@ -343,10 +345,10 @@ export function CRMInsightsClient({
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#d4af37] to-[#f9d976] bg-clip-text text-transparent flex items-center gap-2">
               <Brain className="h-6 w-6 text-[#d4af37]" />
-              AI-Powered CRM
+              {t("title")}
             </h1>
             <p className="text-[#f5f5dc]/60 mt-1">
-              Intelligent customer insights and relationship management
+              {t("subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -379,14 +381,14 @@ export function CRMInsightsClient({
               ) : (
                 <Sparkles className="h-4 w-4 mr-2" />
               )}
-              Refresh Insights
+              {t("refreshData")}
             </Button>
             <Button
               size="sm"
               className="bg-gradient-to-r from-[#d4af37] to-[#f9d976] text-[#050a18] hover:opacity-90"
             >
               <Star className="h-4 w-4 mr-2" />
-              Add Contact
+              {t("addContact")}
             </Button>
           </div>
         </div>
@@ -399,28 +401,28 @@ export function CRMInsightsClient({
               className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]"
             >
               <Target className="h-4 w-4 mr-2" />
-              Overview
+              {t("tabOverview")}
             </TabsTrigger>
             <TabsTrigger
               value="insights"
               className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]"
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              AI Insights
+              {t("aiInsights")}
             </TabsTrigger>
             <TabsTrigger
               value="contacts"
               className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]"
             >
               <Users className="h-4 w-4 mr-2" />
-              Contacts
+              {t("tabContacts")}
             </TabsTrigger>
             <TabsTrigger
               value="engagement"
               className="data-[state=active]:bg-[#d4af37]/20 data-[state=active]:text-[#d4af37]"
             >
               <Activity className="h-4 w-4 mr-2" />
-              Engagement
+              {t("tabActivities")}
             </TabsTrigger>
           </TabsList>
 
@@ -429,10 +431,10 @@ export function CRMInsightsClient({
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Total Contacts", value: initialStats.totalContacts, icon: Users, gradient: "from-[#d4af37] to-[#f9d976]" },
-                { label: "Active", value: initialStats.activeContacts, icon: CheckCircle, gradient: "from-emerald-500 to-emerald-400" },
-                { label: "Active Threads", value: initialStats.openThreads, icon: MessageSquare, gradient: "from-blue-500 to-blue-400" },
-                { label: "Total Conversations", value: initialStats.totalThreads, icon: Activity, gradient: "from-purple-500 to-purple-400" },
+                { label: t("totalContacts"), value: initialStats.totalContacts, icon: Users, gradient: "from-[#d4af37] to-[#f9d976]" },
+                { label: t("totalContactsDesc"), value: initialStats.activeContacts, icon: CheckCircle, gradient: "from-emerald-500 to-emerald-400" },
+                { label: t("activeDeals"), value: initialStats.openThreads, icon: MessageSquare, gradient: "from-blue-500 to-blue-400" },
+                { label: t("activitiesDesc"), value: initialStats.totalThreads, icon: Activity, gradient: "from-purple-500 to-purple-400" },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -460,7 +462,7 @@ export function CRMInsightsClient({
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
                 <h3 className="text-lg font-semibold text-[#d4af37] mb-4 flex items-center gap-2">
                   <Activity className="h-5 w-5" />
-                  Key Metrics
+                  {t("revenue")}
                 </h3>
                 <div className="space-y-4">
                   {engagementMetrics.map((metric) => (
@@ -491,13 +493,13 @@ export function CRMInsightsClient({
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
                 <h3 className="text-lg font-semibold text-[#d4af37] mb-4 flex items-center gap-2">
                   <Sparkles className="h-5 w-5" />
-                  AI Insights
+                  {t("aiInsights")}
                 </h3>
                 <AnimatePresence>
                   {generatingInsights ? (
                     <div className="flex items-center justify-center py-8">
                       <RefreshCw className="h-6 w-6 text-[#d4af37] animate-spin" />
-                      <span className="ml-2 text-[#f5f5dc]/60">Analyzing patterns...</span>
+                      <span className="ml-2 text-[#f5f5dc]/60">{t("generating")}</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -618,7 +620,7 @@ export function CRMInsightsClient({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#f5f5dc]/40" />
                 <Input
-                  placeholder="Search contacts..."
+                  placeholder={t("searchContacts")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc] placeholder:text-[#f5f5dc]/40"
@@ -630,18 +632,18 @@ export function CRMInsightsClient({
                 className="border-[#d4af37]/20 text-[#f5f5dc]/70 hover:text-[#d4af37]"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                Advanced Filter
+                {t("searchContacts")}
               </Button>
               <Select value={filterStage} onValueChange={setFilterStage}>
                 <SelectTrigger className="w-[180px] bg-[#0a1229]/80 border-[#d4af37]/20 text-[#f5f5dc]">
                   <SelectValue placeholder="Filter by stage" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0a1229] border-[#d4af37]/20">
-                  <SelectItem value="all">All Stages</SelectItem>
-                  <SelectItem value="lead">Leads</SelectItem>
-                  <SelectItem value="prospect">Prospects</SelectItem>
-                  <SelectItem value="customer">Customers</SelectItem>
-                  <SelectItem value="champion">Champions</SelectItem>
+                  <SelectItem value="all">{t("viewAll")}</SelectItem>
+                  <SelectItem value="lead">{t("stageDiscovery")}</SelectItem>
+                  <SelectItem value="prospect">{t("stageProposal")}</SelectItem>
+                  <SelectItem value="customer">{t("stageNegotiation")}</SelectItem>
+                  <SelectItem value="champion">{t("stageClosed")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -743,7 +745,7 @@ export function CRMInsightsClient({
               {filteredContacts.length === 0 && (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-[#f5f5dc]/20 mx-auto mb-4" />
-                  <p className="text-[#f5f5dc]/60">No contacts found</p>
+                  <p className="text-[#f5f5dc]/60">{t("noContacts")}</p>
                 </div>
               )}
             </div>
@@ -754,7 +756,7 @@ export function CRMInsightsClient({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Response Time Chart */}
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
-                <h3 className="text-lg font-semibold text-[#d4af37] mb-4">Response Time</h3>
+                <h3 className="text-lg font-semibold text-[#d4af37] mb-4">{t("lastUpdated")}</h3>
                 <div className="text-center py-8">
                   <p className="text-5xl font-bold text-[#f5f5dc]">4.2<span className="text-xl">h</span></p>
                   <p className="text-sm text-[#f5f5dc]/60 mt-2">Average response time</p>
@@ -767,7 +769,7 @@ export function CRMInsightsClient({
 
               {/* Message Volume */}
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
-                <h3 className="text-lg font-semibold text-[#d4af37] mb-4">Message Volume</h3>
+                <h3 className="text-lg font-semibold text-[#d4af37] mb-4">{t("activities")}</h3>
                 <div className="text-center py-8">
                   <p className="text-5xl font-bold text-[#f5f5dc]">1,247</p>
                   <p className="text-sm text-[#f5f5dc]/60 mt-2">Messages this week</p>
@@ -780,7 +782,7 @@ export function CRMInsightsClient({
 
               {/* Active Hours */}
               <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
-                <h3 className="text-lg font-semibold text-[#d4af37] mb-4">Peak Hours</h3>
+                <h3 className="text-lg font-semibold text-[#d4af37] mb-4">{t("activityDate")}</h3>
                 <div className="space-y-3 py-4">
                   {[
                     { hour: "9-11 AM", percentage: 85 },
@@ -801,7 +803,7 @@ export function CRMInsightsClient({
 
             {/* Channel Distribution */}
             <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 backdrop-blur-xl p-6">
-              <h3 className="text-lg font-semibold text-[#d4af37] mb-4">Channel Distribution</h3>
+              <h3 className="text-lg font-semibold text-[#d4af37] mb-4">{t("exportData")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {[
                   { channel: "WhatsApp", icon: Smartphone, count: 892, percentage: 72, color: "from-emerald-500 to-emerald-400" },

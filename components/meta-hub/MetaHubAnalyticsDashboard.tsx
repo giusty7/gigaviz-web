@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -42,6 +43,7 @@ export function MetaHubAnalyticsDashboard({
   workspaceId,
 }: Omit<MetaHubAnalyticsDashboardProps, 'workspaceSlug'>) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.analyticsDashboard");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
@@ -68,8 +70,8 @@ export function MetaHubAnalyticsDashboard({
     } catch (error) {
       logger.error("Analytics fetch error:", error);
       toast({
-        title: "Failed to load analytics",
-        description: error instanceof Error ? error.message : "Unknown error",
+        title: t("toastFailed"),
+        description: error instanceof Error ? error.message : t("unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -99,13 +101,13 @@ export function MetaHubAnalyticsDashboard({
       document.body.removeChild(a);
 
       toast({
-        title: "Export successful",
-        description: "Analytics data downloaded as CSV",
+        title: t("toastExportSuccess"),
+        description: t("toastExportSuccessDesc"),
       });
     } catch (error) {
       toast({
-        title: "Export failed",
-        description: error instanceof Error ? error.message : "Unknown error",
+        title: t("toastExportFailed"),
+        description: error instanceof Error ? error.message : t("unknownError"),
         variant: "destructive",
       });
     } finally {
@@ -144,7 +146,7 @@ export function MetaHubAnalyticsDashboard({
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#d4af37]" />
-          <p className="mt-4 text-sm text-[#f5f5dc]/60">Loading analytics...</p>
+          <p className="mt-4 text-sm text-[#f5f5dc]/60">{t("loadingAnalytics")}</p>
         </div>
       </div>
     );
@@ -154,7 +156,7 @@ export function MetaHubAnalyticsDashboard({
     return (
       <div className="rounded-xl border border-[#d4af37]/20 bg-[#0a1229]/80 p-8 text-center">
         <Activity className="mx-auto h-12 w-12 text-[#f5f5dc]/30" />
-        <p className="mt-4 text-sm text-[#f5f5dc]/60">No analytics data available</p>
+        <p className="mt-4 text-sm text-[#f5f5dc]/60">{t("noDataAvailable")}</p>
       </div>
     );
   }
@@ -188,9 +190,9 @@ export function MetaHubAnalyticsDashboard({
       {/* Header with Time Range Selector */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#f9d976]">WhatsApp Analytics</h2>
+          <h2 className="text-2xl font-bold text-[#f9d976]">{t("title")}</h2>
           <p className="mt-1 text-sm text-[#f5f5dc]/60">
-            Performance insights for your messaging activity
+            {t("subtitle")}
           </p>
         </div>
 
@@ -207,9 +209,9 @@ export function MetaHubAnalyticsDashboard({
                     : "text-[#f5f5dc]/60 hover:bg-[#f5f5dc]/5 hover:text-[#f5f5dc]"
                 )}
               >
-                {range === "7d" && "Last 7 Days"}
-                {range === "30d" && "Last 30 Days"}
-                {range === "90d" && "Last 90 Days"}
+                {range === "7d" && t("last7Days")}
+                {range === "30d" && t("last30Days")}
+                {range === "90d" && t("last90Days")}
               </button>
             ))}
           </div>
@@ -223,12 +225,12 @@ export function MetaHubAnalyticsDashboard({
             {exporting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Exporting...
+                {t("exporting")}
               </>
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                Export CSV
+                {t("exportCsv")}
               </>
             )}
           </Button>
@@ -246,7 +248,7 @@ export function MetaHubAnalyticsDashboard({
               <MessageSquare className="h-6 w-6 text-[#f9d976]" />
             </div>
             <div>
-              <p className="text-sm text-[#f5f5dc]/60">Total Threads</p>
+              <p className="text-sm text-[#f5f5dc]/60">{t("totalThreads")}</p>
               <p className="text-2xl font-bold text-[#f5f5dc]">{view.totalThreads.toLocaleString()}</p>
             </div>
           </div>
@@ -261,7 +263,7 @@ export function MetaHubAnalyticsDashboard({
               <Send className="h-6 w-6 text-[#10b981]" />
             </div>
             <div>
-              <p className="text-sm text-[#f5f5dc]/60">Messages Sent</p>
+              <p className="text-sm text-[#f5f5dc]/60">{t("messagesSent")}</p>
               <p className="text-2xl font-bold text-[#f5f5dc]">{view.totalMessages.toLocaleString()}</p>
             </div>
           </div>
@@ -276,7 +278,7 @@ export function MetaHubAnalyticsDashboard({
               <Zap className="h-6 w-6 text-[#f59e0b]" />
             </div>
             <div>
-              <p className="text-sm text-[#f5f5dc]/60">Automations</p>
+              <p className="text-sm text-[#f5f5dc]/60">{t("automations")}</p>
               <p className="text-2xl font-bold text-[#f5f5dc]">{view.automationTriggers.toLocaleString()}</p>
             </div>
           </div>
@@ -291,7 +293,7 @@ export function MetaHubAnalyticsDashboard({
               <Clock className="h-6 w-6 text-[#8b5cf6]" />
             </div>
             <div>
-              <p className="text-sm text-[#f5f5dc]/60">Avg Response Time</p>
+              <p className="text-sm text-[#f5f5dc]/60">{t("avgResponseTime")}</p>
               <p className="text-2xl font-bold text-[#f5f5dc]">
                 {formatDuration(view.avgResponseTimeMs)}
               </p>
@@ -309,7 +311,7 @@ export function MetaHubAnalyticsDashboard({
         >
           <div className="mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-[#d4af37]" />
-            <h3 className="text-lg font-semibold text-[#f5f5dc]">Thread Status</h3>
+            <h3 className="text-lg font-semibold text-[#f5f5dc]">{t("threadStatus")}</h3>
           </div>
 
           <div className="space-y-3">
@@ -351,18 +353,18 @@ export function MetaHubAnalyticsDashboard({
         >
           <div className="mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-[#d4af37]" />
-            <h3 className="text-lg font-semibold text-[#f5f5dc]">Message Volume</h3>
+            <h3 className="text-lg font-semibold text-[#f5f5dc]">{t("messageVolume")}</h3>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="h-2 w-2 rounded-full bg-[#10b981]" />
-                <span className="text-[#f5f5dc]/60">Inbound</span>
+                <span className="text-[#f5f5dc]/60">{t("inbound")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="h-2 w-2 rounded-full bg-[#d4af37]" />
-                <span className="text-[#f5f5dc]/60">Outbound</span>
+                <span className="text-[#f5f5dc]/60">{t("outbound")}</span>
               </div>
             </div>
 
@@ -410,7 +412,7 @@ export function MetaHubAnalyticsDashboard({
         >
           <div className="mb-4 flex items-center gap-2">
             <Tag className="h-5 w-5 text-[#d4af37]" />
-            <h3 className="text-lg font-semibold text-[#f5f5dc]">Top Tags</h3>
+            <h3 className="text-lg font-semibold text-[#f5f5dc]">{t("topTags")}</h3>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -446,16 +448,16 @@ export function MetaHubAnalyticsDashboard({
               <Activity className="h-6 w-6 text-[#8b5cf6]" />
             </div>
             <div>
-              <p className="text-sm text-[#f5f5dc]/60">Token Usage</p>
+              <p className="text-sm text-[#f5f5dc]/60">{t("tokenUsage")}</p>
               <p className="text-2xl font-bold text-[#f5f5dc]">{view.tokenUsage.toLocaleString()}</p>
             </div>
           </div>
           <div className="text-right text-xs text-[#f5f5dc]/60">
-            <p>Period: {timeRange}</p>
+            <p>{t("period")}: {timeRange}</p>
             <p className="mt-1">
-              {timeRange === "7d" && "Last 7 days"}
-              {timeRange === "30d" && "Last 30 days"}
-              {timeRange === "90d" && "Last 90 days"}
+              {timeRange === "7d" && t("last7Days")}
+              {timeRange === "30d" && t("last30Days")}
+              {timeRange === "90d" && t("last90Days")}
             </p>
           </div>
         </div>

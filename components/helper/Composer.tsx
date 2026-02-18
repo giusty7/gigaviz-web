@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { COPY_EN } from "@/lib/copy/en";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { type HelperMode, type HelperProvider } from "./types";
 
@@ -41,7 +41,7 @@ function ComposerComponent({
   disabled,
   sending,
 }: Props) {
-  const copy = COPY_EN.helper;
+  const t = useTranslations("helperUI.imperiumHelper");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyDown = useCallback(
@@ -74,11 +74,11 @@ function ComposerComponent({
                 <Tooltip key={m}>
                   <TooltipTrigger asChild>
                     <TabsTrigger value={m} className="text-xs px-3">
-                      {copy.modes[m]}
+                      {t(`mode${m.charAt(0).toUpperCase()}${m.slice(1)}Label`)}
                     </TabsTrigger>
                   </TooltipTrigger>
                   <TooltipContent side="top">
-                    {copy.modeDescriptions[m]}
+                    {t(`mode${m.charAt(0).toUpperCase()}${m.slice(1)}Desc`)}
                   </TooltipContent>
                 </Tooltip>
               ))}
@@ -98,7 +98,7 @@ function ComposerComponent({
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {copy.providers[p]}
+              {t(`provider${p.charAt(0).toUpperCase()}${p.slice(1)}Label`)}
             </button>
           ))}
         </div>
@@ -111,7 +111,7 @@ function ComposerComponent({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={copy.composerPlaceholder}
+          placeholder={t("composerPlaceholder")}
           disabled={disabled || sending}
           className="min-h-[100px] max-h-[240px] resize-none bg-white/5 text-white placeholder:text-white/40 border border-white/10 focus:border-[var(--gv-gold)] focus:ring-[var(--gv-gold)]/30 pr-24"
           rows={3}
@@ -128,7 +128,7 @@ function ComposerComponent({
               disabled={sending}
             >
               <XIcon className="h-4 w-4" />
-              <span className="sr-only">{copy.clear}</span>
+              <span className="sr-only">{t("clear")}</span>
             </Button>
           )}
           <Button
@@ -142,13 +142,13 @@ function ComposerComponent({
             ) : (
               <ArrowUpIcon className="h-4 w-4" />
             )}
-            <span className="sr-only">{copy.send}</span>
+            <span className="sr-only">{t("send")}</span>
           </Button>
         </div>
       </div>
 
       {/* Hint */}
-      <p className="text-[11px] text-muted-foreground/60">{copy.composerHint}</p>
+      <p className="text-[11px] text-muted-foreground/60">{t("composerHint")}</p>
     </div>
   );
 }

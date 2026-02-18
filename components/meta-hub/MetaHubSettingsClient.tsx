@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,7 @@ import { AgentStatusManager } from "@/components/meta-hub/AgentStatusManager";
 import { AssignmentRulesManager } from "@/components/meta-hub/AssignmentRulesManager";
 import { AutoReplyRulesManager } from "@/components/meta-hub/AutoReplyRulesManager";
 
-function formatRelativeTime(dateString: string): string {
+function formatRelativeTime(dateString: string, t: (key: string, values?: Record<string, string | number | Date>) => string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -23,10 +24,10 @@ function formatRelativeTime(dateString: string): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
-  return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+  if (diffMins < 1) return t("justNow");
+  if (diffMins < 60) return t("minutesAgo", { count: diffMins });
+  if (diffHours < 24) return t("hoursAgo", { count: diffHours });
+  return t("daysAgo", { count: diffDays });
 }
 
 type Connection = {
@@ -83,6 +84,7 @@ export function MetaHubSettingsClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.metaHubSettings");
   const [activeTab, setActiveTab] = useState(initialTab);
   const [editingConnection, setEditingConnection] = useState<Connection | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -106,20 +108,20 @@ export function MetaHubSettingsClient({
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.message || data.details || "Sync failed");
+        throw new Error(data.message || data.details || t("syncFailed"));
       }
 
       toast({
-        title: "Sync successful",
-        description: "Connection metadata has been updated from Meta.",
+        title: t("syncSuccess"),
+        description: t("syncSuccessDesc"),
       });
 
       router.refresh();
     } catch (err) {
       logger.error("Sync failed:", err);
       toast({
-        title: "Sync failed",
-        description: err instanceof Error ? err.message : "Please try again.",
+        title: t("syncFailed"),
+        description: err instanceof Error ? err.message : t("tryAgain"),
         variant: "destructive",
       });
     } finally {
@@ -140,48 +142,48 @@ export function MetaHubSettingsClient({
     const parts: string[] = [];
     if (conn.verifiedName) parts.push(conn.verifiedName);
     if (conn.displayPhoneNumber) parts.push(conn.displayPhoneNumber);
-    return parts.join(" â€¢ ") || "No metadata available";
+    return parts.join(" â€¢ ") || t("noMetadata");
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Meta Hub Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your Meta Hub configuration and connections
+          {t("subtitle")}
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="connections">Connections</TabsTrigger>
-          <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
-          <TabsTrigger value="quick-replies">Quick Replies</TabsTrigger>
-          <TabsTrigger value="agent-status">Agent Status</TabsTrigger>
-          <TabsTrigger value="assignment">Assignment</TabsTrigger>
-          <TabsTrigger value="auto-reply">Auto-Reply</TabsTrigger>
+          <TabsTrigger value="profile">{t("tabProfile")}</TabsTrigger>
+          <TabsTrigger value="connections">{t("tabConnections")}</TabsTrigger>
+          <TabsTrigger value="diagnostics">{t("tabDiagnostics")}</TabsTrigger>
+          <TabsTrigger value="quick-replies">{t("tabQuickReplies")}</TabsTrigger>
+          <TabsTrigger value="agent-status">{t("tabAgentStatus")}</TabsTrigger>
+          <TabsTrigger value="assignment">{t("tabAssignment")}</TabsTrigger>
+          <TabsTrigger value="auto-reply">{t("tabAutoReply")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Workspace Profile</CardTitle>
+              <CardTitle>{t("workspaceProfile")}</CardTitle>
               <CardDescription>
-                Basic information about your workspace
+                {t("workspaceProfileDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Workspace Name</div>
+                <div className="text-sm font-medium text-muted-foreground">{t("workspaceName")}</div>
                 <div className="text-lg font-semibold">{workspaceName}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Workspace Slug</div>
+                <div className="text-sm font-medium text-muted-foreground">{t("workspaceSlug")}</div>
                 <div className="text-lg font-mono">{workspaceSlug}</div>
               </div>
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Workspace ID</div>
+                <div className="text-sm font-medium text-muted-foreground">{t("workspaceIdLabel")}</div>
                 <div className="text-sm font-mono text-muted-foreground">{workspaceId}</div>
               </div>
             </CardContent>
@@ -191,15 +193,15 @@ export function MetaHubSettingsClient({
         <TabsContent value="connections" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>WhatsApp Connections</CardTitle>
+              <CardTitle>{t("whatsappConnections")}</CardTitle>
               <CardDescription>
-                Manage your WhatsApp Business API connections
+                {t("whatsappConnectionsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {connections.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No connections found. Set up your first WhatsApp connection to get started.
+                  {t("noConnections")}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -214,10 +216,10 @@ export function MetaHubSettingsClient({
                           {conn.status === "active" ? (
                             <Badge variant="default" className="bg-green-600">
                               <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Active
+                              {t("active")}
                             </Badge>
                           ) : (
-                            <Badge variant="secondary">{conn.status || "Unknown"}</Badge>
+                            <Badge variant="secondary">{conn.status || t("unknownStatus")}</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{getSubtext(conn)}</p>
@@ -238,7 +240,7 @@ export function MetaHubSettingsClient({
                           onClick={() => setEditingConnection(conn)}
                         >
                           <Pencil className="w-4 h-4 mr-1" />
-                          Edit
+                          {t("edit")}
                         </Button>
                         <Button
                           variant="outline"
@@ -251,7 +253,7 @@ export function MetaHubSettingsClient({
                               syncingId === conn.phone_number_id ? "animate-spin" : ""
                             }`}
                           />
-                          Sync
+                          {t("sync")}
                         </Button>
                       </div>
                     </div>
@@ -265,15 +267,15 @@ export function MetaHubSettingsClient({
         <TabsContent value="diagnostics" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Connection Diagnostics</CardTitle>
+              <CardTitle>{t("connectionDiagnostics")}</CardTitle>
               <CardDescription>
-                View sync status and errors for your connections
+                {t("connectionDiagnosticsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {connections.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No connections to diagnose.
+                  {t("noDiagnostics")}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -284,54 +286,54 @@ export function MetaHubSettingsClient({
                         {conn.lastError ? (
                           <Badge variant="default" className="bg-red-600">
                             <AlertCircle className="w-3 h-3 mr-1" />
-                            Error
+                            {t("error")}
                           </Badge>
                         ) : conn.lastSyncedAt ? (
                           <Badge variant="default" className="bg-green-600">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Healthy
+                            {t("healthy")}
                           </Badge>
                         ) : (
                           <Badge variant="secondary">
                             <Clock className="w-3 h-3 mr-1" />
-                            Never Synced
+                            {t("neverSynced")}
                           </Badge>
                         )}
                       </div>
 
                       <div className="grid gap-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Phone Number ID:</span>
+                          <span className="text-muted-foreground">{t("phoneNumberIdLabel")}:</span>
                           <span className="font-mono">{conn.phone_number_id}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">WABA ID:</span>
+                          <span className="text-muted-foreground">{t("wabaIdLabel")}:</span>
                           <span className="font-mono">{conn.waba_id}</span>
                         </div>
                         {conn.displayPhoneNumber && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Display Phone:</span>
+                            <span className="text-muted-foreground">{t("displayPhone")}:</span>
                             <span className="font-mono">{conn.displayPhoneNumber}</span>
                           </div>
                         )}
                         {conn.verifiedName && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Verified Name:</span>
+                            <span className="text-muted-foreground">{t("verifiedName")}:</span>
                             <span>{conn.verifiedName}</span>
                           </div>
                         )}
                         {conn.qualityRating && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Quality Rating:</span>
+                            <span className="text-muted-foreground">{t("qualityRating")}:</span>
                             <Badge variant="outline">{conn.qualityRating.toUpperCase()}</Badge>
                           </div>
                         )}
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Last Synced:</span>
+                          <span className="text-muted-foreground">{t("lastSynced")}:</span>
                           <span>
                             {conn.lastSyncedAt
-                              ? formatRelativeTime(conn.lastSyncedAt)
-                              : "Never"}
+                              ? formatRelativeTime(conn.lastSyncedAt, t)
+                              : t("never")}
                           </span>
                         </div>
                       </div>
@@ -339,7 +341,7 @@ export function MetaHubSettingsClient({
                       {conn.lastError && (
                         <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-md">
                           <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">
-                            Last Error:
+                            {t("lastError")}:
                           </div>
                           <div className="text-xs text-muted-foreground font-mono">
                             {conn.lastError}

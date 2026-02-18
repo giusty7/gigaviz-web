@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
@@ -35,6 +36,7 @@ interface InstagramConnection {
   instagram_username: string;
   profile_picture_url: string | null;
   is_active: boolean;
+  access_token: string | null;
   created_at: string;
 }
 
@@ -44,6 +46,7 @@ interface MessengerConnection {
   page_name: string;
   page_picture_url: string | null;
   is_active: boolean;
+  access_token: string | null;
   created_at: string;
 }
 
@@ -75,6 +78,7 @@ function PlatformConnectionCard({
   onDisconnect: (id: string) => void;
   canEdit: boolean;
 }) {
+  const t = useTranslations("metaHubUI.multiPlatform");
   const colorClasses = {
     Instagram: {
       border: "border-pink-500/30",
@@ -110,14 +114,14 @@ function PlatformConnectionCard({
           <div>
             <h3 className="text-lg font-semibold text-[#f5f5dc]">{platform}</h3>
             <p className="text-xs text-[#f5f5dc]/50">
-              {platform === "Instagram" ? "Direct Messages" : "Page Messenger"}
+              {platform === "Instagram" ? t("directMessages") : t("pageMessenger")}
             </p>
           </div>
         </div>
         <Badge
           className={`${isConnected ? "bg-emerald-500/20 text-emerald-300" : "bg-[#f5f5dc]/10 text-[#f5f5dc]/50"}`}
         >
-          {isConnected ? "Connected" : "Not Connected"}
+          {isConnected ? t("connected") : t("notConnected")}
         </Badge>
       </div>
 
@@ -152,7 +156,7 @@ function PlatformConnectionCard({
                       <AlertCircle className="h-3 w-3 text-yellow-400" />
                     )}
                     <span className="text-xs text-[#f5f5dc]/50">
-                      {conn.isActive ? "Active" : "Inactive"}
+                      {conn.isActive ? t("active") : t("inactive")}
                     </span>
                   </div>
                 </div>
@@ -173,10 +177,9 @@ function PlatformConnectionCard({
       ) : (
         <div className="mb-4 rounded-xl border border-dashed border-[#f5f5dc]/20 bg-[#0a1229]/40 p-6 text-center">
           <Icon className={`mx-auto mb-2 h-8 w-8 ${classes.text} opacity-50`} />
-          <p className="text-sm text-[#f5f5dc]/50">No {platform} accounts connected</p>
+          <p className="text-sm text-[#f5f5dc]/50">{t("noAccountsConnected", { platform })}</p>
           <p className="mt-1 text-xs text-[#f5f5dc]/30">
-            Connect your {platform === "Instagram" ? "Instagram Business" : "Facebook Page"} to
-            start receiving messages
+            {platform === "Instagram" ? t("connectDescription_instagram") : t("connectDescription_messenger")}
           </p>
         </div>
       )}
@@ -194,7 +197,7 @@ function PlatformConnectionCard({
           ) : (
             <Plus className="mr-2 h-4 w-4" />
           )}
-          {connections.length > 0 ? `Add Another ${platform}` : `Connect ${platform}`}
+          {connections.length > 0 ? t("addAnother", { platform }) : t("connectPlatform", { platform })}
         </Button>
       )}
     </motion.div>
@@ -210,6 +213,7 @@ export function MultiPlatformConnections({
   canEdit,
 }: MultiPlatformConnectionsProps) {
   const { toast } = useToast();
+  const t = useTranslations("metaHubUI.multiPlatform");
   const [instagramConnections, setInstagramConnections] = useState<InstagramConnection[]>([]);
   const [messengerConnections, setMessengerConnections] = useState<MessengerConnection[]>([]);
   const [loading, setLoading] = useState(false);
@@ -253,15 +257,15 @@ export function MultiPlatformConnections({
       if (!res.ok) throw new Error("Failed to disconnect");
 
       toast({
-        title: "Disconnected",
-        description: `${platform === "instagram" ? "Instagram" : "Messenger"} account disconnected.`,
+        title: t("toastDisconnected"),
+        description: platform === "instagram" ? t("toastDisconnectedDesc_instagram") : t("toastDisconnectedDesc_messenger"),
       });
 
       loadConnections();
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to disconnect account",
+        title: t("toastError"),
+        description: t("toastDisconnectFailed"),
         variant: "destructive",
       });
     }
@@ -278,7 +282,7 @@ export function MultiPlatformConnections({
       <div className="flex items-center gap-2">
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
         <span className="text-xs font-semibold tracking-wider text-purple-400">
-          MULTI-PLATFORM CONNECTIONS
+          {t("sectionTitle")}
         </span>
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
       </div>
@@ -325,47 +329,47 @@ export function MultiPlatformConnections({
         <DialogContent className="border-[#d4af37]/20 bg-[#0a1229]">
           <DialogHeader>
             <DialogTitle className="text-[#f5f5dc]">
-              Connect {connectPlatform === "instagram" ? "Instagram" : "Facebook Page"}
+              {connectPlatform === "instagram" ? t("dialogTitle_instagram") : t("dialogTitle_messenger")}
             </DialogTitle>
             <DialogDescription className="text-[#f5f5dc]/60">
               {connectPlatform === "instagram"
-                ? "Connect your Instagram Business account to receive and reply to Direct Messages."
-                : "Connect your Facebook Page to receive and reply to Messenger conversations."}
+                ? t("dialogDesc_instagram")
+                : t("dialogDesc_messenger")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 pt-4">
             <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-4">
-              <h4 className="mb-2 text-sm font-medium text-[#f5f5dc]">Requirements:</h4>
+              <h4 className="mb-2 text-sm font-medium text-[#f5f5dc]">{t("requirements")}</h4>
               <ul className="space-y-2 text-xs text-[#f5f5dc]/60">
                 {connectPlatform === "instagram" ? (
                   <>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 h-3 w-3 text-emerald-400" />
-                      Instagram Business or Creator account
+                      {t("igReq1")}
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 h-3 w-3 text-emerald-400" />
-                      Connected to a Facebook Page
+                      {t("igReq2")}
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 h-3 w-3 text-emerald-400" />
-                      Instagram Messaging API access
+                      {t("igReq3")}
                     </li>
                   </>
                 ) : (
                   <>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 h-3 w-3 text-emerald-400" />
-                      Facebook Page with messaging enabled
+                      {t("msgReq1")}
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 h-3 w-3 text-emerald-400" />
-                      Page admin access
+                      {t("msgReq2")}
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="mt-0.5 h-3 w-3 text-emerald-400" />
-                      Messenger Platform API access
+                      {t("msgReq3")}
                     </li>
                   </>
                 )}
@@ -374,22 +378,46 @@ export function MultiPlatformConnections({
 
             <Button
               className="w-full bg-[#d4af37] text-[#0a1229] hover:bg-[#f9d976]"
-              onClick={() => {
-                // This will trigger the Facebook Login flow
-                // For now, show a placeholder toast
-                toast({
-                  title: "Coming Soon",
-                  description: `${connectPlatform === "instagram" ? "Instagram" : "Messenger"} OAuth connection is being finalized.`,
-                });
+              onClick={async () => {
+                try {
+                  const res = await fetch(`/api/meta/${connectPlatform}/connections`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ workspace_id: workspaceId }),
+                  });
+                  if (res.ok) {
+                    const data = await res.json();
+                    if (data.oauth_url) {
+                      window.location.href = data.oauth_url;
+                      return;
+                    }
+                    toast({
+                      title: t("toastConnectionInitiated"),
+                    });
+                    loadConnections();
+                  } else {
+                    const body = await res.json().catch(() => ({}));
+                    toast({
+                      title: t("toastConnectionSetup"),
+                      description: body.error,
+                    });
+                  }
+                } catch {
+                  toast({
+                    title: t("toastConnectionError"),
+                    description: t("toastConnectionErrorDesc"),
+                    variant: "destructive",
+                  });
+                }
                 setConnectDialogOpen(false);
               }}
             >
               <ExternalLink className="mr-2 h-4 w-4" />
-              Continue with Facebook Login
+              {t("continueWithFacebook")}
             </Button>
 
             <p className="text-center text-xs text-[#f5f5dc]/40">
-              You&apos;ll be redirected to Facebook to authorize access
+              {t("redirectNote")}
             </p>
           </div>
         </DialogContent>
