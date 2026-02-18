@@ -1,0 +1,58 @@
+---
+title: "100% i18n Coverage: Every Component Now Speaks Indonesian & English"
+date: "2026-02-19"
+summary: "63 client components wired, 500+ translation keys added, 14 new namespaces — Gigaviz is now fully bilingual across all modules including Ops Console, Marketing, Dashboard Widgets, and Links Manager."
+audience: ["public", "app"]
+tags: ["i18n", "localization", "indonesian", "english", "ops", "marketing", "dashboard"]
+type: "shipped"
+---
+
+Every client component in Gigaviz is now fully internationalized. Sprint 13 and 14 wired the final 63 components — from dashboard widgets and notification panels to the entire Ops Console and marketing pages.
+
+## What's new
+
+- **63 client components wired**: All remaining hardcoded English strings replaced with `useTranslations()` hooks
+- **500+ new translation keys**: Across 14 new i18n namespaces in both English and Indonesian
+- **Ops Console i18n**: God Console, health dashboard, customer search, entitlements manager, knowledge base, tickets, analytics, dev tools, and all operations pages — fully bilingual
+- **Marketing pages i18n**: Ecosystem overview, trust console, media kit, verification badge, evidence section, and product grid
+- **Dashboard widgets**: All 8 widgets (plan summary, revenue, recent activity, quick actions, team, tokens, meta hub, and overview) now translated
+- **Notification system**: 30+ notification type labels, timestamps, actions, and empty states
+- **Links Manager**: Full i18n across link cards, forms, sharing modals, analytics panels, and appearance settings
+- **Duplicate JSON key fix**: Critical bug fixed where `metaHubUI` namespace appeared twice in both locale files, causing key collisions
+
+## Coverage by module
+
+| Module | Components wired | Keys added |
+|--------|-----------------|------------|
+| Dashboard Widgets | 8 | 31 |
+| Notifications | 1 | 38 |
+| Links Manager | 5 | 70+ |
+| Ops Console | 20 | 200+ |
+| Marketing | 10 | 38 |
+| Auth & Layout | 3 | 5 |
+| Settings & Modules | 4 | 35 |
+| Billing & Contacts | 3 | 28 |
+| Feature Gate & Invite | 2 | 36 |
+| Usage & Preview | 2 | 25 |
+
+## New i18n namespaces
+
+14 new top-level translation namespaces added:
+
+`moduleGridUI` · `settingsUI` · `notificationsUI` · `dashboardWidgetsUI` · `setPasswordUI` · `contactFormUI` · `inviteUI` · `usageUI` · `featureGateUI` · `linksUI` · `authLayoutUI` · `opsUI` · `marketingUI` · `previewBannerUI`
+
+## Quality assurance
+
+- **1,248 tests passing**: All 64 test files green — zero regressions
+- **0 TypeScript errors**: Clean `tsc --noEmit`
+- **0 lint errors**: Clean ESLint
+- **Clean build**: `next build` succeeds
+- **217 files changed**: +15,146 / −3,758 lines across one commit
+
+## Technical details
+
+- All client components use `useTranslations("namespace")` from `next-intl`
+- Ops Console uses deeply nested dot-path keys (`opsUI.godConsole.title`, `opsUI.devTools.sql.title`, etc.)
+- Feature gate component refactored to satisfy React Rules of Hooks (hook call moved before early returns)
+- Custom JSON parser built to deep-merge duplicate keys at every nesting level — fixed 4 overlapping sub-keys in `metaHubUI`
+- Both `messages/en.json` and `messages/id.json` updated and validated with 0 duplicate keys

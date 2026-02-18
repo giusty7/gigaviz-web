@@ -1,0 +1,226 @@
+---
+title: "How We Achieved 100% i18n Coverage Across 250+ Components in a Multi-Tenant SaaS Platform"
+description: "A behind-the-scenes look at internationalizing every client component in a Next.js SaaS platform — from 28 namespaces to 42, wiring 63 components across 14 sprints, fixing duplicate JSON key bugs, and maintaining 1,248 passing tests throughout."
+date: "2026-02-19"
+tags: ["i18n", "Internationalization", "Next.js", "SaaS", "next-intl", "Localization", "React", "TypeScript", "Indonesian", "WhatsApp Business"]
+published: true
+---
+
+# How We Achieved 100% i18n Coverage Across 250+ Components in a Multi-Tenant SaaS Platform
+
+When we first added next-intl to Gigaviz, we translated the obvious stuff — marketing pages, login screens, the dashboard header. That got us to "technically bilingual." But open the notification panel? English. Click into the Ops Console? English. Check your link analytics? English.
+
+Half-translated software feels worse than untranslated software. It tells your users: we started caring about your language, then stopped.
+
+This is how we went from partial to complete — wiring every single client component across a 250+ component codebase to speak both Indonesian and English.
+
+## The scope of the problem
+
+Gigaviz is a multi-tenant SaaS platform with 7 product modules: Platform (auth, billing, workspaces), Meta Hub (WhatsApp/Instagram/Messenger), Helper (AI assistant), Studio (creative suite), Office (document automation), Apps, and Marketplace.
+
+Before this effort, our i18n coverage looked like this:
+
+- **Marketing pages**: ✅ Translated
+- **Auth flows**: ✅ Translated
+- **Core app pages**: ✅ Mostly translated
+- **Meta Hub inbox**: ✅ Translated
+- **Billing dashboard**: ✅ Translated
+- **Dashboard widgets**: ❌ Hardcoded English
+- **Notification panel**: ❌ Hardcoded English
+- **Links Manager**: ❌ Hardcoded English
+- **Ops Console (28 pages)**: ❌ All hardcoded English
+- **Settings & modules**: ❌ Mixed languages
+- **Feature gates & invites**: ❌ Hardcoded English
+
+About 65 client components across 14 categories still had raw English strings. Some even had mixed languages — an Indonesian "Coba lagi" button next to an English "Usage Summary" heading.
+
+## The strategy: namespaces, not files
+
+The temptation with i18n is to organize translations by page. Don't. Pages share components. Components move between pages. Instead, we organized by **functional namespace**.
+
+Each component category gets its own namespace in the translation files:
+
+```json
+{
+  "moduleGridUI": { ... },
+  "notificationsUI": { ... },
+  "dashboardWidgetsUI": { ... },
+  "opsUI": {
+    "godConsole": { ... },
+    "health": { ... },
+    "devTools": {
+      "sql": { ... },
+      "webhooks": { ... },
+      "api": { ... }
+    }
+  }
+}
+```
+
+This gives us three advantages:
+
+1. **Scoped loading**: next-intl only loads the namespaces a page uses
+2. **Clear ownership**: Each namespace maps to a component directory
+3. **Merge-friendly**: Two developers adding keys to different namespaces never conflict
+
+We added 14 new namespaces in this sprint, bringing the total to 42.
+
+## The 14-sprint journey
+
+We didn't try to translate everything at once. We ran 14 focused sprints over multiple sessions:
+
+| Sprint | Focus | Components |
+|--------|-------|------------|
+| 1–4 | Core app, auth, dashboard, inbox | ~40 |
+| 5–8 | Meta Hub, Helper, billing, CRM | ~50 |
+| 9–12 | Studio, Office, deep app pages | ~60 |
+| **13** | **Dashboard widgets, notifications, settings, links, contacts, gates** | **30** |
+| **14** | **Ops Console, marketing, owner tools** | **33** |
+
+Each sprint followed the same process:
+
+1. **Audit**: Scan every component in the target category for hardcoded strings
+2. **Extract**: Move strings to `messages/en.json` under the appropriate namespace
+3. **Translate**: Create matching keys in `messages/id.json` with Indonesian translations
+4. **Wire**: Replace hardcoded strings with `useTranslations("namespace")` calls
+5. **Test**: Run all 1,248 tests — zero regressions allowed
+
+## The tricky parts
+
+### Dashboard widgets with dynamic data
+
+Dashboard widgets are deceptively complex. They mix static labels with dynamic data — "Revenue this month: Rp 12.500.000" requires translating the label but formatting the number with locale-aware currency.
+
+```tsx
+const t = useTranslations("dashboardWidgetsUI");
+
+// Label is translated, amount is locale-formatted
+<p>{t("revenue.title")}</p>
+<p>{formatCurrency(amount, locale)}</p>
+```
+
+We wired 8 dashboard widgets (plan summary, revenue, recent activity, quick actions, team overview, token balance, Meta Hub status, and platform overview) with 31 translation keys.
+
+### Notification type labels
+
+The notification panel has 15+ notification types, each with a different label: "New message", "Template approved", "Payment received", "Workspace invitation", etc. These were defined as a TypeScript `Record<NotificationType, string>` — a type-safe map that resists extraction.
+
+We replaced the static map with a dynamic lookup:
+
+```tsx
+const t = useTranslations("notificationsUI");
+const label = t(`types.${notification.type}`);
+```
+
+This required 38 translation keys just for the notification panel — types, actions, timestamps, empty states, filter labels, and bulk action buttons.
+
+### The Ops Console: 200+ keys
+
+The Ops Console is our internal platform admin tool — 28 pages covering workspace management, customer support, entitlements, health monitoring, analytics, dev tools, and more.
+
+Every page was hardcoded English. We needed 200+ keys organized into deeply nested namespaces:
+
+```
+opsUI.godConsole.title
+opsUI.godConsole.search.placeholder
+opsUI.health.status.healthy
+opsUI.health.status.degraded
+opsUI.devTools.sql.execute
+opsUI.devTools.webhooks.replay
+opsUI.analytics.revenue.title
+opsUI.operations.workspace.suspend
+opsUI.owner.claim.description
+```
+
+We wired 20 Ops components across 6 sub-directories. Some components had sub-components that also needed their own `useTranslations` hook — a common gotcha when a parent component defines helper components inline.
+
+### React Rules of Hooks in feature gates
+
+Our `<FeatureGate>` component had an early return before the `useTranslations` hook:
+
+```tsx
+// ❌ Conditional hook call — violates Rules of Hooks
+if (allowed) return <>{children}</>;
+const t = useTranslations("featureGateUI");
+```
+
+React requires hooks to be called in the same order every render. We moved the hook before all early returns:
+
+```tsx
+// ✅ Hook called unconditionally
+const t = useTranslations("featureGateUI");
+if (allowed) return <>{children}</>;
+```
+
+This also required updating the test file to wrap renders in `NextIntlClientProvider`.
+
+### The duplicate key bug
+
+After adding 500+ keys across both locale files, our IDE flagged a JSON error: "Duplicate object key" at two locations. Investigation revealed that `metaHubUI` appeared as a top-level key at **two different positions** in both `en.json` and `id.json` — once around line 1982 and again around line 4675.
+
+Standard JSON parsers silently drop the first occurrence. That means translations we'd carefully written in Sprint 6 were being overwritten by newer keys.
+
+Worse, the two blocks had 4 overlapping sub-keys (`connections`, `templateForge`, `agentStatus`, `overview`) with partially different content. A simple find-and-replace wouldn't work.
+
+We built a custom JSON parser that:
+
+1. Reads the raw JSON character by character
+2. Detects duplicate keys at every nesting level
+3. Deep-merges duplicates recursively (arrays concatenated, objects merged)
+4. Preserves the most complete version when leaf values conflict
+
+After the merge, both files had 0 duplicate keys and all translations were preserved.
+
+## The numbers
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Translated namespaces | 28 | 42 |
+| Components with i18n | ~190 | 250+ |
+| Translation keys (per locale) | ~3,200 | ~3,700 |
+| Untranslated client components | ~65 | 0 |
+| Message file size (each locale) | ~4,200 lines | ~5,200 lines |
+| Test count | 1,248 | 1,248 |
+| TypeScript errors | 0 | 0 |
+| Lint errors | 0 | 0 |
+
+## Why this matters for Indonesian businesses
+
+Indonesia is our primary market. WhatsApp is the dominant business communication channel with over 100 million users. When a customer support agent in Jakarta opens their inbox at 8 AM, every button, label, tooltip, and error message should be in their language.
+
+Half-translated software creates friction. An agent sees "Coba lagi" on one button and "Retry" on another. They wonder: is this a different action? Are they in the right account? Small inconsistencies compound into distrust.
+
+Full i18n coverage means:
+
+- **Faster onboarding**: New team members read everything in Bahasa Indonesia from day one
+- **Fewer support tickets**: "What does this button do?" disappears when the button speaks your language
+- **Professional impression**: Fully localized software signals commitment to the market
+- **SEA expansion ready**: The infrastructure now supports adding Thai, Malay, Vietnamese, or any locale
+
+## Lessons learned
+
+**Namespace early, namespace often.** Our early translations were dumped into a flat `common` namespace. Extracting them later into scoped namespaces was painful. Start with one namespace per component category.
+
+**Audit before you translate.** We ran a full codebase audit to find every hardcoded string before writing a single translation key. This prevented the "translate, discover more, translate again" loop.
+
+**Test the wrapper, not the translation.** Don't assert that a button says "Kirim Pesan". Assert that it renders the key `sendMessage`. Translation content changes; key names don't.
+
+**Watch for mixed languages.** The worst i18n bug isn't missing translations — it's a component that's half Indonesian and half English. We found several of these (a "Coba lagi" button next to an English heading) and they're surprisingly hard to spot in code review.
+
+**Duplicate keys are silent killers.** JSON doesn't error on duplicate keys — it silently drops one. If your locale files are large (5,000+ lines), use a linter or custom validator to catch duplicates before they eat your translations.
+
+## What's next
+
+With 100% component-level i18n coverage, our next priorities are:
+
+- **Multi-currency support**: Pricing pages in USD, IDR, SGD, and EUR
+- **Additional locales**: Spanish and Portuguese for Latin American WhatsApp markets
+- **RTL support**: Arabic locale for Middle Eastern expansion
+- **Translation management**: Integrate with a TMS (Crowdin or Lokalise) for professional translator workflows
+- **i18n CI checks**: Automated tests that fail when a new component ships without translation keys
+
+Going international isn't a feature toggle — it's a commitment. Every new component, every new error message, every new tooltip needs to ship in every supported language. The infrastructure is now in place. The discipline is what matters next.
+
+---
+
+*Building a multi-tenant SaaS for Southeast Asian markets? Start your i18n journey early — retrofitting 250 components is possible, but it's a lot more fun to translate as you build.*
