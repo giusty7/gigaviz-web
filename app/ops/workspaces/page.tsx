@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Search, ShieldCheck, SquareArrowOutUpRight } from "lucide-react";
+import { Search, ShieldCheck, SquareArrowOutUpRight, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,12 +227,20 @@ export default async function OpsWorkspacesPage({
                           {activity ? formatRelativeTime(activity) : "N/A"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button asChild variant="ghost" size="sm">
-                            <Link href={`/ops/workspaces/${ws.id}`}>
-                              <SquareArrowOutUpRight className="mr-2 h-4 w-4" />
-                              Details
-                            </Link>
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button asChild variant="ghost" size="sm">
+                              <Link href={`/ops/god-console?workspaceId=${ws.id}`}>
+                                <Sparkles className="mr-1 h-3.5 w-3.5" />
+                                Quick
+                              </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                              <Link href={`/ops/workspaces/${ws.id}`}>
+                                <SquareArrowOutUpRight className="mr-1 h-3.5 w-3.5" />
+                                Details
+                              </Link>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

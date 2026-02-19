@@ -5533,7 +5533,8 @@
       "auditTrail": "Jejak Audit",
       "noRecentActivity": "Tidak ada aktivitas terbaru.",
       "lock": "Kunci",
-      "unlock": "Buka"
+      "unlock": "Buka",
+      "viewFullDetails": "Lihat Detail Lengkap"
     },
     "cannedResponses": {
       "title": "Respons Siap Pakai",

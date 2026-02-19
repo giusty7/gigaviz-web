@@ -318,7 +318,7 @@ export default async function OpsWorkspaceDetailPage({
                     </a>
                   </Button>
                   <Button asChild variant="secondary" size="sm">
-                    <a href={`/ops/god-console?workspaceId=${workspace.id}&workspaceSlug=${workspace.slug}`}>
+                    <a href={`/ops/god-console?workspaceId=${workspace.id}`}>
                       Sovereign Command
                     </a>
                   </Button>

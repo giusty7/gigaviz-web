@@ -18,11 +18,12 @@ export type WorkspaceEntitlements = {
 };
 
 const ownerEntitlementKeys: FeatureKey[] = [
-  // 7 Hubs
+  // 8 Hubs
   "core_os",
   "meta_hub",
   "studio",
   "helper",
+  "links",
   "office",
   "marketplace",
   "apps",

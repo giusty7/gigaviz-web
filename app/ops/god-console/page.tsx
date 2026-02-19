@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 type SearchParams = {
   q?: string | string[];
+  workspaceId?: string | string[];
 };
 
 type WorkspaceRow = {
@@ -38,6 +39,7 @@ export default async function GodConsolePage({
 }) {
   const resolvedParams = await Promise.resolve(searchParams ?? {});
   const query = pickParam(resolvedParams.q).trim();
+  const focusWorkspaceId = pickParam(resolvedParams.workspaceId).trim() || null;
 
   assertOpsEnabled();
 
@@ -54,7 +56,7 @@ export default async function GodConsolePage({
   if (!workspaces.length) {
     return (
       <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
-        <GodConsoleClient workspaces={[]} query={query} actorEmail={admin.actorEmail} />
+        <GodConsoleClient workspaces={[]} query={query} actorEmail={admin.actorEmail} focusWorkspaceId={focusWorkspaceId} />
       </OpsShell>
     );
   }
@@ -178,7 +180,7 @@ export default async function GodConsolePage({
 
   return (
     <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
-      <GodConsoleClient workspaces={cards} query={query} actorEmail={admin.actorEmail} />
+      <GodConsoleClient workspaces={cards} query={query} actorEmail={admin.actorEmail} focusWorkspaceId={focusWorkspaceId} />
     </OpsShell>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, X, ShieldCheck, ShieldOff, Loader2, History } from "lucide-react";
+import { Sparkles, X, ShieldCheck, ShieldOff, Loader2, History, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,6 +131,13 @@ export default function WorkspaceDrawer({ open, workspace, onClose }: Props) {
                 <p className="text-xs uppercase tracking-[0.18em] text-[#d4af37]">Workspace</p>
                 <h2 className="text-2xl font-semibold text-[#f5f5dc]">{workspace.name}</h2>
                 <p className="text-sm text-muted-foreground">/{workspace.slug}</p>
+                <a
+                  href={`/ops/workspaces/${workspace.id}`}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[#d4af37]/30 bg-[#0a1229]/80 px-3 py-1.5 text-xs text-[#d4af37] transition hover:bg-[#d4af37]/10 hover:border-[#d4af37]/60"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {t("godConsole.viewFullDetails")}
+                </a>
               </div>
               <Button
                 variant="ghost"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ShieldCheck, ShieldAlert, Search, Activity, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ type Props = {
   workspaces: GodWorkspaceCard[];
   query: string;
   actorEmail: string | null;
+  focusWorkspaceId?: string | null;
 };
 
 function watermarkStyle() {
@@ -52,10 +53,22 @@ function watermarkStyle() {
   } as const;
 }
 
-export default function GodConsoleClient({ workspaces, query, actorEmail }: Props) {
+export default function GodConsoleClient({ workspaces, query, actorEmail, focusWorkspaceId }: Props) {
   const t = useTranslations("opsUI");
   const [selected, setSelected] = useState<GodWorkspaceCard | null>(null);
   const [open, setOpen] = useState(false);
+
+  // Auto-open drawer when focusWorkspaceId is provided (e.g. from "Sovereign Command" link)
+  useEffect(() => {
+    if (focusWorkspaceId && workspaces.length > 0) {
+      const match = workspaces.find((ws) => ws.id === focusWorkspaceId);
+      if (match) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelected(match);
+        setOpen(true);
+      }
+    }
+  }, [focusWorkspaceId, workspaces]);
 
   const sorted = useMemo(
     () =>
@@ -190,7 +203,7 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
                   </div>
 
                   <div className="relative mt-3 flex flex-wrap gap-2">
-                    {(ws.entitlements ?? []).slice(0, 4).map((key) => (
+                    {(ws.entitlements ?? []).slice(0, 6).map((key) => (
                       <span
                         key={key}
                         className="rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 px-3 py-1 text-[11px] uppercase tracking-wide text-[#f5f5dc]/80"
@@ -198,9 +211,9 @@ export default function GodConsoleClient({ workspaces, query, actorEmail }: Prop
                         {key}
                       </span>
                     ))}
-                    {ws.entitlements.length > 4 ? (
+                    {ws.entitlements.length > 6 ? (
                       <span className="text-[11px] text-[#f5f5dc]/60">
-                        {t("godConsole.moreWorkspaces", { count: ws.entitlements.length - 4 })}
+                        {t("godConsole.moreWorkspaces", { count: ws.entitlements.length - 6 })}
                       </span>
                     ) : null}
                   </div>

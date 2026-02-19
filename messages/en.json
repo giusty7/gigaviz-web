@@ -5533,7 +5533,8 @@
       "auditTrail": "Audit Trail",
       "noRecentActivity": "No recent activity.",
       "lock": "Lock",
-      "unlock": "Unlock"
+      "unlock": "Unlock",
+      "viewFullDetails": "View Full Details"
     },
     "cannedResponses": {
       "title": "Canned Responses",
