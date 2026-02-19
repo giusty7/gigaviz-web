@@ -17,6 +17,7 @@ import {
   MessageSquareText,
   ScrollText,
   ShieldCheck,
+  Store,
   Ticket,
   Users,
   Zap,
@@ -47,6 +48,7 @@ const iconMap: Record<string, LucideIcon> = {
   Ticket,
   MessageSquareText,
   Activity,
+  Store,
 };
 
 // Group nav items with separators

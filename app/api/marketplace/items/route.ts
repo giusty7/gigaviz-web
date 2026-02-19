@@ -11,7 +11,7 @@ const marketplaceItemSchema = z.object({
   description: z.string().min(1).max(4000),
   category: z.string().min(1).max(100),
   subcategory: z.string().max(100).optional(),
-  price_usd: z.number().min(0).max(999999).optional().default(0),
+  price_usd: z.number().min(0).max(999999).optional().default(0), // Accepts cents from client
   tags: z.array(z.string().max(50)).max(20).optional().default([]),
   compatible_with: z.array(z.string().max(100)).max(10).optional().default([]),
   license_type: z.enum(["single_use", "multi_use", "subscription", "free"]).optional().default("single_use"),
@@ -68,6 +68,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       + `-${Date.now().toString(36)}`;
 
     // Insert — workspace_id and user_id from auth context, NOT client body
+    // price_usd is received in cents from client form
+    const priceInCents = parsed.data.price_usd;
     const { data: item, error: insertError } = await supabase
       .from("marketplace_items")
       .insert({
@@ -78,8 +80,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         description: parsed.data.description,
         category: parsed.data.category,
         subcategory: parsed.data.subcategory || null,
-        price_usd: parsed.data.price_usd,
-        price_idr: Math.round(parsed.data.price_usd * 15800),
+        price_usd: priceInCents,
+        price_idr: Math.round(priceInCents * 158), // cents USD to IDR (15800 IDR/USD, /100 for cents)
         currency: "USD",
         tags: parsed.data.tags,
         compatible_with: parsed.data.compatible_with,

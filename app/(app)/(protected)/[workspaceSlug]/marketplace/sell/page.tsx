@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
+import { requireEntitlement } from "@/lib/entitlements/server";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { MarketplaceSellerForm } from "@/components/marketplace/MarketplaceSellerForm";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -17,9 +19,11 @@ export default async function MarketplaceSellPage({ params }: Props) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
+  const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "marketplace");
   const t = await getTranslations("marketplace");
 
   return (
+    <FeatureGate allowed={entitlement.allowed}>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="container max-w-4xl py-8">
         <Link
@@ -46,5 +50,6 @@ export default async function MarketplaceSellPage({ params }: Props) {
         </div>
       </div>
     </div>
+    </FeatureGate>
   );
 }

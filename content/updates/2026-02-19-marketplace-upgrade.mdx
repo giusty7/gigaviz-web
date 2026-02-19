@@ -1,0 +1,68 @@
+---
+title: "Marketplace Module: Full Purchase Flow, Seller Dashboard & Ops Moderation"
+date: "2026-02-19"
+summary: "Marketplace upgraded from catalog-only (5.5/10) to fully functional digital product marketplace with purchases, reviews, file uploads, seller dashboards, and platform moderation."
+audience: ["public", "app"]
+tags: ["marketplace", "purchase", "reviews", "moderation", "dashboard", "i18n"]
+type: "shipped"
+---
+
+Gigaviz Marketplace has been upgraded from a basic catalog page to a fully functional digital product marketplace. Here's everything that shipped.
+
+## What's New
+
+### Phase 1 — Core Purchase Flow
+- **Item detail page** — full product view with pricing sidebar, license details, trust signals
+- **Purchase API** — token-based purchases with 15/85 commission split, duplicate prevention
+- **Download API** — license key verification, download limits per license type
+- **Entitlement gating** — sell and purchases pages now require `marketplace` entitlement
+- **Price pipeline fix** — IDR conversion corrected (cents × 158, not dollars × 15800)
+- **Migration** — new RLS policies for purchases, 3 helper RPCs, performance indexes
+
+### Phase 2 — Creator Experience
+- **Item CRUD API** — create, update, delete marketplace items (auto re-submit for review)
+- **Creator profile API** — manage display name, bio, website, payout email
+- **Seller dashboard** — stats cards (items, sales, earnings, pending), item management
+- **Shared types** — `types/marketplace.ts` with all interfaces, commission constants, download limits
+- **Server library** — `lib/marketplace/index.ts` with 10+ reusable functions
+
+### Phase 3 — User Experience
+- **Search & filter** — real-time search, category pills, free-only toggle, sort options
+- **Review system** — 1–5 star ratings, one per purchase, auto-recalculates item rating
+- **File upload** — Supabase Storage integration with signed URLs
+- **Sub-navigation** — Browse, Sell, Purchases, Dashboard tabs
+
+### Phase 4 — Operations & Scale
+- **Ops moderation** — `/ops/marketplace` with approve/reject actions, status tabs, revenue stats
+- **Marketing i18n** — 50+ strings extracted to `productMarketplace` namespace (en + id)
+- **69 unit tests** — types, commission, price pipeline, Zod schemas, i18n completeness
+- **Blog post** — engineering story documenting the full upgrade
+
+## By the Numbers
+
+| Metric | Count |
+|--------|-------|
+| New files created | 24 |
+| Files modified | 8 |
+| API routes added | 7 |
+| i18n keys added | ~150 (both locales) |
+| Unit tests | 69 |
+| Phases completed | 4/4 |
+
+## New Files
+
+- `marketplace/items/[itemSlug]/page.tsx` — item detail page
+- `marketplace/dashboard/page.tsx` — seller dashboard
+- `marketplace/layout.tsx` — sub-navigation
+- `api/marketplace/purchase/route.ts` — purchase API
+- `api/marketplace/items/[itemId]/route.ts` — item CRUD
+- `api/marketplace/items/[itemId]/download/route.ts` — download API
+- `api/marketplace/items/[itemId]/upload/route.ts` — file upload API
+- `api/marketplace/creators/route.ts` — creator profile
+- `api/marketplace/reviews/route.ts` — review system
+- `api/ops/marketplace/moderate/route.ts` — ops moderation API
+- `ops/marketplace/page.tsx` — ops moderation UI
+- `components/marketplace/*` — 4 new client components
+- `lib/marketplace/index.ts` — server-only library
+- `types/marketplace.ts` — shared TypeScript types
+- `supabase/migrations/20260219170000_marketplace_improvements.sql`

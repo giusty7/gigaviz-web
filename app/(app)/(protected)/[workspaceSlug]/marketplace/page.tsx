@@ -4,9 +4,10 @@ import { Store, ShoppingCart, TrendingUp, Star, Package, Download } from "lucide
 import { getAppContext } from "@/lib/app-context";
 import { requireEntitlement } from "@/lib/entitlements/server";
 import { FeatureGate } from "@/components/gates/feature-gate";
-import { supabaseServer } from "@/lib/supabase/server";
+import { getMarketplaceItems, getMarketplaceStats } from "@/lib/marketplace";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
+import { MarketplaceSearchFilter } from "@/components/marketplace/MarketplaceSearchFilter";
 
 type MarketplaceItem = {
   id: string;
@@ -26,20 +27,16 @@ type MarketplaceItem = {
   creator_workspace_id: string;
 };
 
-type MarketplaceStats = {
-  total_items: number;
-  total_creators: number;
-  total_purchases: number;
-};
-
 type Props = {
   params: Promise<{ workspaceSlug: string }>;
+  searchParams: Promise<{ q?: string; category?: string; sort?: string; free?: string }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function MarketplacePage({ params }: Props) {
+export default async function MarketplacePage({ params, searchParams }: Props) {
   const { workspaceSlug } = await params;
+  const filters = await searchParams;
   const ctx = await getAppContext(workspaceSlug);
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
@@ -47,37 +44,17 @@ export default async function MarketplacePage({ params }: Props) {
   const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "marketplace");
 
   const t = await getTranslations("marketplace");
-  const supabase = await supabaseServer();
 
-  // Fetch approved marketplace items
-  const { data: items } = await supabase
-    .from("marketplace_items")
-    .select("*")
-    .eq("status", "approved")
-    .order("purchases_count", { ascending: false })
-    .limit(50);
+  // Fetch items with filters from lib/marketplace
+  const marketplaceItems = await getMarketplaceItems({
+    category: filters.category,
+    search: filters.q,
+    sortBy: (filters.sort as "popular" | "newest" | "price_asc" | "price_desc" | "rating") || "popular",
+    freeOnly: filters.free === "1",
+  }) as MarketplaceItem[];
 
   // Fetch marketplace stats
-  const { count: totalItems } = await supabase
-    .from("marketplace_items")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "approved");
-
-  const { count: totalCreators } = await supabase
-    .from("marketplace_creators")
-    .select("*", { count: "exact", head: true });
-
-  const { count: totalPurchases } = await supabase
-    .from("marketplace_purchases")
-    .select("*", { count: "exact", head: true });
-
-  const stats: MarketplaceStats = {
-    total_items: totalItems ?? 0,
-    total_creators: totalCreators ?? 0,
-    total_purchases: totalPurchases ?? 0,
-  };
-
-  const marketplaceItems = (items ?? []) as MarketplaceItem[];
+  const stats = await getMarketplaceStats();
 
   // Group by category
   const categories = Array.from(new Set(marketplaceItems.map((i) => i.category)));
@@ -156,6 +133,9 @@ export default async function MarketplacePage({ params }: Props) {
           </div>
         </div>
 
+        {/* Search & Filters */}
+        <MarketplaceSearchFilter workspaceSlug={workspaceSlug} />
+
         {/* Items by Category */}
         {categories.map((category) => {
           const categoryItems = marketplaceItems.filter((i) => i.category === category);
@@ -221,7 +201,17 @@ export default async function MarketplacePage({ params }: Props) {
           );
         })}
 
-        {marketplaceItems.length === 0 && (
+        {marketplaceItems.length === 0 && (filters.q || filters.category) && (
+          <div className="py-12 text-center">
+            <Store className="mx-auto mb-4 h-12 w-12 text-muted-foreground/40" />
+            <h3 className="mb-2 text-lg font-semibold">{t("noResults")}</h3>
+            <p className="text-sm text-muted-foreground">
+              {t("noResultsDesc")}
+            </p>
+          </div>
+        )}
+
+        {marketplaceItems.length === 0 && !filters.q && !filters.category && (
           <div className="py-12 text-center">
             <Store className="mx-auto mb-4 h-12 w-12 text-muted-foreground/40" />
             <h3 className="mb-2 text-lg font-semibold">{t("noItemsYet")}</h3>

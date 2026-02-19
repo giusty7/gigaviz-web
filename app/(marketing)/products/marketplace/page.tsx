@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "@/components/marketing/icons";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 import { StatusBadge } from "@/components/marketing/status-badge";
@@ -21,115 +22,43 @@ export const metadata: Metadata = {
   },
 };
 
-const sellItems = [
-  "Office documents — Excel spreadsheets, Word templates, PDF reports",
-  "Graph visuals — AI-generated images, graphics, and video content",
-  "Tracks audio — AI music, jingles, sound effects, and audio assets",
-  "Helper prompt packs — AI prompts for copywriting, CRM, and more",
-];
+const relatedHrefs = ["/products/platform", "/products/studio", "/products/apps"];
 
-const featureCards = [
-  {
-    title: "Structured listings",
-    desc: "Digital product catalog that's easy to discover and organize.",
-  },
-  {
-    title: "Personal vs commercial license",
-    desc: "License settings to distinguish individual or business use.",
-  },
-  {
-    title: "Discovery",
-    desc: "Search, categories, and highlighting of top products.",
-  },
-  {
-    title: "Bundles",
-    desc: "Sell template or asset packages in one bundle.",
-  },
-  {
-    title: "Reviews",
-    desc: "Reviews and ratings to maintain listing quality.",
-  },
-  {
-    title: "Payout & commission (planned)",
-    desc: "Creator payments and marketplace commission planned incrementally.",
-  },
-];
+export default async function MarketplacePage() {
+  const t = await getTranslations("productMarketplace");
 
-const safetyPoints = [
-  {
-    title: "Content curation",
-    desc: "Listings follow applicable quality guidelines and copyright standards.",
-  },
-  {
-    title: "Phased moderation",
-    desc: "Products violating rules will be reviewed and can be removed.",
-  },
-  {
-    title: "License protection",
-    desc: "Products have clear licenses to ensure safe usage.",
-  },
-];
+  const sellItems = [t("sell1"), t("sell2"), t("sell3"), t("sell4")];
 
-const faqs = [
-  {
-    question: "What can I sell on the Marketplace?",
-    answer:
-      "Office templates, prompt packs, creative assets, and mini-apps relevant to the Gigaviz ecosystem.",
-  },
-  {
-    question: "Can I sell bundles?",
-    answer:
-      "Yes, bundles are available to sell multiple assets together.",
-  },
-  {
-    question: "How do personal vs commercial licenses work?",
-    answer:
-      "Personal license for individual use, commercial for business and clients.",
-  },
-  {
-    question: "Is there a curation process?",
-    answer:
-      "Yes, every listing follows quality guidelines and copyright compliance.",
-  },
-  {
-    question: "When is payout available?",
-    answer:
-      "Payout and commission will arrive incrementally per Marketplace roadmap.",
-  },
-  {
-    question: "How is digital product pricing set?",
-    answer:
-      "Creators set prices with standard guidance and regular review.",
-  },
-  {
-    question: "Are there content restrictions?",
-    answer:
-      "Content violating copyright or policy will be rejected or removed.",
-  },
-];
+  const featureCards = [
+    { title: t("feature1Title"), desc: t("feature1Desc") },
+    { title: t("feature2Title"), desc: t("feature2Desc") },
+    { title: t("feature3Title"), desc: t("feature3Desc") },
+    { title: t("feature4Title"), desc: t("feature4Desc") },
+    { title: t("feature5Title"), desc: t("feature5Desc") },
+    { title: t("feature6Title"), desc: t("feature6Desc") },
+  ];
 
-const relatedLinks = [
-  {
-    title: "Gigaviz Platform (Core OS)",
-    desc: "Foundation for accounts, workspace, and billing across all modules.",
-    href: "/products/platform",
-    cta: "View Core OS",
-  },
-  {
-    title: "Gigaviz Studio",
-    desc: "Creative studio for visual and audio assets.",
-    href: "/products/studio",
-    cta: "View Studio",
-  },
-  {
-    title: "Gigaviz Apps",
-    desc: "Request, ticketing, and mini roadmap per client.",
-    href: "/products/apps",
-    cta: "View Apps",
-  },
-];
+  const safetyPoints = [
+    { title: t("safety1Title"), desc: t("safety1Desc") },
+    { title: t("safety2Title"), desc: t("safety2Desc") },
+    { title: t("safety3Title"), desc: t("safety3Desc") },
+  ];
 
-export default function MarketplacePage() {
+  const faqs = [
+    { question: t("faq1Q"), answer: t("faq1A") },
+    { question: t("faq2Q"), answer: t("faq2A") },
+    { question: t("faq3Q"), answer: t("faq3A") },
+    { question: t("faq4Q"), answer: t("faq4A") },
+    { question: t("faq5Q"), answer: t("faq5A") },
+    { question: t("faq6Q"), answer: t("faq6A") },
+    { question: t("faq7Q"), answer: t("faq7A") },
+  ];
+
+  const relatedLinks = [
+    { title: t("related1Title"), desc: t("related1Desc"), href: relatedHrefs[0], cta: t("related1Cta") },
+    { title: t("related2Title"), desc: t("related2Desc"), href: relatedHrefs[1], cta: t("related2Cta") },
+    { title: t("related3Title"), desc: t("related3Desc"), href: relatedHrefs[2], cta: t("related3Cta") },
+  ];
   return (
     <>
       <section className="relative overflow-hidden border-b border-[color:var(--gv-border)]">
@@ -159,10 +88,10 @@ export default function MarketplacePage() {
               </div>
               <div className="space-y-4">
                 <h1 className="text-balance text-3xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-4xl">
-                  Gigaviz Marketplace
+                  {t("heroTitle")}
                 </h1>
                 <p className="text-pretty text-sm text-[color:var(--gv-muted)] md:text-base">
-                  Marketplace to sell and buy templates, prompt packs, creative assets, and mini-apps.
+                  {t("heroDesc")}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -170,24 +99,24 @@ export default function MarketplacePage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-[color:var(--gv-cream)]"
                 >
-                  Open Marketplace
+                  {t("ctaOpen")}
                 </Link>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  View Pricing
+                  {t("ctaPricing")}
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-[color:var(--gv-muted)]">
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Templates & prompts
+                  {t("tagTemplates")}
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Creative assets
+                  {t("tagCreative")}
                 </span>
                 <span className="rounded-full border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] px-3 py-1">
-                  Mini-apps
+                  {t("tagApps")}
                 </span>
               </div>
             </div>
@@ -196,7 +125,7 @@ export default function MarketplacePage() {
             <ProductPreview product="marketplace" />
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-surface-soft)] p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                What you can sell
+                {t("sellTitle")}
               </h2>
               <ul className="mt-4 space-y-2 text-sm text-[color:var(--gv-muted)]">
                 {sellItems.map((item) => (
@@ -207,7 +136,7 @@ export default function MarketplacePage() {
                 ))}
               </ul>
               <div className="mt-6 rounded-2xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-4 text-xs text-[color:var(--gv-muted)]">
-                Marketplace is prepared for creators who want to monetize digital work.
+                {t("sellNote")}
               </div>
             </div>
             </div>
@@ -218,13 +147,13 @@ export default function MarketplacePage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Core features
+                {t("featureSectionLabel")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Marketplace ready to grow with creators
+                {t("featureSectionTitle")}
               </h2>
               <p className="text-sm text-[color:var(--gv-muted)]">
-                Features designed to keep listings organized, licenses clear, and transactions secure.
+                {t("featureSectionDesc")}
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -250,13 +179,13 @@ export default function MarketplacePage() {
             <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-start">
               <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                Security & moderation
+                {t("safetySectionLabel")}
               </p>
                 <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Moderation to maintain quality
+                  {t("safetySectionTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Marketplace designed to support license compliance and digital product quality.
+                  {t("safetySectionDesc")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -282,10 +211,10 @@ export default function MarketplacePage() {
           <div className="container py-12 md:py-16">
             <div className="max-w-2xl space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                FAQ
+                {t("faqSectionLabel")}
               </p>
               <h2 className="text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                Questions about Gigaviz Marketplace
+                {t("faqSectionTitle")}
               </h2>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -311,10 +240,10 @@ export default function MarketplacePage() {
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--gv-muted)]">
-                  Related modules
+                  {t("relatedSectionLabel")}
                 </p>
                 <h2 className="mt-2 text-2xl font-gvDisplay font-semibold text-[color:var(--gv-text)] md:text-3xl">
-                  Marketplace ecosystem support
+                  {t("relatedSectionTitle")}
                 </h2>
               </div>
             </div>
@@ -347,10 +276,10 @@ export default function MarketplacePage() {
             <div className="rounded-3xl border border-[color:var(--gv-border)] bg-[color:var(--gv-card-soft)] p-6 md:flex md:items-center md:justify-between">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--gv-text)]">
-                  Ready to join the Marketplace?
+                  {t("ctaTitle")}
                 </h2>
                 <p className="text-sm text-[color:var(--gv-muted)]">
-                  Create your first listing and expand your digital product reach.
+                  {t("ctaDesc")}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-3 md:mt-0">
@@ -358,13 +287,13 @@ export default function MarketplacePage() {
                   href="/get-started"
                   className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--gv-accent)] px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-[color:var(--gv-cream)]"
                 >
-                  Get Started
+                  {t("ctaGetStarted")}
                 </Link>
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-2xl border border-[color:var(--gv-border)] px-5 py-3 text-sm font-semibold text-[color:var(--gv-text)] hover:border-[color:var(--gv-accent)]"
                 >
-                  Contact Sales
+                  {t("ctaContact")}
                 </Link>
               </div>
             </div>

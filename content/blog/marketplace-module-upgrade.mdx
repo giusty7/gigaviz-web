@@ -1,0 +1,143 @@
+---
+title: "Building a Full-Featured Marketplace Module: From Catalog to Commission"
+description: "How we built Gigaviz Marketplace from a simple listing page into a complete digital product marketplace with purchases, reviews, seller dashboards, and ops moderation — all in a multi-tenant SaaS architecture."
+date: "2026-02-19"
+tags: ["Marketplace", "SaaS", "Next.js", "Supabase", "Multi-tenant", "Digital Products", "TypeScript"]
+published: true
+---
+
+## From Placeholder to Production
+
+When we first shipped Gigaviz Marketplace, it was little more than a catalog page with a seller form. Items could be listed, but you couldn't buy them. There was no detail page, no purchase flow, no download mechanism, and no way for the ops team to moderate submissions. The audit scored it 5.5/10.
+
+This post documents how we systematically upgraded the Marketplace module across four phases — taking it from a basic scaffold to a fully functional digital product marketplace with token-based purchases, commission splits, review systems, file uploads, seller dashboards, and platform-level moderation.
+
+## The Four-Phase Plan
+
+We broke the work into four phases, each building on the previous:
+
+| Phase | Focus | Deliverables |
+|-------|-------|-------------|
+| **Phase 1** | Make It Functional | Item detail page, purchase API, download API, entitlement gating, price pipeline fix, RLS + migration |
+| **Phase 2** | Creator Experience | Item CRUD API, creator profile API, seller dashboard, shared TypeScript types, server-side library |
+| **Phase 3** | User Experience | Search & filter UI, review system, file upload API, sub-navigation layout |
+| **Phase 4** | Operations & Scale | Ops admin moderation, marketing page i18n, unit tests (69 assertions), blog + changelog |
+
+## Phase 1: Making It Actually Work
+
+The most critical gap was that users couldn't purchase items. We built:
+
+### Item Detail Page
+
+A full product view at `/marketplace/items/[itemSlug]` showing the item's thumbnail, title, description, tags, compatible platforms, reviews, and a sidebar with pricing, license details, and trust signals. The page detects three states: creator viewing their own item, a buyer who already purchased (showing download button with remaining count), and a potential buyer (showing the purchase button).
+
+### Purchase API
+
+The purchase flow uses the platform's token economy. When a buyer confirms a purchase:
+
+1. Validate the item exists and is `approved`
+2. Prevent self-purchase and duplicate purchases
+3. Deduct tokens via `consumeTokens` RPC (atomic, row-locked)
+4. Calculate 15/85 commission split
+5. Insert purchase record with generated license key
+6. Update item stats (best-effort RPC calls)
+
+### Download API
+
+Downloads are protected by license key verification. Each purchase has a download limit based on license type (`single_use: 3`, `multi_use: 5`, `unlimited: 999`). The API checks the license key, verifies ownership, increments the download count, and redirects to the file URL.
+
+### Price Pipeline Fix
+
+We discovered the price pipeline had an inconsistency. The form converts dollar input to cents (`Math.round(parseFloat(price) * 100)`), stores in the database as cents, and displays as `(price_usd / 100).toFixed(2)`. The IDR conversion was incorrectly multiplying by 15,800 (dollar rate) instead of 158 (cent rate). A subtle but important fix.
+
+## Phase 2: Creator Experience
+
+### Seller Dashboard
+
+Creators get a dashboard at `/marketplace/dashboard` with four stat cards (total items, total sales, earnings, pending review) and a list of their items with status badges and action buttons (edit, view, delete/archive).
+
+### Item CRUD API
+
+Full REST API for marketplace items:
+- `GET /api/marketplace/items/[itemId]` — single item
+- `PATCH /api/marketplace/items/[itemId]` — update (creator-only, re-submits for review)
+- `DELETE /api/marketplace/items/[itemId]` — archives if has purchases, hard deletes otherwise
+
+### Server Library
+
+We extracted all Supabase queries into `lib/marketplace/index.ts` — a server-only module with functions like `getMarketplaceItems()`, `getMarketplaceItemBySlug()`, `getSellerDashboard()`, `calculateCommission()`, and `moderateItem()`. This keeps route handlers thin and logic reusable.
+
+## Phase 3: User Experience
+
+### Search & Filter
+
+A client component with real-time search, category filter pills, a free-only toggle, and sort options (newest, popular, price low/high, top-rated). Filters are reflected in URL search params for shareability.
+
+### Review System
+
+Buyers can leave 1–5 star reviews with text. The API enforces one review per purchase and automatically recalculates the item's average rating via an RPC. Creators can respond to reviews.
+
+### File Upload
+
+A two-step upload flow using Supabase Storage:
+1. `POST` generates a signed upload URL for the `marketplace-files` bucket
+2. `PATCH` confirms the upload and updates the item's `download_url`
+
+## Phase 4: Operations & Scale
+
+### Ops Moderation
+
+Platform admins get a dedicated moderation page at `/ops/marketplace` with:
+- Stats cards (total items, pending review, approved, platform revenue)
+- Status tabs with counts (pending, approved, rejected, draft, archived)
+- Approve/reject actions with confirmation dialogs and rejection reason input
+- Pagination for large catalogs
+
+The moderation API at `/api/ops/marketplace/moderate` is protected by `requirePlatformAdmin()` and logged for audit trails.
+
+### Marketing Page i18n
+
+We extracted all 50+ hardcoded English strings from the marketing page into the `productMarketplace` i18n namespace with full Indonesian translations. The page now uses `getTranslations("productMarketplace")` and renders locale-aware content.
+
+### Testing
+
+69 unit tests covering:
+- TypeScript constants (commission rates, download limits)
+- Commission calculation edge cases ($0.01 to $999.99)
+- Price pipeline (cents conversion, IDR conversion)
+- Status transition validation
+- Zod schema validation for all API routes (purchase, review, item update, moderation, creator profile)
+- i18n key completeness (both locales, all sections)
+
+## Architecture Decisions
+
+### Why Token-Based Purchases?
+
+The platform already has a mature token economy with wallets, ledger, and rate limiting. Using `consumeTokens` for marketplace purchases means:
+- No external payment gateway dependency (Stripe/Xendit planned later)
+- Atomic deduction with row-level locking
+- Built-in budget guards and workspace scoping
+- Consistent with existing billing infrastructure
+
+### Why 15/85 Commission Split?
+
+Industry standard for digital marketplaces ranges from 10–30%. We chose 15% as a balance between platform sustainability and creator incentive. The split is defined as a constant in `types/marketplace.ts` for easy adjustment.
+
+### Why Server-Only Library?
+
+Extracting queries into `lib/marketplace/index.ts` with `import "server-only"` ensures:
+- No accidental client-side data fetching
+- Consistent workspace scoping across all consumers
+- Single source of truth for business logic
+- Easier testing and maintenance
+
+## What's Next
+
+The Marketplace module is now functionally complete. Remaining improvements:
+- Payment gateway integration (Stripe/Xendit) for real money transactions
+- Bundle support (multiple items in one package)
+- Featured items and promotional placements
+- Creator verification badges
+- Analytics dashboard for creators (views, conversion rates)
+
+*The Marketplace scored 5.5/10 before this upgrade. With 19 tasks across 4 phases — 24 new files, 69 tests, 150+ i18n keys — it's now a fully operational digital product marketplace.*

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getAppContext } from "@/lib/app-context";
+import { requireEntitlement } from "@/lib/entitlements/server";
+import { FeatureGate } from "@/components/gates/feature-gate";
 import { supabaseServer } from "@/lib/supabase/server";
 import { Package, Download, Calendar, DollarSign } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +35,7 @@ export default async function MarketplacePurchasesPage({ params }: Props) {
   if (!ctx.user) redirect("/login");
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
+  const entitlement = await requireEntitlement(ctx.currentWorkspace.id, "marketplace");
   const supabase = await supabaseServer();
   const t = await getTranslations("marketplace");
 
@@ -53,6 +56,7 @@ export default async function MarketplacePurchasesPage({ params }: Props) {
   const myPurchases = (purchases ?? []) as unknown as Purchase[];
 
   return (
+    <FeatureGate allowed={entitlement.allowed}>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="container max-w-6xl py-8">
         <div className="mb-8">
@@ -122,5 +126,6 @@ export default async function MarketplacePurchasesPage({ params }: Props) {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 }

@@ -88,6 +88,7 @@ export const opsTheme = {
       // Business
       { label: "Analytics", href: "/ops/analytics", icon: "BarChart3", group: "business" },
       { label: "Operations", href: "/ops/operations", icon: "Zap", group: "business" },
+      { label: "Marketplace", href: "/ops/marketplace", icon: "Store", group: "business" },
       // Developer
       { label: "Dev Tools", href: "/ops/dev-tools", icon: "Code", group: "developer" },
     ],
