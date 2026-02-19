@@ -25,14 +25,15 @@ export default async function JobsPage({ params }: Props) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const workspaceId = ctx.currentWorkspace.id;
+  const t = await getTranslations("metaHub");
 
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-border bg-card/80 p-6 shadow-sm">
         <div className="mb-6 space-y-2">
-          <h2 className="text-2xl font-semibold">Send Jobs</h2>
+          <h2 className="text-2xl font-semibold">{t("sendJobsHeading")}</h2>
           <p className="text-sm text-muted-foreground">
-            Track batch campaigns and monitor delivery progress. Jobs are processed automatically every few minutes.
+            {t("sendJobsSubheading")}
           </p>
         </div>
 

@@ -51,9 +51,9 @@ export default function NewVideoPage({ params: _params }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const addTag = () => {
-    const t = tag.trim().toLowerCase();
-    if (t && tags.length < 10 && !tags.includes(t)) {
-      setTags([...tags, t]);
+    const trimmedTag = tag.trim().toLowerCase();
+    if (trimmedTag && tags.length < 10 && !tags.includes(trimmedTag)) {
+      setTags([...tags, trimmedTag]);
       setTag("");
     }
   };
@@ -145,7 +145,7 @@ export default function NewVideoPage({ params: _params }: Props) {
               >
                 <VideoIcon className={cn("h-5 w-5", isSelected ? c.text : "text-[#f5f5dc]/40")} />
                 <span className={cn("text-[10px] font-semibold", isSelected ? "text-[#f5f5dc]" : "text-[#f5f5dc]/60")}>
-                  {s.label}
+                  {t(`videos.new.styles.${s.key}`)}
                 </span>
               </button>
             );
@@ -253,10 +253,10 @@ export default function NewVideoPage({ params: _params }: Props) {
         </div>
         {tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {tags.map((t) => (
-              <span key={t} className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] text-purple-400">
-                {t}
-                <button onClick={() => setTags(tags.filter((x) => x !== t))} className="hover:text-red-400">
+            {tags.map((tagItem) => (
+              <span key={tagItem} className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] text-purple-400">
+                {tagItem}
+                <button onClick={() => setTags(tags.filter((x) => x !== tagItem))} className="hover:text-red-400">
                   <X className="h-2.5 w-2.5" />
                 </button>
               </span>

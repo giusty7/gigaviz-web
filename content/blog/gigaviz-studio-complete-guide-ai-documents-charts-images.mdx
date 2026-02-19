@@ -1,0 +1,205 @@
+---
+title: "Gigaviz Studio Complete Guide: AI Documents, Charts, Images & More in One Creative Suite"
+description: "A complete guide to Gigaviz Studio — the AI-powered creative suite that generates documents, charts, images, video storyboards, music compositions, and dashboards from a single prompt. Token-gated, multi-tenant, and built for business teams."
+date: "2026-02-19"
+tags: ["Studio", "AI", "Creative Suite", "Document Generation", "Chart Builder", "Image Generation", "Dashboard", "Token Economy", "SaaS", "Business Tools", "OpenAI", "DALL-E 3", "GPT-4o-mini"]
+published: true
+---
+
+# Gigaviz Studio Complete Guide: AI Documents, Charts, Images & More in One Creative Suite
+
+Creating business content shouldn't require six different tools, three browser tabs, and a graphic designer on speed-dial. That's why we built **Gigaviz Studio** — a unified creative suite where you describe what you need, and AI builds it for you. Documents, charts, images, dashboards — all generated from a single prompt, all inside your workspace.
+
+This guide covers everything Studio can do today, how the token economy works, and what's coming next.
+
+## What is Gigaviz Studio?
+
+Gigaviz Studio is an AI-powered creative suite built into the Gigaviz SaaS platform. It has three modules:
+
+- **Office** — AI document automation (reports, invoices, proposals)
+- **Graph** — Data visualization (charts, dashboards, AI images, video storyboards)
+- **Tracks** — Workflow automation and AI music composition
+
+Each module is gated by workspace entitlements, so you only pay for what you use. Every generation consumes tokens from your workspace balance — no surprise bills, no per-API-call pricing.
+
+## The 6 content types you can generate
+
+### 1. AI Document Generation (Office)
+
+**What it does**: Describe what you need — "Create a Q4 sales report for the Southeast Asia market" — and Studio generates a structured document with title, sections, headings, body text, and an executive summary.
+
+**AI Model**: GPT-4o-mini  
+**Token Cost**: 20 tokens per generation  
+**Output**: Structured JSON document with title, multiple sections (heading + body), and a summary paragraph.
+
+**Use cases**:
+- Monthly client reports from CRM data
+- Sales proposals with product descriptions
+- Internal memos and meeting summaries
+- Invoice drafts with line items
+
+The document is stored as structured JSON, which means you can edit individual sections, re-order them, or regenerate specific parts without starting over.
+
+### 2. AI Image Generation (Graph)
+
+**What it does**: Type a prompt like "Modern tech startup logo with gradient blue and purple colors" and Studio generates a real image using DALL-E 3.
+
+**AI Model**: DALL-E 3  
+**Token Cost**: 40 tokens per generation  
+**Output**: High-quality image saved to your workspace storage (persisted permanently — not a temporary URL).
+
+**10 style presets**:
+- Photo Realistic, Illustration, 3D Render, Watercolor
+- Pixel Art, Abstract, Flat Design, Anime
+- Logo, Icon
+
+The style preset modifies the prompt sent to DALL-E 3, so "Logo" prepends instructions for clean vector-style output while "Photo Realistic" emphasizes photographic quality.
+
+**Why we persist to Supabase Storage**: DALL-E 3 returns temporary URLs that expire. We download the generated image and re-upload it to your workspace's Supabase Storage bucket, so it's available forever.
+
+### 3. AI Chart Generation (Graph)
+
+**What it does**: Describe your data — "Monthly revenue chart for 2025 showing growth trend" — and Studio generates a complete chart configuration with sample data, labels, and visual settings.
+
+**AI Model**: GPT-4o-mini  
+**Token Cost**: 40 tokens per generation  
+**Output**: Chart type recommendation + labels + datasets + configuration, rendered live by our ChartRenderer component.
+
+**Supported chart types**:
+- Bar, Line, Pie, Area, Scatter, Radar
+- Funnel (for conversion analysis)
+- Heatmap (for correlation matrices)
+
+Charts are rendered using Recharts with a custom dark theme. You can export any chart as **PNG (2x retina)** or **SVG** using the built-in export button.
+
+### 4. AI Dashboard Generation (Graph)
+
+**What it does**: Describe a dashboard — "Executive KPI dashboard for e-commerce store" — and Studio generates a responsive widget layout with stat cards, chart widgets, text blocks, and data tables.
+
+**AI Model**: GPT-4o-mini  
+**Token Cost**: 40 tokens per generation  
+**Output**: Widget grid JSON rendered by the DashboardRenderer component.
+
+**Widget types**:
+- Stat cards (metric + label + trend indicator)
+- Chart widgets (embedded chart configurations)
+- Text blocks (markdown-compatible)
+- Data tables (headers + rows)
+
+Dashboards can be toggled between **public** and **private**. Public dashboards are shareable with stakeholders via URL — no login required.
+
+### 5. AI Video Storyboard (Graph)
+
+**What it does**: Describe a video concept — "60-second product demo for our WhatsApp CRM tool" — and Studio generates a storyboard with scene descriptions, narration script, and music suggestions.
+
+**AI Model**: GPT-4o-mini  
+**Token Cost**: 40 tokens per generation  
+**Output**: Scene-by-scene breakdown with visual descriptions, timing, narration text, and a music/SFX recommendation.
+
+**8 video styles**: Marketing, Explainer, Product Demo, Social Reel, Animation, Cinematic, Tutorial, Testimonial.
+
+> **Note**: This generates a storyboard and script — not an actual video file. Video rendering via AI providers like Runway ML or Pika is on our roadmap.
+
+### 6. AI Music Composition (Tracks)
+
+**What it does**: Describe what you hear — "Upbeat electronic jingle for a tech product launch, 120 BPM, key of G" — and Studio generates a composition plan with structure, mood analysis, instrument suggestions, and a waveform visualization.
+
+**AI Model**: GPT-4o-mini  
+**Token Cost**: 30 tokens per generation  
+**Output**: Composition metadata with structure (intro/verse/chorus/bridge/outro), mood tags, instrument list, and waveform visualization data.
+
+**12 genres**: Pop, Rock, Electronic, Ambient, Jazz, Classical, Hip-Hop, Lo-Fi, Cinematic, Jingle, Podcast Intro, Sound Effect.
+
+> **Note**: This generates a composition plan — not an actual audio file. Audio synthesis via providers like Suno or ElevenLabs is on our roadmap.
+
+## How the token economy works
+
+Every workspace has a token balance. AI generations consume tokens at fixed rates:
+
+| Content Type | Token Cost | AI Model |
+|---|---|---|
+| Document | 20 tokens | GPT-4o-mini |
+| Image | 40 tokens | DALL-E 3 |
+| Chart | 40 tokens | GPT-4o-mini |
+| Dashboard | 40 tokens | GPT-4o-mini |
+| Video storyboard | 40 tokens | GPT-4o-mini |
+| Music composition | 30 tokens | GPT-4o-mini |
+
+**Token deduction is atomic**: We use a PostgreSQL RPC with `SELECT ... FOR UPDATE` row-level locking. If two team members generate content simultaneously, the system prevents overdraft — one succeeds, the other gets a clear "insufficient tokens" error (HTTP 402).
+
+**Why fixed token costs instead of per-API-call billing?** Predictability. Your team knows exactly how many documents, images, or dashboards they can create this month. No surprises when the bill arrives.
+
+## The generation flow
+
+Every content type follows the same 5-step pipeline:
+
+1. **Create** — User fills in a title, selects a type/style/genre, and optionally writes a prompt
+2. **Validate** — Zod schema validates all input fields (type-safe at the API boundary)
+3. **Authorize** — Check workspace membership, role, and feature entitlement
+4. **Deduct tokens** — Atomic token consumption before any AI call
+5. **Generate** — Call OpenAI (GPT-4o-mini or DALL-E 3), persist results, update entity status
+
+If you provide a prompt during creation, generation starts automatically in the background — you see the detail page immediately, and results appear when ready.
+
+If you skip the prompt, you can trigger generation later using the **Generate with AI** button on any detail page.
+
+## Reusable components
+
+Studio ships with reusable components that make the generated content interactive:
+
+- **ChartRenderer** — Renders 8 chart types (bar, line, pie, area, scatter, radar, funnel, heatmap) with dark theme and custom tooltips
+- **ChartExportButton** — Export any rendered chart as PNG (2x retina) or SVG
+- **DashboardRenderer** — Responsive grid layout for stat/chart/text/table widgets
+- **WaveformVisualizer** — Canvas-based audio waveform with play/pause animation
+- **VideoStoryboard** — Timeline visualization for scene-by-scene storyboards
+- **GenerateButton** — Reusable AI trigger with loading state, error handling, and token gating
+- **EntityActions** — Universal CRUD actions (edit, delete, confirm) for all entity types
+
+## Entitlement gating
+
+Not every workspace has access to every module. Studio uses a layered entitlement system:
+
+- **Plan-based**: Free plans get limited access; paid plans unlock more modules
+- **Owner grants**: Platform admins can manually unlock modules for specific workspaces
+- **Feature keys**: `office`, `graph`, `tracks`, and `studio` (the parent key)
+
+If a workspace doesn't have the required entitlement, they see a locked state with an upgrade prompt — no broken pages, no mysterious errors.
+
+## Internationalization
+
+Every Studio page, component, and error message is fully translated in **English** and **Indonesian** (Bahasa Indonesia). This includes:
+
+- Sidebar navigation with collapsible sections
+- All 6 content type labels, descriptions, and form fields
+- Style/genre/format enum labels (10 image styles, 8 video styles, 12 music genres)
+- Generation status messages and error states
+- Token balance warnings and 402 error messages
+
+## What's on the roadmap
+
+### Coming soon
+- **AI video rendering** — Integration with Runway ML or Pika for actual video file generation
+- **AI music synthesis** — Integration with Suno API for actual audio file generation
+- **Document export** — PDF, DOCX, and XLSX export from structured JSON documents
+- **Background generation queue** — Async job processing for long-running AI tasks
+
+### Planned
+- **Multi-provider AI** — Fallback providers beyond OpenAI (Anthropic, Stability AI, Replicate)
+- **Workflow execution engine** — Actually run Tracks workflows with triggers and actions
+- **Template marketplace** — Share and discover templates across workspaces
+- **Chart data connectors** — Pull live data from databases, APIs, and CSV files
+
+## Try it today
+
+Gigaviz Studio is available to all workspaces with an active plan. Start generating:
+
+1. Navigate to **Studio** from your workspace sidebar
+2. Pick a module — Office, Graph, or Tracks
+3. Click **Create New** and write a prompt
+4. Watch AI generate your content in seconds
+
+Every workspace starts with a token balance. Once you see what Studio can do, you'll wonder how you ever created business content the old way.
+
+---
+
+*Gigaviz Studio is part of the Gigaviz platform — a multi-tenant SaaS ecosystem for business teams. [Get started free](/get-started) or [explore our pricing](/pricing).*

@@ -897,7 +897,36 @@
     "paramDefsTitle": "Parameter Mapping",
     "paramDefsDesc": "Define how template parameters are populated from contact data",
     "webhooksTitle": "Webhook Monitor",
-    "webhooksDesc": "Monitor incoming webhooks and event delivery"
+    "webhooksDesc": "Monitor incoming webhooks and event delivery",
+    "lockedTitle": "Meta Hub is locked",
+    "lockedDesc": "Upgrade your plan to unlock Meta Hub for this workspace.",
+    "whatsappCommandCenter": "WhatsApp Command Center",
+    "whatsappCommandCenterDesc": "Manage approved templates, sandbox delivery, and inbox follow-ups without leaving this hub.",
+    "connectionSettings": "Connection settings",
+    "webhookEventsLink": "Webhook events",
+    "workflowChecklist": "Workflow checklist",
+    "checklistConnect": "Connect phone number and token in Connections.",
+    "checklistTemplates": "Create or sync approved templates, then send test to whitelist.",
+    "checklistInbox": "Process inbox events and reply with approved templates.",
+    "outboxHeading": "WhatsApp Outbox",
+    "outboxSubheading": "Recent queued/sent/failed messages (last 50)",
+    "noOutboxItems": "No outbox items yet.",
+    "colStatus": "Status",
+    "colType": "Type",
+    "colTo": "To",
+    "colAttempts": "Attempts",
+    "colNextAttempt": "Next Attempt",
+    "colLastError": "Last Error",
+    "colCreated": "Created",
+    "emptyOutbox": "Nothing in the outbox.",
+    "paramDefsHeading": "Parameter Mapping Definitions",
+    "paramDefsSubheading": "Define how template parameters should be populated from contact data or global values.",
+    "noParamTemplates": "No templates with parameters found. Sync templates first.",
+    "backToTemplates": "Back to Templates",
+    "selectTemplatePrompt": "Select a template to configure parameter mappings:",
+    "paramCount": "{count} params",
+    "sendJobsHeading": "Send Jobs",
+    "sendJobsSubheading": "Track batch campaigns and monitor delivery progress. Jobs are processed automatically every few minutes."
   },
   "inbox": {
     "title": "Inbox",
@@ -1621,6 +1650,24 @@
       "comingSoon": {
         "title": "Coming Soon: AI Media Studio",
         "description": "Generate marketing images, product videos, jingles, and brand audio directly from your workspace. All connected to your Meta Hub campaigns and Helper AI."
+      },
+      "stats": {
+        "totalAssets": "Total Assets",
+        "documents": "Documents",
+        "visuals": "Visuals",
+        "automations": "Automations"
+      },
+      "quickActions": {
+        "title": "Quick Create",
+        "newDoc": "New Document",
+        "newChart": "New Chart",
+        "newImage": "New Image",
+        "newVideo": "New Video",
+        "newWorkflow": "New Workflow",
+        "newMusic": "New Music"
+      },
+      "recentActivity": {
+        "title": "Recent Activity"
       }
     },
     "layout": {
@@ -1634,7 +1681,8 @@
         "overview": "Overview",
         "office": "Office",
         "graph": "Graph",
-        "tracks": "Tracks"
+        "tracks": "Tracks",
+        "resources": "Resources"
       },
       "nav": {
         "studioHub": "Studio Hub",
@@ -1647,12 +1695,17 @@
         "aiVideos": "Video Planner",
         "workflows": "Workflows",
         "runHistory": "Run History",
-        "aiMusic": "Music Composer"
+        "aiMusic": "Music Composer",
+        "recentActivity": "Recent Activity",
+        "gettingStarted": "Getting Started",
+        "allAssets": "All Assets",
+        "studioSettings": "Settings"
       },
       "badges": {
         "new": "New",
         "beta": "Beta",
-        "soon": "Soon"
+        "soon": "Soon",
+        "live": "Live"
       },
       "poweredBadge": "AI-Powered Creative Suite",
       "ownerGrant": "Unlocked by owner grant"
@@ -1700,11 +1753,13 @@
       },
       "detail": {
         "configTitle": "Chart Configuration",
-        "configHint": "Chart visualization will render here once data is configured."
+        "configHint": "Chart visualization will render here once data is configured.",
+        "type": "Type"
       },
       "actions": {
         "titlePlaceholder": "Chart title...",
-        "editChart": "Edit Chart"
+        "editChart": "Edit Chart",
+        "export": "Export"
       }
     },
     "dashboards": {
@@ -1889,7 +1944,19 @@
         "descriptionLabel": "Description (Optional)",
         "descriptionPlaceholder": "Internal notes about this image...",
         "formatLabel": "Output Format",
-        "createButton": "Create Image"
+        "createButton": "Create Image",
+        "styles": {
+          "photo-realistic": "Photo Realistic",
+          "illustration": "Illustration",
+          "3d-render": "3D Render",
+          "watercolor": "Watercolor",
+          "pixel-art": "Pixel Art",
+          "abstract": "Abstract",
+          "flat-design": "Flat Design",
+          "anime": "Anime",
+          "logo": "Logo",
+          "icon": "Icon"
+        }
       },
       "detail": {
         "aiPromptLabel": "AI Prompt:",
@@ -1930,7 +1997,17 @@
         "resolutionLabel": "Target Resolution",
         "descriptionLabel": "Description (Optional)",
         "descriptionPlaceholder": "Internal notes about this storyboard...",
-        "createButton": "Create Storyboard"
+        "createButton": "Create Storyboard",
+        "styles": {
+          "marketing": "Marketing",
+          "explainer": "Explainer",
+          "product-demo": "Product Demo",
+          "social-reel": "Social Reel",
+          "animation": "Animation",
+          "cinematic": "Cinematic",
+          "tutorial": "Tutorial",
+          "testimonial": "Testimonial"
+        }
       },
       "detail": {
         "aiPromptLabel": "AI Prompt:",
@@ -1970,13 +2047,30 @@
         "durationLabel": "Target Duration (seconds)",
         "bpmLabel": "BPM",
         "formatLabel": "Target Format",
-        "createButton": "Create Composition"
+        "createButton": "Create Composition",
+        "genres": {
+          "pop": "Pop",
+          "rock": "Rock",
+          "electronic": "Electronic",
+          "ambient": "Ambient",
+          "jazz": "Jazz",
+          "classical": "Classical",
+          "hip-hop": "Hip Hop",
+          "lo-fi": "Lo-Fi",
+          "cinematic": "Cinematic",
+          "jingle": "Jingle",
+          "podcast-intro": "Podcast Intro",
+          "sound-effect": "Sound Effect"
+        }
       },
       "detail": {
         "aiPromptLabel": "AI Prompt:",
         "generationPending": "Composition plan will appear here once AI planning is complete.",
         "noAudio": "No composition plan yet",
-        "noAudioHint": "Add a prompt and AI will plan your music composition."
+        "noAudioHint": "Add a prompt and AI will plan your music composition.",
+        "structure": "Structure",
+        "mood": "Mood",
+        "instruments": "Instruments"
       },
       "actions": {
         "editTrack": "Edit",

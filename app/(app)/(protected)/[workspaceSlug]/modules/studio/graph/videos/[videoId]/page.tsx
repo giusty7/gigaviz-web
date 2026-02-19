@@ -7,6 +7,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { VideoActions } from "@/components/studio/VideoActions";
 import { VideoStoryboard } from "@/components/studio/VideoStoryboard";
 import { GenerateButton } from "@/components/studio/GenerateButton";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,28 @@ export default async function VideoDetailPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
+
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(sub?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const ents = ctx.effectiveEntitlements ?? [];
+  const hasAccess = canAccess(
+    { plan_id: plan.plan_id, is_admin: isAdmin, effectiveEntitlements: ents },
+    "graph"
+  );
+
+  if (!hasAccess) {
+    return (
+      <LockedScreen title={t("videos.lockedTitle")} workspaceSlug={workspaceSlug} />
+    );
+  }
+
   const { data: video, error } = await db
     .from("graph_videos")
     .select("*")
@@ -41,7 +65,6 @@ export default async function VideoDetailPage({ params }: PageProps) {
 
   if (error || !video) notFound();
 
-  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/graph/videos`;
   const color = styleColors[video.style] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
 

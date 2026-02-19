@@ -1,6 +1,7 @@
 /**
  * Tests for Gigaviz Studio API Zod schemas
- * Validates create/update schemas for Graph Charts, Dashboards, Office Documents, and Tracks Workflows
+ * Validates create/update schemas for Graph Charts, Dashboards, Images, Videos,
+ * Office Documents, Tracks Workflows, and Tracks Music
  */
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
@@ -74,6 +75,97 @@ const workflowUpdateSchema = z.object({
   steps_json: z.unknown().optional(),
   triggers_json: z.unknown().optional(),
   estimated_tokens_per_run: z.number().positive().optional(),
+});
+
+// ── Graph Images ──
+const imageCreateSchema = z.object({
+  title: z.string().min(1).max(255),
+  description: z.string().max(2000).optional(),
+  style: z.enum([
+    "photo-realistic", "illustration", "3d-render", "watercolor",
+    "pixel-art", "abstract", "flat-design", "anime", "logo", "icon",
+  ]),
+  prompt: z.string().max(4000).optional(),
+  negative_prompt: z.string().max(2000).optional(),
+  width: z.number().int().min(256).max(4096).optional(),
+  height: z.number().int().min(256).max(4096).optional(),
+  format: z.enum(["png", "jpg", "webp", "svg"]).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
+});
+
+const imageUpdateSchema = z.object({
+  title: z.string().min(1).max(255).optional(),
+  description: z.string().max(2000).optional(),
+  style: z.enum([
+    "photo-realistic", "illustration", "3d-render", "watercolor",
+    "pixel-art", "abstract", "flat-design", "anime", "logo", "icon",
+  ]).optional(),
+  prompt: z.string().max(4000).optional(),
+  negative_prompt: z.string().max(2000).optional(),
+  width: z.number().int().min(256).max(4096).optional(),
+  height: z.number().int().min(256).max(4096).optional(),
+  format: z.enum(["png", "jpg", "webp", "svg"]).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
+});
+
+// ── Graph Videos ──
+const videoCreateSchema = z.object({
+  title: z.string().min(1).max(255),
+  description: z.string().max(2000).optional(),
+  style: z.enum([
+    "marketing", "explainer", "product-demo", "social-reel",
+    "animation", "cinematic", "tutorial", "testimonial",
+  ]),
+  prompt: z.string().max(4000).optional(),
+  duration_seconds: z.number().int().min(5).max(300).optional(),
+  resolution: z.enum(["720p", "1080p", "4k"]).optional(),
+  format: z.enum(["mp4", "webm", "mov"]).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
+});
+
+const videoUpdateSchema = z.object({
+  title: z.string().min(1).max(255).optional(),
+  description: z.string().max(2000).optional(),
+  style: z.enum([
+    "marketing", "explainer", "product-demo", "social-reel",
+    "animation", "cinematic", "tutorial", "testimonial",
+  ]).optional(),
+  prompt: z.string().max(4000).optional(),
+  duration_seconds: z.number().int().min(5).max(300).optional(),
+  resolution: z.enum(["720p", "1080p", "4k"]).optional(),
+  format: z.enum(["mp4", "webm", "mov"]).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
+});
+
+// ── Tracks Music ──
+const musicCreateSchema = z.object({
+  title: z.string().min(1).max(255),
+  description: z.string().max(2000).optional(),
+  genre: z.enum([
+    "pop", "rock", "electronic", "ambient", "jazz", "classical",
+    "hip-hop", "lo-fi", "cinematic", "jingle", "podcast-intro", "sound-effect",
+  ]),
+  prompt: z.string().max(4000).optional(),
+  duration_seconds: z.number().int().min(5).max(600).optional(),
+  bpm: z.number().int().min(40).max(300).optional(),
+  key_signature: z.enum(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]).optional(),
+  format: z.enum(["mp3", "wav", "ogg", "flac"]).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
+});
+
+const musicUpdateSchema = z.object({
+  title: z.string().min(1).max(255).optional(),
+  description: z.string().max(2000).optional(),
+  genre: z.enum([
+    "pop", "rock", "electronic", "ambient", "jazz", "classical",
+    "hip-hop", "lo-fi", "cinematic", "jingle", "podcast-intro", "sound-effect",
+  ]).optional(),
+  prompt: z.string().max(4000).optional(),
+  duration_seconds: z.number().int().min(5).max(600).optional(),
+  bpm: z.number().int().min(40).max(300).optional(),
+  key_signature: z.enum(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]).optional(),
+  format: z.enum(["mp3", "wav", "ogg", "flac"]).optional(),
+  tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -428,6 +520,463 @@ describe("Tracks Workflow — updateSchema", () => {
     const result = workflowUpdateSchema.safeParse({
       estimated_tokens_per_run: 0,
     });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Graph Images
+// ═══════════════════════════════════════════════════════════════════
+describe("Graph Image — createSchema", () => {
+  it("accepts valid photo-realistic image", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Product Photo",
+      style: "photo-realistic",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts all style values", () => {
+    const styles = [
+      "photo-realistic", "illustration", "3d-render", "watercolor",
+      "pixel-art", "abstract", "flat-design", "anime", "logo", "icon",
+    ];
+    for (const s of styles) {
+      const result = imageCreateSchema.safeParse({ title: "Test", style: s });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("accepts full payload with all optional fields", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Brand Logo",
+      description: "Modern minimalist logo",
+      style: "logo",
+      prompt: "A modern tech logo with gradient colors",
+      negative_prompt: "blurry, low quality",
+      width: 1024,
+      height: 1024,
+      format: "png",
+      tags: ["brand", "logo"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing title", () => {
+    const result = imageCreateSchema.safeParse({ style: "illustration" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing style", () => {
+    const result = imageCreateSchema.safeParse({ title: "Test" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid style", () => {
+    const result = imageCreateSchema.safeParse({ title: "Test", style: "sketch" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects width below 256", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", width: 128,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects width above 4096", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", width: 8192,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects height below 256", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", height: 100,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects non-integer width", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", width: 512.5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid format", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", format: "gif",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid formats", () => {
+    const formats = ["png", "jpg", "webp", "svg"];
+    for (const f of formats) {
+      const result = imageCreateSchema.safeParse({ title: "Test", style: "icon", format: f });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects prompt exceeding 4000 chars", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", prompt: "x".repeat(4001),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects negative_prompt exceeding 2000 chars", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon", negative_prompt: "x".repeat(2001),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects more than 10 tags", () => {
+    const result = imageCreateSchema.safeParse({
+      title: "Test", style: "icon",
+      tags: Array.from({ length: 11 }, (_, i) => `tag${i}`),
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Graph Image — updateSchema", () => {
+  it("accepts empty object (no fields to update)", () => {
+    const result = imageUpdateSchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial style change", () => {
+    const result = imageUpdateSchema.safeParse({ style: "watercolor" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial dimension update", () => {
+    const result = imageUpdateSchema.safeParse({ width: 512, height: 512 });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid style", () => {
+    const result = imageUpdateSchema.safeParse({ style: "oil-painting" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects empty title", () => {
+    const result = imageUpdateSchema.safeParse({ title: "" });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Graph Videos
+// ═══════════════════════════════════════════════════════════════════
+describe("Graph Video — createSchema", () => {
+  it("accepts valid marketing video", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Product Launch Video",
+      style: "marketing",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts all style values", () => {
+    const styles = [
+      "marketing", "explainer", "product-demo", "social-reel",
+      "animation", "cinematic", "tutorial", "testimonial",
+    ];
+    for (const s of styles) {
+      const result = videoCreateSchema.safeParse({ title: "Test", style: s });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("accepts full payload with all optional fields", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Explainer Video",
+      description: "How our product works",
+      style: "explainer",
+      prompt: "Create a 2D animation explaining SaaS onboarding",
+      duration_seconds: 60,
+      resolution: "1080p",
+      format: "mp4",
+      tags: ["marketing", "explainer"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing title", () => {
+    const result = videoCreateSchema.safeParse({ style: "marketing" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing style", () => {
+    const result = videoCreateSchema.safeParse({ title: "Test" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid style", () => {
+    const result = videoCreateSchema.safeParse({ title: "Test", style: "vlog" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration below 5 seconds", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Test", style: "marketing", duration_seconds: 2,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration above 300 seconds", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Test", style: "marketing", duration_seconds: 600,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects non-integer duration", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Test", style: "marketing", duration_seconds: 30.5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid resolutions", () => {
+    const resolutions = ["720p", "1080p", "4k"];
+    for (const r of resolutions) {
+      const result = videoCreateSchema.safeParse({ title: "Test", style: "marketing", resolution: r });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid resolution", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Test", style: "marketing", resolution: "480p",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid formats", () => {
+    const formats = ["mp4", "webm", "mov"];
+    for (const f of formats) {
+      const result = videoCreateSchema.safeParse({ title: "Test", style: "marketing", format: f });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid format", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Test", style: "marketing", format: "avi",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects prompt exceeding 4000 chars", () => {
+    const result = videoCreateSchema.safeParse({
+      title: "Test", style: "marketing", prompt: "x".repeat(4001),
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Graph Video — updateSchema", () => {
+  it("accepts empty object (no fields to update)", () => {
+    const result = videoUpdateSchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial style change", () => {
+    const result = videoUpdateSchema.safeParse({ style: "cinematic" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial duration update", () => {
+    const result = videoUpdateSchema.safeParse({ duration_seconds: 120 });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid style", () => {
+    const result = videoUpdateSchema.safeParse({ style: "documentary" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects empty title", () => {
+    const result = videoUpdateSchema.safeParse({ title: "" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration below minimum", () => {
+    const result = videoUpdateSchema.safeParse({ duration_seconds: 1 });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Tracks Music
+// ═══════════════════════════════════════════════════════════════════
+describe("Tracks Music — createSchema", () => {
+  it("accepts valid pop track", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Brand Jingle",
+      genre: "jingle",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts all genre values", () => {
+    const genres = [
+      "pop", "rock", "electronic", "ambient", "jazz", "classical",
+      "hip-hop", "lo-fi", "cinematic", "jingle", "podcast-intro", "sound-effect",
+    ];
+    for (const g of genres) {
+      const result = musicCreateSchema.safeParse({ title: "Test", genre: g });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("accepts full payload with all optional fields", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Ambient Background",
+      description: "Calm ambient for meditation app",
+      genre: "ambient",
+      prompt: "Soft ambient pads with nature sounds",
+      duration_seconds: 180,
+      bpm: 72,
+      key_signature: "A",
+      format: "wav",
+      tags: ["ambient", "meditation"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing title", () => {
+    const result = musicCreateSchema.safeParse({ genre: "pop" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing genre", () => {
+    const result = musicCreateSchema.safeParse({ title: "Test" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid genre", () => {
+    const result = musicCreateSchema.safeParse({ title: "Test", genre: "country" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration below 5 seconds", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", duration_seconds: 2,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration above 600 seconds", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", duration_seconds: 900,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects bpm below 40", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", bpm: 20,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects bpm above 300", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "electronic", bpm: 400,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects non-integer bpm", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", bpm: 120.5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid key signatures", () => {
+    const keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    for (const k of keys) {
+      const result = musicCreateSchema.safeParse({ title: "Test", genre: "pop", key_signature: k });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid key signature", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", key_signature: "Db",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid formats", () => {
+    const formats = ["mp3", "wav", "ogg", "flac"];
+    for (const f of formats) {
+      const result = musicCreateSchema.safeParse({ title: "Test", genre: "pop", format: f });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid format", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", format: "aac",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects prompt exceeding 4000 chars", () => {
+    const result = musicCreateSchema.safeParse({
+      title: "Test", genre: "pop", prompt: "x".repeat(4001),
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Tracks Music — updateSchema", () => {
+  it("accepts empty object (no fields to update)", () => {
+    const result = musicUpdateSchema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial genre change", () => {
+    const result = musicUpdateSchema.safeParse({ genre: "jazz" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts partial bpm and key update", () => {
+    const result = musicUpdateSchema.safeParse({ bpm: 140, key_signature: "F#" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid genre", () => {
+    const result = musicUpdateSchema.safeParse({ genre: "reggae" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects empty title", () => {
+    const result = musicUpdateSchema.safeParse({ title: "" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects bpm below minimum", () => {
+    const result = musicUpdateSchema.safeParse({ bpm: 10 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects duration below minimum", () => {
+    const result = musicUpdateSchema.safeParse({ duration_seconds: 1 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid key_signature", () => {
+    const result = musicUpdateSchema.safeParse({ key_signature: "H" });
     expect(result.success).toBe(false);
   });
 });

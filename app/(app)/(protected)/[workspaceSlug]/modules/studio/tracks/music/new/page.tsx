@@ -50,7 +50,7 @@ export default function NewMusicPage({ params: _params }: Props) {
   const router = useRouter();
   const [genre, setGenre] = useState("ambient");
   const [title, setTitle] = useState("");
-  const [description] = useState("");
+  const [description, setDescription] = useState("");
   const [prompt, setPrompt] = useState("");
   const [duration, setDuration] = useState(30);
   const [bpm, setBpm] = useState(120);
@@ -61,9 +61,9 @@ export default function NewMusicPage({ params: _params }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const addTag = () => {
-    const t = tag.trim().toLowerCase();
-    if (t && tags.length < 10 && !tags.includes(t)) {
-      setTags([...tags, t]);
+    const trimmedTag = tag.trim().toLowerCase();
+    if (trimmedTag && tags.length < 10 && !tags.includes(trimmedTag)) {
+      setTags([...tags, trimmedTag]);
       setTag("");
     }
   };
@@ -157,7 +157,7 @@ export default function NewMusicPage({ params: _params }: Props) {
               >
                 <MusicIcon className={cn("h-4 w-4", isSelected ? c.text : "text-[#f5f5dc]/40")} />
                 <span className={cn("text-[10px] font-semibold", isSelected ? "text-[#f5f5dc]" : "text-[#f5f5dc]/60")}>
-                  {g.label}
+                  {t(`music.new.genres.${g.key}`)}
                 </span>
               </button>
             );
@@ -190,6 +190,20 @@ export default function NewMusicPage({ params: _params }: Props) {
           placeholder={t("music.new.aiPromptPlaceholder")}
           rows={4}
           className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30 resize-none"
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="mb-2 block text-xs font-semibold text-[#f5f5dc]/40 uppercase tracking-wider">
+          {t("common.descriptionOptionalLabel")}
+        </label>
+        <input
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t("common.descriptionPlaceholder")}
+          className="w-full rounded-lg border border-[#f5f5dc]/10 bg-[#0a1229]/60 px-4 py-2.5 text-sm text-[#f5f5dc] placeholder:text-[#f5f5dc]/20 focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/30"
         />
       </div>
 
@@ -266,10 +280,10 @@ export default function NewMusicPage({ params: _params }: Props) {
         </div>
         {tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {tags.map((t) => (
-              <span key={t} className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] text-teal-400">
-                {t}
-                <button onClick={() => setTags(tags.filter((x) => x !== t))} className="hover:text-red-400">
+            {tags.map((tagItem) => (
+              <span key={tagItem} className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] text-teal-400">
+                {tagItem}
+                <button onClick={() => setTags(tags.filter((x) => x !== tagItem))} className="hover:text-red-400">
                   <X className="h-2.5 w-2.5" />
                 </button>
               </span>

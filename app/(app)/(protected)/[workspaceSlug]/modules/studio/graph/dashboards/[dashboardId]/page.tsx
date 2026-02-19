@@ -12,6 +12,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { DashboardActions } from "@/components/studio/DashboardActions";
 import { DashboardRenderer } from "@/components/studio/DashboardRenderer";
 import { GenerateButton } from "@/components/studio/GenerateButton";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +30,27 @@ export default async function DashboardDetailPage({ params }: PageProps) {
 
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
+
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", workspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(sub?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const ents = ctx.effectiveEntitlements ?? [];
+  const hasAccess = canAccess(
+    { plan_id: plan.plan_id, is_admin: isAdmin, effectiveEntitlements: ents },
+    "graph"
+  );
+
+  if (!hasAccess) {
+    return (
+      <LockedScreen title={t("dashboards.lockedTitle")} workspaceSlug={workspaceSlug} />
+    );
+  }
 
   const { data: dashboard, error } = await db
     .from("graph_dashboards")
@@ -40,7 +63,6 @@ export default async function DashboardDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/graph/dashboards`;
 
   return (

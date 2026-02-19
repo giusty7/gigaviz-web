@@ -9,6 +9,13 @@ import {
   MessageSquare,
   Bot,
   Zap,
+  ImageIcon,
+  VideoIcon,
+  MusicIcon,
+  Plus,
+  TrendingUp,
+  Clock,
+  Star,
 } from "lucide-react";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -32,19 +39,25 @@ export default async function StudioHubPage({ params }: PageProps) {
   const db = await supabaseServer();
 
   // Fetch stats in parallel
-  const [docsResult, chartsResult, workflowsResult, imagesResult, videosResult, musicResult, subResult] = await Promise.all([
+  const [docsResult, chartsResult, workflowsResult, imagesResult, videosResult, musicResult, dashboardsResult, runsResult, templatesResult, subResult] = await Promise.all([
     db
       .from("office_documents")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
+      .select("id, title, category, updated_at", { count: "exact" })
+      .eq("workspace_id", workspace.id)
+      .order("updated_at", { ascending: false })
+      .limit(5),
     db
       .from("graph_charts")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
+      .select("id, title, chart_type, updated_at", { count: "exact" })
+      .eq("workspace_id", workspace.id)
+      .order("updated_at", { ascending: false })
+      .limit(5),
     db
       .from("tracks_workflows")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
+      .select("id, title, status, updated_at", { count: "exact" })
+      .eq("workspace_id", workspace.id)
+      .order("updated_at", { ascending: false })
+      .limit(5),
     db
       .from("graph_images")
       .select("id", { count: "exact", head: true })
@@ -57,6 +70,18 @@ export default async function StudioHubPage({ params }: PageProps) {
       .from("tracks_music")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspace.id),
+    db
+      .from("graph_dashboards")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("tracks_runs")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("office_templates")
+      .select("id", { count: "exact", head: true })
+      .or(`workspace_id.eq.${workspace.id},is_public.eq.true`),
     db
       .from("subscriptions")
       .select("plan_id")
@@ -72,6 +97,11 @@ export default async function StudioHubPage({ params }: PageProps) {
 
   const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio`;
+
+  const templateCount = templatesResult.count ?? 0;
+  const totalAssets = (docsResult.count ?? 0) + (chartsResult.count ?? 0) + (workflowsResult.count ?? 0) +
+    (imagesResult.count ?? 0) + (videosResult.count ?? 0) + (musicResult.count ?? 0) +
+    (dashboardsResult.count ?? 0) + templateCount;
 
   const modules = [
     {
@@ -93,7 +123,7 @@ export default async function StudioHubPage({ params }: PageProps) {
       icon: BarChart3,
       color: "purple",
       href: `${basePath}/graph`,
-      stat: (chartsResult.count ?? 0) + (imagesResult.count ?? 0) + (videosResult.count ?? 0),
+      stat: (chartsResult.count ?? 0) + (imagesResult.count ?? 0) + (videosResult.count ?? 0) + (dashboardsResult.count ?? 0),
       statLabel: t("hub.modules.graph.statLabel"),
       unlocked: check("graph"),
       features: t.raw("hub.modules.graph.features") as string[],
@@ -117,6 +147,23 @@ export default async function StudioHubPage({ params }: PageProps) {
     purple: { bg: "from-purple-500/20 to-purple-400/5", border: "border-purple-500/20", text: "text-purple-400", badge: "bg-purple-500/15 text-purple-400", hover: "hover:shadow-purple-500/5" },
     teal: { bg: "from-teal-500/20 to-teal-400/5", border: "border-teal-500/20", text: "text-teal-400", badge: "bg-teal-500/15 text-teal-400", hover: "hover:shadow-teal-500/5" },
   } as const;
+
+  // Quick action buttons
+  const quickActions = [
+    { label: t("hub.quickActions.newDoc"), icon: FileText, href: `${basePath}/office/new`, color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+    { label: t("hub.quickActions.newChart"), icon: BarChart3, href: `${basePath}/graph/new`, color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
+    { label: t("hub.quickActions.newImage"), icon: ImageIcon, href: `${basePath}/graph/images/new`, color: "text-pink-400 bg-pink-500/10 border-pink-500/20" },
+    { label: t("hub.quickActions.newVideo"), icon: VideoIcon, href: `${basePath}/graph/videos/new`, color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
+    { label: t("hub.quickActions.newWorkflow"), icon: Workflow, href: `${basePath}/tracks/new`, color: "text-teal-400 bg-teal-500/10 border-teal-500/20" },
+    { label: t("hub.quickActions.newMusic"), icon: MusicIcon, href: `${basePath}/tracks/music/new`, color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  ];
+
+  // Collect recent items
+  const recentItems = [
+    ...(docsResult.data ?? []).map((d) => ({ id: d.id, title: d.title, type: "document" as const, icon: FileText, href: `${basePath}/office/${d.id}`, updated: d.updated_at, color: "text-blue-400" })),
+    ...(chartsResult.data ?? []).map((c) => ({ id: c.id, title: c.title, type: "chart" as const, icon: BarChart3, href: `${basePath}/graph/${c.id}`, updated: c.updated_at, color: "text-purple-400" })),
+    ...(workflowsResult.data ?? []).map((w) => ({ id: w.id, title: w.title, type: "workflow" as const, icon: Workflow, href: `${basePath}/tracks/${w.id}`, updated: w.updated_at, color: "text-teal-400" })),
+  ].sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime()).slice(0, 8);
 
   const integrations = [
     {
@@ -150,6 +197,69 @@ export default async function StudioHubPage({ params }: PageProps) {
           </div>
         }
       />
+
+      {/* Overall Stats Bar */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+        <div className="rounded-xl border border-cyan-500/20 bg-[#0a1229]/60 p-4">
+          <div className="flex items-center gap-2.5">
+            <TrendingUp className="h-5 w-5 text-cyan-400" aria-hidden="true" />
+            <div>
+              <p className="text-xl font-bold text-[#f5f5dc]">{totalAssets}</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("hub.stats.totalAssets")}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-blue-500/20 bg-[#0a1229]/60 p-4">
+          <div className="flex items-center gap-2.5">
+            <FileText className="h-5 w-5 text-blue-400" aria-hidden="true" />
+            <div>
+              <p className="text-xl font-bold text-[#f5f5dc]">{docsResult.count ?? 0}</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("hub.stats.documents")}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-purple-500/20 bg-[#0a1229]/60 p-4">
+          <div className="flex items-center gap-2.5">
+            <ImageIcon className="h-5 w-5 text-purple-400" aria-hidden="true" />
+            <div>
+              <p className="text-xl font-bold text-[#f5f5dc]">{(imagesResult.count ?? 0) + (chartsResult.count ?? 0)}</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("hub.stats.visuals")}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-teal-500/20 bg-[#0a1229]/60 p-4">
+          <div className="flex items-center gap-2.5">
+            <Zap className="h-5 w-5 text-teal-400" aria-hidden="true" />
+            <div>
+              <p className="text-xl font-bold text-[#f5f5dc]">{runsResult.count ?? 0}</p>
+              <p className="text-[10px] text-[#f5f5dc]/40">{t("hub.stats.automations")}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Plus className="h-3.5 w-3.5 text-cyan-400" aria-hidden="true" />
+          {t("hub.quickActions.title")}
+        </h2>
+        <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          {quickActions.map((action) => {
+            const ActionIcon = action.icon;
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className={`flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-all hover:scale-[1.02] hover:shadow-lg ${action.color}`}
+              >
+                <ActionIcon className="h-5 w-5" aria-hidden="true" />
+                <span className="text-[11px] font-semibold leading-tight">{action.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Module Cards */}
       <div className="grid gap-5 md:grid-cols-3">
@@ -218,10 +328,43 @@ export default async function StudioHubPage({ params }: PageProps) {
         })}
       </div>
 
+      {/* Recent Activity */}
+      {recentItems.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5 text-cyan-400" aria-hidden="true" />
+            {t("hub.recentActivity.title")}
+          </h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {recentItems.map((item) => {
+              const ItemIcon = item.icon;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="group flex items-center gap-3 rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-3.5 transition-all hover:border-cyan-500/20 hover:bg-[#0a1229]/60"
+                >
+                  <ItemIcon className={`h-4 w-4 shrink-0 ${item.color}`} aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[#f5f5dc] group-hover:text-cyan-300 transition-colors">
+                      {item.title}
+                    </p>
+                    <p className="text-[10px] text-[#f5f5dc]/30">
+                      {new Date(item.updated).toLocaleDateString()} · {item.type}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-3 w-3 shrink-0 text-[#f5f5dc]/15 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Integrations Section */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-cyan-400" aria-hidden="true" />
+        <h2 className="text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Star className="h-3.5 w-3.5 text-cyan-400" aria-hidden="true" />
           {t("hub.integrations.title")}
         </h2>
         <div className="grid gap-4 md:grid-cols-2">

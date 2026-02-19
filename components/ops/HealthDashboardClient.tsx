@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import {
   Activity,
@@ -33,13 +33,7 @@ export default function HealthDashboardClient() {
   const [data, setData] = useState<HealthSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchHealth();
-    const interval = setInterval(fetchHealth, 30000); // Refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  async function fetchHealth() {
+  const fetchHealth = useCallback(async () => {
     try {
       const res = await fetch("/api/ops/health", {
         credentials: "include",
@@ -58,7 +52,13 @@ export default function HealthDashboardClient() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [t]);
+
+  useEffect(() => {
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, [fetchHealth]);
 
   if (loading) {
     return (

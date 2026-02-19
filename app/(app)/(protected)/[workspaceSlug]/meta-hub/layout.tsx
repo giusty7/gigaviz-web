@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import LockedScreen from "@/components/app/LockedScreen";
 import { ImperiumMetaHubLayout } from "@/components/meta-hub/ImperiumMetaHubLayout";
 import { getAppContext } from "@/lib/app-context";
@@ -107,12 +108,13 @@ export default async function MetaHubLayout({ children, params }: LayoutProps) {
 
   const flags = getMetaHubFlags();
   const basePath = `/${workspace.slug}/meta-hub`;
+  const t = await getTranslations("metaHub");
   const content = access.metaHub ? (
     children
   ) : (
     <LockedScreen
-      title="Meta Hub is locked"
-      description="Upgrade your plan to unlock Meta Hub for this workspace."
+      title={t("lockedTitle")}
+      description={t("lockedDesc")}
       workspaceSlug={workspace.slug}
     />
   );

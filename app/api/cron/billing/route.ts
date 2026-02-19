@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { logger } from "@/lib/logging";
 import { sendBillingEmail } from "@/lib/billing/emails";
+import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ const CRON_SECRET = process.env.CRON_SECRET || process.env.VERCEL_CRON_SECRET ||
  * 3. Send renewal reminder emails (7 days + 3 days before expiry)
  * 4. Send trial ending reminders (3 days before)
  */
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   // Verify cron secret
   const authHeader = req.headers.get("authorization");
   const cronSecret = authHeader?.replace("Bearer ", "") ?? "";
@@ -266,7 +267,7 @@ export async function GET(req: NextRequest) {
     timestamp: now.toISOString(),
     ...results,
   });
-}
+});
 
 /* ── Helper: resolve workspace owner email ─────────────────────── */
 

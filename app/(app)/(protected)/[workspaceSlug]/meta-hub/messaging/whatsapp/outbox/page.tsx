@@ -58,11 +58,13 @@ export default async function WhatsappOutboxPage({ params }: { params: Promise<{
     {} as Record<string, number>
   );
 
+  const t = await getTranslations("metaHub");
+
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">WhatsApp Outbox</h1>
-        <p className="text-sm text-muted-foreground">Recent queued/sent/failed messages (last 50)</p>
+        <h1 className="text-xl font-semibold">{t("outboxHeading")}</h1>
+        <p className="text-sm text-muted-foreground">{t("outboxSubheading")}</p>
       </div>
 
       <div className="flex gap-3 text-sm">
@@ -73,7 +75,7 @@ export default async function WhatsappOutboxPage({ params }: { params: Promise<{
           </div>
         ))}
         {Object.keys(counts).length === 0 && (
-          <div className="text-sm text-muted-foreground">No outbox items yet.</div>
+          <div className="text-sm text-muted-foreground">{t("noOutboxItems")}</div>
         )}
       </div>
 
@@ -81,13 +83,13 @@ export default async function WhatsappOutboxPage({ params }: { params: Promise<{
         <table className="min-w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Type</th>
-              <th className="px-3 py-2">To</th>
-              <th className="px-3 py-2">Attempts</th>
-              <th className="px-3 py-2">Next Attempt</th>
-              <th className="px-3 py-2">Last Error</th>
-              <th className="px-3 py-2">Created</th>
+              <th className="px-3 py-2">{t("colStatus")}</th>
+              <th className="px-3 py-2">{t("colType")}</th>
+              <th className="px-3 py-2">{t("colTo")}</th>
+              <th className="px-3 py-2">{t("colAttempts")}</th>
+              <th className="px-3 py-2">{t("colNextAttempt")}</th>
+              <th className="px-3 py-2">{t("colLastError")}</th>
+              <th className="px-3 py-2">{t("colCreated")}</th>
             </tr>
           </thead>
           <tbody>
@@ -105,7 +107,7 @@ export default async function WhatsappOutboxPage({ params }: { params: Promise<{
             {(rows ?? []).length === 0 && (
               <tr>
                 <td className="px-3 py-4 text-sm text-muted-foreground" colSpan={7}>
-                  Nothing in the outbox.
+                  {t("emptyOutbox")}
                 </td>
               </tr>
             )}

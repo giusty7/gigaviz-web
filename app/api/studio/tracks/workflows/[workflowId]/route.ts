@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAppContext } from "@/lib/app-context";
-import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requireStudioAccess } from "@/lib/studio/require-access";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
@@ -17,35 +15,10 @@ const updateSchema = z.object({
 
 type RouteContext = { params: Promise<{ workflowId: string }> };
 
-async function requireTracksAccess() {
-  const ctx = await getAppContext();
-  if (!ctx.user || !ctx.currentWorkspace) return null;
-
-  const db = await supabaseServer();
-  const { data: sub } = await db
-    .from("subscriptions")
-    .select("plan_id")
-    .eq("workspace_id", ctx.currentWorkspace.id)
-    .maybeSingle();
-
-  const plan = getPlanMeta(sub?.plan_id || "free_locked");
-  const ents = ctx.effectiveEntitlements ?? [];
-  const hasAccess = canAccess(
-    {
-      plan_id: plan.plan_id,
-      is_admin: Boolean(ctx.profile?.is_admin),
-      effectiveEntitlements: ents,
-    },
-    "tracks"
-  );
-
-  return hasAccess ? { ctx, db } : null;
-}
-
 export const GET = withErrorHandler(
   async (_req: NextRequest, routeCtx: RouteContext) => {
     const { workflowId } = await routeCtx.params;
-    const auth = await requireTracksAccess();
+    const auth = await requireStudioAccess("tracks");
     if (!auth)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -67,7 +40,7 @@ export const GET = withErrorHandler(
 export const PATCH = withErrorHandler(
   async (req: NextRequest, routeCtx: RouteContext) => {
     const { workflowId } = await routeCtx.params;
-    const auth = await requireTracksAccess();
+    const auth = await requireStudioAccess("tracks");
     if (!auth)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -97,7 +70,7 @@ export const PATCH = withErrorHandler(
 export const DELETE = withErrorHandler(
   async (_req: NextRequest, routeCtx: RouteContext) => {
     const { workflowId } = await routeCtx.params;
-    const auth = await requireTracksAccess();
+    const auth = await requireStudioAccess("tracks");
     if (!auth)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

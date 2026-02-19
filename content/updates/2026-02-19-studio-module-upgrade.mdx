@@ -1,0 +1,85 @@
+---
+title: "Studio Module Upgrade: Reusable Components, Funnel & Heatmap Charts, Schema Tests, Full i18n"
+date: "2026-02-19"
+summary: "Major Studio upgrade — EntityActions reusable component replaces 6 duplicated CRUD components, ChartRenderer gains funnel and heatmap chart types, ChartExportButton exports to PNG/SVG, StudioSidebar gets collapsible sections, 286 new tests across 16 test files, and 100+ i18n keys added for full en/id coverage."
+audience: ["public", "app"]
+tags: ["studio", "refactor", "entity-actions", "chart-export", "funnel-chart", "heatmap", "testing", "i18n", "sidebar", "quality"]
+type: "shipped"
+---
+
+Major quality and feature upgrade for Gigaviz Studio — better architecture, more chart types, improved testing, and full bilingual coverage.
+
+## What shipped
+
+### 🧩 EntityActions Reusable Component
+- **Single component** replaces 6 near-identical CRUD action components (DashboardActions, DocumentActions, ImageActions, VideoActions, MusicActions, WorkflowActions)
+- Configurable fields, accent colors, extra actions slot, and extraPatchFields
+- Each entity-specific component is now ~20 lines instead of ~150 lines
+- Consistent UX for edit/delete/confirm across all Studio content types
+
+### 📊 Two New Chart Types
+- **Funnel Chart** — conversion funnel visualization with labeled stages, color-coded bars, and tooltips
+- **Heatmap** — CSS-grid based heat matrix with dynamic color gradient (blue → cyan → yellow → red), row/column labels, and value tooltips
+- ChartRenderer now supports 8 chart types: bar, line, pie, area, scatter, radar, funnel, heatmap
+
+### 📤 Chart Export Button
+- Export any Recharts chart to **PNG (2x retina)** or **SVG** with one click
+- Dark background preserved in PNG export
+- Dropdown menu with format selector
+- Works on all chart types including the new funnel and heatmap
+
+### 🧭 StudioSidebar Upgrade
+- **Collapsible sections** — Office, Graph, and Tracks sections now expand/collapse with chevron indicators
+- **Quick Status Bar** — module access status (Office ✅ / Graph ✅ / Tracks ✅) visible at a glance
+- **Sticky positioning** — sidebar stays visible while scrolling content
+- **Live badges** — updated badge system with "live", "new", "beta", "soon" states
+- **Active item detection** — improved matching skips anchor links
+
+### 🔐 Shared Auth Helper
+- `requireStudioAccess(feature)` — single function for auth + entitlement checks across all Studio API routes
+- Resolves workspace context, fetches subscription, checks feature key (`office`, `graph`, `tracks`)
+- Returns `{ ctx, db }` on success, `null` on access denied — no boilerplate duplication
+
+### 📝 Template CRUD API
+- `GET /api/studio/office/templates` — list with search, category filter, pagination
+- `POST /api/studio/office/templates` — create with auto-slug generation
+- `GET/PATCH/DELETE /api/studio/office/templates/[templateId]` — full detail CRUD
+- All routes use `requireStudioAccess("office")` + `withErrorHandler`
+
+### 🗄️ DB Enum Fixes
+- Added `radar` and `heatmap` to `graph_charts.chart_type` constraint
+- Added `database` and `csv` to `graph_charts.data_source` constraint
+- Added `invoice` and `report` to `office_documents.category` and `office_templates.category`
+- Migration: `20260219120000_fix_studio_enum_mismatches.sql`
+
+## Testing improvements
+
+- **+286 test assertions** across 16 new test files (1,099 → 1,385 total)
+- **Studio schema tests**: 49+ tests for Image/Video/Music create & update Zod schemas (styles, formats, dimensions, durations, BPM, key signatures)
+- **Inbox module tests**: 37 tests covering `fmtTime`, `clsx`, `badgeColor`, `isSkillRoutingEnabled`, `inferCategoryFromRules`, `routeToCategoryTeam`, `maybeAutoRouteInbound`
+- **Helper module tests**: 36 tests for `GV_SYSTEM_PROMPT`, `identityFallback` patterns, `ALLOWLIST_INTENTS`, `isIntentAllowed`, `signN8nPayload` HMAC signing
+
+## i18n coverage
+
+- **100+ new translation keys** in both English and Indonesian
+- Studio namespace: sidebar sections, nav items, badge labels, chart detail, export button, quick actions, recent activity
+- Meta Hub namespace: 20+ keys for locked state, WhatsApp Command Center, outbox, param-defs, send jobs
+- All Studio enum labels translated: 10 image styles, 8 video styles, 12 music genres
+
+## Platform hardening
+
+- **cron/billing route** wrapped with `withErrorHandler` (was the last unwrapped API route)
+- **HealthDashboard ESLint fix** — `useCallback` for stable `fetchHealth` reference
+- **8 auth routes** now have loading/error boundaries (login, register, forgot-password, reset-password, verify-email, invite, data-deletion, link redirect)
+
+## By the numbers
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Test files | 52 | 68 |
+| Test assertions | 1,099 | 1,385 |
+| ESLint warnings | 1 | 0 |
+| Studio components | ~2,300 lines | ~900 lines (61% reduction via EntityActions) |
+| Chart types | 6 | 8 |
+| i18n keys | ~1,600 | ~1,700+ |
+| Routes with loading/error | ~51 | ~59 |

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAppContext } from "@/lib/app-context";
-import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseServer } from "@/lib/supabase/server";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { requireStudioAccess } from "@/lib/studio/require-access";
 
 const cloneSchema = z.object({
   title: z.string().min(1).max(255).optional(),
@@ -15,32 +13,12 @@ export const POST = withErrorHandler(
     req: NextRequest,
     { params }: { params: Promise<{ templateId: string }> }
   ) => {
-    const ctx = await getAppContext();
-    if (!ctx.user || !ctx.currentWorkspace) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireStudioAccess("office");
+    if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const { ctx, db } = auth;
     const { templateId } = await params;
-    const workspaceId = ctx.currentWorkspace.id;
-    const db = await supabaseServer();
-
-    // Check entitlement
-    const { data: sub } = await db
-      .from("subscriptions")
-      .select("plan_id")
-      .eq("workspace_id", workspaceId)
-      .maybeSingle();
-
-    const plan = getPlanMeta(sub?.plan_id || "free_locked");
-    const ents = ctx.effectiveEntitlements ?? [];
-    const hasAccess = canAccess(
-      { plan_id: plan.plan_id, is_admin: Boolean(ctx.profile?.is_admin), effectiveEntitlements: ents },
-      "office"
-    );
-
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Feature not available" }, { status: 403 });
-    }
+    const workspaceId = ctx.currentWorkspace!.id;
 
     // Fetch template (own workspace OR public templates)
     const { data: template, error: fetchErr } = await db
@@ -68,8 +46,8 @@ export const POST = withErrorHandler(
         category: template.category,
         template_id: template.id,
         content_json: template.template_json,
-        created_by: ctx.user.id,
-        last_edited_by: ctx.user.id,
+        created_by: ctx.user!.id,
+        last_edited_by: ctx.user!.id,
       })
       .select("id, title, category, created_at")
       .single();

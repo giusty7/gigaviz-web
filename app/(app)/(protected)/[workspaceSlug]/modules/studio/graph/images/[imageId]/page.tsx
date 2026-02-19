@@ -7,6 +7,8 @@ import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ImageActions } from "@/components/studio/ImageActions";
 import { GenerateButton } from "@/components/studio/GenerateButton";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,28 @@ export default async function ImageDetailPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
+
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(sub?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const ents = ctx.effectiveEntitlements ?? [];
+  const hasAccess = canAccess(
+    { plan_id: plan.plan_id, is_admin: isAdmin, effectiveEntitlements: ents },
+    "graph"
+  );
+
+  if (!hasAccess) {
+    return (
+      <LockedScreen title={t("images.lockedTitle")} workspaceSlug={workspaceSlug} />
+    );
+  }
+
   const { data: image, error } = await db
     .from("graph_images")
     .select("*")
@@ -43,7 +67,6 @@ export default async function ImageDetailPage({ params }: PageProps) {
 
   if (error || !image) notFound();
 
-  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/graph/images`;
   const color = styleColors[image.style] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
 

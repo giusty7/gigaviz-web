@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { FileText, ArrowLeft, Clock, User, Tag, Sparkles } from "lucide-react";
 import { DocumentActions } from "@/components/studio/DocumentActions";
 import { GenerateButton } from "@/components/studio/GenerateButton";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -29,6 +31,26 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
   const t = await getTranslations("studio");
+
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", workspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(sub?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const ents = ctx.effectiveEntitlements ?? [];
+  const hasAccess = canAccess(
+    { plan_id: plan.plan_id, is_admin: isAdmin, effectiveEntitlements: ents },
+    "office"
+  );
+
+  if (!hasAccess) {
+    return (
+      <LockedScreen title={t("office.lockedTitle")} workspaceSlug={workspaceSlug} />
+    );
+  }
 
   const { data: doc, error } = await db
     .from("office_documents")

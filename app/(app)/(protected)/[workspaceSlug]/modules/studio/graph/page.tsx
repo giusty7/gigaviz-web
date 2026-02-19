@@ -7,6 +7,9 @@ import {
   LineChart,
   LayoutDashboard,
   TrendingUp,
+  ImageIcon,
+  VideoIcon,
+  ArrowRight,
 } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
@@ -73,7 +76,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
   }
 
   // Fetch data in parallel
-  const [chartsResult, dashboardsResult] = await Promise.all([
+  const [chartsResult, dashboardsResult, imagesResult, videosResult] = await Promise.all([
     db
       .from("graph_charts")
       .select("id, title, chart_type, tags, data_source, updated_at")
@@ -84,10 +87,28 @@ export default async function GraphChartsPage({ params }: PageProps) {
       .from("graph_dashboards")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspace.id),
+    db
+      .from("graph_images")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("graph_videos")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
   ]);
 
   const charts = chartsResult.data ?? [];
   const dashboardCount = dashboardsResult.count ?? 0;
+  const imageCount = imagesResult.count ?? 0;
+  const videoCount = videosResult.count ?? 0;
+  const basePath = `/${workspaceSlug}/modules/studio/graph`;
+
+  // Quick nav cards for sub-sections
+  const subSections = [
+    { label: t("graph.stats.dashboards"), count: dashboardCount, icon: LayoutDashboard, href: `${basePath}/dashboards`, color: "border-purple-500/20 text-purple-400" },
+    { label: t("sidebar.nav.aiImages"), count: imageCount, icon: ImageIcon, href: `${basePath}/images`, color: "border-pink-500/20 text-pink-400" },
+    { label: t("sidebar.nav.aiVideos"), count: videoCount, icon: VideoIcon, href: `${basePath}/videos`, color: "border-amber-500/20 text-amber-400" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -100,7 +121,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
           </p>
         </div>
         <Link
-          href={`/${workspaceSlug}/modules/studio/graph/new`}
+          href={`${basePath}/new`}
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -109,7 +130,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-xl border border-blue-500/20 bg-[#0a1229]/60 p-5">
           <div className="flex items-center gap-3">
             <BarChart3 className="h-7 w-7 text-blue-400" />
@@ -124,7 +145,16 @@ export default async function GraphChartsPage({ params }: PageProps) {
             <LayoutDashboard className="h-7 w-7 text-purple-400" />
             <div>
               <p className="text-2xl font-bold text-[#f5f5dc]">{dashboardCount}</p>
-              <p className="text-xs text-[#f5f5dc]/40">Dashboards</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("graph.stats.dashboards")}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl border border-pink-500/20 bg-[#0a1229]/60 p-5">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="h-7 w-7 text-pink-400" />
+            <div>
+              <p className="text-2xl font-bold text-[#f5f5dc]">{imageCount}</p>
+              <p className="text-xs text-[#f5f5dc]/40">{t("sidebar.nav.aiImages")}</p>
             </div>
           </div>
         </div>
@@ -141,6 +171,29 @@ export default async function GraphChartsPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Quick Nav to Sub-sections */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        {subSections.map((section) => {
+          const SectionIcon = section.icon;
+          return (
+            <Link
+              key={section.label}
+              href={section.href}
+              className={`group flex items-center justify-between rounded-xl border ${section.color} bg-[#0a1229]/40 p-4 transition-all hover:bg-[#0a1229]/60`}
+            >
+              <div className="flex items-center gap-3">
+                <SectionIcon className="h-5 w-5" />
+                <div>
+                  <p className="text-sm font-semibold text-[#f5f5dc]">{section.label}</p>
+                  <p className="text-[10px] text-[#f5f5dc]/30">{section.count} items</p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-[#f5f5dc]/15 group-hover:text-[#f5f5dc]/40 transition-colors" />
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Charts Grid */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
@@ -154,7 +207,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
               return (
                 <Link
                   key={chart.id}
-                  href={`/${workspaceSlug}/modules/studio/graph/${chart.id}`}
+                  href={`${basePath}/${chart.id}`}
                   className="group block rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-purple-500/20 hover:bg-[#0a1229]/60"
                 >
                   <div className="mb-3 flex items-start justify-between">
@@ -177,7 +230,7 @@ export default async function GraphChartsPage({ params }: PageProps) {
                   </div>
                   <p className="text-[10px] text-[#f5f5dc]/25">
                     {chart.data_source && `${t("graph.sourcePrefix")} ${chart.data_source} · `}
-                    Updated {new Date(chart.updated_at).toLocaleDateString()}
+                    {new Date(chart.updated_at).toLocaleDateString()}
                   </p>
                 </Link>
               );
@@ -190,6 +243,12 @@ export default async function GraphChartsPage({ params }: PageProps) {
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
               {t("graph.emptyDescription")}
             </p>
+            <Link
+              href={`${basePath}/new`}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-purple-600/80 px-4 py-2 text-xs font-medium text-white hover:bg-purple-500"
+            >
+              <Plus className="h-3 w-3" /> {t("graph.newChart")}
+            </Link>
           </div>
         )}
       </div>

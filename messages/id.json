@@ -897,7 +897,36 @@
     "paramDefsTitle": "Pemetaan Parameter",
     "paramDefsDesc": "Definisikan cara parameter template diisi dari data kontak",
     "webhooksTitle": "Monitor Webhook",
-    "webhooksDesc": "Pantau webhook masuk dan pengiriman event"
+    "webhooksDesc": "Pantau webhook masuk dan pengiriman event",
+    "lockedTitle": "Meta Hub terkunci",
+    "lockedDesc": "Upgrade paket Anda untuk membuka Meta Hub di workspace ini.",
+    "whatsappCommandCenter": "Pusat Komando WhatsApp",
+    "whatsappCommandCenterDesc": "Kelola template yang disetujui, pengiriman sandbox, dan tindak lanjut inbox tanpa meninggalkan hub ini.",
+    "connectionSettings": "Pengaturan koneksi",
+    "webhookEventsLink": "Event webhook",
+    "workflowChecklist": "Checklist alur kerja",
+    "checklistConnect": "Hubungkan nomor telepon dan token di Koneksi.",
+    "checklistTemplates": "Buat atau sinkronkan template yang disetujui, lalu kirim tes ke whitelist.",
+    "checklistInbox": "Proses event inbox dan balas dengan template yang disetujui.",
+    "outboxHeading": "Outbox WhatsApp",
+    "outboxSubheading": "Pesan antrean/terkirim/gagal terbaru (50 terakhir)",
+    "noOutboxItems": "Belum ada item di outbox.",
+    "colStatus": "Status",
+    "colType": "Tipe",
+    "colTo": "Ke",
+    "colAttempts": "Percobaan",
+    "colNextAttempt": "Percobaan Berikutnya",
+    "colLastError": "Error Terakhir",
+    "colCreated": "Dibuat",
+    "emptyOutbox": "Tidak ada pesan di outbox.",
+    "paramDefsHeading": "Definisi Pemetaan Parameter",
+    "paramDefsSubheading": "Definisikan cara parameter template diisi dari data kontak atau nilai global.",
+    "noParamTemplates": "Tidak ada template dengan parameter ditemukan. Sinkronkan template terlebih dahulu.",
+    "backToTemplates": "Kembali ke Template",
+    "selectTemplatePrompt": "Pilih template untuk mengonfigurasi pemetaan parameter:",
+    "paramCount": "{count} param",
+    "sendJobsHeading": "Kirim Job",
+    "sendJobsSubheading": "Lacak kampanye massal dan pantau progres pengiriman. Job diproses otomatis setiap beberapa menit."
   },
   "inbox": {
     "title": "Inbox",
@@ -1621,6 +1650,24 @@
       "comingSoon": {
         "title": "Segera Hadir: AI Media Studio",
         "description": "Buat gambar pemasaran, video produk, jingle, dan audio brand langsung dari workspace Anda. Semuanya terhubung ke kampanye Meta Hub dan Helper AI."
+      },
+      "stats": {
+        "totalAssets": "Total Aset",
+        "documents": "Dokumen",
+        "visuals": "Visual",
+        "automations": "Otomasi"
+      },
+      "quickActions": {
+        "title": "Buat Cepat",
+        "newDoc": "Dokumen Baru",
+        "newChart": "Grafik Baru",
+        "newImage": "Gambar Baru",
+        "newVideo": "Video Baru",
+        "newWorkflow": "Alur Kerja Baru",
+        "newMusic": "Musik Baru"
+      },
+      "recentActivity": {
+        "title": "Aktivitas Terbaru"
       }
     },
     "layout": {
@@ -1634,7 +1681,8 @@
         "overview": "Ringkasan",
         "office": "Office",
         "graph": "Graph",
-        "tracks": "Tracks"
+        "tracks": "Tracks",
+        "resources": "Sumber Daya"
       },
       "nav": {
         "studioHub": "Studio Hub",
@@ -1647,12 +1695,17 @@
         "aiVideos": "Perencana Video",
         "workflows": "Alur Kerja",
         "runHistory": "Riwayat Eksekusi",
-        "aiMusic": "Komposer Musik"
+        "aiMusic": "Komposer Musik",
+        "recentActivity": "Aktivitas Terbaru",
+        "gettingStarted": "Memulai",
+        "allAssets": "Semua Aset",
+        "studioSettings": "Pengaturan"
       },
       "badges": {
         "new": "Baru",
         "beta": "Beta",
-        "soon": "Segera"
+        "soon": "Segera",
+        "live": "Aktif"
       },
       "poweredBadge": "Suite Kreatif Bertenaga AI",
       "ownerGrant": "Dibuka oleh pemilik"
@@ -1700,11 +1753,13 @@
       },
       "detail": {
         "configTitle": "Konfigurasi Grafik",
-        "configHint": "Visualisasi grafik akan ditampilkan di sini setelah data dikonfigurasi."
+        "configHint": "Visualisasi grafik akan ditampilkan di sini setelah data dikonfigurasi.",
+        "type": "Tipe"
       },
       "actions": {
         "titlePlaceholder": "Judul grafik...",
-        "editChart": "Edit Grafik"
+        "editChart": "Edit Grafik",
+        "export": "Ekspor"
       }
     },
     "dashboards": {
@@ -1889,7 +1944,19 @@
         "descriptionLabel": "Deskripsi (Opsional)",
         "descriptionPlaceholder": "Catatan internal tentang gambar ini...",
         "formatLabel": "Format Output",
-        "createButton": "Buat Gambar"
+        "createButton": "Buat Gambar",
+        "styles": {
+          "photo-realistic": "Foto Realistis",
+          "illustration": "Ilustrasi",
+          "3d-render": "Render 3D",
+          "watercolor": "Cat Air",
+          "pixel-art": "Pixel Art",
+          "abstract": "Abstrak",
+          "flat-design": "Desain Flat",
+          "anime": "Anime",
+          "logo": "Logo",
+          "icon": "Ikon"
+        }
       },
       "detail": {
         "aiPromptLabel": "Prompt AI:",
@@ -1930,7 +1997,17 @@
         "resolutionLabel": "Target Resolusi",
         "descriptionLabel": "Deskripsi (Opsional)",
         "descriptionPlaceholder": "Catatan internal tentang storyboard ini...",
-        "createButton": "Buat Storyboard"
+        "createButton": "Buat Storyboard",
+        "styles": {
+          "marketing": "Marketing",
+          "explainer": "Explainer",
+          "product-demo": "Demo Produk",
+          "social-reel": "Reel Sosial",
+          "animation": "Animasi",
+          "cinematic": "Sinematik",
+          "tutorial": "Tutorial",
+          "testimonial": "Testimonial"
+        }
       },
       "detail": {
         "aiPromptLabel": "Prompt AI:",
@@ -1970,13 +2047,30 @@
         "durationLabel": "Target Durasi (detik)",
         "bpmLabel": "BPM",
         "formatLabel": "Target Format",
-        "createButton": "Buat Komposisi"
+        "createButton": "Buat Komposisi",
+        "genres": {
+          "pop": "Pop",
+          "rock": "Rock",
+          "electronic": "Elektronik",
+          "ambient": "Ambient",
+          "jazz": "Jazz",
+          "classical": "Klasik",
+          "hip-hop": "Hip Hop",
+          "lo-fi": "Lo-Fi",
+          "cinematic": "Sinematik",
+          "jingle": "Jingle",
+          "podcast-intro": "Intro Podcast",
+          "sound-effect": "Efek Suara"
+        }
       },
       "detail": {
         "aiPromptLabel": "Prompt AI:",
         "generationPending": "Rencana komposisi akan muncul di sini setelah perencanaan AI selesai.",
         "noAudio": "Belum ada rencana komposisi",
-        "noAudioHint": "Tambahkan prompt dan AI akan merencanakan komposisi musik Anda."
+        "noAudioHint": "Tambahkan prompt dan AI akan merencanakan komposisi musik Anda.",
+        "structure": "Struktur",
+        "mood": "Suasana",
+        "instruments": "Instrumen"
       },
       "actions": {
         "editTrack": "Edit",

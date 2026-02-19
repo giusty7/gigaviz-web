@@ -7,6 +7,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { MusicActions } from "@/components/studio/MusicActions";
 import { WaveformVisualizer } from "@/components/studio/WaveformVisualizer";
 import { GenerateButton } from "@/components/studio/GenerateButton";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,28 @@ export default async function MusicDetailPage({ params }: PageProps) {
   if (!ctx.currentWorkspace) redirect("/onboarding");
 
   const db = await supabaseServer();
+  const t = await getTranslations("studio");
+
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(sub?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const ents = ctx.effectiveEntitlements ?? [];
+  const hasAccess = canAccess(
+    { plan_id: plan.plan_id, is_admin: isAdmin, effectiveEntitlements: ents },
+    "tracks"
+  );
+
+  if (!hasAccess) {
+    return (
+      <LockedScreen title={t("music.lockedTitle")} workspaceSlug={workspaceSlug} />
+    );
+  }
+
   const { data: track, error } = await db
     .from("tracks_music")
     .select("*")
@@ -45,7 +69,6 @@ export default async function MusicDetailPage({ params }: PageProps) {
 
   if (error || !track) notFound();
 
-  const t = await getTranslations("studio");
   const basePath = `/${workspaceSlug}/modules/studio/tracks/music`;
   const color = genreColors[track.genre] || "bg-[#f5f5dc]/5 text-[#f5f5dc]/40 border-[#f5f5dc]/10";
 
@@ -140,19 +163,19 @@ export default async function MusicDetailPage({ params }: PageProps) {
             <div className="grid gap-3 sm:grid-cols-2">
               {!!(track.metadata_json as Record<string, unknown>).structure && (
                 <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
-                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Structure</p>
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">{t("music.detail.structure")}</p>
                   <p className="text-sm text-[#f5f5dc]/60">{String((track.metadata_json as Record<string, unknown>).structure)}</p>
                 </div>
               )}
               {!!(track.metadata_json as Record<string, unknown>).mood && (
                 <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3">
-                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Mood</p>
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">{t("music.detail.mood")}</p>
                   <p className="text-sm text-[#f5f5dc]/60">{String((track.metadata_json as Record<string, unknown>).mood)}</p>
                 </div>
               )}
               {Array.isArray((track.metadata_json as Record<string, unknown>).instruments) && (
                 <div className="rounded-lg bg-[#0a1229]/60 px-4 py-3 sm:col-span-2">
-                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">Instruments</p>
+                  <p className="text-[10px] text-[#f5f5dc]/30 uppercase tracking-wider mb-1">{t("music.detail.instruments")}</p>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {((track.metadata_json as Record<string, unknown>).instruments as string[]).map((inst) => (
                       <span key={inst} className="rounded-full bg-teal-500/10 px-2 py-0.5 text-[10px] text-teal-400">{inst}</span>

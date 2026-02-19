@@ -13,6 +13,8 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { WorkflowActions } from "@/components/studio/WorkflowActions";
+import { canAccess, getPlanMeta } from "@/lib/entitlements";
+import LockedScreen from "@/components/app/LockedScreen";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +38,27 @@ export default async function WorkflowDetailPage({ params }: PageProps) {
 
   const t = await getTranslations("studio");
   const db = await supabaseServer();
+
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("plan_id")
+    .eq("workspace_id", ctx.currentWorkspace.id)
+    .maybeSingle();
+
+  const plan = getPlanMeta(sub?.plan_id || "free_locked");
+  const isAdmin = Boolean(ctx.profile?.is_admin);
+  const ents = ctx.effectiveEntitlements ?? [];
+  const hasAccess = canAccess(
+    { plan_id: plan.plan_id, is_admin: isAdmin, effectiveEntitlements: ents },
+    "tracks"
+  );
+
+  if (!hasAccess) {
+    return (
+      <LockedScreen title={t("tracks.lockedTitle")} workspaceSlug={workspaceSlug} />
+    );
+  }
+
   const { data: wf, error } = await db
     .from("tracks_workflows")
     .select("*")

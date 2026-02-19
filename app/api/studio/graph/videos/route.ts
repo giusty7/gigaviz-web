@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getAppContext } from "@/lib/app-context";
-import { canAccess, getPlanMeta } from "@/lib/entitlements";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requireStudioAccess } from "@/lib/studio/require-access";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
@@ -20,29 +18,8 @@ const createSchema = z.object({
   tags: z.array(z.string().max(50)).max(10).optional(),
 });
 
-async function requireGraphAccess() {
-  const ctx = await getAppContext();
-  if (!ctx.user || !ctx.currentWorkspace) return null;
-
-  const db = await supabaseServer();
-  const { data: sub } = await db
-    .from("subscriptions")
-    .select("plan_id")
-    .eq("workspace_id", ctx.currentWorkspace.id)
-    .maybeSingle();
-
-  const plan = getPlanMeta(sub?.plan_id || "free_locked");
-  const ents = ctx.effectiveEntitlements ?? [];
-  const hasAccess = canAccess(
-    { plan_id: plan.plan_id, is_admin: Boolean(ctx.profile?.is_admin), effectiveEntitlements: ents },
-    "graph"
-  );
-
-  return hasAccess ? { ctx, db } : null;
-}
-
 export const GET = withErrorHandler(async (req: NextRequest) => {
-  const auth = await requireGraphAccess();
+  const auth = await requireStudioAccess("graph");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ctx, db } = auth;
@@ -73,7 +50,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
 });
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
-  const auth = await requireGraphAccess();
+  const auth = await requireStudioAccess("graph");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ctx, db } = auth;

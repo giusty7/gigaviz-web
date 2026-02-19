@@ -9,6 +9,9 @@ import {
   XCircle,
   Zap,
   Clock,
+  MusicIcon,
+  HistoryIcon,
+  ArrowRight,
 } from "lucide-react";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getAppContext } from "@/lib/app-context";
@@ -64,17 +67,36 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
     );
   }
 
-  // Fetch workflows
-  const { data: workflows } = await db
-    .from("tracks_workflows")
-    .select("id, title, slug, description, status, runs_count, success_count, failure_count, estimated_tokens_per_run, updated_at")
-    .eq("workspace_id", workspace.id)
-    .order("updated_at", { ascending: false });
+  // Fetch workflows + music + runs
+  const [workflowsResult, musicResult, runsResult] = await Promise.all([
+    db
+      .from("tracks_workflows")
+      .select("id, title, slug, description, status, runs_count, success_count, failure_count, estimated_tokens_per_run, updated_at")
+      .eq("workspace_id", workspace.id)
+      .order("updated_at", { ascending: false }),
+    db
+      .from("tracks_music")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+    db
+      .from("tracks_runs")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id),
+  ]);
 
-  const items = workflows ?? [];
+  const items = workflowsResult.data ?? [];
   const activeCount = items.filter((w) => w.status === "active").length;
   const totalRuns = items.reduce((acc, w) => acc + (w.runs_count ?? 0), 0);
   const totalSuccess = items.reduce((acc, w) => acc + (w.success_count ?? 0), 0);
+  const musicCount = musicResult.count ?? 0;
+  const runCount = runsResult.count ?? 0;
+  const basePath = `/${workspaceSlug}/modules/studio/tracks`;
+
+  // Quick nav cards
+  const subSections = [
+    { label: t("sidebar.nav.runHistory"), count: runCount, icon: HistoryIcon, href: `${basePath}/runs`, color: "border-blue-500/20 text-blue-400" },
+    { label: t("sidebar.nav.aiMusic"), count: musicCount, icon: MusicIcon, href: `${basePath}/music`, color: "border-emerald-500/20 text-emerald-400" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -87,7 +109,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
           </p>
         </div>
         <Link
-          href={`/${workspaceSlug}/modules/studio/tracks/new`}
+          href={`${basePath}/new`}
           className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -137,6 +159,29 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Quick Nav to Sub-sections */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {subSections.map((section) => {
+          const SectionIcon = section.icon;
+          return (
+            <Link
+              key={section.label}
+              href={section.href}
+              className={`group flex items-center justify-between rounded-xl border ${section.color} bg-[#0a1229]/40 p-4 transition-all hover:bg-[#0a1229]/60`}
+            >
+              <div className="flex items-center gap-3">
+                <SectionIcon className="h-5 w-5" />
+                <div>
+                  <p className="text-sm font-semibold text-[#f5f5dc]">{section.label}</p>
+                  <p className="text-[10px] text-[#f5f5dc]/30">{section.count} items</p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-[#f5f5dc]/15 group-hover:text-[#f5f5dc]/40 transition-colors" />
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Workflow List */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-[#f5f5dc]/60 uppercase tracking-wider">
@@ -150,7 +195,7 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
               return (
                 <Link
                   key={wf.id}
-                  href={`/${workspaceSlug}/modules/studio/tracks/${wf.id}`}
+                  href={`${basePath}/${wf.id}`}
                   className="group flex items-center justify-between rounded-xl border border-[#f5f5dc]/10 bg-[#0a1229]/40 p-5 transition-all hover:border-teal-500/20 hover:bg-[#0a1229]/60"
                 >
                   <div className="flex items-center gap-4">
@@ -199,6 +244,12 @@ export default async function TracksWorkflowsPage({ params }: PageProps) {
             <p className="mt-1 text-xs text-[#f5f5dc]/25">
               {t("tracks.emptyDescription")}
             </p>
+            <Link
+              href={`${basePath}/new`}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal-600/80 px-4 py-2 text-xs font-medium text-white hover:bg-teal-500"
+            >
+              <Plus className="h-3 w-3" /> {t("tracks.newWorkflow")}
+            </Link>
           </div>
         )}
       </div>

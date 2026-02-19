@@ -20,6 +20,9 @@ import {
   PolarRadiusAxis,
   ScatterChart,
   Scatter,
+  FunnelChart,
+  Funnel,
+  LabelList,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -360,6 +363,91 @@ export function ChartRenderer({
             })}
           </ScatterChart>
         );
+
+      case "funnel": {
+        const funnelData = labels.map((label, i) => ({
+          name: label,
+          value: datasets[0]?.data[i] ?? 0,
+          fill: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+        }));
+        return (
+          <FunnelChart>
+            <Tooltip content={<CustomTooltip />} />
+            {legendProps && <Legend {...legendProps} />}
+            <Funnel dataKey="value" data={funnelData} isAnimationActive>
+              <LabelList
+                position="right"
+                fill="rgba(245,245,220,0.6)"
+                fontSize={11}
+                dataKey="name"
+              />
+              {funnelData.map((entry, i) => (
+                <Cell key={i} fill={entry.fill} stroke="rgba(10,18,41,0.8)" strokeWidth={2} />
+              ))}
+            </Funnel>
+          </FunnelChart>
+        );
+      }
+
+      case "heatmap": {
+        // Custom CSS-grid heatmap — not a native recharts type
+        const allValues = datasets.flatMap((ds) => ds.data);
+        const minVal = Math.min(...allValues);
+        const maxVal = Math.max(...allValues);
+        const range = maxVal - minVal || 1;
+
+        const getHeatColor = (value: number) => {
+          const ratio = (value - minVal) / range;
+          // Gradient: dark blue → cyan → yellow → red
+          if (ratio < 0.25) return `rgba(59,130,246,${0.2 + ratio * 3})`;
+          if (ratio < 0.5) return `rgba(6,182,212,${0.4 + (ratio - 0.25) * 2.4})`;
+          if (ratio < 0.75) return `rgba(245,158,11,${0.5 + (ratio - 0.5) * 2})`;
+          return `rgba(239,68,68,${0.6 + (ratio - 0.75) * 1.6})`;
+        };
+
+        return (
+          <div className="w-full overflow-x-auto" style={{ height }}>
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr>
+                  <th className="px-2 py-1 text-left text-[10px] text-[#f5f5dc]/40" />
+                  {labels.map((label) => (
+                    <th
+                      key={label}
+                      className="px-2 py-1 text-center text-[10px] font-medium text-[#f5f5dc]/50"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {datasets.map((ds) => (
+                  <tr key={ds.label}>
+                    <td className="whitespace-nowrap px-2 py-1 text-[10px] font-medium text-[#f5f5dc]/50">
+                      {ds.label}
+                    </td>
+                    {ds.data.map((value, j) => (
+                      <td
+                        key={j}
+                        className="px-1 py-1 text-center"
+                        title={`${ds.label} / ${labels[j]}: ${value}`}
+                      >
+                        <div
+                          className="mx-auto flex h-8 w-full min-w-[2rem] items-center justify-center rounded text-[10px] font-semibold text-white/90"
+                          style={{ backgroundColor: getHeatColor(value) }}
+                        >
+                          {value.toLocaleString()}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) as unknown as React.ReactElement;
+      }
 
       // Default: bar chart
       default:

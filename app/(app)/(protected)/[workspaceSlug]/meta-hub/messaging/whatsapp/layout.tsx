@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { MetaHubBadge } from "@/components/meta-hub/MetaHubBadge";
 import { WhatsappStickyTabs } from "@/components/meta-hub/WhatsappStickyTabs";
 import { getAppContext } from "@/lib/app-context";
@@ -59,6 +60,7 @@ export default async function WhatsappShellLayout({ children, params }: LayoutPr
   const badgeStatus = !access.metaHub ? "locked" : whatsappConfigured ? "live" : "beta";
 
   const basePath = `/${workspace.slug}/meta-hub/messaging/whatsapp`;
+  const t = await getTranslations("metaHub");
 
   return (
     <div className="space-y-4">
@@ -66,10 +68,10 @@ export default async function WhatsappShellLayout({ children, params }: LayoutPr
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(255,215,128,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.06),transparent_32%)]" />
         <div className="relative grid gap-6 p-6 md:grid-cols-[1.6fr_1fr] md:p-8">
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-amber-100/70">Meta Hub</p>
-            <h1 className="text-2xl font-semibold leading-tight">WhatsApp Command Center</h1>
+            <p className="text-xs uppercase tracking-[0.18em] text-amber-100/70">{t("title")}</p>
+            <h1 className="text-2xl font-semibold leading-tight">{t("whatsappCommandCenter")}</h1>
             <p className="text-sm text-muted-foreground">
-              Manage approved templates, sandbox delivery, and inbox follow-ups without leaving this hub.
+              {t("whatsappCommandCenterDesc")}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <MetaHubBadge status={badgeStatus} />
@@ -77,32 +79,32 @@ export default async function WhatsappShellLayout({ children, params }: LayoutPr
                 href={`/${workspace.slug}/meta-hub/connections`}
                 className="rounded-lg border border-border bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition hover:border-gigaviz-gold"
               >
-                Connection settings
+                {t("connectionSettings")}
               </Link>
               <Link
                 href={`/${workspace.slug}/meta-hub/webhooks`}
                 className="rounded-lg border border-border bg-background/70 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition hover:border-gigaviz-gold"
               >
-                Webhook events
+                {t("webhookEventsLink")}
               </Link>
             </div>
           </div>
           <div className="relative overflow-hidden rounded-xl border border-border bg-card/70 p-4 text-sm shadow-inner">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,215,128,0.06),transparent_45%)]" />
             <div className="relative space-y-2">
-              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Workflow checklist</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{t("workflowChecklist")}</p>
               <ul className="space-y-1 text-foreground">
                 <li className="flex items-center gap-2">
                   <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-400/80" />
-                  <span>Connect phone number and token in Connections.</span>
+                  <span>{t("checklistConnect")}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-400/80" />
-                  <span>Create or sync approved templates, then send test to whitelist.</span>
+                  <span>{t("checklistTemplates")}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-400/80" />
-                  <span>Process inbox events and reply with approved templates.</span>
+                  <span>{t("checklistInbox")}</span>
                 </li>
               </ul>
             </div>

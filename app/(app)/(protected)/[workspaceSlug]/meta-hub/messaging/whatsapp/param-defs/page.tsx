@@ -40,32 +40,34 @@ export default async function ParamDefsPage({ params, searchParams }: Props) {
       .eq("status", "APPROVED")
       .order("name");
 
+    const t = await getTranslations("metaHub");
+
     return (
       <div className="space-y-6">
         <div className="rounded-xl border border-border bg-card/80 p-6 shadow-sm">
           <div className="mb-6 space-y-2">
-            <h2 className="text-2xl font-semibold">Parameter Mapping Definitions</h2>
+            <h2 className="text-2xl font-semibold">{t("paramDefsHeading")}</h2>
             <p className="text-sm text-muted-foreground">
-              Define how template parameters should be populated from contact data or global values.
+              {t("paramDefsSubheading")}
             </p>
           </div>
 
           {!templates || templates.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                No templates with parameters found. Sync templates first.
+                {t("noParamTemplates")}
               </p>
               <Link
                 href={`/${workspaceSlug}/meta-hub/messaging/whatsapp`}
                 className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gigaviz-gold hover:underline"
               >
-                Back to Templates
+                {t("backToTemplates")}
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Select a template to configure parameter mappings:
+                {t("selectTemplatePrompt")}
               </p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {templates.map((template) => (
@@ -78,7 +80,7 @@ export default async function ParamDefsPage({ params, searchParams }: Props) {
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-semibold text-foreground">{template.name}</h3>
                         <span className="shrink-0 rounded-full bg-gigaviz-gold/10 px-2 py-0.5 text-xs font-semibold text-gigaviz-gold">
-                          {template.variable_count} params
+                          {t("paramCount", { count: template.variable_count })}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
