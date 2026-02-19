@@ -113,7 +113,7 @@ export default function NewImagePage({ params: _params }: Props) {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-1">
       <div>
         <h1 className="text-xl font-bold text-[#f5f5dc]">{t("images.new.title")}</h1>
         <p className="mt-1 text-sm text-[#f5f5dc]/50">
@@ -256,7 +256,7 @@ export default function NewImagePage({ params: _params }: Props) {
       <button
         onClick={handleCreate}
         disabled={!title.trim() || creating}
-        className="inline-flex h-10 items-center gap-2 rounded-lg bg-purple-600 px-6 text-sm font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-6 text-sm font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
       >
         {creating ? (
           <>

@@ -169,7 +169,7 @@ export function WABAStatusHero({
         </div>
 
         {/* Stats Grid */}
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/60 p-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
               {t("wabaId")}
@@ -339,7 +339,7 @@ export function AnalyticsPulseSection({
 
   if (!mounted) {
     return (
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="h-36 animate-pulse rounded-2xl border border-[#d4af37]/20 bg-[#0a1229]/80" />
         ))}

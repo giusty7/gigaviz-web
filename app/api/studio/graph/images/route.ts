@@ -43,7 +43,11 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
   const { data, error, count } = await query;
 
   if (error) {
+    const isTableMissing = error.code === "42P01" || error.message?.includes("does not exist");
     logger.error("Failed to fetch images", { error, workspace: ctx.currentWorkspace!.id });
+    if (isTableMissing) {
+      return NextResponse.json({ data: [], total: 0, page, limit, warning: "Studio media tables are being set up. Please run the database migration." });
+    }
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
@@ -77,7 +81,11 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     .single();
 
   if (error) {
+    const isTableMissing = error.code === "42P01" || error.message?.includes("does not exist");
     logger.error("Failed to create image", { error, workspace: ctx.currentWorkspace!.id });
+    if (isTableMissing) {
+      return NextResponse.json({ error: "Studio media tables need to be created. Please contact your administrator to apply the database migration (20260216200000_studio_media.sql)." }, { status: 503 });
+    }
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 

@@ -17,6 +17,8 @@ import {
   VideoIcon,
   ChevronDown,
   ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -232,7 +234,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
   const activeId = useActiveItem(sections, pathname);
 
   return (
-    <aside className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl border border-cyan-500/20 bg-[#0a1229]/80 p-4 backdrop-blur-3xl scrollbar-thin scrollbar-track-transparent scrollbar-thumb-cyan-500/20">
+    <nav className="space-y-4">
       {/* Header */}
       <div className="mb-5">
         <div className="flex items-center gap-3">
@@ -272,7 +274,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
       </div>
 
       {/* Sections */}
-      <nav className="space-y-4">
+      <div className="space-y-4">
         {sections.map((section) => (
           <div key={section.id}>
             {section.collapsible ? (
@@ -287,7 +289,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
             )}
           </div>
         ))}
-      </nav>
+      </div>
 
       {/* Studio Badge */}
       <div className="mt-5 flex items-center gap-2 rounded-lg border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-teal-500/5 px-3 py-2">
@@ -296,7 +298,7 @@ export function StudioSidebar({ basePath, access }: StudioSidebarProps) {
           {t("sidebar.poweredBadge")}
         </span>
       </div>
-    </aside>
+    </nav>
   );
 }
 
@@ -316,10 +318,67 @@ export function StudioLayoutShell({
   ownerGrantActive = false,
 }: StudioLayoutShellProps) {
   const t = useTranslations("studio");
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [lastPath, setLastPath] = useState(pathname);
+
+  // Close drawer when pathname changes (React-safe derived state)
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    if (mobileOpen) setMobileOpen(false);
+  }
+
   return (
     <div className="relative min-h-[600px]">
-      <div className="relative grid gap-6 lg:grid-cols-[280px_1fr]">
+      {/* Mobile studio nav toggle */}
+      <div className="mb-4 flex items-center gap-3 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="flex h-9 items-center gap-2 rounded-xl border border-cyan-500/20 bg-[#0a1229]/80 px-3 text-sm font-medium text-cyan-400 transition hover:bg-cyan-500/10"
+          aria-label="Open Studio menu"
+        >
+          <Menu className="h-4 w-4" />
+          <span>{t("sidebar.subtitle")}</span>
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+        />
+      )}
+
+      {/* Mobile sidebar drawer */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-[280px] overflow-y-auto border-r border-cyan-500/20 bg-[#0a1229]/95 p-4 backdrop-blur-3xl transition-transform duration-200 ease-out lg:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="mb-4 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#f5f5dc]/40 transition hover:bg-[#f5f5dc]/5 hover:text-[#f5f5dc]/70"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         <StudioSidebar basePath={basePath} access={access} />
+      </aside>
+
+      <div className="relative grid gap-6 lg:grid-cols-[280px_1fr]">
+        {/* Desktop sidebar */}
+        <aside className="sticky top-4 hidden max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl border border-cyan-500/20 bg-[#0a1229]/80 p-4 backdrop-blur-3xl scrollbar-thin scrollbar-track-transparent scrollbar-thumb-cyan-500/20 lg:block">
+          <StudioSidebar basePath={basePath} access={access} />
+        </aside>
+
         <section className="min-w-0 space-y-6">
           {ownerGrantActive && (
             <div className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">

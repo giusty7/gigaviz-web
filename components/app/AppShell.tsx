@@ -250,7 +250,13 @@ export default function AppShell({
             {manageItems.map((item) => <MobileNavLink key={item.href} item={item} />)}
           </nav>
           {/* Mobile user info */}
-          <div className={cn("mt-6 rounded-xl border px-3 py-2.5", CARD_SUBTLE)}>
+          <div className={cn("mt-4 rounded-xl border px-3 py-2.5", CARD_SUBTLE)}>
+            <WorkspaceSwitcher
+              workspaces={workspaces}
+              currentWorkspaceId={currentWorkspaceId}
+            />
+          </div>
+          <div className={cn("mt-3 rounded-xl border px-3 py-2.5", CARD_SUBTLE)}>
             <p className="truncate text-[13px] font-medium text-foreground/80">{userEmail.split("@")[0]}</p>
             <p className="truncate text-[11px] text-foreground/30">{userEmail}</p>
           </div>

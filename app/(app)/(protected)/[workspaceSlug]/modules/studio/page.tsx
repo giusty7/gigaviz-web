@@ -38,8 +38,17 @@ export default async function StudioHubPage({ params }: PageProps) {
   const workspace = ctx.currentWorkspace;
   const db = await supabaseServer();
 
-  // Fetch stats in parallel
-  const [docsResult, chartsResult, workflowsResult, imagesResult, videosResult, musicResult, dashboardsResult, runsResult, templatesResult, subResult] = await Promise.all([
+  // Fetch stats in parallel — some tables may not exist yet (migration pending)
+  const safeCount = async (table: string, filter?: string) => {
+    const q = db.from(table).select("id", { count: "exact", head: true }).eq("workspace_id", workspace.id);
+    const { count, error } = filter ? await q.or(filter) : await q;
+    if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
+      return { count: 0, error: null };
+    }
+    return { count: count ?? 0, error };
+  };
+
+  const [docsResult, chartsResult, workflowsResult, imagesCount, videosCount, musicCount, dashboardsCount, runsCount, templatesResult, subResult] = await Promise.all([
     db
       .from("office_documents")
       .select("id, title, category, updated_at", { count: "exact" })
@@ -58,26 +67,11 @@ export default async function StudioHubPage({ params }: PageProps) {
       .eq("workspace_id", workspace.id)
       .order("updated_at", { ascending: false })
       .limit(5),
-    db
-      .from("graph_images")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
-    db
-      .from("graph_videos")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
-    db
-      .from("tracks_music")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
-    db
-      .from("graph_dashboards")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
-    db
-      .from("tracks_runs")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspace.id),
+    safeCount("graph_images"),
+    safeCount("graph_videos"),
+    safeCount("tracks_music"),
+    safeCount("graph_dashboards"),
+    safeCount("tracks_runs"),
     db
       .from("office_templates")
       .select("id", { count: "exact", head: true })
@@ -100,8 +94,8 @@ export default async function StudioHubPage({ params }: PageProps) {
 
   const templateCount = templatesResult.count ?? 0;
   const totalAssets = (docsResult.count ?? 0) + (chartsResult.count ?? 0) + (workflowsResult.count ?? 0) +
-    (imagesResult.count ?? 0) + (videosResult.count ?? 0) + (musicResult.count ?? 0) +
-    (dashboardsResult.count ?? 0) + templateCount;
+    imagesCount.count + videosCount.count + musicCount.count +
+    dashboardsCount.count + templateCount;
 
   const modules = [
     {
@@ -123,7 +117,7 @@ export default async function StudioHubPage({ params }: PageProps) {
       icon: BarChart3,
       color: "purple",
       href: `${basePath}/graph`,
-      stat: (chartsResult.count ?? 0) + (imagesResult.count ?? 0) + (videosResult.count ?? 0) + (dashboardsResult.count ?? 0),
+      stat: (chartsResult.count ?? 0) + imagesCount.count + videosCount.count + dashboardsCount.count,
       statLabel: t("hub.modules.graph.statLabel"),
       unlocked: check("graph"),
       features: t.raw("hub.modules.graph.features") as string[],
@@ -135,7 +129,7 @@ export default async function StudioHubPage({ params }: PageProps) {
       icon: Workflow,
       color: "teal",
       href: `${basePath}/tracks`,
-      stat: (workflowsResult.count ?? 0) + (musicResult.count ?? 0),
+      stat: (workflowsResult.count ?? 0) + musicCount.count,
       statLabel: t("hub.modules.tracks.statLabel"),
       unlocked: check("tracks"),
       features: t.raw("hub.modules.tracks.features") as string[],
@@ -222,7 +216,7 @@ export default async function StudioHubPage({ params }: PageProps) {
           <div className="flex items-center gap-2.5">
             <ImageIcon className="h-5 w-5 text-purple-400" aria-hidden="true" />
             <div>
-              <p className="text-xl font-bold text-[#f5f5dc]">{(imagesResult.count ?? 0) + (chartsResult.count ?? 0)}</p>
+              <p className="text-xl font-bold text-[#f5f5dc]">{imagesCount.count + (chartsResult.count ?? 0)}</p>
               <p className="text-[10px] text-[#f5f5dc]/40">{t("hub.stats.visuals")}</p>
             </div>
           </div>
@@ -231,7 +225,7 @@ export default async function StudioHubPage({ params }: PageProps) {
           <div className="flex items-center gap-2.5">
             <Zap className="h-5 w-5 text-teal-400" aria-hidden="true" />
             <div>
-              <p className="text-xl font-bold text-[#f5f5dc]">{runsResult.count ?? 0}</p>
+              <p className="text-xl font-bold text-[#f5f5dc]">{runsCount.count}</p>
               <p className="text-[10px] text-[#f5f5dc]/40">{t("hub.stats.automations")}</p>
             </div>
           </div>

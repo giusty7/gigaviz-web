@@ -74,7 +74,7 @@ export default async function MarketplacePage({ params, searchParams }: Props) {
               </div>
             }
             actions={
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/${workspaceSlug}/marketplace/sell`}
                   className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"

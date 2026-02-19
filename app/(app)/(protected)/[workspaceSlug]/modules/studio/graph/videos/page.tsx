@@ -58,32 +58,43 @@ export default async function GraphVideosPage({ params }: PageProps) {
     );
   }
 
-  const { data: videos } = await db
+  const { data: videos, error: videosError } = await db
     .from("graph_videos")
     .select("id, title, style, status, duration_seconds, tags, thumbnail_url, updated_at")
     .eq("workspace_id", workspace.id)
     .order("updated_at", { ascending: false })
     .limit(20);
 
+  const tableNotReady = videosError?.code === "42P01" || videosError?.message?.includes("does not exist");
   const items = videos ?? [];
   const totalDuration = items.reduce((sum, v) => sum + (v.duration_seconds ?? 0), 0);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-[#f5f5dc]">{t("videos.title")}</h1>
           <p className="mt-1 text-sm text-[#f5f5dc]/50">{t("videos.description")}</p>
         </div>
         <Link
           href={`/${workspaceSlug}/modules/studio/graph/videos/new`}
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors"
+          className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-medium text-white hover:bg-purple-500 transition-colors sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           {t("videos.newVideo")}
         </Link>
       </div>
+
+      {/* Migration Warning */}
+      {tableNotReady && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+          <p className="font-semibold">⚠️ Database setup required</p>
+          <p className="mt-1 text-amber-300/70">
+            The AI Videos table has not been created yet. Please apply the migration: <code className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs">20260216200000_studio_media.sql</code>
+          </p>
+        </div>
+      )}
 
       {/* Beta Banner */}
       <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">

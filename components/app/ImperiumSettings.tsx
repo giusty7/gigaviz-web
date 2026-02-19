@@ -323,8 +323,8 @@ type ImperiumTableProps = {
 
 export function ImperiumTable({ headers, children }: ImperiumTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-[#f5f5dc]/10">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-xl border border-[#f5f5dc]/10">
+      <table className="w-full min-w-[480px]">
         <thead>
           <tr className="border-b border-[#f5f5dc]/10 bg-[#050a18]/60">
             {headers.map((header, index) => (

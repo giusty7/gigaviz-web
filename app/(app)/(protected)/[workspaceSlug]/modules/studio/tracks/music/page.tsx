@@ -61,32 +61,43 @@ export default async function TracksMusicPage({ params }: PageProps) {
     );
   }
 
-  const { data: tracks } = await db
+  const { data: tracks, error: tracksError } = await db
     .from("tracks_music")
     .select("id, title, genre, status, duration_seconds, bpm, tags, updated_at")
     .eq("workspace_id", workspace.id)
     .order("updated_at", { ascending: false })
     .limit(20);
 
+  const tableNotReady = tracksError?.code === "42P01" || tracksError?.message?.includes("does not exist");
   const items = tracks ?? [];
   const totalDuration = items.reduce((sum, t) => sum + (t.duration_seconds ?? 0), 0);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-[#f5f5dc]">{t("music.title")}</h1>
           <p className="mt-1 text-sm text-[#f5f5dc]/50">{t("music.description")}</p>
         </div>
         <Link
           href={`/${workspaceSlug}/modules/studio/tracks/music/new`}
-          className="inline-flex h-9 items-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white hover:bg-teal-500 transition-colors"
+          className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 text-sm font-medium text-white hover:bg-teal-500 transition-colors sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           {t("music.newTrack")}
         </Link>
       </div>
+
+      {/* Migration Warning */}
+      {tableNotReady && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+          <p className="font-semibold">⚠️ Database setup required</p>
+          <p className="mt-1 text-amber-300/70">
+            The AI Music table has not been created yet. Please apply the migration: <code className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs">20260216200000_studio_media.sql</code>
+          </p>
+        </div>
+      )}
 
       {/* Beta Banner */}
       <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">

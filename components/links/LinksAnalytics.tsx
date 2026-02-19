@@ -76,7 +76,7 @@ export function LinksAnalytics({ workspaceSlug, pages, clicks, items, last14Days
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard icon={MousePointerClick} label={t("totalClicks")} value={totalClicks} />
         <StatCard icon={BarChart3} label={t("activePages")} value={topPages.length} />
         <StatCard icon={Smartphone} label={t("mobilePercent")} value={totalClicks > 0 ? Math.round(((byDevice.mobile ?? 0) / totalClicks) * 100) : 0} suffix="%" />

@@ -42,7 +42,7 @@ export function LinksOverview({ workspaceSlug, pages, totalClicks, totalItems }:
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#f5f5dc] tracking-tight">{t("links")}</h1>
           <p className="text-[11px] text-[#f5f5dc]/40 mt-0.5">
@@ -51,7 +51,7 @@ export function LinksOverview({ workspaceSlug, pages, totalClicks, totalItems }:
         </div>
         <Link
           href={`${base}/pages/new`}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#d4af37] px-3 py-1.5 text-[11px] font-semibold text-[#050a18] transition hover:bg-[#d4af37]/90"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#d4af37] px-3 py-1.5 text-[11px] font-semibold text-[#050a18] transition hover:bg-[#d4af37]/90 sm:w-auto"
         >
           <Plus className="h-3.5 w-3.5" />
           {t("newPage")}
@@ -59,7 +59,7 @@ export function LinksOverview({ workspaceSlug, pages, totalClicks, totalItems }:
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard icon={FileStack} label={t("pages")} value={pages.length} />
         <StatCard icon={Link2} label={t("linksCount")} value={totalItems} />
         <StatCard icon={MousePointerClick} label={t("clicks30d")} value={totalClicks} />
