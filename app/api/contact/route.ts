@@ -4,6 +4,8 @@ import { Resend } from "resend";
 import { getResendFromContact } from "@/lib/email";
 import { contactSchema } from "@/lib/validation/contact";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { notifyOpsNewLead } from "@/lib/ops/wa-internal";
 
 export const runtime = "nodejs";
 
@@ -127,6 +129,39 @@ export const POST = withErrorHandler(async (req: Request) => {
         { ok: false, message: "Failed to send email. Please try again later." },
         { status: 500 }
       );
+    }
+
+    // Persist contact form submission as a lead for ops tracking
+    try {
+      const db = supabaseAdmin();
+      const { data: leadRow, error: leadError } = await db
+        .from("leads")
+        .insert({
+          name: parsed.name,
+          phone: parsed.email, // contact form uses email as identifier
+          business: companyValue !== "-" ? companyValue : null,
+          need: parsed.topic,
+          notes: parsed.message,
+          source: "contact-form",
+          status: "new",
+        })
+        .select("id")
+        .single();
+
+      if (leadError) {
+        logger.warn("[CONTACT] Lead persistence failed (non-blocking):", leadError);
+      } else {
+        logger.info("[CONTACT] Lead saved from contact form", { leadId: leadRow?.id });
+        // Fire WA notification to ops (non-blocking)
+        notifyOpsNewLead({
+          name: parsed.name,
+          identifier: parsed.email,
+          source: "contact-form",
+          need: parsed.topic,
+        }).catch((e) => logger.warn("[CONTACT] WA ops notify failed", { error: e }));
+      }
+    } catch (leadErr) {
+      logger.warn("[CONTACT] Lead persistence error (non-blocking):", leadErr);
     }
 
     logger.info("[CONTACT] Form submitted:", parsed);

@@ -14,10 +14,12 @@ import {
   Home,
   Key,
   LayoutPanelLeft,
+  Mail,
   MessageSquareText,
   ScrollText,
   ShieldCheck,
   Store,
+  Target,
   Ticket,
   Users,
   Zap,
@@ -49,6 +51,8 @@ const iconMap: Record<string, LucideIcon> = {
   MessageSquareText,
   Activity,
   Store,
+  Target,
+  Mail,
 };
 
 // Group nav items with separators
