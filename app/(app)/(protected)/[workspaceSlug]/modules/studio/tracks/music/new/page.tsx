@@ -101,10 +101,11 @@ export default function NewMusicPage({ params: _params }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "music",
-              entityId: data.id,
+              music_id: data.id,
               prompt: prompt.trim(),
               genre,
               bpm,
+              key_signature: "C",
               duration_seconds: duration,
             }),
           }).catch(() => {}); // Fire-and-forget

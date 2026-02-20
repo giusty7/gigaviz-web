@@ -84,7 +84,7 @@ export default function NewChartPage({ params: _params }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "chart",
-              entityId: data.id,
+              chart_id: data.id,
               prompt: prompt.trim(),
               chart_type: chartType,
             }),

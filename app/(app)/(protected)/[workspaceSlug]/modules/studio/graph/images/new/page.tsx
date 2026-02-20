@@ -93,9 +93,11 @@ export default function NewImagePage({ params: _params }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "image",
-              entityId: data.id,
+              image_id: data.id,
               prompt: prompt.trim(),
               style,
+              width: 1024,
+              height: 1024,
             }),
           }).catch(() => {}); // Fire-and-forget
         }

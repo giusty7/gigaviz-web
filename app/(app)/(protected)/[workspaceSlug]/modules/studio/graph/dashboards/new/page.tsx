@@ -47,7 +47,7 @@ export default function NewDashboardPage({ params: _params }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "dashboard",
-              entityId: data.id,
+              dashboard_id: data.id,
               prompt: prompt.trim(),
               title: title.trim(),
             }),

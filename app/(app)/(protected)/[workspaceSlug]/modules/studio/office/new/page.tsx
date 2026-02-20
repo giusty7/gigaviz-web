@@ -63,7 +63,7 @@ export default function NewDocumentPage({ params: _params }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "document",
-              entityId: data.id,
+              document_id: data.id,
               prompt: aiPrompt.trim(),
               category: selectedType,
               title: title.trim(),

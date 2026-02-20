@@ -90,7 +90,7 @@ export default function NewVideoPage({ params: _params }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               type: "video",
-              entityId: data.id,
+              video_id: data.id,
               prompt: prompt.trim(),
               style,
               duration_seconds: duration,
