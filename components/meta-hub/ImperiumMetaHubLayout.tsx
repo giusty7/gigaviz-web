@@ -23,6 +23,9 @@ import {
   Users,
   Send,
   Inbox,
+  Facebook,
+  PenSquare,
+  Film,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { MetaHubFlags } from "@/lib/meta-hub/config";
@@ -82,6 +85,7 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   WhatsApp: MessageSquare,
   Instagram: Instagram,
   Messenger: MessagesSquare,
+  Facebook: Facebook,
   Ads: Megaphone,
   Automation: Zap,
   "AI Auto-Reply": Bot,
@@ -93,6 +97,11 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Assets: Layers,
   Events: CloudLightning,
   Settings: Settings,
+  "Content Hub": PenSquare,
+  "WA Status": MessageSquare,
+  "IG Content": Instagram,
+  "FB Content": Facebook,
+  Reels: Film,
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -141,6 +150,7 @@ function buildNav(
   const automationStatus: BadgeStatus = access.metaHub ? "live" : "locked";
 
   const waBase = `${base}/messaging/whatsapp`;
+  const contentBase = `${base}/content`;
 
   return [
     {
@@ -154,19 +164,23 @@ function buildNav(
       ],
     },
     {
-      label: "WhatsApp",
+      label: "Messaging",
       items: [
+        { label: "WhatsApp", href: `${waBase}/inbox`, status: whatsappStatus },
+        { label: "Instagram", href: `${base}/messaging/instagram`, status: instagramStatus },
+        { label: "Messenger", href: `${base}/messaging/messenger`, status: messengerStatus },
         { label: "Templates", href: waBase, status: templatesStatus },
-        { label: "Inbox", href: `${waBase}/inbox`, status: whatsappStatus },
         { label: "Contacts", href: `${waBase}/contacts`, status: whatsappStatus },
         { label: "Outbox", href: `${waBase}/outbox`, status: whatsappStatus },
       ],
     },
     {
-      label: "Channels",
+      label: "Content",
       items: [
-        { label: "Instagram", href: `${base}/messaging/instagram`, status: instagramStatus },
-        { label: "Messenger", href: `${base}/messaging/messenger`, status: messengerStatus },
+        { label: "Content Hub", href: contentBase, status: "beta" as BadgeStatus },
+        { label: "WA Status", href: `${contentBase}/whatsapp`, status: "beta" as BadgeStatus },
+        { label: "IG Content", href: `${contentBase}/instagram`, status: "beta" as BadgeStatus },
+        { label: "FB Content", href: `${contentBase}/facebook`, status: "beta" as BadgeStatus },
       ],
     },
     {
@@ -228,12 +242,12 @@ export function ImperiumMetaHubSidebar({
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
   const sections = buildNav(flags, basePath, access, setup);
 
-  // Count messaging channels for stats (WhatsApp + Instagram + Messenger)
-  const channelSection = sections.find((s) => s.label === "Channels");
-  const waSection = sections.find((s) => s.label === "WhatsApp");
-  const totalChannels = (channelSection?.items.length ?? 0) + (waSection ? 1 : 0);
-  const waActive = waSection?.items.some((i) => i.status === "live") ? 1 : 0;
-  const activeChannels = (channelSection?.items.filter((i) => i.status === "live").length ?? 0) + waActive;
+  // Count messaging channels for stats
+  const messagingSection = sections.find((s) => s.label === "Messaging");
+  const contentSection = sections.find((s) => s.label === "Content");
+  const totalChannels = messagingSection?.items.filter((i) => ["WhatsApp", "Instagram", "Messenger"].includes(i.label)).length ?? 0;
+  const activeChannels = messagingSection?.items.filter((i) => ["WhatsApp", "Instagram", "Messenger"].includes(i.label) && i.status === "live").length ?? 0;
+  const contentFeatures = contentSection?.items.length ?? 0;
 
   if (!mounted) {
     return (
@@ -380,7 +394,7 @@ export function ImperiumMetaHubSidebar({
         <p className="text-[10px] font-semibold uppercase tracking-wider text-[#f5f5dc]/40">
           Quick Stats
         </p>
-        <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+        <div className="mt-2 grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-[#f5f5dc]/5 p-2">
             <p className="text-lg font-bold text-[#d4af37]">{totalChannels}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Channels</p>
@@ -388,6 +402,10 @@ export function ImperiumMetaHubSidebar({
           <div className="rounded-lg bg-[#f5f5dc]/5 p-2">
             <p className="text-lg font-bold text-emerald-400">{activeChannels}</p>
             <p className="text-[9px] text-[#f5f5dc]/40">Active</p>
+          </div>
+          <div className="rounded-lg bg-[#f5f5dc]/5 p-2">
+            <p className="text-lg font-bold text-purple-400">{contentFeatures}</p>
+            <p className="text-[9px] text-[#f5f5dc]/40">Content</p>
           </div>
         </div>
       </div>
