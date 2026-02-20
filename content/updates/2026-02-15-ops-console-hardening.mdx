@@ -15,7 +15,7 @@ We've completed a comprehensive audit and cleanup of the internal ops console �
 - **7 pages** now properly pass `actorEmail` and `actorRole` to OpsShell — the header badge correctly shows the logged-in admin's email instead of a generic "platform-admin" label
 - **6 pages** replaced `throw new Error("Unauthorized")` with clean `redirect("/")` — no more ugly error boundaries on auth failures
 - **2 pages** fixed inconsistent redirect targets (`/login` → `/`) to match the standard pattern
-- Removed redundant `assertOpsEnabled()` calls — the layout guard already handles this
+- Removed redundant authorization checks — the layout guard already handles this
 
 ### Boundary gaps filled
 - Added missing `loading.tsx` and `error.tsx` for the workspace detail route (`/ops/workspaces/[id]`)
@@ -23,7 +23,7 @@ We've completed a comprehensive audit and cleanup of the internal ops console �
 
 ### UI consistency
 - Fixed palette mismatch on the operations page: `zinc-*` → `slate-*` to match the rest of the console
-- Removed stale "IMPERIUM INTERNAL OPS" branding from the tickets page
+- Removed stale legacy branding from the tickets page
 - Fixed double redirect: `/owner` now goes directly to `/ops` instead of bouncing through `/ops/platform-admin`
 
 ## Impact

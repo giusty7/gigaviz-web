@@ -68,17 +68,17 @@ These are visible but low-risk. A missing translation is embarrassing, not dange
 
 Every server-side module in our codebase imports Supabase. Testing these modules without a real database requires consistent mocking.
 
-We built a `createMockSupabase()` factory that returns a chainable mock matching the Supabase query builder pattern. It supports `.from()`, `.select()`, `.eq()`, `.insert()`, `.maybeSingle()`, and `.rpc()` — enough to test any module.
+We built a mock factory that returns a chainable mock matching the Supabase query builder pattern. It supports all the common query methods — enough to test any module.
 
-The key insight: mock at the import boundary, not at the function level. We use `vi.mock("@/lib/supabase/admin")` to replace the entire module, then control what each query returns per test.
+The key insight: mock at the import boundary, not at the function level. We replace the entire Supabase module at import time, then control what each query returns per test.
 
-For modules that import `"server-only"` (a Next.js convention to prevent client-side imports), we add `vi.mock("server-only", () => ({}))` at the top of every server-side test file.
+For modules that use the Next.js `"server-only"` convention (preventing client-side imports), we mock that module as a no-op at the top of every server-side test file.
 
 ## Coverage strategy: statements, not percentages
 
 We stopped chasing a coverage percentage and started counting **critical statements covered**.
 
-Our platform has 5,272 statements. Going from 4.97% to 10.9% means covering 312 additional statements. But not all statements are equal — covering 312 statements in the token wallet is worth more than covering 312 statements in a marketing page component.
+Our platform has thousands of statements. Going from ~5% to ~11% coverage means covering hundreds of additional statements. But not all statements are equal — covering statements in the token wallet is worth more than covering statements in a marketing page component.
 
 We ranked every untested module by statement count and difficulty:
 

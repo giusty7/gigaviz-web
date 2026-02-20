@@ -73,7 +73,7 @@ These insights feed into the CRM dashboard, helping managers make data-driven de
 
 ### Embedding drift
 
-Early on, our knowledge base embeddings would become stale as documents were updated. We added a re-indexing pipeline (`npm run kb:index`) that detects changes and refreshes only the modified chunks.
+Early on, our knowledge base embeddings would become stale as documents were updated. We added a re-indexing pipeline that detects changes and refreshes only the modified chunks.
 
 ### Context window limits
 
@@ -81,7 +81,7 @@ Long conversations would overflow the AI's context window. We now use smart summ
 
 ### Privacy boundaries
 
-AI should never leak data across workspaces. Every knowledge base query includes a `workspace_id` filter, and RAG results are scoped to the current workspace's documents only.
+AI should never leak data across workspaces. Every knowledge base query includes a workspace filter, and RAG results are scoped to the current workspace's documents only.
 
 ## Results from early adopters
 

@@ -28,11 +28,11 @@ Every user-facing table has PostgreSQL RLS policies that check workspace members
 
 ### 2. App Context Resolution
 
-Server components call `getAppContext()` to resolve the authenticated user, their workspace, their role, and their entitlements—before any business logic runs. There's no way to skip this step.
+Server components call a context resolution function to resolve the authenticated user, their workspace, their role, and their entitlements—before any business logic runs. There's no way to skip this step.
 
 ### 3. Entitlement Gating
 
-Features are gated by entitlements (like `meta_hub`, `helper`, `inbox`), which combine plan subscriptions with admin-granted overrides. You can't access what you haven't been granted.
+Features are gated by entitlements (mapped to specific product modules), which combine plan subscriptions with admin-granted overrides. You can’t access what you haven’t been granted.
 
 ## Why this matters for WhatsApp operations
 

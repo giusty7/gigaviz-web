@@ -38,9 +38,9 @@ We're excited to launch **Gigaviz Links** — a smart link-in-bio tool built for
 
 ## Technical details
 
-- 3 database tables: `link_pages`, `link_items`, `link_clicks` — all workspace-scoped with RLS
+- 3 database tables for pages, items, and click tracking — all workspace-scoped with RLS
 - 6 API routes with full Zod validation and error handling
 - Dynamic OG image generation using Next.js ImageResponse (1200×630, theme-aware)
-- Session-based unique visitor tracking with IP hashing (SHA-256, salted)
+- Privacy-preserving unique visitor tracking for accurate analytics
 
 Gigaviz Links is available now for all workspaces with the `links` entitlement.

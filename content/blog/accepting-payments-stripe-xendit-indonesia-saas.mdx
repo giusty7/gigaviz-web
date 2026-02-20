@@ -34,30 +34,30 @@ Both flows end at the same place: tokens in the workspace wallet, transaction in
 
 ### Server-side session creation
 
-When a user clicks "Pay with Card", the client sends a request to our `/api/billing/stripe/checkout` endpoint. The server:
+When a user clicks "Pay with Card", the client sends a request to our checkout endpoint. The server:
 
 1. Validates the request (workspace ID, token amount, price)
 2. Creates a Stripe Checkout Session with the correct line items
-3. Records a `payment_intent` row in our database (status: pending)
+3. Records a payment record in our database (status: pending)
 4. Returns the Stripe Checkout URL
 
 The client then redirects to Stripe's hosted checkout page. We never handle raw card data.
 
 ### Webhook processing
 
-When payment completes, Stripe sends a `checkout.session.completed` webhook to our `/api/billing/stripe/webhook` endpoint. We:
+When payment completes, Stripe sends a `checkout.session.completed` webhook to our webhook handler. We:
 
 1. Verify the webhook signature (reject tampering)
-2. Look up the payment intent by Stripe session ID
+2. Look up the payment record by Stripe session ID
 3. Credit tokens to the workspace wallet
-4. Update the payment intent status to "completed"
+4. Update the payment status to "completed"
 5. Record the transaction in the token ledger
 
 This happens asynchronously — even if the user closes their browser after paying, the webhook ensures tokens are credited.
 
 ### Feature flag
 
-Stripe payments are controlled by a single environment variable: `NEXT_PUBLIC_STRIPE_ENABLED=1`. This lets us:
+Stripe payments are controlled by a single feature flag. This lets us:
 
 - Enable card payments per environment (dev, staging, production)
 - Disable card payments instantly if there's a Stripe incident
@@ -70,7 +70,7 @@ When disabled, only the manual transfer button appears. Zero UI changes needed.
 For businesses that prefer bank transfers:
 
 1. Customer selects a token package and clicks "Manual / Transfer"
-2. System creates a pending top-up request in `token_topup_requests`
+2. System creates a pending top-up request in the database
 3. Customer transfers the exact amount to our bank account
 4. Customer clicks "Mark paid" on the billing page
 5. Admin sees the pending request in the ops console
@@ -94,7 +94,7 @@ We will. But Stripe-first made sense for several reasons:
 
 We don't charge per seat or per message. We use a token economy:
 
-- Each action costs tokens (sending a WhatsApp message: 8 tokens, AI chat response: 15 tokens, image generation: 40 tokens)
+- Each action costs tokens (messaging, AI responses, content generation — each with its own token rate)
 - Workspaces buy token packages (Basic, Pro, Enterprise)
 - Usage is tracked in real-time with daily breakdown charts
 - Budget guards prevent overspending (configurable monthly caps, hard caps, alert thresholds)

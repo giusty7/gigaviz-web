@@ -116,23 +116,11 @@ This required 38 translation keys just for the notification panel — types, act
 
 ### The Ops Console: 200+ keys
 
-The Ops Console is our internal platform admin tool — 28 pages covering workspace management, customer support, entitlements, health monitoring, analytics, dev tools, and more.
+The Ops Console is our internal platform admin tool — 28 pages covering workspace management, customer support, monitoring, analytics, and developer tools.
 
-Every page was hardcoded English. We needed 200+ keys organized into deeply nested namespaces:
+Every page was hardcoded English. We needed 200+ keys organized into deeply nested namespaces following a pattern like `module.page.label` and `module.section.action`.
 
-```
-opsUI.godConsole.title
-opsUI.godConsole.search.placeholder
-opsUI.health.status.healthy
-opsUI.health.status.degraded
-opsUI.devTools.sql.execute
-opsUI.devTools.webhooks.replay
-opsUI.analytics.revenue.title
-opsUI.operations.workspace.suspend
-opsUI.owner.claim.description
-```
-
-We wired 20 Ops components across 6 sub-directories. Some components had sub-components that also needed their own `useTranslations` hook — a common gotcha when a parent component defines helper components inline.
+We wired 20 components across 6 sub-directories. Some components had sub-components that also needed their own translation hooks — a common gotcha when a parent component defines helper components inline.
 
 ### React Rules of Hooks in feature gates
 

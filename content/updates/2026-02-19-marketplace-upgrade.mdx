@@ -16,7 +16,7 @@ Gigaviz Marketplace has been upgraded from a basic catalog page to a fully funct
 - **Purchase API** — token-based purchases with 15/85 commission split, duplicate prevention
 - **Download API** — license key verification, download limits per license type
 - **Entitlement gating** — sell and purchases pages now require `marketplace` entitlement
-- **Price pipeline fix** — IDR conversion corrected (cents × 158, not dollars × 15800)
+- **Price pipeline fix** — Currency conversion corrected for proper smallest-unit handling
 - **Migration** — new RLS policies for purchases, 3 helper RPCs, performance indexes
 
 ### Phase 2 — Creator Experience
@@ -33,7 +33,7 @@ Gigaviz Marketplace has been upgraded from a basic catalog page to a fully funct
 - **Sub-navigation** — Browse, Sell, Purchases, Dashboard tabs
 
 ### Phase 4 — Operations & Scale
-- **Ops moderation** — `/ops/marketplace` with approve/reject actions, status tabs, revenue stats
+- **Ops moderation** — Admin moderation page with approve/reject actions, status tabs, revenue stats
 - **Marketing i18n** — 50+ strings extracted to `productMarketplace` namespace (en + id)
 - **69 unit tests** — types, commission, price pipeline, Zod schemas, i18n completeness
 - **Blog post** — engineering story documenting the full upgrade
@@ -51,18 +51,11 @@ Gigaviz Marketplace has been upgraded from a basic catalog page to a fully funct
 
 ## New Files
 
-- `marketplace/items/[itemSlug]/page.tsx` — item detail page
-- `marketplace/dashboard/page.tsx` — seller dashboard
-- `marketplace/layout.tsx` — sub-navigation
-- `api/marketplace/purchase/route.ts` — purchase API
-- `api/marketplace/items/[itemId]/route.ts` — item CRUD
-- `api/marketplace/items/[itemId]/download/route.ts` — download API
-- `api/marketplace/items/[itemId]/upload/route.ts` — file upload API
-- `api/marketplace/creators/route.ts` — creator profile
-- `api/marketplace/reviews/route.ts` — review system
-- `api/ops/marketplace/moderate/route.ts` — ops moderation API
-- `ops/marketplace/page.tsx` — ops moderation UI
-- `components/marketplace/*` — 4 new client components
-- `lib/marketplace/index.ts` — server-only library
-- `types/marketplace.ts` — shared TypeScript types
-- `supabase/migrations/20260219170000_marketplace_improvements.sql`
+- Item detail page, seller dashboard, sub-navigation layout
+- Purchase API, item CRUD API, download API, file upload API
+- Creator profile API, review system API
+- Ops moderation page and API
+- 4 new client components
+- Server-only library module
+- Shared TypeScript types
+- Database migration with new RLS policies

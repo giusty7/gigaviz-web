@@ -1,0 +1,66 @@
+---
+title: "Content Publishing Module & Meta Hub Navigation Overhaul"
+date: "2026-02-21"
+summary: "New Content Publishing module for WhatsApp Status, Instagram, and Facebook — plus a complete Meta Hub sidebar reorganization, Studio AI bug fixes, 89 new translation keys, and a premium Marketplace redesign."
+audience: ["public", "app"]
+tags: ["content-publishing", "meta-hub", "whatsapp-status", "instagram", "facebook", "navigation", "studio", "marketplace", "i18n", "major-feature"]
+type: "shipped"
+---
+
+A major upgrade bringing social media content publishing to Meta Hub, along with navigation improvements, bug fixes, and visual enhancements across the platform.
+
+## What shipped
+
+### 📱 Content Publishing Module (New)
+
+Publish and manage content across your social media channels — all from one hub.
+
+- **Content Hub** — Central dashboard showing publishing activity across WhatsApp, Instagram, and Facebook with quick-access cards and real-time stats
+- **WhatsApp Status** — Create and schedule WhatsApp Status updates with text, images, and links. Preview how they'll appear to your contacts before publishing
+- **Instagram Content** — Manage Instagram posts, stories, and reels. Upload media, write captions, add hashtags, and schedule publication times
+- **Facebook Content** — Create Facebook Page posts with rich media, links, and call-to-action buttons. Schedule or publish immediately
+
+All content pages are fully translated in English and Indonesian with 110+ new translation keys.
+
+### 🧭 Meta Hub Navigation Reorganization
+
+The Meta Hub sidebar has been reorganized from a flat list into 5 logical sections for better discoverability:
+
+| Section | Features |
+|---------|----------|
+| **Setup** | Connections, Webhooks |
+| **Messaging** | Templates, Composer, Scheduler, Inbox |
+| **Content** | Content Hub, WhatsApp Status, Instagram, Facebook |
+| **Growth** | Contacts, Automation, Flows |
+| **Analytics** | Delivery Reports, Performance |
+
+Each section is collapsible with visual indicators, making it easier to find features as the module grows.
+
+### 🎨 Marketplace Premium Redesign
+
+The Marketplace page has been redesigned with a premium dark theme featuring:
+- Gradient backgrounds with glass-morphism cards
+- Animated hover effects and smooth transitions
+- Better visual hierarchy for featured items and categories
+- Improved mobile responsiveness
+
+### 🔧 Studio AI Bug Fixes
+
+Fixed a critical bug where AI generation failed silently on all 6 Studio content types. The entity identifier field was not being passed correctly during creation, causing generation requests to fail. All 6 "new" pages (documents, images, charts, videos, music, dashboards) have been corrected.
+
+### 🌐 89 New Translation Keys
+
+Added missing translations across multiple modules:
+
+| Module | Keys Added |
+|--------|-----------|
+| Helper AI | 45 keys — chat interface, knowledge base, CRM insights, workflow labels |
+| Platform | 25 keys — workspace settings, team management, audit log labels |
+| Meta Hub | 19 keys — template status badges, connection labels, delivery indicators |
+
+## Quality checks
+
+- **Lint**: 0 errors, 0 warnings
+- **TypeScript**: 0 errors
+- **Build**: 256 pages generated successfully
+- **i18n**: All new keys present in both EN and ID locale files

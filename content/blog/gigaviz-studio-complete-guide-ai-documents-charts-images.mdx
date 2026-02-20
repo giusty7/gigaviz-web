@@ -125,7 +125,7 @@ Every workspace has a token balance. AI generations consume tokens at fixed rate
 | Video storyboard | 40 tokens | GPT-4o-mini |
 | Music composition | 30 tokens | GPT-4o-mini |
 
-**Token deduction is atomic**: We use a PostgreSQL RPC with `SELECT ... FOR UPDATE` row-level locking. If two team members generate content simultaneously, the system prevents overdraft — one succeeds, the other gets a clear "insufficient tokens" error (HTTP 402).
+**Token deduction is atomic**: We use a database operation with row-level locking. If two team members generate content simultaneously, the system prevents overdraft — one succeeds, the other gets a clear "insufficient tokens" error (HTTP 402).
 
 **Why fixed token costs instead of per-API-call billing?** Predictability. Your team knows exactly how many documents, images, or dashboards they can create this month. No surprises when the bill arrives.
 
@@ -147,13 +147,13 @@ If you skip the prompt, you can trigger generation later using the **Generate wi
 
 Studio ships with reusable components that make the generated content interactive:
 
-- **ChartRenderer** — Renders 8 chart types (bar, line, pie, area, scatter, radar, funnel, heatmap) with dark theme and custom tooltips
-- **ChartExportButton** — Export any rendered chart as PNG (2x retina) or SVG
-- **DashboardRenderer** — Responsive grid layout for stat/chart/text/table widgets
-- **WaveformVisualizer** — Canvas-based audio waveform with play/pause animation
-- **VideoStoryboard** — Timeline visualization for scene-by-scene storyboards
-- **GenerateButton** — Reusable AI trigger with loading state, error handling, and token gating
-- **EntityActions** — Universal CRUD actions (edit, delete, confirm) for all entity types
+- **Chart Renderer** — Renders 8 chart types (bar, line, pie, area, scatter, radar, funnel, heatmap) with dark theme and custom tooltips
+- **Chart Export** — Export any rendered chart as PNG (2x retina) or SVG
+- **Dashboard Renderer** — Responsive grid layout for stat/chart/text/table widgets
+- **Waveform Visualizer** — Canvas-based audio waveform with play/pause animation
+- **Video Storyboard** — Timeline visualization for scene-by-scene storyboards
+- **AI Generate Button** — Reusable AI trigger with loading state, error handling, and token gating
+- **Universal Actions** — CRUD actions (edit, delete, confirm) for all entity types
 
 ## Entitlement gating
 

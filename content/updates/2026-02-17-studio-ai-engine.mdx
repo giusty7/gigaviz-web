@@ -12,7 +12,7 @@ The Studio AI engine is now **fully wired** — all 6 content types can be gener
 ## What shipped
 
 ### 🧠 Unified Generation API
-- **Single endpoint** `POST /api/studio/generate` handles document, image, chart, video, music, and dashboard generation
+- **Single endpoint** handles document, image, chart, video, music, and dashboard generation
 - **Zod discriminated union** validates 6 request types with type-safe fields
 - **Token deduction** before AI calls — 402 on insufficient balance
 - **Status transitions**: draft → generating → completed (or failed with retry)
@@ -35,7 +35,7 @@ The Studio AI engine is now **fully wired** — all 6 content types can be gener
 - Chart and dashboard new pages now include AI prompt fields
 
 ### 📋 Template Cloning
-- `POST /api/studio/office/templates/[templateId]/clone` creates a new document from template
+- **Template clone API** creates a new document from any template
 - Templates page "Use Template" button calls clone API directly (no more redirect to /new)
 - Usage counter incremented atomically
 

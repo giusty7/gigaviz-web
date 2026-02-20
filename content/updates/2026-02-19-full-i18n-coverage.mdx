@@ -52,7 +52,7 @@ Every client component in Gigaviz is now fully internationalized. Sprint 13 and 
 ## Technical details
 
 - All client components use `useTranslations("namespace")` from `next-intl`
-- Ops Console uses deeply nested dot-path keys (`opsUI.godConsole.title`, `opsUI.devTools.sql.title`, etc.)
+- Ops Console uses deeply nested dot-path keys organized by page and section (e.g., `module.page.label`, `module.section.action`)
 - Feature gate component refactored to satisfy React Rules of Hooks (hook call moved before early returns)
 - Custom JSON parser built to deep-merge duplicate keys at every nesting level — fixed 4 overlapping sub-keys in `metaHubUI`
 - Both `messages/en.json` and `messages/id.json` updated and validated with 0 duplicate keys

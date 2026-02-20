@@ -20,18 +20,7 @@ The challenge: how do you add AI generation to all 6 content types without dupli
 
 ## Architecture decision: unified generation endpoint
 
-We rejected the obvious approach of adding `/generate` sub-routes to each CRUD API. Instead, we built a single `POST /api/studio/generate` endpoint that handles all 6 types through a Zod discriminated union:
-
-```typescript
-const generateSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("document"), entityId: z.string().uuid(), prompt: z.string().min(1), category: z.string().optional(), title: z.string().optional() }),
-  z.object({ type: z.literal("image"), entityId: z.string().uuid(), prompt: z.string().min(1), style: z.string().optional() }),
-  z.object({ type: z.literal("chart"), entityId: z.string().uuid(), prompt: z.string().min(1), chart_type: z.string().optional() }),
-  z.object({ type: z.literal("video"), entityId: z.string().uuid(), prompt: z.string().min(1), style: z.string().optional(), duration_seconds: z.number().optional() }),
-  z.object({ type: z.literal("music"), entityId: z.string().uuid(), prompt: z.string().min(1), genre: z.string().optional(), bpm: z.number().optional() }),
-  z.object({ type: z.literal("dashboard"), entityId: z.string().uuid(), prompt: z.string().min(1), title: z.string().optional() }),
-]);
-```
+We rejected the obvious approach of adding generation sub-routes to each CRUD API. Instead, we built a single unified generation endpoint that handles all 6 types through a discriminated union schema.
 
 One schema. One validation path. Six content types. The discriminated union gives us type safety at the boundary — TypeScript knows exactly which fields exist for each type after validation.
 
@@ -39,9 +28,9 @@ One schema. One validation path. Six content types. The discriminated union give
 
 Every generation request follows the same 5-step pipeline:
 
-1. **Validate** → Zod discriminated union parses the request body
+1. **Validate** → The discriminated union schema parses the request body
 2. **Authorize** → Check user session, workspace membership, and entitlement (`graph`, `office`, or `tracks`)
-3. **Deduct tokens** → Call `consumeTokens()` RPC before doing any AI work (fail fast on insufficient balance)
+3. **Deduct tokens** → Call an atomic token deduction function before doing any AI work (fail fast on insufficient balance)
 4. **Generate** → Call the appropriate AI function (GPT-4o-mini or DALL-E 3)
 5. **Persist** → Update the entity's status to `completed` and write generated data to the database
 
@@ -78,30 +67,13 @@ Every AI action has a token cost defined in our rate table:
 | Music composition | 30 tokens | GPT-4o-mini |
 | Dashboard layout | 40 tokens | GPT-4o-mini |
 
-Tokens are deducted **before** the AI call via a PostgreSQL RPC (`consumeTokens`). This is atomic — if two requests race, only one succeeds. The 402 response triggers a clear "Insufficient tokens" message in the UI.
+Tokens are deducted **before** the AI call via an atomic database operation with row-level locking. If two requests race, only one succeeds. The 402 response triggers a clear "Insufficient tokens" message in the UI.
 
 ## Fire-and-forget: auto-triggering generation on creation
 
 The UX insight that made everything click: users who write a prompt during entity creation **want generation to start immediately**. They don't want to create the entity, wait for the page to load, then click "Generate."
 
-So after the create form submits successfully, if a prompt was provided, we fire a generation request in the background:
-
-```typescript
-if (res.ok) {
-  const { data } = await res.json();
-  
-  // Auto-trigger AI generation (fire-and-forget)
-  if (prompt.trim()) {
-    fetch("/api/studio/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "image", entityId: data.id, prompt: prompt.trim(), style }),
-    }).catch(() => {}); // Don't block navigation
-  }
-  
-  router.push(detailUrl);
-}
-```
+So after the create form submits successfully, if a prompt was provided, we fire a generation request in the background. The client doesn't wait for the result — it navigates to the detail page immediately.
 
 The user navigates to the detail page immediately. When the generation completes (typically 2-8 seconds), a page refresh shows the result. The entity's status transitions from `draft` → `generating` → `completed`.
 
@@ -151,20 +123,9 @@ This is enforced in the API — only entities in `draft` or `completed` status c
 
 ## Results
 
-The unified generation engine serves 6 content types through 1 endpoint, 1 token system, and 1 status machine. It took approximately 2,800 lines of code across 8 new files:
+The unified generation engine serves 6 content types through 1 endpoint, 1 token system, and 1 status machine. The engine totals approximately 2,800 lines of new code across 8 files covering AI generation logic, the unified API endpoint, chart rendering, dashboard layout, waveform visualization, video storyboard display, and reusable trigger components.
 
-| Component | Lines | Purpose |
-|-----------|-------|---------|
-| `lib/studio/ai-generate.ts` | ~350 | 6 AI generation functions |
-| `app/api/studio/generate/route.ts` | ~280 | Unified generation endpoint |
-| `components/studio/ChartRenderer.tsx` | ~300 | recharts 6-type chart wrapper |
-| `components/studio/DashboardRenderer.tsx` | ~170 | Widget grid renderer |
-| `components/studio/WaveformVisualizer.tsx` | ~150 | Canvas waveform animation |
-| `components/studio/VideoStoryboard.tsx` | ~150 | Scene timeline + script |
-| `components/studio/GenerateButton.tsx` | ~130 | Reusable AI trigger |
-| `components/studio/UseTemplateButton.tsx` | ~70 | Template cloning |
-
-All passing: typecheck, lint, and build (245 pages generated).
+All passing: typecheck, lint, and build.
 
 If you're building AI generation into a SaaS platform, the key insight is this: don't add AI per-feature. Build a unified generation pipeline, gate it with tokens, and let the AI handle the creative heavy lifting while your CRUD layer handles persistence and security.
 

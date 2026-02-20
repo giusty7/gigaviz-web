@@ -16,31 +16,27 @@ Three new AI media modules are now **LIVE** inside Gigaviz Studio. What was prev
 - **Image list page** with thumbnail grid, style badges, status indicators, and stats
 - **Creation form** with visual style selector (5-column grid), AI prompt textarea, format selector (PNG/JPG/WebP/SVG), and tags
 - **Detail page** with full image preview (or prompt display while generating), dimensions, and metadata
-- **Full CRUD API** at `/api/studio/graph/images` with Zod validation and entitlement gating
+- **Full CRUD API** with Zod validation and entitlement gating
 
 ### 🎬 AI Videos (Graph module)
 - **8 style presets**: Marketing, Explainer, Product Demo, Social Reel, Animation, Cinematic, Tutorial, Testimonial
 - **Video list page** with aspect-ratio thumbnails, duration overlay badge, and total duration stats
 - **Creation form** with style selector, AI prompt, duration input (5–300s), resolution (720p/1080p/4K), and tags
 - **Detail page** with HTML5 video player, resolution/format metadata, and prompt display
-- **Full CRUD API** at `/api/studio/graph/videos` with Zod validation and entitlement gating
+- **Full CRUD API** with Zod validation and entitlement gating
 
 ### 🎵 AI Music (Tracks module)
 - **12 genre presets**: Pop, Rock, Electronic, Ambient, Jazz, Classical, Hip-Hop, Lo-Fi, Cinematic, Jingle, Podcast Intro, Sound Effect
 - **Music list page** with genre-colored badges, BPM display, duration formatting, and stats
 - **Creation form** with genre selector (4-column grid), AI prompt, duration (5–600s), BPM (40–300), format (MP3/WAV/OGG/FLAC)
 - **Detail page** with HTML5 audio player, key signature display, and waveform placeholder
-- **Full CRUD API** at `/api/studio/tracks/music` with Zod validation and entitlement gating
+- **Full CRUD API** with Zod validation and entitlement gating
 
 ## Database migration
 
-New migration `20260216200000_studio_media.sql` adds three tables:
+New database migration adds three tables for images, videos, and music — each with workspace scoping, style/prompt fields, media metadata, and file URL storage.
 
-- **`graph_images`** — 14 columns including style, prompt, negative_prompt, dimensions, format, image_url, thumbnail_url
-- **`graph_videos`** — 14 columns including style, prompt, duration_seconds, resolution, format, video_url, thumbnail_url
-- **`tracks_music`** — 15 columns including genre, prompt, duration_seconds, bpm, key_signature, format, audio_url, waveform_json
-
-All tables have: RLS enabled, workspace_id + status indexes, and workspace_members access policies.
+All tables have: RLS enabled, performance indexes, and workspace membership access policies.
 
 ## UI improvements
 

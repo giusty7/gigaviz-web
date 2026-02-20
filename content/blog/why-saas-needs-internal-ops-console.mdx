@@ -32,10 +32,10 @@ Most SaaS tools bolt on a basic admin panel — a list of users, maybe some sett
 
 An ops console with write access to every workspace is a **nuclear button**. We implemented multiple layers:
 
-1. **Environment kill switch** (`OPS_ENABLED` env var) — disable the entire console instantly
-2. **Layout-level auth guard** — `requirePlatformAdmin()` runs on every page
-3. **Owner email allowlist** — only emails in `GIGAVIZ_OWNER_EMAILS` can claim admin access
-4. **Rate limiting** — 30 requests per 60 seconds via Upstash Redis
+1. **Environment kill switch** — disable the entire console instantly via a single environment variable
+2. **Layout-level auth guard** — a centralized authorization function runs on every page load
+3. **Owner email allowlist** — only pre-approved emails can claim admin access
+4. **Rate limiting** — throttled request limits to prevent abuse
 5. **Full audit trail** — every mutation logged with actor, before/after snapshots, and timestamps
 6. **Impersonation alerts** — Slack/Discord notifications when an admin impersonates a workspace
 
@@ -43,21 +43,9 @@ An ops console with write access to every workspace is a **nuclear button**. We 
 
 ### Per-page shell, not layout shell
 
-We render `OpsShell` (nav + header) in each page rather than in `layout.tsx`. Why?
+We render the shell wrapper in each page rather than in the root layout. Why?
 
-```tsx
-// Each page controls its own shell
-export default async function WorkspacesPage() {
-  const admin = await requirePlatformAdmin();
-  if (!admin.ok) redirect("/");
-  
-  return (
-    <OpsShell actorEmail={admin.actorEmail} actorRole={admin.actorRole}>
-      <WorkspaceList />
-    </OpsShell>
-  );
-}
-```
+Each page calls the centralized auth guard, and on success, passes actor details to the shell component. On failure, it redirects cleanly.
 
 This gives us:
 - **Per-page auth context** — each page can pass actor details to the shell
@@ -66,51 +54,27 @@ This gives us:
 
 ### Centralized theme config
 
-All ops styling lives in a single theme file:
-
-```typescript
-// lib/ops/theme.ts
-export const opsTheme = {
-  colors: { gold: "#d4af37", navy: "#050a18", beige: "#f5f5dc" },
-  nav: {
-    items: [
-      { href: "/ops/god-console", label: "God Console", icon: Crown, group: "core" },
-      { href: "/ops/workspaces", label: "Workspaces", icon: Building2, group: "core" },
-      // ... 14 total nav items across 6 groups
-    ]
-  }
-};
-```
+All ops styling lives in a single centralized theme configuration. Navigation items, color schemes, and page groups are defined in one place.
 
 This means:
 - Nav items are always in sync across all pages
 - Color changes propagate instantly
-- New pages just need to be added to the theme config
+- New pages just need to be added to the config
 
 ### Redirect, don't throw
 
-Early on, some pages threw `Error("Unauthorized")` when auth failed. This showed ugly error boundaries to developers who accidentally navigated there. We standardized to:
-
-```typescript
-// ✅ Clean redirect
-const admin = await requirePlatformAdmin();
-if (!admin.ok) redirect("/");
-
-// ❌ Ugly error boundary
-const admin = await requirePlatformAdmin();
-if (!admin.ok) throw new Error("Unauthorized");
-```
+Early on, some pages threw errors when auth failed. This showed ugly error boundaries to developers who accidentally navigated there. We standardized to clean redirects — if authorization fails, the user is silently redirected to the home page instead of seeing a crash screen.
 
 ## What we monitor
 
 ### Health checks
 
-Our health page checks:
-- **Database**: Connection pool status, query latency
-- **Workers**: Heartbeat freshness (outbox processor, KB indexer)
-- **External APIs**: Meta/WhatsApp Graph API availability
-- **Queue depth**: Outbox messages waiting to be processed
-- **Rate limit headroom**: Redis key counts and expiry status
+Our health page monitors:
+- **Database**: Connection health and query performance
+- **Background workers**: Heartbeat freshness and processing status
+- **External APIs**: Third-party API availability
+- **Queue depth**: Pending messages and jobs
+- **Rate limits**: Current usage and remaining headroom
 
 ### Activity dashboard
 
@@ -124,17 +88,7 @@ Every ops action is logged and visualized:
 
 ### 1. Audit everything from day one
 
-Adding audit logging after the fact is painful. We log every mutation at the helper level:
-
-```typescript
-await createAuditLog({
-  workspace_id: workspaceId,
-  actor_id: admin.user.id,
-  action: "workspace.suspend",
-  before: { status: "active" },
-  after: { status: "suspended" },
-});
-```
+Adding audit logging after the fact is painful. We log every mutation with the actor identity, the action type, and full before/after snapshots of the affected record. This gives us a complete timeline of who changed what, when, and why — invaluable for debugging and compliance.
 
 ### 2. Loading states matter for internal tools too
 
@@ -149,7 +103,7 @@ We built a feature flag system directly into the ops console with per-workspace 
 
 ### 4. Standardize auth patterns early
 
-We had 3 different auth patterns across 26 pages before our audit. Standardizing to one pattern (`requirePlatformAdmin()` → redirect on failure) took 18 file changes but prevented future security gaps.
+We had 3 different auth patterns across 26 pages before our audit. Standardizing to one pattern (centralized auth guard → redirect on failure) took 18 file changes but prevented future security gaps.
 
 ## The result
 

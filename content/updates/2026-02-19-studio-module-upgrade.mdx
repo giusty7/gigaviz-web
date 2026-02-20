@@ -36,9 +36,9 @@ Major quality and feature upgrade for Gigaviz Studio — better architecture, mo
 - **Active item detection** — improved matching skips anchor links
 
 ### 🔐 Shared Auth Helper
-- `requireStudioAccess(feature)` — single function for auth + entitlement checks across all Studio API routes
+- **Single auth function** for all Studio API routes handles authentication + entitlement checks
 - Resolves workspace context, fetches subscription, checks feature key (`office`, `graph`, `tracks`)
-- Returns `{ ctx, db }` on success, `null` on access denied — no boilerplate duplication
+- Returns context and database client on success, null on access denied — no boilerplate duplication
 
 ### 📝 Template CRUD API
 - `GET /api/studio/office/templates` — list with search, category filter, pagination
@@ -47,17 +47,17 @@ Major quality and feature upgrade for Gigaviz Studio — better architecture, mo
 - All routes use `requireStudioAccess("office")` + `withErrorHandler`
 
 ### 🗄️ DB Enum Fixes
-- Added `radar` and `heatmap` to `graph_charts.chart_type` constraint
-- Added `database` and `csv` to `graph_charts.data_source` constraint
-- Added `invoice` and `report` to `office_documents.category` and `office_templates.category`
-- Migration: `20260219120000_fix_studio_enum_mismatches.sql`
+- Added `radar` and `heatmap` to chart type constraint
+- Added `database` and `csv` to data source constraint
+- Added `invoice` and `report` to document and template category constraints
+- Database migration applied with new enum values
 
 ## Testing improvements
 
 - **+286 test assertions** across 16 new test files (1,099 → 1,385 total)
 - **Studio schema tests**: 49+ tests for Image/Video/Music create & update Zod schemas (styles, formats, dimensions, durations, BPM, key signatures)
-- **Inbox module tests**: 37 tests covering `fmtTime`, `clsx`, `badgeColor`, `isSkillRoutingEnabled`, `inferCategoryFromRules`, `routeToCategoryTeam`, `maybeAutoRouteInbound`
-- **Helper module tests**: 36 tests for `GV_SYSTEM_PROMPT`, `identityFallback` patterns, `ALLOWLIST_INTENTS`, `isIntentAllowed`, `signN8nPayload` HMAC signing
+- **Inbox module tests**: 37 tests covering time formatting, class utilities, badge coloring, skill routing configuration, category inference, team routing, and auto-routing for inbound messages
+- **Helper module tests**: 36 tests for AI system prompt handling, identity fallback patterns, intent allowlisting, intent validation, and webhook payload signing
 
 ## i18n coverage
 

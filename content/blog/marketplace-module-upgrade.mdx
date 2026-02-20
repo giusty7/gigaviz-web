@@ -8,7 +8,7 @@ published: true
 
 ## From Placeholder to Production
 
-When we first shipped Gigaviz Marketplace, it was little more than a catalog page with a seller form. Items could be listed, but you couldn't buy them. There was no detail page, no purchase flow, no download mechanism, and no way for the ops team to moderate submissions. The audit scored it 5.5/10.
+When we first shipped Gigaviz Marketplace, it was little more than a catalog page with a seller form. Items could be listed, but you couldn't buy them. There was no detail page, no purchase flow, no download mechanism, and no way for the ops team to moderate submissions.
 
 This post documents how we systematically upgraded the Marketplace module across four phases — taking it from a basic scaffold to a fully functional digital product marketplace with token-based purchases, commission splits, review systems, file uploads, seller dashboards, and platform-level moderation.
 
@@ -37,18 +37,18 @@ The purchase flow uses the platform's token economy. When a buyer confirms a pur
 
 1. Validate the item exists and is `approved`
 2. Prevent self-purchase and duplicate purchases
-3. Deduct tokens via `consumeTokens` RPC (atomic, row-locked)
+3. Deduct tokens via an atomic database operation (row-locked)
 4. Calculate 15/85 commission split
 5. Insert purchase record with generated license key
 6. Update item stats (best-effort RPC calls)
 
 ### Download API
 
-Downloads are protected by license key verification. Each purchase has a download limit based on license type (`single_use: 3`, `multi_use: 5`, `unlimited: 999`). The API checks the license key, verifies ownership, increments the download count, and redirects to the file URL.
+Downloads are protected by license key verification. Each purchase has a download limit based on its license type. The API checks the license key, verifies ownership, increments the download count, and redirects to the file URL.
 
 ### Price Pipeline Fix
 
-We discovered the price pipeline had an inconsistency. The form converts dollar input to cents (`Math.round(parseFloat(price) * 100)`), stores in the database as cents, and displays as `(price_usd / 100).toFixed(2)`. The IDR conversion was incorrectly multiplying by 15,800 (dollar rate) instead of 158 (cent rate). A subtle but important fix.
+We discovered an inconsistency in the price conversion pipeline. The form converts user input to the smallest currency unit for storage, and displays by converting back. The currency conversion for IDR had an incorrect multiplier, which we fixed.
 
 ## Phase 2: Creator Experience
 
@@ -65,7 +65,7 @@ Full REST API for marketplace items:
 
 ### Server Library
 
-We extracted all Supabase queries into `lib/marketplace/index.ts` — a server-only module with functions like `getMarketplaceItems()`, `getMarketplaceItemBySlug()`, `getSellerDashboard()`, `calculateCommission()`, and `moderateItem()`. This keeps route handlers thin and logic reusable.
+We extracted all database queries into a dedicated server-only module with reusable functions for fetching items, managing seller data, calculating commissions, and handling moderation. This keeps route handlers thin and logic reusable.
 
 ## Phase 3: User Experience
 
@@ -87,13 +87,13 @@ A two-step upload flow using Supabase Storage:
 
 ### Ops Moderation
 
-Platform admins get a dedicated moderation page at `/ops/marketplace` with:
+Platform admins get a dedicated moderation page with:
 - Stats cards (total items, pending review, approved, platform revenue)
 - Status tabs with counts (pending, approved, rejected, draft, archived)
 - Approve/reject actions with confirmation dialogs and rejection reason input
 - Pagination for large catalogs
 
-The moderation API at `/api/ops/marketplace/moderate` is protected by `requirePlatformAdmin()` and logged for audit trails.
+The moderation API is protected by platform admin authorization and all actions are logged for audit trails.
 
 ### Marketing Page i18n
 
@@ -113,7 +113,7 @@ We extracted all 50+ hardcoded English strings from the marketing page into the 
 
 ### Why Token-Based Purchases?
 
-The platform already has a mature token economy with wallets, ledger, and rate limiting. Using `consumeTokens` for marketplace purchases means:
+The platform already has a mature token economy with wallets, ledger, and rate limiting. Using an atomic token deduction for marketplace purchases means:
 - No external payment gateway dependency (Stripe/Xendit planned later)
 - Atomic deduction with row-level locking
 - Built-in budget guards and workspace scoping
@@ -121,11 +121,11 @@ The platform already has a mature token economy with wallets, ledger, and rate l
 
 ### Why 15/85 Commission Split?
 
-Industry standard for digital marketplaces ranges from 10–30%. We chose 15% as a balance between platform sustainability and creator incentive. The split is defined as a constant in `types/marketplace.ts` for easy adjustment.
+Industry standard for digital marketplaces ranges from 10–30%. We chose 15% as a balance between platform sustainability and creator incentive. The split is defined as a configurable constant for easy adjustment.
 
 ### Why Server-Only Library?
 
-Extracting queries into `lib/marketplace/index.ts` with `import "server-only"` ensures:
+Extracting queries into a dedicated server-only module ensures:
 - No accidental client-side data fetching
 - Consistent workspace scoping across all consumers
 - Single source of truth for business logic
@@ -140,4 +140,4 @@ The Marketplace module is now functionally complete. Remaining improvements:
 - Creator verification badges
 - Analytics dashboard for creators (views, conversion rates)
 
-*The Marketplace scored 5.5/10 before this upgrade. With 19 tasks across 4 phases — 24 new files, 69 tests, 150+ i18n keys — it's now a fully operational digital product marketplace.*
+*With 19 tasks across 4 phases — 24 new files, 69 tests, 150+ i18n keys — Gigaviz Marketplace is now a fully operational digital product marketplace.*
