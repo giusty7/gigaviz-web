@@ -16,6 +16,11 @@ import {
   Building2,
   Download,
   Crown,
+  Bell,
+  Code,
+  Copy,
+  Plus,
+
 } from "lucide-react";
 import {
   ImperiumSettingsLayout,
@@ -87,8 +92,10 @@ type ImperiumSettingsClientProps = {
 const tabs = [
   { id: "profile", labelKey: "tabs.profile", icon: <User className="h-4 w-4" /> },
   { id: "security", labelKey: "tabs.security", icon: <Shield className="h-4 w-4" /> },
+  { id: "notifications", labelKey: "tabs.notifications", icon: <Bell className="h-4 w-4" /> },
   { id: "members", labelKey: "tabs.members", icon: <Users className="h-4 w-4" /> },
   { id: "billing", labelKey: "tabs.billing", icon: <CreditCard className="h-4 w-4" /> },
+  { id: "api-keys", labelKey: "tabs.apiKeys", icon: <Code className="h-4 w-4" /> },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -113,6 +120,9 @@ export function ImperiumSettingsClient({
   const [activeTab, setActiveTab] = useState("profile");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [inboxNotifications, setInboxNotifications] = useState(true);
+  const [billingAlerts, setBillingAlerts] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
   const t = useTranslations("settings");
 
   // Get user initials for avatar
@@ -433,6 +443,65 @@ export function ImperiumSettingsClient({
       )}
 
       {/* ─────────────────────────────────────────────────────────────────────
+          NOTIFICATIONS TAB
+          ───────────────────────────────────────────────────────────────────── */}
+      {activeTab === "notifications" && (
+        <>
+          <ImperiumCard
+            title={t("notificationsTab.emailTitle")}
+            description={t("notificationsTab.emailDescription")}
+            icon={<Mail className="h-4 w-4" />}
+          >
+            <div className="space-y-4">
+              <ImperiumToggle
+                checked={emailNotifications}
+                onChange={setEmailNotifications}
+                label={t("notificationsTab.securityAlerts")}
+                description={t("notificationsTab.securityAlertsDescription")}
+              />
+              <ImperiumToggle
+                checked={inboxNotifications}
+                onChange={setInboxNotifications}
+                label={t("notificationsTab.inboxMessages")}
+                description={t("notificationsTab.inboxMessagesDescription")}
+              />
+              <ImperiumToggle
+                checked={billingAlerts}
+                onChange={setBillingAlerts}
+                label={t("notificationsTab.billingAlerts")}
+                description={t("notificationsTab.billingAlertsDescription")}
+              />
+              <ImperiumToggle
+                checked={weeklyDigest}
+                onChange={setWeeklyDigest}
+                label={t("notificationsTab.weeklyDigest")}
+                description={t("notificationsTab.weeklyDigestDescription")}
+              />
+            </div>
+          </ImperiumCard>
+
+          <ImperiumCard
+            title={t("notificationsTab.inAppTitle")}
+            description={t("notificationsTab.inAppDescription")}
+            icon={<Bell className="h-4 w-4" />}
+          >
+            <div className="space-y-3">
+              <div className="rounded-xl border border-[#d4af37]/20 bg-[#050a18]/60 p-4">
+                <p className="text-sm text-[#f5f5dc]/70">
+                  {t("notificationsTab.inAppInfo")}
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <ImperiumButton variant="secondary" size="sm">
+                  {t("notificationsTab.savePreferences")}
+                </ImperiumButton>
+              </div>
+            </div>
+          </ImperiumCard>
+        </>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────────────
           BILLING TAB
           ───────────────────────────────────────────────────────────────────── */}
       {activeTab === "billing" && (
@@ -503,6 +572,60 @@ export function ImperiumSettingsClient({
                 </ImperiumTableCell>
               </ImperiumTableRow>
             </ImperiumTable>
+          </ImperiumCard>
+        </>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────────────
+          API KEYS TAB
+          ───────────────────────────────────────────────────────────────────── */}
+      {activeTab === "api-keys" && (
+        <>
+          <ImperiumCard
+            title={t("apiKeysTab.title")}
+            description={t("apiKeysTab.description")}
+            icon={<Code className="h-4 w-4" />}
+          >
+            <div className="space-y-4">
+              {/* Workspace ID display */}
+              <div className="rounded-xl border border-[#d4af37]/15 bg-[#050a18]/40 p-4">
+                <div className="text-xs font-medium uppercase tracking-wider text-[#f5f5dc]/40 mb-2">
+                  {t("apiKeysTab.workspaceIdLabel")}
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded-lg bg-[#0a1229] px-3 py-2 text-sm font-mono text-[#d4af37]">
+                    {workspace.id}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(workspace.id)}
+                    className="rounded-lg border border-[#d4af37]/20 bg-[#0a1229] p-2 text-[#d4af37] hover:border-[#d4af37]/40 transition"
+                    title={t("apiKeysTab.copyTooltip")}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Empty state — no API keys yet */}
+              <div className="rounded-xl border border-[#f5f5dc]/10 bg-[#050a18]/40 p-8 text-center">
+                <Key className="mx-auto h-8 w-8 text-[#f5f5dc]/30 mb-3" />
+                <p className="text-sm text-[#f5f5dc]/50 mb-4">
+                  {t("apiKeysTab.emptyState")}
+                </p>
+                <ImperiumButton variant="secondary" size="sm" disabled>
+                  <Plus className="mr-2 h-3 w-3" />
+                  {t("apiKeysTab.createButton")}
+                </ImperiumButton>
+              </div>
+
+              {/* Info note */}
+              <div className="rounded-xl border border-[#d4af37]/10 bg-[#d4af37]/5 p-4">
+                <p className="text-xs text-[#f5f5dc]/60">
+                  {t("apiKeysTab.comingSoonNote")}
+                </p>
+              </div>
+            </div>
           </ImperiumCard>
         </>
       )}

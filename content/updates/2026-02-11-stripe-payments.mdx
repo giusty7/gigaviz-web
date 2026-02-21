@@ -1,43 +1,41 @@
 ---
-title: "Stripe Payments: Card Checkout Now Available"
+title: "Dual Payment Gateway: Midtrans + Xendit Now Live"
 date: "2026-02-11"
-summary: "Pay for token top-ups with credit card via Stripe. Dual payment mode: card checkout for instant activation, or manual transfer for local bank payments."
+summary: "Pay for subscriptions and token top-ups via Midtrans (local IDR) or Xendit (international multi-currency). Dual gateway architecture for Indonesian and international customers."
 audience: ["public", "app"]
-tags: ["billing", "stripe", "payments", "tokens"]
+tags: ["billing", "xendit", "midtrans", "payments", "tokens"]
 type: "shipped"
 ---
 
-Token top-ups now support credit card payments via Stripe — alongside the existing manual transfer option.
+Gigaviz now supports **dual payment gateways** — Midtrans for local Indonesian payments and Xendit for international multi-currency checkout.
 
 ## What's new
 
-- **Pay with Card**: One-click Stripe Checkout for instant token top-ups. Select a package, click "Pay with Card", complete payment on Stripe's secure checkout page, and tokens are credited automatically.
-- **Dual payment mode**: Every token package now shows two buttons — "Pay with Card" (Stripe) and "Manual / Transfer" (bank transfer). Choose whichever suits your workflow.
-- **Feature flag**: Stripe payments are controlled via a feature flag — disable card payments anytime without code changes.
-- **Webhook processing**: Stripe webhooks automatically process `checkout.session.completed` events and credit tokens to your workspace.
+- **Midtrans (IDR)**: Snap popup checkout with bank transfer (BCA, BNI, BRI, Mandiri), e-wallets (GoPay, ShopeePay, DANA, OVO), QRIS, and convenience stores (Alfamart, Indomaret).
+- **Xendit (Multi-Currency)**: Invoice-based hosted checkout supporting IDR, USD, and SGD. International cards (Visa, Mastercard, Amex, JCB), plus all Indonesian local payment methods.
+- **Multi-currency pricing**: All subscription plans and token packages have IDR, USD, and SGD pricing with yearly discounts.
+- **Webhook processing**: Both gateways process payment notifications automatically — tokens are credited and subscriptions activated instantly.
 
 ## How it works
 
-1. Select a token package (Basic, Pro, or Enterprise)
-2. Click **Pay with Card** to open Stripe Checkout
-3. Complete payment with credit card, debit card, or supported local methods
-4. Tokens are credited to your workspace automatically
-5. Transaction appears in your Token Ledger immediately
+### Midtrans (Local IDR)
+1. Select a plan or token package
+2. Choose Midtrans checkout — Snap popup opens
+3. Pay via bank transfer, e-wallet, QRIS, or card
+4. Tokens credited automatically on settlement
 
-## Manual transfer still available
-
-For businesses that prefer bank transfers or local payment methods, the manual flow remains fully functional:
-
-1. Click **Manual / Transfer**
-2. Complete your bank transfer
-3. Mark the top-up as paid from the billing page
-4. Admin activates the top-up after verification
+### Xendit (International)
+1. Select a plan or token package
+2. Choose currency (IDR, USD, or SGD)
+3. Complete payment on Xendit's hosted checkout page
+4. Tokens credited automatically on payment confirmation
 
 ## Technical details
 
-- Stripe SDK with server-side session creation
-- Secure webhook signature verification for all Stripe events
-- Payment records tracked with full workspace scoping
+- Midtrans: Snap API with SHA-512 signature verification
+- Xendit: Invoice API with x-callback-token webhook verification
+- Server-to-server payment status verification on both gateways
+- Payment records tracked with full workspace scoping and audit trail
 - Automatic retry on webhook delivery failures
-- Full audit trail for all payment transactions
+- Feature flags to enable/disable each gateway independently
 

@@ -36,7 +36,6 @@ export type MarketplacePaymentStatus =
 /** Payment method */
 export type MarketplacePaymentMethod =
   | "credits"
-  | "stripe"
   | "xendit"
   | "midtrans";
 

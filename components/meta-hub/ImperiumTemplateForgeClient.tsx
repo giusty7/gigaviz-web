@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Plus, ChevronLeft, ChevronRight, X, Loader2, Send, Eye, TestTube, Settings, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,12 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { SendTestTemplateModal } from "./SendTestTemplateModal";
 import { ParamMappingEditorModal } from "./ParamMappingEditorModal";
-import { CreateCampaignWizard } from "./CreateCampaignWizard";
+
+const CreateCampaignWizard = dynamic(
+  () => import("./CreateCampaignWizard").then((m) => m.CreateCampaignWizard),
+  { ssr: false, loading: () => <div className="flex h-48 items-center justify-center text-muted-foreground">Loading wizard…</div> }
+);
+
 import {
   ForgeHeader,
   StepIndicator,

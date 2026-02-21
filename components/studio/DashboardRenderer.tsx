@@ -1,8 +1,13 @@
 "use client";
 
-import { ChartRenderer } from "@/components/studio/ChartRenderer";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { TrendingUp, TrendingDown, FileText, Table2 } from "lucide-react";
+
+const ChartRenderer = dynamic(
+  () => import("@/components/studio/ChartRenderer").then((m) => m.ChartRenderer),
+  { ssr: false, loading: () => <div className="flex h-48 items-center justify-center text-muted-foreground">Loading chart…</div> }
+);
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */

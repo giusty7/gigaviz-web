@@ -81,6 +81,12 @@ export async function getOpsDashboardStats(): Promise<OpsDashboardStats> {
       { count: totalPurchases },
       // Revenue
       { data: revenueData },
+      // Payment revenue (token topups + subscriptions via payment_intents)
+      { data: paymentRevenueData },
+      // Ticket response times
+      { data: ticketResponseData },
+      // Worker heartbeats
+      { data: workerHeartbeatData },
     ] = await Promise.all([
       // Workspaces
       db.from("workspaces").select("*", { count: "exact", head: true }),
@@ -103,14 +109,44 @@ export async function getOpsDashboardStats(): Promise<OpsDashboardStats> {
       // Marketplace
       db.from("marketplace_items").select("*", { count: "exact", head: true }).eq("status", "under_review"),
       db.from("marketplace_purchases").select("*", { count: "exact", head: true }),
-      // Revenue (platform fees from marketplace)
+      // Marketplace revenue (platform fees)
       db.from("marketplace_purchases").select("platform_fee_cents").eq("payment_status", "completed"),
+      // Payment revenue from payment_intents (topup + subscription)
+      db.from("payment_intents").select("amount_idr, kind").eq("status", "paid"),
+      // Ticket avg response time
+      db.from("support_tickets").select("created_at, first_response_at").not("first_response_at", "is", null),
+      // Worker heartbeats (active = last heartbeat within 5 minutes)
+      db.from("worker_heartbeats").select("*", { count: "exact", head: true }).gte("last_heartbeat_at", new Date(Date.now() - 5 * 60 * 1000).toISOString()),
     ]);
 
     const marketplaceRevenue = (revenueData ?? []).reduce(
       (sum: number, p: { platform_fee_cents: number }) => sum + (p.platform_fee_cents || 0),
       0
     );
+
+    // Compute total payment revenue from payment_intents (topup + subscription, IDR amounts)
+    const totalPaymentRevenue = (paymentRevenueData ?? []).reduce(
+      (sum: number, p: { amount_idr: number }) => sum + (p.amount_idr || 0),
+      0
+    );
+
+    // Compute average ticket response time in hours
+    let avgResponseHours: number | null = null;
+    const responseTimes = (ticketResponseData ?? [])
+      .filter((t: { created_at: string; first_response_at: string }) => t.created_at && t.first_response_at)
+      .map((t: { created_at: string; first_response_at: string }) => {
+        const created = new Date(t.created_at).getTime();
+        const responded = new Date(t.first_response_at).getTime();
+        return (responded - created) / (1000 * 60 * 60); // hours
+      });
+    if (responseTimes.length > 0) {
+      avgResponseHours = Math.round(
+        (responseTimes.reduce((a: number, b: number) => a + b, 0) / responseTimes.length) * 10
+      ) / 10;
+    }
+
+    // Active workers = heartbeats within last 5 minutes
+    const activeWorkers = (workerHeartbeatData as { count?: number })?.count ?? 0;
 
     return {
       workspaces: {
@@ -132,10 +168,10 @@ export async function getOpsDashboardStats(): Promise<OpsDashboardStats> {
       tickets: {
         total: ticketsTotal ?? 0,
         open: ticketsOpen ?? 0,
-        avgResponseHours: null, // TODO: compute from first_response_at - created_at
+        avgResponseHours,
       },
       revenue: {
-        totalTokenTopupCents: 0, // TODO: aggregate from token_topups when payment gateway lands
+        totalTokenTopupCents: totalPaymentRevenue,
         marketplacePlatformFeeCents: marketplaceRevenue,
         totalPurchases: totalPurchases ?? 0,
       },
@@ -144,9 +180,9 @@ export async function getOpsDashboardStats(): Promise<OpsDashboardStats> {
         subscribedLast7d: newsletterRecent ?? 0,
       },
       health: {
-        apiRoutes: 225,
+        apiRoutes: 271,
         pendingMarketplaceItems: pendingMarketplace ?? 0,
-        activeWorkers: 0, // TODO: check worker_heartbeats
+        activeWorkers,
       },
     };
   } catch (err) {
@@ -158,7 +194,7 @@ export async function getOpsDashboardStats(): Promise<OpsDashboardStats> {
       tickets: { total: 0, open: 0, avgResponseHours: null },
       revenue: { totalTokenTopupCents: 0, marketplacePlatformFeeCents: 0, totalPurchases: 0 },
       newsletter: { total: 0, subscribedLast7d: 0 },
-      health: { apiRoutes: 225, pendingMarketplaceItems: 0, activeWorkers: 0 },
+      health: { apiRoutes: 271, pendingMarketplaceItems: 0, activeWorkers: 0 },
     };
   }
 }

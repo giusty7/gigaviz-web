@@ -1,21 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAppContext } from "@/lib/app-context";
-import { createSubscriptionSnap } from "@/lib/midtrans/snap";
+import { createXenditTokenTopupInvoice } from "@/lib/xendit/invoice";
 import { logger } from "@/lib/logging";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
 
-const subscribeSchema = z.object({
-  planCode: z.enum(["starter", "growth", "business"]),
-  interval: z.enum(["monthly", "yearly"]).default("monthly"),
+const topupSchema = z.object({
+  packageId: z.enum(["pkg_50k", "pkg_100k", "pkg_500k"]),
+  currency: z.enum(["idr", "usd", "sgd"]).default("idr"),
 });
 
 /**
- * POST /api/billing/stripe/subscribe
- * @deprecated Use /api/billing/midtrans/subscribe instead.
- * Kept for backward compatibility — proxies to Midtrans.
+ * POST /api/billing/xendit/topup
+ *
+ * Creates a Xendit Invoice for a token top-up.
+ * Returns an invoice URL for the hosted checkout page.
+ *
+ * Multi-currency: IDR (Indonesian), USD (International), SGD (Singapore).
  */
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const ctx = await getAppContext();
@@ -24,7 +27,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   const body = await req.json().catch(() => null);
-  const parsed = subscribeSchema.safeParse(body);
+  const parsed = topupSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "bad_request", issues: parsed.error.flatten() },
@@ -32,21 +35,21 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     );
   }
 
-  const { planCode, interval } = parsed.data;
+  const { packageId, currency } = parsed.data;
   const wsSlug = ctx.currentWorkspace.slug;
 
-  const result = await createSubscriptionSnap({
+  const result = await createXenditTokenTopupInvoice({
     workspaceId: ctx.currentWorkspace.id,
     workspaceSlug: wsSlug,
-    planCode,
-    interval,
+    packageId,
+    currency,
     customerEmail: ctx.user.email ?? "",
     customerName:
       ctx.profile?.full_name ?? ctx.user.email?.split("@")[0] ?? "Customer",
   });
 
   if (!result.ok) {
-    logger.warn("[subscribe-compat] Failed", {
+    logger.warn("[xendit-topup] Failed", {
       code: result.code,
       workspace: ctx.currentWorkspace.id,
     });
@@ -57,9 +60,8 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   return NextResponse.json({
-    token: result.token,
-    redirectUrl: result.redirectUrl,
-    url: result.redirectUrl,
+    invoiceId: result.invoiceId,
+    invoiceUrl: result.invoiceUrl,
     orderId: result.orderId,
   });
 });

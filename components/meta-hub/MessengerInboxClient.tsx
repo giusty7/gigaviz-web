@@ -3,6 +3,7 @@ import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useWorkspace } from '@/lib/hooks/use-workspace';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,7 @@ interface MessengerMessage {
 
 export function MessengerInboxClient() {
   const { workspace } = useWorkspace();
+  const t = useTranslations('metaHubUI.messengerInbox');
   const [threads, setThreads] = useState<MessengerThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<MessengerThread | null>(null);
   const [messages, setMessages] = useState<MessengerMessage[]>([]);
@@ -138,7 +140,7 @@ export function MessengerInboxClient() {
       await loadThreads();
     } catch (error) {
       logger.error('Error sending message:', error);
-      alert('Failed to send message');
+      alert(t('sendFailed'));
     }
   }
 
@@ -171,7 +173,7 @@ export function MessengerInboxClient() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search conversations..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -186,10 +188,10 @@ export function MessengerInboxClient() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Conversations</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value="all">{t('filterAll')}</SelectItem>
+              <SelectItem value="open">{t('filterOpen')}</SelectItem>
+              <SelectItem value="pending">{t('filterPending')}</SelectItem>
+              <SelectItem value="closed">{t('filterClosed')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -198,11 +200,11 @@ export function MessengerInboxClient() {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-muted-foreground">
-              Loading...
+              {t('loading')}
             </div>
           ) : threads.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
-              No conversations found
+              {t('emptyState')}
             </div>
           ) : (
             threads.map((thread) => (
@@ -223,7 +225,7 @@ export function MessengerInboxClient() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium truncate">
-                        {thread.participant_name || 'Unknown User'}
+                        {thread.participant_name || t('unknownUser')}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {new Date(thread.last_message_at).toLocaleTimeString([], {
@@ -241,7 +243,7 @@ export function MessengerInboxClient() {
                       </Badge>
                       {thread.unread_count > 0 && (
                         <Badge variant="default" className="text-xs">
-                          {thread.unread_count} new
+                          {t('newBadge', { count: thread.unread_count })}
                         </Badge>
                       )}
                     </div>
@@ -267,10 +269,10 @@ export function MessengerInboxClient() {
               </Avatar>
               <div>
                 <h3 className="font-medium">
-                  {selectedThread.participant_name || 'Unknown User'}
+                  {selectedThread.participant_name || t('unknownUser')}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Facebook Messenger
+                  {t('channelLabel')}
                 </p>
               </div>
             </div>
@@ -285,9 +287,9 @@ export function MessengerInboxClient() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  <SelectItem value="open">{t('filterOpen')}</SelectItem>
+                  <SelectItem value="pending">{t('filterPending')}</SelectItem>
+                  <SelectItem value="closed">{t('filterClosed')}</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="ghost" size="icon">
@@ -315,7 +317,7 @@ export function MessengerInboxClient() {
                   {message.media_url && (
                     <Image
                       src={message.media_url}
-                      alt="Media"
+                      alt={t('mediaAlt')}
                       width={400}
                       height={300}
                       className="rounded mb-2 max-w-full h-auto"
@@ -360,7 +362,7 @@ export function MessengerInboxClient() {
               <Textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={t('messagePlaceholder')}
                 className="resize-none"
                 rows={2}
                 onKeyDown={(e) => {
@@ -378,7 +380,7 @@ export function MessengerInboxClient() {
         </div>
       ) : (
         <div className="flex-1 border rounded-lg bg-card flex items-center justify-center text-muted-foreground">
-          Select a conversation to start messaging
+          {t('selectConversation')}
         </div>
       )}
     </div>

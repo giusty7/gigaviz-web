@@ -356,7 +356,7 @@
     "faq1Q": "Apakah benar ada paket gratis?",
     "faq1A": "Ya! Paket Gratis memberi Anda akses penuh untuk menjelajahi platform dengan 100 pesan WA dan 5.000 token AI per bulan. Tanpa kartu kredit. Upgrade kapan saja Anda siap.",
     "faq2Q": "Metode pembayaran apa saja yang diterima?",
-    "faq2A": "Kami menerima Visa, Mastercard, dan kartu utama lainnya via Stripe. Transfer bank dan e-wallet (GoPay, OVO, DANA) tersedia untuk pelanggan Indonesia.",
+    "faq2A": "Kami menerima Visa, Mastercard, dan kartu utama lainnya via Xendit dan Midtrans. Transfer bank dan e-wallet (GoPay, OVO, DANA, ShopeePay) tersedia untuk pelanggan Indonesia.",
     "faq3Q": "Bisakah saya mengubah paket nanti?",
     "faq3A": "Tentu saja. Upgrade atau downgrade kapan saja dari dashboard billing Anda. Perubahan berlaku pada siklus tagihan berikutnya, dengan penyesuaian prorata.",
     "faq4Q": "Apa itu token dan bagaimana cara kerjanya?",
@@ -1318,8 +1318,10 @@
     "tabs": {
       "profile": "Profil",
       "security": "Keamanan",
+      "notifications": "Notifikasi",
       "members": "Anggota",
-      "billing": "Billing"
+      "billing": "Billing",
+      "apiKeys": "Kunci API"
     },
     "navBillingDetails": "Detail Billing",
     "navTokenUsage": "Penggunaan Token",
@@ -1397,6 +1399,31 @@
       "colStatus": "Status",
       "historyItemDescription": "Imperium Founder - Bulanan",
       "statusPaid": "Lunas"
+    },
+    "notificationsTab": {
+      "emailTitle": "Notifikasi Email",
+      "emailDescription": "Pilih email mana yang ingin Anda terima",
+      "securityAlerts": "Peringatan Keamanan",
+      "securityAlertsDescription": "Upaya login, perubahan kata sandi, dan aktivitas mencurigakan",
+      "inboxMessages": "Pesan Inbox",
+      "inboxMessagesDescription": "Pesan baru dan penugasan thread di inbox Anda",
+      "billingAlerts": "Peringatan Billing & Token",
+      "billingAlertsDescription": "Konfirmasi pembayaran, peringatan penggunaan token, dan batas cap",
+      "weeklyDigest": "Ringkasan Mingguan",
+      "weeklyDigestDescription": "Ringkasan aktivitas workspace dikirim setiap Senin",
+      "inAppTitle": "Notifikasi Dalam Aplikasi",
+      "inAppDescription": "Atur bagaimana notifikasi muncul di dalam aplikasi",
+      "inAppInfo": "Notifikasi dalam aplikasi selalu aktif untuk peringatan kritis (keamanan, billing). Anda dapat mengelola preferensi ikon lonceng notifikasi dari panel notifikasi.",
+      "savePreferences": "Simpan Preferensi"
+    },
+    "apiKeysTab": {
+      "title": "Kunci API",
+      "description": "Kelola kunci API workspace untuk integrasi eksternal",
+      "workspaceIdLabel": "ID Workspace",
+      "copyTooltip": "Salin ke clipboard",
+      "emptyState": "Belum ada kunci API yang dibuat. Kunci API memungkinkan layanan eksternal berinteraksi dengan workspace Anda secara programatis.",
+      "createButton": "Buat Kunci API",
+      "comingSoonNote": "Manajemen kunci API segera hadir. Anda akan dapat membuat, merotasi, dan mencabut kunci dengan izin granular untuk setiap integrasi workspace."
     }
   },
   "upgrade": {
@@ -1678,7 +1705,19 @@
     "featureLabel_meta_connect": "Meta connect",
     "featureLabel_meta_send": "Kirim pesan Meta",
     "featureLabel_meta_templates": "Template Meta",
-    "featureLabel_meta_webhooks": "Webhook Meta"
+    "featureLabel_meta_webhooks": "Webhook Meta",
+    "xenditPayment": "Pembayaran Internasional",
+    "xenditPaymentDesc": "Bayar dengan kartu kredit atau metode pembayaran internasional via Xendit.",
+    "payWithXendit": "Bayar dengan Xendit",
+    "xenditCheckout": "Xendit Checkout",
+    "xenditRedirecting": "Mengalihkan ke Xendit...",
+    "selectCurrency": "Pilih Mata Uang",
+    "currencyUsd": "USD — Dolar AS",
+    "currencySgd": "SGD — Dolar Singapura",
+    "currencyIdr": "IDR — Rupiah Indonesia",
+    "internationalPayment": "Pembayaran Internasional",
+    "localPayment": "Pembayaran Lokal (Indonesia)",
+    "orPayLocally": "atau bayar lokal dengan transfer bank / e-wallet"
   },
   "marketplace": {
     "title": "Marketplace",
@@ -4197,6 +4236,66 @@
     "disabledModule": {
       "defaultCta": "Beritahu saya",
       "defaultDescription": "Modul ini belum tersedia untuk workspace Anda."
+    },
+    "igInbox": {
+      "searchPlaceholder": "Cari percakapan...",
+      "filterAll": "Semua Percakapan",
+      "filterOpen": "Terbuka",
+      "filterPending": "Tertunda",
+      "filterClosed": "Ditutup",
+      "loading": "Memuat...",
+      "emptyState": "Tidak ada percakapan ditemukan",
+      "unknownUser": "Tidak Dikenal",
+      "newBadge": "{count} baru",
+      "channelLabel": "Instagram Direct",
+      "mediaAlt": "Media",
+      "messagePlaceholder": "Ketik pesan...",
+      "selectConversation": "Pilih percakapan untuk mulai mengirim pesan",
+      "sendFailed": "Gagal mengirim pesan"
+    },
+    "messengerInbox": {
+      "searchPlaceholder": "Cari percakapan...",
+      "filterAll": "Semua Percakapan",
+      "filterOpen": "Terbuka",
+      "filterPending": "Tertunda",
+      "filterClosed": "Ditutup",
+      "loading": "Memuat...",
+      "emptyState": "Tidak ada percakapan ditemukan",
+      "unknownUser": "Pengguna Tidak Dikenal",
+      "newBadge": "{count} baru",
+      "channelLabel": "Facebook Messenger",
+      "mediaAlt": "Media",
+      "messagePlaceholder": "Ketik pesan...",
+      "selectConversation": "Pilih percakapan untuk mulai mengirim pesan",
+      "sendFailed": "Gagal mengirim pesan"
+    },
+    "ads": {
+      "title": "Meta Ads Manager",
+      "description": "Pantau dan analisis kampanye iklan Meta Anda",
+      "syncing": "Menyinkronkan...",
+      "syncButton": "Sinkron dari Meta",
+      "syncComplete": "Sinkronisasi Selesai",
+      "syncCompleteDesc": "Menyinkronkan {count} kampanye",
+      "syncFailed": "Sinkronisasi Gagal",
+      "syncFailedDesc": "Gagal menyinkronkan dengan Meta",
+      "dateToday": "Hari Ini",
+      "dateYesterday": "Kemarin",
+      "dateLast7": "7 Hari Terakhir",
+      "dateLast30": "30 Hari Terakhir",
+      "dateThisMonth": "Bulan Ini",
+      "dateLastMonth": "Bulan Lalu",
+      "totalSpend": "Total Pengeluaran",
+      "impressions": "Tayangan",
+      "clicks": "Klik",
+      "conversions": "Konversi",
+      "campaignPerformance": "Performa Kampanye",
+      "loadingCampaigns": "Memuat kampanye...",
+      "emptyState": "Tidak ada kampanye ditemukan. Hubungkan Akun Iklan Meta Anda untuk mulai melacak.",
+      "colCampaign": "Kampanye",
+      "colStatus": "Status",
+      "colCTR": "CTR",
+      "colSpend": "Pengeluaran",
+      "colCPC": "CPC"
     }
   },
   "tokensUI": {

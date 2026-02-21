@@ -2,6 +2,7 @@
 import { logger } from "@/lib/logging";
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useWorkspace } from '@/lib/hooks/use-workspace';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ interface AdAccountSummary {
 export function MetaAdsManagerClient() {
   const { workspace } = useWorkspace();
   const { toast } = useToast();
+  const t = useTranslations('metaHubUI.ads');
   const [campaigns, setCampaigns] = useState<CampaignStats[]>([]);
   const [summary, setSummary] = useState<AdAccountSummary | null>(null);
   const [dateRange, setDateRange] = useState('last_7_days');
@@ -107,8 +109,8 @@ export function MetaAdsManagerClient() {
       }
 
       toast({
-        title: 'Sync Complete',
-        description: data.message || `Synced ${data.campaigns_count} campaigns`,
+        title: t('syncComplete'),
+        description: data.message || t('syncCompleteDesc', { count: data.campaigns_count }),
       });
 
       // Reload data after sync
@@ -116,8 +118,8 @@ export function MetaAdsManagerClient() {
     } catch (error) {
       logger.error('Error syncing ads data:', error);
       toast({
-        title: 'Sync Failed',
-        description: error instanceof Error ? error.message : 'Failed to sync with Meta',
+        title: t('syncFailed'),
+        description: error instanceof Error ? error.message : t('syncFailedDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -130,7 +132,7 @@ export function MetaAdsManagerClient() {
   };
 
   const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(num);
+    return new Intl.NumberFormat().format(num);
   };
 
   const formatPercentage = (num: number) => {
@@ -142,9 +144,9 @@ export function MetaAdsManagerClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Meta Ads Manager</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground mt-2">
-            Monitor and analyze your Meta advertising campaigns
+            {t('description')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -155,7 +157,7 @@ export function MetaAdsManagerClient() {
             className="gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Syncing...' : 'Sync from Meta'}
+            {syncing ? t('syncing') : t('syncButton')}
           </Button>
           <Select value={dateRange} onValueChange={setDateRange}>
             <SelectTrigger className="w-40">
@@ -163,12 +165,12 @@ export function MetaAdsManagerClient() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="yesterday">Yesterday</SelectItem>
-              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-              <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-              <SelectItem value="this_month">This Month</SelectItem>
-              <SelectItem value="last_month">Last Month</SelectItem>
+              <SelectItem value="today">{t('dateToday')}</SelectItem>
+              <SelectItem value="yesterday">{t('dateYesterday')}</SelectItem>
+              <SelectItem value="last_7_days">{t('dateLast7')}</SelectItem>
+              <SelectItem value="last_30_days">{t('dateLast30')}</SelectItem>
+              <SelectItem value="this_month">{t('dateThisMonth')}</SelectItem>
+              <SelectItem value="last_month">{t('dateLastMonth')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -179,7 +181,7 @@ export function MetaAdsManagerClient() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('totalSpend')}</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -191,7 +193,7 @@ export function MetaAdsManagerClient() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Impressions</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('impressions')}</CardTitle>
               <Eye className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -203,7 +205,7 @@ export function MetaAdsManagerClient() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clicks</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('clicks')}</CardTitle>
               <MousePointer className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -218,7 +220,7 @@ export function MetaAdsManagerClient() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('conversions')}</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -236,29 +238,29 @@ export function MetaAdsManagerClient() {
       {/* Campaigns Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Campaign Performance</CardTitle>
+          <CardTitle>{t('campaignPerformance')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
-              Loading campaigns...
+              {t('loadingCampaigns')}
             </div>
           ) : campaigns.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No campaigns found. Connect your Meta Ad Account to start tracking.
+              {t('emptyState')}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Campaign</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Impressions</TableHead>
-                  <TableHead className="text-right">Clicks</TableHead>
-                  <TableHead className="text-right">CTR</TableHead>
-                  <TableHead className="text-right">Spend</TableHead>
-                  <TableHead className="text-right">CPC</TableHead>
-                  <TableHead className="text-right">Conversions</TableHead>
+                  <TableHead>{t('colCampaign')}</TableHead>
+                  <TableHead>{t('colStatus')}</TableHead>
+                  <TableHead className="text-right">{t('impressions')}</TableHead>
+                  <TableHead className="text-right">{t('clicks')}</TableHead>
+                  <TableHead className="text-right">{t('colCTR')}</TableHead>
+                  <TableHead className="text-right">{t('colSpend')}</TableHead>
+                  <TableHead className="text-right">{t('colCPC')}</TableHead>
+                  <TableHead className="text-right">{t('conversions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

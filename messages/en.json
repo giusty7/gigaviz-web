@@ -356,7 +356,7 @@
     "faq1Q": "Is there really a free plan?",
     "faq1A": "Yes! The Free plan gives you full access to explore the platform with 100 WA messages and 5.000 AI tokens per month. No credit card required. Upgrade whenever you're ready.",
     "faq2Q": "What payment methods do you accept?",
-    "faq2A": "We accept Visa, Mastercard, and other major cards via Stripe. Bank transfer and digital wallets (GoPay, OVO, DANA) are available for Indonesian customers.",
+    "faq2A": "We accept Visa, Mastercard, and other major cards via Xendit and Midtrans. Bank transfer and digital wallets (GoPay, OVO, DANA, ShopeePay) are available for Indonesian customers.",
     "faq3Q": "Can I change my plan later?",
     "faq3A": "Absolutely. Upgrade or downgrade anytime from your billing dashboard. Changes take effect on your next billing cycle, with prorated adjustments.",
     "faq4Q": "What are tokens and how do they work?",
@@ -1318,8 +1318,10 @@
     "tabs": {
       "profile": "Profile",
       "security": "Security",
+      "notifications": "Notifications",
       "members": "Members",
-      "billing": "Billing"
+      "billing": "Billing",
+      "apiKeys": "API Keys"
     },
     "navBillingDetails": "Billing Details",
     "navTokenUsage": "Token Usage",
@@ -1397,6 +1399,31 @@
       "colStatus": "Status",
       "historyItemDescription": "Imperium Founder - Monthly",
       "statusPaid": "Paid"
+    },
+    "notificationsTab": {
+      "emailTitle": "Email Notifications",
+      "emailDescription": "Choose which emails you want to receive",
+      "securityAlerts": "Security Alerts",
+      "securityAlertsDescription": "Login attempts, password changes, and suspicious activity",
+      "inboxMessages": "Inbox Messages",
+      "inboxMessagesDescription": "New messages and thread assignments in your inbox",
+      "billingAlerts": "Billing & Token Alerts",
+      "billingAlertsDescription": "Payment confirmations, token usage warnings, and cap alerts",
+      "weeklyDigest": "Weekly Digest",
+      "weeklyDigestDescription": "Summary of workspace activity sent every Monday",
+      "inAppTitle": "In-App Notifications",
+      "inAppDescription": "Configure how notifications appear within the app",
+      "inAppInfo": "In-app notifications are always enabled for critical alerts (security, billing). You can manage the notification bell icon preferences from the notification panel.",
+      "savePreferences": "Save Preferences"
+    },
+    "apiKeysTab": {
+      "title": "API Keys",
+      "description": "Manage workspace API keys for external integrations",
+      "workspaceIdLabel": "Workspace ID",
+      "copyTooltip": "Copy to clipboard",
+      "emptyState": "No API keys have been created yet. API keys allow external services to interact with your workspace programmatically.",
+      "createButton": "Create API Key",
+      "comingSoonNote": "API key management is coming soon. You'll be able to create, rotate, and revoke keys with fine-grained permissions for each workspace integration."
     }
   },
   "upgrade": {
@@ -1678,7 +1705,19 @@
     "featureLabel_meta_connect": "Meta connect",
     "featureLabel_meta_send": "Send Meta messages",
     "featureLabel_meta_templates": "Meta templates",
-    "featureLabel_meta_webhooks": "Meta webhooks"
+    "featureLabel_meta_webhooks": "Meta webhooks",
+    "xenditPayment": "International Payment",
+    "xenditPaymentDesc": "Pay with credit card or international payment methods via Xendit.",
+    "payWithXendit": "Pay with Xendit",
+    "xenditCheckout": "Xendit Checkout",
+    "xenditRedirecting": "Redirecting to Xendit...",
+    "selectCurrency": "Select Currency",
+    "currencyUsd": "USD — US Dollar",
+    "currencySgd": "SGD — Singapore Dollar",
+    "currencyIdr": "IDR — Indonesian Rupiah",
+    "internationalPayment": "International Payment",
+    "localPayment": "Local Payment (Indonesia)",
+    "orPayLocally": "or pay locally with bank transfer / e-wallet"
   },
   "marketplace": {
     "title": "Marketplace",
@@ -4197,6 +4236,66 @@
     "disabledModule": {
       "defaultCta": "Notify me",
       "defaultDescription": "This module is not yet available for your workspace."
+    },
+    "igInbox": {
+      "searchPlaceholder": "Search conversations...",
+      "filterAll": "All Conversations",
+      "filterOpen": "Open",
+      "filterPending": "Pending",
+      "filterClosed": "Closed",
+      "loading": "Loading...",
+      "emptyState": "No conversations found",
+      "unknownUser": "Unknown",
+      "newBadge": "{count} new",
+      "channelLabel": "Instagram Direct",
+      "mediaAlt": "Media",
+      "messagePlaceholder": "Type a message...",
+      "selectConversation": "Select a conversation to start messaging",
+      "sendFailed": "Failed to send message"
+    },
+    "messengerInbox": {
+      "searchPlaceholder": "Search conversations...",
+      "filterAll": "All Conversations",
+      "filterOpen": "Open",
+      "filterPending": "Pending",
+      "filterClosed": "Closed",
+      "loading": "Loading...",
+      "emptyState": "No conversations found",
+      "unknownUser": "Unknown User",
+      "newBadge": "{count} new",
+      "channelLabel": "Facebook Messenger",
+      "mediaAlt": "Media",
+      "messagePlaceholder": "Type a message...",
+      "selectConversation": "Select a conversation to start messaging",
+      "sendFailed": "Failed to send message"
+    },
+    "ads": {
+      "title": "Meta Ads Manager",
+      "description": "Monitor and analyze your Meta advertising campaigns",
+      "syncing": "Syncing...",
+      "syncButton": "Sync from Meta",
+      "syncComplete": "Sync Complete",
+      "syncCompleteDesc": "Synced {count} campaigns",
+      "syncFailed": "Sync Failed",
+      "syncFailedDesc": "Failed to sync with Meta",
+      "dateToday": "Today",
+      "dateYesterday": "Yesterday",
+      "dateLast7": "Last 7 Days",
+      "dateLast30": "Last 30 Days",
+      "dateThisMonth": "This Month",
+      "dateLastMonth": "Last Month",
+      "totalSpend": "Total Spend",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "conversions": "Conversions",
+      "campaignPerformance": "Campaign Performance",
+      "loadingCampaigns": "Loading campaigns...",
+      "emptyState": "No campaigns found. Connect your Meta Ad Account to start tracking.",
+      "colCampaign": "Campaign",
+      "colStatus": "Status",
+      "colCTR": "CTR",
+      "colSpend": "Spend",
+      "colCPC": "CPC"
     }
   },
   "tokensUI": {

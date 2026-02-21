@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -15,7 +14,7 @@ type PageData = {
   slug: string;
   bio: string | null;
   avatar_url: string | null;
-  theme: any;
+  theme: Record<string, string> | null;
 };
 
 type ItemData = {
@@ -25,7 +24,7 @@ type ItemData = {
   link_type: string;
   icon: string | null;
   thumbnail_url: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   sort_order: number;
   visible: boolean;
 };

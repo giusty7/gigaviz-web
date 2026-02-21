@@ -45,7 +45,7 @@ export const modulesCatalog: ModuleCatalogItem[] = [
     name: "Gigaviz Platform",
     short: "Core OS: account, workspace, billing, payments, roles, audit logs.",
     description:
-      "Control center for authentication, workspace structure, roles, billing, payments (Stripe & Midtrans), and audit trails.",
+      "Control center for authentication, workspace structure, roles, billing, payments (Xendit & Midtrans), and audit trails.",
     status: "available",
     icon: "platform",
     categories: ["Core", "Security", "Billing", "Payments"],

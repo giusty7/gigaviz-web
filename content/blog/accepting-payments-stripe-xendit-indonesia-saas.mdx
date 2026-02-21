@@ -1,101 +1,90 @@
 ---
-title: "Accepting Payments in Indonesia: Stripe, Manual Transfer, and the Dual Checkout Pattern"
-description: "How Gigaviz built a dual payment system for Indonesian SaaS — Stripe for international card payments and manual bank transfer for local businesses. A practical guide to handling both flows in one UI."
+title: "Accepting Payments in Indonesia: Midtrans, Xendit, and the Dual Gateway Pattern"
+description: "How Gigaviz built a dual payment gateway for Indonesian SaaS — Midtrans for local IDR payments and Xendit for international multi-currency checkout. A practical guide to handling both flows in one platform."
 date: "2026-02-11"
-tags: ["Payments", "Stripe", "Indonesia", "SaaS", "Billing", "Fintech", "E-commerce"]
+tags: ["Payments", "Xendit", "Midtrans", "Indonesia", "SaaS", "Billing", "Fintech"]
 published: true
 ---
 
-# Accepting Payments in Indonesia: Stripe, Manual Transfer, and the Dual Checkout Pattern
+# Accepting Payments in Indonesia: Midtrans, Xendit, and the Dual Gateway Pattern
 
-Indonesia is WhatsApp's second-largest market. If you're building a SaaS platform for Indonesian businesses, you'll quickly discover a truth that Silicon Valley ignores: not everyone pays by credit card.
+Indonesia is WhatsApp's second-largest market. If you're building a SaaS platform for Indonesian businesses, you'll quickly discover a truth that Silicon Valley ignores: not everyone pays by credit card — and Stripe doesn't even support Indonesian merchant accounts.
 
-At Gigaviz, we solved this with what we call the **dual checkout pattern** — two payment methods in one interface, each optimized for its audience.
+At Gigaviz, we solved this with what we call the **dual gateway pattern** — two Indonesia-native payment providers in one platform, each optimized for its audience.
 
 ## The Indonesian payment reality
 
-Indonesia has over 270 million people, but credit card penetration is under 5%. Most B2B transactions happen via bank transfer (BCA, Mandiri, BRI, BNI). Mobile wallets like GoPay, OVO, and Dana are growing fast but aren't standard for SaaS subscriptions yet.
+Indonesia has over 270 million people, but credit card penetration is under 5%. Most B2B transactions happen via bank transfer (BCA, Mandiri, BRI, BNI). Mobile wallets like GoPay, OVO, and Dana are growing fast. QRIS is becoming the universal QR standard.
 
-Meanwhile, international customers expect Stripe. They want to enter a card number, click pay, and be done.
+Meanwhile, international customers in Singapore and Malaysia expect card payments with their local currency. They want to pay in USD or SGD, not IDR.
 
 You can't choose one over the other. You need both.
 
-## The dual checkout pattern
+## The dual gateway pattern
 
-Every token package in Gigaviz shows two payment buttons:
+Gigaviz uses two Indonesia-based payment gateways, each serving a different purpose:
 
-**Pay with Card** — Opens Stripe Checkout. Credit card, debit card, or any Stripe-supported method. Tokens are credited automatically when payment completes.
+**Midtrans (Local IDR)** — Snap popup checkout for domestic Indonesian customers. Supports credit cards, bank transfer/VA (BCA, BNI, BRI, Mandiri, Permata), e-wallets (GoPay, ShopeePay, DANA, OVO, LinkAja), QRIS, and convenience stores (Alfamart, Indomaret). All in IDR.
 
-**Manual / Transfer** — Creates a pending top-up request. Customer transfers via bank, then marks the payment as completed. Admin verifies and activates the tokens.
+**Xendit (International Multi-Currency)** — Invoice-based hosted checkout for international customers. Supports IDR, USD, and SGD. Credit/debit cards (Visa, Mastercard, Amex, JCB), bank transfer, e-wallets, QRIS, and retail outlets.
 
 Both flows end at the same place: tokens in the workspace wallet, transaction in the ledger, audit trail complete.
 
-## How we built the Stripe integration
+## How we built the Midtrans integration
 
-### Server-side session creation
+### Snap popup checkout
 
-When a user clicks "Pay with Card", the client sends a request to our checkout endpoint. The server:
+When a user selects IDR local payment, the client sends a request to our Midtrans checkout endpoint. The server:
 
-1. Validates the request (workspace ID, token amount, price)
-2. Creates a Stripe Checkout Session with the correct line items
-3. Records a payment record in our database (status: pending)
-4. Returns the Stripe Checkout URL
+1. Validates the request (workspace ID, token amount, price) with Zod schemas
+2. Creates a payment intent in our database (status: pending, provider: midtrans)
+3. Calls Midtrans Snap API to create a transaction token
+4. Returns the Snap token and redirect URL
 
-The client then redirects to Stripe's hosted checkout page. We never handle raw card data.
+The client opens the Midtrans Snap popup — a familiar interface for Indonesian users with all local payment methods.
 
 ### Webhook processing
 
-When payment completes, Stripe sends a `checkout.session.completed` webhook to our webhook handler. We:
+When payment settles, Midtrans sends a notification to our webhook handler. We:
 
-1. Verify the webhook signature (reject tampering)
-2. Look up the payment record by Stripe session ID
+1. Verify the SHA-512 signature (reject tampering)
+2. Server-to-server verify status with Midtrans Core API
 3. Credit tokens to the workspace wallet
-4. Update the payment status to "completed"
+4. Update the payment status to "paid"
 5. Record the transaction in the token ledger
 
-This happens asynchronously — even if the user closes their browser after paying, the webhook ensures tokens are credited.
+This happens asynchronously — even if the user closes their browser, the webhook ensures tokens are credited.
 
-### Feature flag
+## How we built the Xendit integration
 
-Stripe payments are controlled by a single feature flag. This lets us:
+### Invoice-based checkout
 
-- Enable card payments per environment (dev, staging, production)
-- Disable card payments instantly if there's a Stripe incident
-- Roll out card payments gradually to specific regions
+For international customers, we use Xendit's Invoice API. When a user selects USD or SGD:
 
-When disabled, only the manual transfer button appears. Zero UI changes needed.
+1. Server creates a Xendit Invoice with the correct currency and amount
+2. Records a payment intent (status: pending, provider: xendit)
+3. Returns the hosted invoice URL
 
-## How the manual transfer flow works
+The client redirects to Xendit's hosted checkout page. Multi-currency pricing is built in — each plan and token package has IDR, USD, and SGD prices.
 
-For businesses that prefer bank transfers:
+### Webhook verification
 
-1. Customer selects a token package and clicks "Manual / Transfer"
-2. System creates a pending top-up request in the database
-3. Customer transfers the exact amount to our bank account
-4. Customer clicks "Mark paid" on the billing page
-5. Admin sees the pending request in the ops console
-6. Admin verifies the bank transfer and activates the tokens
+Xendit uses a simpler verification model than Midtrans: an `x-callback-token` header that must match our configured secret. We also do server-to-server verification by calling `GET /v2/invoices/{id}` to double-check the payment status.
 
-This is deliberately manual for now. Automating bank transfer verification requires integration with Indonesian payment gateways like Xendit or Midtrans — which is on our roadmap.
+## Why two gateways instead of one?
 
-## Why not just use Xendit or Midtrans?
+**Midtrans excels at local IDR payments.** The Snap popup is instantly recognizable to Indonesian users. It handles QRIS, GoPay, bank VA, and convenience store payments natively. HQ in Jakarta, support in Bahasa Indonesia.
 
-We will. But Stripe-first made sense for several reasons:
+**Xendit adds multi-currency for international markets.** Same Indonesian heritage (HQ Jakarta), but with USD, SGD, PHP, and MYR support. Perfect for customers in Singapore, Malaysia, and beyond.
 
-**Stripe is global.** Our first paying customers include agencies in Singapore and Malaysia. Stripe works in 46+ countries. Starting with Stripe means we can accept payments from Southeast Asia, Latin America, and Europe immediately.
-
-**Stripe's developer experience is unmatched.** The SDK, documentation, and webhook system are best-in-class. We integrated Stripe in under a day.
-
-**Xendit adds Indonesian coverage.** When we add Xendit (planned Q2 2026), it'll handle virtual accounts, e-wallets (GoPay, OVO, Dana), QRIS, and convenience store payments. This covers the 95% of Indonesians without credit cards.
-
-**The dual pattern scales.** Adding Xendit just means adding a third button: "Pay with Local Methods". The architecture already supports multiple payment providers — each one creates a payment intent, processes asynchronously via webhooks, and credits tokens to the same wallet.
+**The dual pattern scales.** Both gateways use the same architecture: create payment intent → call provider API → redirect user → process webhook → credit tokens. Adding a third gateway would follow the identical pattern.
 
 ## Token-based pricing: why it works for messaging SaaS
 
 We don't charge per seat or per message. We use a token economy:
 
 - Each action costs tokens (messaging, AI responses, content generation — each with its own token rate)
-- Workspaces buy token packages (Basic, Pro, Enterprise)
+- Workspaces buy token packages (50K, 100K+bonus, 500K+bonus)
 - Usage is tracked in real-time with daily breakdown charts
 - Budget guards prevent overspending (configurable monthly caps, hard caps, alert thresholds)
 
@@ -103,28 +92,28 @@ This model works because messaging volume is unpredictable. A marketing campaign
 
 ## Lessons for SaaS builders in Southeast Asia
 
-**Don't gate-keep on payment methods.** If your only checkout option is Stripe, you're invisible to 95% of Indonesian businesses. Offer bank transfer from day one.
+**Don't assume Stripe works everywhere.** Stripe doesn't support Indonesian merchant accounts. Use local gateways — Midtrans and Xendit are both excellent and Indonesia-native.
 
-**Make manual transfers first-class.** Don't hide the bank transfer option behind a "contact sales" button. Show it next to the card payment button. Make it self-service.
+**Support multi-currency from day one.** Your Indonesian customers pay in IDR. Your Singapore customers pay in SGD. Build the pricing table with multiple currencies upfront — retrofitting is painful.
 
-**Track everything in one ledger.** Whether payment comes from Stripe, bank transfer, or a future Xendit integration, it should all end up in the same token ledger with the same audit trail.
+**Track everything in one ledger.** Whether payment comes from Midtrans or Xendit, it should all end up in the same token ledger with the same audit trail.
 
-**Feature-flag your payment providers.** Payment systems break. Stripe has outages. Bank APIs go down. Being able to disable a payment method with one environment variable is worth the engineering investment.
+**Feature-flag your payment providers.** Payment systems break. Being able to disable a payment method with one environment variable (`NEXT_PUBLIC_XENDIT_ENABLED`, `NEXT_PUBLIC_MIDTRANS_ENABLED`) is worth the engineering investment.
 
-**Start with manual, automate later.** Our manual transfer flow works today. Xendit automation comes later. Don't let "we need automated payments" block you from accepting money.
+**Use the same webhook architecture.** Both our gateways follow identical patterns: verify signature → check server-to-server → update payment intent → credit tokens → send email. Same code structure, different providers.
 
 ## What's next
 
 Our payment roadmap:
 
-- **Xendit integration** for virtual accounts, e-wallets, and QRIS (Q2 2026)
-- **Recurring subscriptions** via Stripe for plan-based billing
 - **Invoice generation** with Indonesian tax compliance (Faktur Pajak)
-- **Multi-currency support** — IDR, USD, SGD, MYR pricing
+- **Recurring subscription automation** via Xendit recurring invoices
+- **Additional currencies** — MYR, PHP, THB for broader Southeast Asia coverage
+- **Revenue dashboard** in ops console (Midtrans + Xendit combined metrics)
 
-The dual checkout pattern is our foundation. Every new payment provider plugs into the same architecture: create intent, process webhook, credit tokens, log transaction.
+The dual gateway pattern is our foundation. Every new payment provider plugs into the same architecture: create intent, process webhook, credit tokens, log transaction.
 
 ---
 
-*Building a SaaS for Southeast Asia? Start with Stripe plus manual bank transfer. Your international customers get instant checkout, your local customers get a familiar flow, and you get paid from day one.*
+*Building a SaaS for Southeast Asia? Use Indonesia-native payment gateways. Midtrans for local IDR payments, Xendit for international multi-currency. Your customers get familiar payment methods, you get paid from day one, and the architecture scales to any new provider.*
 

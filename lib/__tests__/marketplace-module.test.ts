@@ -212,7 +212,7 @@ describe("License types", () => {
 describe("Purchase API validation", () => {
   const purchaseSchema = z.object({
     item_id: z.string().uuid(),
-    payment_method: z.enum(["credits", "stripe", "xendit", "midtrans"]).default("credits"),
+    payment_method: z.enum(["credits", "xendit", "midtrans"]).default("credits"),
   });
 
   it("accepts valid purchase input", () => {
@@ -234,9 +234,9 @@ describe("Purchase API validation", () => {
   it("accepts valid payment method", () => {
     const result = purchaseSchema.parse({
       item_id: "550e8400-e29b-41d4-a716-446655440000",
-      payment_method: "stripe",
+      payment_method: "xendit",
     });
-    expect(result.payment_method).toBe("stripe");
+    expect(result.payment_method).toBe("xendit");
   });
 
   it("rejects invalid payment method", () => {

@@ -147,17 +147,16 @@ export async function searchCannedResponses(
 }
 
 // Helper mapper
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapCannedResponse(row: any): CannedResponse {
+function mapCannedResponse(row: Record<string, unknown>): CannedResponse {
   return {
-    id: row.id,
-    workspaceId: row.workspace_id,
-    title: row.title,
-    content: row.content,
-    shortcut: row.shortcut,
-    category: row.category,
-    createdBy: row.created_by,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: row.id as string,
+    workspaceId: row.workspace_id as string,
+    title: row.title as string,
+    content: row.content as string,
+    shortcut: row.shortcut as string,
+    category: row.category as string,
+    createdBy: row.created_by as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
   };
 }

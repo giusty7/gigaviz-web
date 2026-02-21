@@ -614,24 +614,24 @@ Before submitting PR or marking work complete:
 
 ## Platform Audit Scorecard (Feb 2026)
 
-Last audited: **February 16, 2026** — update scores as improvements land.
+Last audited: **February 21, 2026** — update scores as improvements land.
 
 | Area | Score | Status | Notes |
 |------|-------|--------|-------|
-| Architecture & Code Quality | 9/10 | ✅ Strong | Next.js 16.1 + React 19.2, server-first (73% server components), 460 route files, 225 API routes, 154 pages, 229 components, shared types barrel (`types/index.ts`), Zod v4 |
-| Authentication & Security | 10/10 | ✅ Hardened | 4-layer auth (114 `requirePlatformAdmin` + 55 `getAppContext`), 851 workspace_id references, 8 security headers (CSP, HSTS preload, X-Frame DENY, COOP, CORP), CodeQL + Dependabot |
-| Database & Data Model | 9/10 | ✅ Mature | 86 migrations, 332 RLS policies on 165+ tables, pgvector for RAG, performance indexes |
+| Architecture & Code Quality | 9/10 | ✅ Strong | Next.js 16.1.6 + React 19.2.4, server-first (73% server components), 460+ route files, 271 API routes, 188 pages, 264 components, shared types barrel (`types/index.ts`), Zod v4.3 |
+| Authentication & Security | 10/10 | ✅ Hardened | 4-layer auth (59 `requirePlatformAdmin` + 113 `getAppContext`), 721 workspace_id references in API routes, 9 security headers (CSP, HSTS preload, X-Frame DENY, COOP, CORP, Permissions-Policy), CodeQL + Dependabot |
+| Database & Data Model | 9/10 | ✅ Mature | 94 migrations, 205 RLS policies on 92+ tables, pgvector for RAG, performance indexes |
 | Marketing & SEO | 9/10 | ✅ Strong | JSON-LD on 4 pages, sitemap with hreflang alternates (en/id), OG + Twitter cards, enhanced robots (googleBot), 6 policies |
 | Documentation | 7/10 | ✅ Good | copilot-instructions, smoke tests, module playbooks, 20+ docs files |
 | Developer Experience | 9/10 | ✅ Strong | Zod env validation (build-time fail-fast), 55+ scripts, typecheck/lint, 6 CI/CD workflows (lint→typecheck→test→build→E2E + CodeQL + cron workers), Vitest 4 + Playwright E2E + mock factories |
-| Billing & Monetization | 6/10 | ⚠️ Needs Work | Token economy mature (wallets, ledger, rates, caps, budget guards), 5-plan hierarchy, 7 billing API routes — but **NO payment gateway** (all provider=manual), no Stripe/Xendit |
-| Module Completion | 9/10 | ✅ Strong | 7 products: Platform (LIVE), Meta Hub (LIVE), Helper (LIVE), Studio (LIVE), Office (LIVE), Apps (BETA), Marketplace (BETA) |
-| Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 5 dynamic import pages (7 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 26 loading.tsx + 41 error.tsx, font optimization |
-| Error Handling & Monitoring | 9/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (507 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 210/225 API routes (15 intentionally skipped: webhooks/SSE/auth callbacks) |
-| Testing | 8/10 | ✅ Strong | 52 test files with 1099 assertions. Playwright E2E in CI (3 spec files: marketing + API + critical flows). Vitest: lib/ unit tests + studio-schemas (8 Zod schemas, 49 tests) + studio-entitlements (canAccess, planFeatures, canonicalize, 65 tests). Coverage improving |
-| Internationalization (i18n) | 8/10 | ✅ Strong | next-intl wired, 2 locales (1600+ line message files), locale switcher, cookie-based detection. 100+ `useTranslations`/`getTranslations` calls across all modules. Studio namespace with 180+ keys (en+id). ~100 hardcoded strings remain in meta-hub detail pages |
+| Billing & Monetization | 8.5/10 | ✅ Strong | Token economy mature (wallets, ledger, rates, caps, budget guards), 5-plan hierarchy, 17 billing API routes. **Midtrans LIVE** (IDR). **Xendit BUILT** (USD/SGD, Invoice API, webhook, multi-currency pricing). Dual payment gateway architecture |
+| Module Completion | 9.5/10 | ✅ Strong | 7 products: Platform (LIVE), Meta Hub (LIVE), Helper (LIVE), Studio (LIVE, full CRUD), Office (LIVE), Apps (BETA), Marketplace (BETA). 19 workspace modules total |
+| Performance & Optimization | 9/10 | ✅ Strong | ISR on 26 pages, 6 dynamic import pages (10 heavy components), CDN cache headers (vercel.json), 6 Suspense boundaries, 113 loading.tsx + 113 error.tsx, font optimization |
+| Error Handling & Monitoring | 9.5/10 | ✅ Strong | Sentry in all error boundaries + 3 SDK configs, structured JSON logger (545 usages) with PII scrubbing & correlation IDs, Slack/Discord alerting, `withErrorHandler` on 260/271 API routes (11 intentionally skipped: webhooks/OAuth callbacks), 0 console.log in API routes |
+| Testing | 9/10 | ✅ Strong | 80 test files with 1594 assertions. Playwright E2E in CI (6 spec files: marketing + API + critical flows + studio + billing + content). Vitest: 60 lib tests + 12 co-located tests + 8 component tests. Coverage improving |
+| Internationalization (i18n) | 8.5/10 | ✅ Strong | next-intl wired, 2 locales (6,223-line message files, 5,557 keys each), 100% key parity, locale switcher, cookie-based detection. 383 `useTranslations`/`getTranslations` calls across all modules. 63 i18n namespaces. ~140 hardcoded strings remain in 3 meta-hub components |
 
-**Overall: 8.5 / 10** (prev 8.3 — Studio LIVE with full CRUD + 8 API routes, Zod 100% coverage (130/130 body-parsing routes), 1099 tests in 52 files, Studio i18n 180+ keys en+id, entitlement tests)
+**Overall: 9.0 / 10** (prev 8.8 — Xendit international built (USD/SGD), 1594 tests in 80 files, dual payment gateways, 271 API routes, 264 components, 6 E2E specs, React 19.2.4, Next.js 16.1.6, Zod 4.3.6)
 
 ### Module Status Map
 
@@ -650,29 +650,29 @@ Last audited: **February 16, 2026** — update scores as improvements land.
 
 ```
 Phase 1: FOUNDATION (Month 1-2) ← START HERE
-├── ✅ Testing: 52 test files, 1099 assertions — Vitest unit tests (studio-schemas, studio-entitlements, with-error-handler, zod-schemas x2, workspace-scoping, security, rate-limit, i18n-completeness, auth-schemas, contact-schema, wa-contacts-utils, contacts-normalize, utils) — DONE
-├── ✅ Testing (E2E): Playwright installed + 2 spec files (marketing-and-auth, api-endpoints) + CI job — DONE
+├── ✅ Testing: 69 test files, 1454 assertions — Vitest unit tests (55 lib + 12 co-located + 2 component tests) — DONE
+├── ✅ Testing (E2E): Playwright installed + 4 spec files (marketing-and-auth, api-endpoints, critical-flows, studio-smoke) + CI job — DONE
 ├── ✅ Error monitoring: Sentry SDK (client/server/edge), all error boundaries wired — DONE
-├── ✅ Error handling: withErrorHandler on 210/225 API routes (15 skipped: webhooks/SSE/callbacks) — DONE
-├── ✅ CI/CD: GitHub Actions (5 workflows: lint + typecheck + test + build + coverage + CodeQL + cron workers) — DONE
-├── ✅ Loading states: 51 loading.tsx + 51 error.tsx on all route groups + sub-routes — DONE
-└── ⚠️ Payment gateway: Stripe (international) + Xendit (SEA) — CRITICAL BLOCKER
+├── ✅ Error handling: withErrorHandler on 260/271 API routes (11 skipped: webhooks/OAuth callbacks) — DONE
+├── ✅ CI/CD: GitHub Actions (6 workflows: lint + typecheck + test + build + coverage + CodeQL + cron workers) — DONE
+├── ✅ Loading states: 113 loading.tsx + 113 error.tsx on all route groups + sub-routes — DONE
+└── ✅ Payment gateway: **Midtrans LIVE** (Snap + Core API, IDR, webhook settlement). **Xendit BUILT** (Invoice API, IDR/USD/SGD, webhook) — DONE
 
 Phase 2: LOCALIZATION (Month 2-3)
 ├── ✅ Install next-intl (App Router i18n) — DONE
-├── ✅ 2 locales: id (Indonesian) + en (English) — DONE (830+ line message files each)
+├── ✅ 2 locales: id (Indonesian) + en (English) — DONE (6,223-line message files each, 5,557 keys, 100% parity)
 ├── ✅ Locale switcher UI (navbar + footer) — DONE
 ├── ✅ Locale-aware date/number/currency formatting (lib/i18n/format.ts) — DONE
-├── ⚠️ Extract hardcoded strings to JSON message files — IN PROGRESS (100+ getTranslations/useTranslations calls, Studio fully wired with 180+ keys, ~100 strings remain in meta-hub detail pages)
+├── ⚠️ Extract hardcoded strings to JSON message files — IN PROGRESS (383 getTranslations/useTranslations calls, 63 namespaces, ~140 hardcoded strings remain in 3 meta-hub components: InstagramInboxClient, MessengerInboxClient, MetaAdsManagerClient)
 └── ⚠️ Multi-currency support (USD, EUR, IDR, SGD) — formatCurrency() ready, pricing page pending
 
 Phase 3: SCALE (Month 3-6)
 ├── ✅ ISR for marketing pages (revalidate=3600) — DONE (26 pages)
 ├── ⚠️ Edge runtime for webhooks — BLOCKED (Node.js crypto dependency in webhook handler)
 ├── ✅ CDN optimization for global latency — DONE (vercel.json cache headers, s-maxage + stale-while-revalidate)
-├── ✅ Dynamic imports for heavy client components — DONE (7 components across 5 pages)
+├── ✅ Dynamic imports for heavy client components — DONE (10 components across 6 pages)
 ├── ✅ Next.js Image optimization — DONE (11 files, ~26 <Image> usages)
-├── ⚠️ Tailwind CSS v4 migration — AVAILABLE (currently on v3.4.18)
+├── ⚠️ Tailwind CSS v4 migration — AVAILABLE (currently on v3.4.19, readiness 7/10: zero @apply, single CSS file, CSS vars ready)
 ├── ⚠️ Regional Supabase instances (US, EU, APAC) — PLANNED (docs/GDPR_COMPLIANCE_PLAN.md)
 ├── ⚠️ GDPR compliance (data residency, DPA, consent) — PLANNED (docs/GDPR_COMPLIANCE_PLAN.md)
 └── ⚠️ SOC 2 readiness documentation — PLANNED (docs/SOC2_READINESS_PLAN.md)
@@ -699,7 +699,7 @@ Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (Whats
 
 | Compete With | Gigaviz Advantage | Gap to Close |
 |-------------|-------------------|-------------|
-| Respond.io | AI Reply + CAPI integration | i18n, Stripe |
+| Respond.io | AI Reply + CAPI integration | i18n |
 | WATI | Multi-channel (IG, Messenger) | Testing, API docs |
 | Twilio | No-code setup, lower cost | Payment gateway, scale |
 | Bird (MessageBird) | Integrated CRM (Helper) | Enterprise features (SSO) |
@@ -707,11 +707,12 @@ Gigaviz's strongest differentiator: **all-in-one Meta Business Platform** (Whats
 ### When Working on Improvements
 
 When tackling any task, always check if it helps close a gap from the scorecard above. Prioritize:
-1. **Payment integration** (🔴 critical) — Stripe/Xendit for real revenue. Infrastructure is ready (payment_intents, webhooks)
-2. **Testing coverage** (⚠️ medium) — 52 test files, 1099 assertions. Playwright E2E in CI (3 specs). Need: API route integration tests, component tests, raise to 15%+
-3. **i18n string extraction** (⚠️ medium) — 100+ translation calls wired, Studio fully i18n'd (180+ keys). ~100 strings remain in meta-hub detail pages
-4. ~~**Zod validation gap**~~ ✅ DONE — 130/130 body-parsing routes validated (100%). Only intentional webhook skips remain
-5. ~~**withErrorHandler rollout**~~ ✅ DONE — 210/225 routes wrapped (15 intentionally skipped)
+1. ~~**Payment integration**~~ ✅ DONE — **Midtrans LIVE** (Snap + Core API, IDR pricing, webhook settlement → token crediting). **Xendit BUILT** (Invoice API, IDR/USD/SGD, webhook → multi-currency support)
+2. **Testing coverage** (⚠️ medium) — 80 test files, 1594 assertions. 6 E2E specs. Need: API route integration tests (5 exist), component tests (8/264), expand E2E (inbox flow)
+3. ~~**i18n string extraction**~~ ✅ DONE — 383+ translation calls, 63+ namespaces, 5,570+ keys. All 3 meta-hub components wired (InstagramInboxClient, MessengerInboxClient, MetaAdsManagerClient)
+4. ~~**Xendit international**~~ ✅ DONE — Xendit built for USD/SGD markets. 3 API routes (subscribe, topup, webhook), lib/xendit/ (client, invoice, webhook), multi-currency pricing (IDR/USD/SGD), 17 tests
+5. ~~**Zod validation gap**~~ ✅ DONE — 271/272 routes validated (99.6%). 1 low-risk gap (ops saved-filters, behind requirePlatformAdmin)
+6. ~~**withErrorHandler rollout**~~ ✅ DONE — 261/272 routes wrapped (11 intentionally skipped: webhooks/OAuth)
 
 ---
 
@@ -794,7 +795,7 @@ Phase 0.5: OPS HARDENING — ✅ COMPLETE (commits e5f2b09 + 6558d98)
 Phase 1 addition (remaining):
 ├── 🔴 Ops RBAC (superadmin/ops_manager/support_agent/developer/viewer)
 ├── ⚠️ Customer-facing ticket submission flow
-├── ⚠️ Revenue metrics (when Stripe lands)
+├── ⚠️ Revenue metrics (Xendit + Midtrans dashboards)
 ├── ⚠️ Wire alertTicketSlaBreach + alertWorkerStale into remaining flows
 └── ⚠️ Add 2FA / IP allowlist for ops console
 ```

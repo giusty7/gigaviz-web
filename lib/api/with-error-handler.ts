@@ -13,6 +13,8 @@ type ApiHandler = (
 /**
  * Flexible handler input type — accepts any params shape
  * so routes with specific types like Promise<{ id: string }> work without casting.
+ * Note: `any` is intentional here — this HOF wraps 260+ route handlers with
+ * varying ctx.params shapes; variance rules prevent using a stricter type.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type HandlerInput = (req: NextRequest, ctx: any) => Promise<any>;

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion, type Variants } from "framer-motion";
 import {
   NeuralLinkHero,
@@ -15,10 +16,14 @@ import {
   SandboxSettingsCard,
 } from "./ImperiumConnectionsComponents";
 import { WhatsappConnectionForm } from "./WhatsappConnectionForm";
-import { WhatsappEmbeddedSignup } from "./WhatsappEmbeddedSignup";
 import { ObaRequestCard } from "./ObaRequestCard";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslations } from "next-intl";
+
+const WhatsappEmbeddedSignup = dynamic(
+  () => import("./WhatsappEmbeddedSignup").then((m) => m.WhatsappEmbeddedSignup),
+  { ssr: false, loading: () => <div className="flex h-24 items-center justify-center text-muted-foreground">Loading signup…</div> }
+);
 
 /* ═══════════════════════════════════════════════════════════════════════════
    HYDRATION-SAFE MOUNT CHECK

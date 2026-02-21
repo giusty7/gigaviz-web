@@ -89,17 +89,25 @@ describe("metaHub i18n namespace", () => {
     expect(id.metaHub).toHaveProperty(key);
   });
 
-  it("all metaHub values are non-empty strings in en.json", () => {
+  it("all metaHub values are non-empty strings or nested objects in en.json", () => {
     for (const [key, value] of Object.entries(en.metaHub)) {
       expect(value, `metaHub.${key} should not be empty`).toBeTruthy();
-      expect(typeof value, `metaHub.${key} should be string`).toBe("string");
+      const t = typeof value;
+      expect(
+        t === "string" || t === "object",
+        `metaHub.${key} should be string or object, got ${t}`
+      ).toBe(true);
     }
   });
 
-  it("all metaHub values are non-empty strings in id.json", () => {
+  it("all metaHub values are non-empty strings or nested objects in id.json", () => {
     for (const [key, value] of Object.entries(id.metaHub)) {
       expect(value, `metaHub.${key} should not be empty`).toBeTruthy();
-      expect(typeof value, `metaHub.${key} should be string`).toBe("string");
+      const t = typeof value;
+      expect(
+        t === "string" || t === "object",
+        `metaHub.${key} should be string or object, got ${t}`
+      ).toBe(true);
     }
   });
 

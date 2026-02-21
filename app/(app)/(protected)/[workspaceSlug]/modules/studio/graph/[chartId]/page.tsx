@@ -16,12 +16,12 @@ import {
 import { getAppContext } from "@/lib/app-context";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ChartActions } from "@/components/studio/ChartActions";
-import { ChartRenderer } from "@/components/studio/ChartRenderer";
 import { ChartExportButton } from "@/components/studio/ChartExportButton";
 import { GenerateButton } from "@/components/studio/GenerateButton";
 import { canAccess, getPlanMeta } from "@/lib/entitlements";
 import LockedScreen from "@/components/app/LockedScreen";
 import { getTranslations } from "next-intl/server";
+import { ChartRenderer } from "@/components/studio/ChartRenderer";
 
 export const dynamic = "force-dynamic";
 

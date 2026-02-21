@@ -9,7 +9,7 @@ export const roadmap: Record<RoadmapStage, RoadmapItem[]> = {
   now: [
     {
       title: "Platform + Billing + Payments",
-      description: "Workspace OS with Stripe and Midtrans payment integration.",
+      description: "Workspace OS with Xendit and Midtrans payment integration.",
     },
     {
       title: "Meta Hub — WhatsApp, IG, Messenger",

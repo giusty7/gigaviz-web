@@ -18,7 +18,7 @@ export const HUBS: HubDef[] = [
     status: "OPEN",
     flow: [
       { title: "Create workspace", desc: "Set up org, teams, and roles." },
-      { title: "Configure billing", desc: "Pick a plan, add payment method (Stripe/Midtrans)." },
+      { title: "Configure billing", desc: "Pick a plan, add payment method (Xendit/Midtrans)." },
       { title: "Invite members", desc: "Add admins, operators, and viewers." },
       { title: "Manage payments", desc: "Invoices, payment links, and subscription billing." },
       { title: "Audit & policies", desc: "Review activity logs and enforce rules." },

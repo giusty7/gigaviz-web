@@ -243,41 +243,39 @@ export async function getTicketStats() {
 }
 
 // Helper mappers
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapTicket(row: any): SupportTicket {
+function mapTicket(row: Record<string, unknown>): SupportTicket {
   return {
-    id: row.id,
-    ticketNumber: row.ticket_number,
-    workspaceId: row.workspace_id,
-    workspaceSlug: row.workspace_slug,
-    userId: row.user_id,
-    userEmail: row.user_email,
-    subject: row.subject,
-    description: row.description,
-    status: row.status,
-    priority: row.priority,
-    assignedTo: row.assigned_to,
-    assignedToEmail: row.assigned_to_email,
-    resolvedAt: row.resolved_at,
-    closedAt: row.closed_at,
-    dueAt: row.due_at,
-    firstResponseAt: row.first_response_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: row.id as string,
+    ticketNumber: row.ticket_number as string,
+    workspaceId: row.workspace_id as string,
+    workspaceSlug: row.workspace_slug as string,
+    userId: row.user_id as string,
+    userEmail: row.user_email as string,
+    subject: row.subject as string,
+    description: row.description as string,
+    status: row.status as SupportTicket["status"],
+    priority: row.priority as SupportTicket["priority"],
+    assignedTo: row.assigned_to as string,
+    assignedToEmail: row.assigned_to_email as string,
+    resolvedAt: row.resolved_at as string,
+    closedAt: row.closed_at as string,
+    dueAt: row.due_at as string,
+    firstResponseAt: row.first_response_at as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapComment(row: any): TicketComment {
+function mapComment(row: Record<string, unknown>): TicketComment {
   return {
-    id: row.id,
-    ticketId: row.ticket_id,
-    authorId: row.author_id,
-    authorEmail: row.author_email,
-    isInternal: row.is_internal,
-    comment: row.comment,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    id: row.id as string,
+    ticketId: row.ticket_id as string,
+    authorId: row.author_id as string,
+    authorEmail: row.author_email as string,
+    isInternal: row.is_internal as boolean,
+    comment: row.comment as string,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
   };
 }
 
