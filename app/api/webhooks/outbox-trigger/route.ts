@@ -106,12 +106,8 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   
   if (!WEBHOOK_SECRET) {
-    if (process.env.NODE_ENV !== "production") {
-      logger.warn("[outbox-trigger] WEBHOOK_SECRET not set, allowing in dev mode");
-    } else {
-      logger.error("[outbox-trigger] WEBHOOK_SECRET not configured");
-      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
-    }
+    logger.error("[outbox-trigger] WEBHOOK_SECRET/CRON_SECRET not configured");
+    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
   } else if (authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
     logger.warn("[outbox-trigger] Unauthorized webhook attempt");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -281,7 +277,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Send to WhatsApp
-  const enableSend = process.env.ENABLE_WA_SEND !== "false";
+  const enableSend = process.env.ENABLE_WA_SEND === "true";
   let waMessageId: string | null = null;
   let sendError: string | null = null;
 

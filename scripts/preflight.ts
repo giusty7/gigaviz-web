@@ -96,6 +96,9 @@ const ENV_VARS: EnvVar[] = [
 
   // Cron
   { key: "CRON_SECRET", required: false, label: "Cron secret (scheduled jobs)", sensitive: true },
+  { key: "WEBHOOK_SECRET", required: false, label: "Webhook secret (internal endpoints)", sensitive: true },
+  { key: "BILLING_WEBHOOK_SECRET", required: false, label: "Billing webhook secret", sensitive: true },
+  { key: "WORKER_HEALTH_SECRET", required: false, label: "Worker health secret", sensitive: true },
 
   // Redis
   { key: "UPSTASH_REDIS_REST_URL", required: false, label: "Upstash Redis URL" },
@@ -213,6 +216,25 @@ function checkProductionConfig(): CheckResult[] {
     });
   }
 
+  if (
+    !process.env.BILLING_WEBHOOK_SECRET &&
+    !process.env.WEBHOOK_SECRET &&
+    !process.env.CRON_SECRET
+  ) {
+    results.push({
+      name: "BILLING_WEBHOOK_SECRET",
+      status: "warn",
+      message: "No billing webhook secret configured — /api/billing/webhook will reject requests",
+    });
+  }
+
+  if (process.env.META_WEBHOOK_VERIFY_TOKEN && !process.env.META_APP_SECRET) {
+    results.push({
+      name: "META_APP_SECRET",
+      status: "warn",
+      message: "META_WEBHOOK_VERIFY_TOKEN is set but META_APP_SECRET is missing",
+    });
+  }
   return results;
 }
 

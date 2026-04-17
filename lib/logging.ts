@@ -58,15 +58,47 @@ function scrubPII(value: unknown): unknown {
   return value;
 }
 
-// Async-local storage for request-scoped correlation IDs
-let correlationId: string | undefined;
+type CorrelationContext = { correlationId?: string };
+type CorrelationStorageLike = {
+  getStore: () => CorrelationContext | undefined;
+  enterWith: (store: CorrelationContext) => void;
+};
 
-export function setCorrelationId(id: string) {
-  correlationId = id;
+let correlationStorage: CorrelationStorageLike | null = null;
+let fallbackCorrelationId: string | undefined;
+
+function getCorrelationStorage(): CorrelationStorageLike | null {
+  if (typeof window !== "undefined") return null;
+  if (correlationStorage) return correlationStorage;
+
+  try {
+    // `eval("require")` avoids client-bundle static resolution of node:async_hooks.
+    const req = eval("require") as (id: string) => unknown;
+    const mod = req("node:async_hooks") as {
+      AsyncLocalStorage: new () => CorrelationStorageLike;
+    };
+    correlationStorage = new mod.AsyncLocalStorage();
+    return correlationStorage;
+  } catch {
+    return null;
+  }
+}
+
+export function setCorrelationId(id: string | undefined) {
+  const storage = getCorrelationStorage();
+  if (storage) {
+    const store = storage.getStore();
+    if (store) {
+      store.correlationId = id;
+    } else {
+      storage.enterWith({ correlationId: id });
+    }
+  }
+  fallbackCorrelationId = id;
 }
 
 export function getCorrelationId(): string | undefined {
-  return correlationId;
+  return getCorrelationStorage()?.getStore()?.correlationId ?? fallbackCorrelationId;
 }
 
 function formatLog(
@@ -83,7 +115,7 @@ function formatLog(
       timestamp,
       level,
       message,
-      correlationId: correlationId ?? undefined,
+      correlationId: getCorrelationId() ?? undefined,
       ...scrubbedMeta,
     };
   }

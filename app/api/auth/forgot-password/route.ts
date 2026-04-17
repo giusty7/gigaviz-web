@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getResendFromAuth } from "@/lib/email";
+import { rateLimitDb } from "@/lib/rate-limit";
 import { forgotPasswordSchema } from "@/lib/validation/auth";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
@@ -13,6 +14,15 @@ function getBaseUrl(req: NextRequest) {
 }
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ipLimit = await rateLimitDb(`auth:forgot-password:ip:${ip}`, {
+    windowMs: 60_000,
+    max: 10,
+  });
+  if (!ipLimit.ok) {
+    return NextResponse.json({ error: "rate_limited", resetAt: ipLimit.resetAt }, { status: 429 });
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = forgotPasswordSchema.safeParse(body);
 
@@ -22,6 +32,14 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   const { email } = parsed.data;
+  const emailLimit = await rateLimitDb(`auth:forgot-password:email:${email.toLowerCase()}`, {
+    windowMs: 15 * 60_000,
+    max: 5,
+  });
+  if (!emailLimit.ok) {
+    return NextResponse.json({ error: "rate_limited", resetAt: emailLimit.resetAt }, { status: 429 });
+  }
+
   const db = supabaseAdmin();
   const redirectTo = `${getBaseUrl(req)}/reset-password`;
 

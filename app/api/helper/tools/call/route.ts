@@ -58,8 +58,18 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
       );
     }
 
-    // Auto-execute if confirmed or autoExecute is true
-    if (call.status === "confirmed" || autoExecute) {
+    if (autoExecute && call.status !== "confirmed") {
+      return NextResponse.json(
+        {
+          error: "auto_execute_forbidden",
+          reason: "function_requires_confirmation",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Auto-execute only when function is already confirmed by policy
+    if (call.status === "confirmed") {
       const result = await executeFunction(call.id, workspaceId);
       
       return NextResponse.json({

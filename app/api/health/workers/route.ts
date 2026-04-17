@@ -7,12 +7,26 @@
  */
 
 import { logger } from "@/lib/logging";
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const WORKER_HEALTH_SECRET =
+  process.env.WORKER_HEALTH_SECRET ||
+  process.env.CRON_SECRET ||
+  process.env.WEBHOOK_SECRET ||
+  "";
+
+function safeTokenCompare(left: string, right: string) {
+  const leftBuf = Buffer.from(left, "utf8");
+  const rightBuf = Buffer.from(right, "utf8");
+  if (leftBuf.length !== rightBuf.length) return false;
+  return timingSafeEqual(leftBuf, rightBuf);
+}
 
 type WorkerHealth = {
   name: string;
@@ -22,12 +36,23 @@ type WorkerHealth = {
   details?: Record<string, unknown>;
 };
 
-export const GET = withErrorHandler(async () => {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   try {
-    // Create service role client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (!WORKER_HEALTH_SECRET) {
+      logger.error("[health-workers] secret missing (WORKER_HEALTH_SECRET/CRON_SECRET/WEBHOOK_SECRET)");
+      return NextResponse.json({ error: "config_error" }, { status: 500 });
+    }
+
+    const authHeader = req.headers.get("authorization") ?? "";
+    const bearerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice("Bearer ".length)
+      : "";
+
+    if (!safeTokenCompare(bearerToken, WORKER_HEALTH_SECRET)) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
+    const supabase = supabaseAdmin();
 
     const health: WorkerHealth[] = [];
     const now = new Date();

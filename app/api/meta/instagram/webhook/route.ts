@@ -7,28 +7,62 @@ import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { recordAuditEvent } from '@/lib/audit';
 
-const APP_SECRET = process.env.META_APP_SECRET!;
-const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN!;
+const APP_SECRET = process.env.META_APP_SECRET ?? "";
+const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN ?? "";
 
 // Verify webhook signature
-function verifySignature(payload: string, signature: string): boolean {
+function verifySignature(payload: string, signature: string, appSecret: string): boolean {
   if (!signature) return false;
   const [alg, hash] = signature.split('=');
   if (alg !== 'sha256') return false;
+  if (!/^[a-f0-9]{64}$/i.test(hash ?? "")) return false;
 
   const expectedHash = crypto
-    .createHmac('sha256', APP_SECRET)
+    .createHmac('sha256', appSecret)
     .update(payload)
-    .digest('hex');
+    .digest();
 
-  return crypto.timingSafeEqual(
-    Buffer.from(hash),
-    Buffer.from(expectedHash)
-  );
+  const provided = Buffer.from(hash, "hex");
+  if (provided.length !== expectedHash.length) return false;
+
+  return crypto.timingSafeEqual(provided, expectedHash);
+}
+
+async function updateThreadUnreadCount(
+  supabase: ReturnType<typeof supabaseAdmin>,
+  threadId: string,
+  preview: string
+) {
+  const nowIso = new Date().toISOString();
+  const { data: existing } = await supabase
+    .from("instagram_threads")
+    .select("unread_count")
+    .eq("id", threadId)
+    .maybeSingle();
+
+  const currentUnread = Number(existing?.unread_count ?? 0);
+  const nextUnread = Number.isFinite(currentUnread) && currentUnread >= 0
+    ? currentUnread + 1
+    : 1;
+
+  await supabase
+    .from("instagram_threads")
+    .update({
+      last_message_at: nowIso,
+      last_message_preview: preview,
+      unread_count: nextUnread,
+      updated_at: nowIso,
+    })
+    .eq("id", threadId);
 }
 
 // GET: Webhook verification
 export async function GET(request: NextRequest) {
+  if (!VERIFY_TOKEN) {
+    logger.error("[Instagram] META_WEBHOOK_VERIFY_TOKEN missing");
+    return NextResponse.json({ error: "Webhook verify token not configured" }, { status: 500 });
+  }
+
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get('hub.mode');
   const token = searchParams.get('hub.verify_token');
@@ -45,11 +79,16 @@ export async function GET(request: NextRequest) {
 // POST: Process webhook events
 export async function POST(request: NextRequest) {
   try {
+    if (!APP_SECRET) {
+      logger.error("[Instagram] META_APP_SECRET missing");
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+    }
+
     const body = await request.text();
     const signature = request.headers.get('x-hub-signature-256') || '';
 
     // Verify signature
-    if (!verifySignature(body, signature)) {
+    if (!verifySignature(body, signature, APP_SECRET)) {
       logger.error('[Instagram] Invalid signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
@@ -161,15 +200,11 @@ async function handleMessageEvent(event: {
       await supabase.from('instagram_messages').insert(messageData);
 
       // Update thread last_message
-      await supabase
-        .from('instagram_threads')
-        .update({
-          last_message_at: new Date().toISOString(),
-          last_message_preview: message.text?.substring(0, 100) || '[Media]',
-          unread_count: supabase.rpc('increment', { x: 1 }),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', threadId);
+      await updateThreadUnreadCount(
+        supabase,
+        threadId,
+        message.text?.substring(0, 100) || '[Media]'
+      );
 
       // Log audit
       await recordAuditEvent({

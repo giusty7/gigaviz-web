@@ -64,13 +64,12 @@ export async function requireAdminWorkspace(req: NextRequest) {
     .from("workspace_members")
     .select("workspace_id, role")
     .eq("user_id", user.id)
+    .limit(1)
     .maybeSingle();
 
-  const fallbackWs = process.env.DEFAULT_WORKSPACE_ID;
-
   const member = wm as WorkspaceMemberRow | null;
-  const workspaceId = member?.workspace_id || (fallbackWs ? fallbackWs : null);
-  const role = member?.role;
+  const workspaceId = member?.workspace_id ?? null;
+  const role = member?.role ?? null;
 
   if (!workspaceId) {
     return {
@@ -119,13 +118,12 @@ export async function requireAdminOrSupervisorWorkspace(req: NextRequest) {
     .from("workspace_members")
     .select("workspace_id, role")
     .eq("user_id", user.id)
+    .limit(1)
     .maybeSingle();
 
-  const fallbackWs = process.env.DEFAULT_WORKSPACE_ID;
-
   const member = wm as WorkspaceMemberRow | null;
-  const workspaceId = member?.workspace_id || (fallbackWs ? fallbackWs : null);
-  const role = member?.role ?? "admin";
+  const workspaceId = member?.workspace_id ?? null;
+  const role = member?.role ?? null;
 
   if (!workspaceId) {
     return {

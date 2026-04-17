@@ -84,13 +84,11 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   const authHeader = req.headers.get("authorization");
 
   if (!CRON_SECRET) {
-    if (process.env.NODE_ENV !== "production") {
-      logger.warn("[outbox-worker] CRON_SECRET not set, allowing in dev mode");
-    } else {
-      logger.error("[outbox-worker] CRON_SECRET not configured in production");
-      return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-    }
-  } else if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    logger.error("[outbox-worker] CRON_SECRET not configured");
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
+
+  if (authHeader !== `Bearer ${CRON_SECRET}`) {
     logger.warn("[outbox-worker] unauthorized cron attempt");
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }

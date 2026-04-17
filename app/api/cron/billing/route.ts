@@ -23,9 +23,14 @@ const CRON_SECRET = process.env.CRON_SECRET || process.env.VERCEL_CRON_SECRET ||
  */
 export const GET = withErrorHandler(async (req: NextRequest) => {
   // Verify cron secret
+  if (!CRON_SECRET) {
+    logger.error("[billing-cron] CRON_SECRET/VERCEL_CRON_SECRET not configured");
+    return NextResponse.json({ error: "config_error" }, { status: 500 });
+  }
+
   const authHeader = req.headers.get("authorization");
   const cronSecret = authHeader?.replace("Bearer ", "") ?? "";
-  if (CRON_SECRET && cronSecret !== CRON_SECRET) {
+  if (cronSecret !== CRON_SECRET) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

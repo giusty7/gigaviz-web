@@ -86,14 +86,13 @@ function getVerifyToken() {
   );
 }
 
-function verifySignature(raw: string, header: string | null) {
-  const secret = process.env.META_APP_SECRET;
-  if (!secret) return true; // if not configured, skip strict verification
+function verifySignature(raw: string, header: string | null, secret: string) {
   if (!header || !header.startsWith("sha256=")) return false;
-  const signature = header.slice("sha256=".length);
-  const hmac = createHmac("sha256", secret).update(raw, "utf-8").digest("hex");
+  const signature = header.slice("sha256=".length).trim();
+  if (!/^[a-f0-9]{64}$/i.test(signature)) return false;
+
   const sigBuf = Buffer.from(signature, "hex");
-  const hmacBuf = Buffer.from(hmac, "hex");
+  const hmacBuf = createHmac("sha256", secret).update(raw, "utf-8").digest();
   return sigBuf.length === hmacBuf.length && timingSafeEqual(sigBuf, hmacBuf);
 }
 
@@ -126,8 +125,21 @@ export async function handleMetaWhatsAppWebhook(req: NextRequest) {
     );
   }
 
+  const appSecret = process.env.META_APP_SECRET;
+  if (!appSecret) {
+    logger.error("[meta-webhook] META_APP_SECRET missing");
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "misconfigured_webhook",
+        message: "META_APP_SECRET is not configured",
+      },
+      { status: 500 }
+    );
+  }
+
   const signatureHeader = req.headers.get("x-hub-signature-256");
-  if (!verifySignature(raw, signatureHeader)) {
+  if (!verifySignature(raw, signatureHeader, appSecret)) {
     return NextResponse.json(
       { ok: false, code: "invalid_signature", message: "Signature mismatch" },
       { status: 401 }

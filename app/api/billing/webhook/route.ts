@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
@@ -7,6 +8,19 @@ import { settlePaymentIntentPaid } from "@/lib/billing/topup";
 import { withErrorHandler } from "@/lib/api/with-error-handler";
 
 export const runtime = "nodejs";
+
+const BILLING_WEBHOOK_SECRET =
+  process.env.BILLING_WEBHOOK_SECRET ||
+  process.env.WEBHOOK_SECRET ||
+  process.env.CRON_SECRET ||
+  "";
+
+function safeTokenCompare(left: string, right: string) {
+  const leftBuf = Buffer.from(left, "utf8");
+  const rightBuf = Buffer.from(right, "utf8");
+  if (leftBuf.length !== rightBuf.length) return false;
+  return timingSafeEqual(leftBuf, rightBuf);
+}
 
 const schema = z.object({
   provider: z.string().optional().default("manual"),
@@ -18,6 +32,20 @@ const schema = z.object({
 });
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
+  if (!BILLING_WEBHOOK_SECRET) {
+    logger.error("[billing-webhook] secret missing (BILLING_WEBHOOK_SECRET/WEBHOOK_SECRET/CRON_SECRET)");
+    return NextResponse.json({ error: "config_error" }, { status: 500 });
+  }
+
+  const authHeader = req.headers.get("authorization") ?? "";
+  const bearerToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : "";
+
+  if (!safeTokenCompare(bearerToken, BILLING_WEBHOOK_SECRET)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const limiter = rateLimit(`billing-webhook`, { windowMs: 60_000, max: 60 });
   if (!limiter.ok) {
     return NextResponse.json({ error: "rate_limited", resetAt: limiter.resetAt }, { status: 429 });

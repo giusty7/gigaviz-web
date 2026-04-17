@@ -122,6 +122,9 @@ export function withErrorHandler(handler: HandlerInput): ApiHandler {
         },
         { status: 500 }
       );
+    } finally {
+      // Prevent correlation ID bleed into unrelated subsequent requests
+      setCorrelationId(undefined);
     }
   };
 }

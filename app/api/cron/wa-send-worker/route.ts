@@ -21,19 +21,15 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   // Verify authorization
   const authHeader = req.headers.get("authorization");
   
-  // Security check
   if (!CRON_SECRET) {
-    // Dev mode: allow without secret for local testing
-    if (process.env.NODE_ENV !== "production") {
-      logger.warn("[wa-send-worker] CRON_SECRET not set, allowing in dev mode");
-    } else {
-      logger.error("[wa-send-worker] CRON_SECRET not configured in production");
-      return NextResponse.json(
-        { error: "CRON_SECRET not configured" },
-        { status: 500 }
-      );
-    }
-  } else if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    logger.error("[wa-send-worker] CRON_SECRET not configured");
+    return NextResponse.json(
+      { error: "CRON_SECRET not configured" },
+      { status: 500 }
+    );
+  }
+
+  if (authHeader !== `Bearer ${CRON_SECRET}`) {
     logger.warn("[wa-send-worker] unauthorized cron attempt", {
       hasAuth: !!authHeader,
     });

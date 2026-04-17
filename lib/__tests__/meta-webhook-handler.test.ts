@@ -233,7 +233,7 @@ describe("handleMetaWhatsAppWebhook", () => {
     expect(response.status).not.toBe(401);
   });
 
-  it("skips signature check when META_APP_SECRET is not set", async () => {
+  it("returns 500 when META_APP_SECRET is not set", async () => {
     delete process.env.META_APP_SECRET;
 
     const body = JSON.stringify({
@@ -248,9 +248,10 @@ describe("handleMetaWhatsAppWebhook", () => {
     });
 
     const response = await handleMetaWhatsAppWebhook(req);
+    const json = await response.json();
 
-    // No secret = skip verification, should not be 401
-    expect(response.status).not.toBe(401);
+    expect(response.status).toBe(500);
+    expect(json.code).toBe("misconfigured_webhook");
   });
 
   it("returns 400 for empty body", async () => {
@@ -270,14 +271,8 @@ describe("handleMetaWhatsAppWebhook", () => {
   });
 
   it("returns 400 for invalid JSON body", async () => {
-    delete process.env.META_APP_SECRET;
-
     const body = "this is not json {{{";
-    const req = new NextRequest("http://localhost:3000/api/webhooks/meta/whatsapp", {
-      method: "POST",
-      body,
-      headers: { "Content-Type": "application/json" },
-    });
+    const req = createSignedRequest(body);
 
     const response = await handleMetaWhatsAppWebhook(req);
     const json = await response.json();

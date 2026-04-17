@@ -174,56 +174,170 @@ async function executeWebhookHandler(
 
 async function sendWhatsAppMessage(params: Record<string, unknown>, workspaceId: string) {
   const { supabaseAdmin } = await import("@/lib/supabase/admin");
+  const { normalizePhone } = await import("@/lib/meta/wa-contacts-utils");
   const db = supabaseAdmin();
 
-  // Get phone number ID
-  const { data: phoneNumbers } = await db
-    .from("wa_phone_numbers")
-    .select("id")
-    .eq("workspace_id", workspaceId)
-    .eq("is_active", true)
-    .limit(1);
+  const phoneInput = String(params.phoneNumber ?? params.phone ?? "").trim();
+  const messageText = String(params.message ?? params.text ?? "").trim();
 
-  if (!phoneNumbers || phoneNumbers.length === 0) {
-    throw new Error("No active WhatsApp number found");
+  if (!phoneInput) {
+    throw new Error("phoneNumber is required");
+  }
+  if (!messageText) {
+    throw new Error("message is required");
   }
 
-  // Create outbox message
-  const { data: message, error } = await db
-    .from("wa_outbox")
+  const toPhone = normalizePhone(phoneInput);
+  const now = new Date().toISOString();
+
+  // Resolve active WhatsApp connection for this workspace
+  const { data: connection, error: connectionError } = await db
+    .from("wa_phone_numbers")
+    .select("id, phone_number_id, status")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (connectionError || !connection) {
+    throw new Error("No active WhatsApp number found");
+  }
+  if (!connection.phone_number_id) {
+    throw new Error("Active WhatsApp connection missing phone_number_id");
+  }
+
+  // Ensure thread exists so wa_messages/outbox stay consistent with worker expectations
+  const { data: thread, error: threadError } = await db
+    .from("wa_threads")
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        phone_number_id: connection.phone_number_id,
+        contact_wa_id: toPhone,
+        status: "open",
+        connection_id: connection.id,
+      },
+      { onConflict: "workspace_id,phone_number_id,contact_wa_id" }
+    )
+    .select("id")
+    .single();
+
+  if (threadError || !thread) {
+    throw new Error(threadError?.message ?? "Failed to upsert WhatsApp thread");
+  }
+
+  // Create wa_messages row first (required by outbox worker for status updates)
+  const { data: queuedMessage, error: queuedMessageError } = await db
+    .from("wa_messages")
     .insert({
       workspace_id: workspaceId,
-      connection_id: phoneNumbers[0].id,
-      recipient_phone: params.phoneNumber as string,
+      thread_id: thread.id,
+      phone_number_id: connection.phone_number_id,
+      connection_id: connection.id,
+      wa_message_id: null,
+      direction: "outbound",
+      type: "text",
+      msg_type: "text",
+      status: "queued",
+      status_at: now,
+      status_updated_at: now,
+      delivered_at: null,
+      read_at: null,
+      failed_at: null,
+      error_code: null,
+      error_message: null,
+      text_body: messageText,
+      payload_json: { request: { to: toPhone, text: messageText } },
+      wa_timestamp: now,
+      sent_at: null,
+      created_at: now,
+      from_wa_id: connection.phone_number_id,
+      to_wa_id: toPhone,
+    })
+    .select("id")
+    .single();
+
+  if (queuedMessageError || !queuedMessage) {
+    throw new Error(queuedMessageError?.message ?? "Failed to create outbound message");
+  }
+
+  const idempotencyKey = `helper-send:${workspaceId}:${thread.id}:${Date.now()}`;
+
+  // Create outbox message
+  const { data: outboxItem, error: outboxError } = await db
+    .from("outbox_messages")
+    .insert({
+      workspace_id: workspaceId,
+      thread_id: thread.id,
+      connection_id: connection.id,
+      to_phone: toPhone,
       message_type: "text",
-      text_content: params.message as string,
-      status: "pending",
+      payload: {
+        message_id: queuedMessage.id,
+        text: messageText,
+        connection_id: connection.id,
+        phone_number_id: connection.phone_number_id,
+      },
+      idempotency_key: idempotencyKey,
+      status: "queued",
+      attempts: 0,
+      next_run_at: now,
+      next_attempt_at: now,
     })
     .select()
     .single();
 
-  if (error) throw error;
+  if (outboxError) throw outboxError;
 
   return {
     success: true,
-    messageId: message.id,
+    messageId: queuedMessage.id,
+    outboxId: outboxItem.id,
+    threadId: thread.id,
     status: "queued",
   };
 }
 
 async function createContact(params: Record<string, unknown>, workspaceId: string) {
   const { supabaseAdmin } = await import("@/lib/supabase/admin");
+  const { normalizePhone } = await import("@/lib/meta/wa-contacts-utils");
   const db = supabaseAdmin();
+
+  const phoneInput = String(params.phoneNumber ?? params.phone ?? "").trim();
+  if (!phoneInput) {
+    throw new Error("phoneNumber is required");
+  }
+
+  const normalizedPhone = normalizePhone(phoneInput);
+  const waId = normalizedPhone;
+  const displayName = String(params.name ?? params.display_name ?? "").trim() || null;
+  const tags = Array.isArray(params.tags)
+    ? params.tags.filter((tag): tag is string => typeof tag === "string")
+    : [];
+
+  const customFields: Record<string, unknown> = {};
+  if (params.custom_fields && typeof params.custom_fields === "object") {
+    Object.assign(customFields, params.custom_fields as Record<string, unknown>);
+  }
+  if (typeof params.email === "string" && params.email.trim().length > 0) {
+    customFields.email = params.email.trim();
+  }
 
   const { data: contact, error } = await db
     .from("wa_contacts")
-    .insert({
-      workspace_id: workspaceId,
-      phone: params.phoneNumber as string,
-      name: params.name as string | null,
-      email: params.email as string | null,
-      tags: (params.tags as string[]) ?? [],
-    })
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        wa_id: waId,
+        normalized_phone: normalizedPhone,
+        display_name: displayName,
+        tags,
+        custom_fields: customFields,
+        source: "helper_tool",
+      },
+      { onConflict: "workspace_id,wa_id" }
+    )
     .select()
     .single();
 
@@ -238,17 +352,59 @@ async function createContact(params: Record<string, unknown>, workspaceId: strin
 
 async function updateContact(params: Record<string, unknown>, workspaceId: string) {
   const { supabaseAdmin } = await import("@/lib/supabase/admin");
+  const { normalizePhone } = await import("@/lib/meta/wa-contacts-utils");
   const db = supabaseAdmin();
 
+  const contactId = String(params.contactId ?? "").trim();
+  if (!contactId) {
+    throw new Error("contactId is required");
+  }
+
   const updates: Record<string, unknown> = {};
-  if (params.name) updates.name = params.name;
-  if (params.email) updates.email = params.email;
-  if (params.tags) updates.tags = params.tags;
+  if (typeof params.name === "string") updates.display_name = params.name;
+  if (typeof params.display_name === "string") updates.display_name = params.display_name;
+
+  if (params.tags && Array.isArray(params.tags)) {
+    updates.tags = params.tags.filter((tag): tag is string => typeof tag === "string");
+  }
+
+  const phoneInput = String(params.phoneNumber ?? params.phone ?? "").trim();
+  if (phoneInput) {
+    const normalizedPhone = normalizePhone(phoneInput);
+    updates.normalized_phone = normalizedPhone;
+    updates.wa_id = normalizedPhone;
+  }
+
+  if (typeof params.email === "string" || (params.custom_fields && typeof params.custom_fields === "object")) {
+    const { data: existingContact } = await db
+      .from("wa_contacts")
+      .select("custom_fields")
+      .eq("id", contactId)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+
+    const customFields: Record<string, unknown> =
+      existingContact?.custom_fields && typeof existingContact.custom_fields === "object"
+        ? { ...(existingContact.custom_fields as Record<string, unknown>) }
+        : {};
+
+    if (typeof params.email === "string" && params.email.trim().length > 0) {
+      customFields.email = params.email.trim();
+    }
+    if (params.custom_fields && typeof params.custom_fields === "object") {
+      Object.assign(customFields, params.custom_fields as Record<string, unknown>);
+    }
+    updates.custom_fields = customFields;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new Error("No valid fields to update");
+  }
 
   const { data: contact, error } = await db
     .from("wa_contacts")
     .update(updates)
-    .eq("id", params.contactId as string)
+    .eq("id", contactId)
     .eq("workspace_id", workspaceId)
     .select()
     .single();
@@ -275,7 +431,9 @@ async function tagContact(params: Record<string, unknown>, workspaceId: string) 
 
   if (!contact) throw new Error("Contact not found");
 
-  let tags = contact.tags ?? [];
+  let tags = Array.isArray(contact.tags)
+    ? contact.tags.filter((tag: unknown): tag is string => typeof tag === "string")
+    : [];
   
   // Add tags
   if (params.addTags) {
@@ -330,20 +488,22 @@ async function searchContacts(params: Record<string, unknown>, workspaceId: stri
     .select("*")
     .eq("workspace_id", workspaceId);
 
-  if (params.query) {
-    const searchTerm = `%${params.query}%`;
-    query = query.or(`name.ilike.${searchTerm},phone.ilike.${searchTerm}`);
+  const search = typeof params.query === "string" ? params.query.trim() : "";
+  if (search) {
+    const searchTerm = `%${search}%`;
+    query = query.or(`display_name.ilike.${searchTerm},normalized_phone.ilike.${searchTerm}`);
   }
 
   if (params.tags && Array.isArray(params.tags)) {
-    query = query.contains("tags", params.tags);
+    const tags = params.tags.filter((tag): tag is string => typeof tag === "string");
+    if (tags.length > 0) {
+      query = query.contains("tags", tags);
+    }
   }
 
-  if (params.limit) {
-    query = query.limit(params.limit as number);
-  } else {
-    query = query.limit(10);
-  }
+  const limitRaw = Number(params.limit ?? 10);
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 100) : 10;
+  query = query.limit(limit);
 
   const { data: contacts } = await query;
 
